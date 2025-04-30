@@ -1,0 +1,16 @@
+CREATE SCHEMA survey AUTHORIZATION survey_owner;
+GRANT USAGE on SCHEMA survey to survey_user;
+
+CREATE SCHEMA surveyadmin AUTHORIZATION surveyadmin_owner;
+GRANT USAGE on SCHEMA surveyadmin to surveyadmin_user;
+
+CREATE SCHEMA surveyreport AUTHORIZATION surveyreport_owner;
+GRANT USAGE on SCHEMA surveyreport to surveyreport_user;
+GRANT USAGE on SCHEMA surveyreport to surveyadmin_user;
+GRANT USAGE on SCHEMA surveyreport to survey_user;
+
+GRANT USAGE, CREATE ON SCHEMA surveyreport TO dbowner;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA surveyreport TO dbowner;
+ALTER DEFAULT PRIVILEGES IN SCHEMA surveyreport GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO dbowner;
+GRANT USAGE ON ALL SEQUENCES IN SCHEMA surveyreport TO dbowner;
+ALTER DEFAULT PRIVILEGES IN SCHEMA surveyreport GRANT USAGE ON SEQUENCES TO dbowner;

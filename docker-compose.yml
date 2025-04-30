@@ -1,0 +1,90 @@
+
+#This file will setup a docker network named elicit (or what ever directory it is run from)
+# It will then create 4 containers:
+#   1. db - postgres database
+#   2. survey - the survey application
+#   3. fhhs - the family health history survey
+#   4. pedigree - the service for drawing pedigrees
+#
+# The containers initialize the database when they start.
+# However, they need to run in the correct order.
+# When the Survey container starts it will create the database tables.
+# When the FHHS container starts it will insert the data for the Family Health History Survey.
+# The FHHS will fail as it is trying to build database views based on the Dimensional data tables in the database
+# that do not exist yet.
+# When you restart the Survey container it will create the Dimensional database tables used for the new survey
+# for use in reporting.
+# Then when the FHHS container is restarted it should find the tables and create the views.
+#
+# So in order for the application to be fully configured you will need to start the containers multiple times using the following commands:
+# 1. docker-compose up -d
+# 2. Wait for 30 seconds or until the FHHS container stops.
+# 2. docker-compose restart
+# 2. Wait for 30 seconds or until the FHHS container stops.
+# 3. docker-compose restart
+#
+# For Mac and Linux users these can be combined into a single command:
+# docker compose up -d && sleep 15 && docker compose restart && sleep 15 && docker compose restart && sleep 15 && echo "Initialization complete Please visit http://localhost:8080"
+#
+# For Windows users you can use the following command:
+# docker-compose up -d && timeout /t 15 && docker-compose restart && timeout /t 15 && docker-compose restart && timeout /t 15 && echo "Initialization complete Please visit http://localhost:8080"
+#
+# The application will be available at the following URL: http://localhost:8080
+
+services:
+  db:
+    image: elicitsoftware/elicit_db:1.0.0-alpha.1
+    # Setup the directories to persist data between starts.
+    # if you need to reset your database you can delete the PGDATA directory and restart the containers
+    # this will cause the database to be recreated.
+    volumes:
+      - ./postgresql/PGDATA:/var/lib/postgresql/data
+    ports:
+      - 5452:5432
+    environment:
+      POSTGRES_USER: "survey"
+      POSTGRES_PASSWORD: "admin"
+      PGDATA: "/var/lib/postgresql/data/pgdata"
+      TZ: "America/Detroit"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U survey"]
+      interval: 15s
+      timeout: 5s
+      retries: 15
+  survey:
+    image: elicitsoftware/survey:1.0.0-alpha.1
+    ports:
+      - 8080:8080
+    environment:
+     # AutoRegister allows for users to type in any token for testing.
+     # The Admin tool is used to create tokens and manage respondents.
+     # Remove this for production, the default is false.
+      - token.autoRegister=true
+      - fhhs.url=http://fhhs:8080
+    healthcheck:
+        test: ["CMD", "curl", "--head","fsS", "http://localhost:8080/q/health/ready"]
+        interval: 15s
+        timeout: 5s
+        retries: 20
+    depends_on:
+      - db
+  fhhs:
+    image: elicitsoftware/fhhs:1.0.0-alpha.1
+    #open this port for local testing. It is not needed for inter container communication.
+    ports:
+      - 8081:8080
+    healthcheck:
+        test: ["CMD", "curl", "--head","fsS", "http://localhost:8081/q/health/ready"]
+        interval: 15s
+        timeout: 5s
+        retries: 20
+    environment:
+      - pedigree.url=http://pedigree:8000/svg
+    depends_on:
+      - db
+      - survey
+  pedigree:
+    image: elicitsoftware/pedigree:1.0.0-alpha.1
+    #open this port for local testing. It is not needed for inter container communication.
+    ports:
+      - 8082:8000
