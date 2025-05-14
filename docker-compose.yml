@@ -88,3 +88,17 @@ services:
     #open this port for local testing. It is not needed for inter container communication.
     ports:
       - 8082:8000
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.2.3
+    command: start-dev --import-realm
+    ports:
+      - "8180:8080"
+    environment:
+      - KC_BOOTSTRAP_ADMIN_USERNAME=admin
+      - KC_BOOTSTRAP_ADMIN_PASSWORD=admin
+      - KC_DB=dev-file
+      - KC_DB_URL=jdbc:h2:file:/h2/keycloakdb;NON_KEYWORDS=VALUE
+    volumes:
+      - ./keycloak:/opt/keycloak/data/import
+      - ./keycloak/db:/h2
+    restart: unless-stopped

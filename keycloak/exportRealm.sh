@@ -1,0 +1,1 @@
+docker exec -it elicit-keycloak-1 sh -c "/opt/keycloak/bin/kc.sh export --log-level info --file /opt/keycloak/data/import/elicit-realm-export.json --realm elicit --users same_file"

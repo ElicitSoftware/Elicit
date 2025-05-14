@@ -1,6 +1,10 @@
-/fhhs
-/survey
-/pedigree
+/Admin
+/FHHS
+/Survey
+/Pedigree
+/keycloak/db
+/keycloak/elicit-realm-export.json
+/vaadin-quarkus-keycloak
 /postgresql/PGDATA
 .DS_Store
 .vscode
