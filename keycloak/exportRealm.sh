@@ -1,1 +1,1 @@
-docker exec -it elicit-keycloak-1 sh -c "/opt/keycloak/bin/kc.sh export --log-level info --file /opt/keycloak/data/import/elicit-realm-export.json --realm elicit --users same_file"
+docker exec -it elicit-keycloak-1 sh -c "cp -rp /h2 /tmp; /opt/keycloak/bin/kc.sh export --log-level info --file /opt/keycloak/data/import/elicit-realm-export.json --realm elicit --users same_file --optimized --db-url 'jdbc:h2:file:/tmp/h2/keycloakdb;NON_KEYWORDS=VALUE' --http-management-port 9001"
