@@ -42,49 +42,48 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
   <p align="left">
-    The Elicit Software was designed and developed by <a href="https://www.michiganmedicine.org/">Michigan Medicine</a>. It is a modular system to build an deliver complex surveys with custom reporting. <br/>
-    The modules are:
+    Elicit Software was designed and developed by <a href="https://www.michiganmedicine.org/">Michigan Medicine</a>. It is a modular system to build and deliver complex surveys with custom reporting.<br/>
+    The modules include:
     <ul>
-    <li><a href=https://github.com/ElicitSoftware/Admin/>Admin</a><br/>
+    <li><a href="https://github.com/ElicitSoftware/Admin/">Admin</a><br/>
       <ul>
-      <li>Expected Release in Summer 2025</li>
-      <li>The Admin application is used by the survey administrators to register subjects, view survey progress and view final reports.</li>
+      <li>Expected release in Summer 2025</li>
+      <li>The Admin application is used by survey administrators to register subjects, view survey progress, and view final reports.</li>
       </ul>
     </li>
-    <li><a href=https://github.com/ElicitSoftware/Author/>Author</a><br/>
+    <li><a href="https://github.com/ElicitSoftware/Author/">Author</a><br/>
       <ul>
-        <li>Expected Release in Winter 2025/26</li>
-        <li>This tool will allow users to design new surveys with:</li>
+        <li>Expected release in Winter 2025/26</li>
+        <li>This tool allows users to design new surveys with:</li>
         <ul>
-          <li>Decision tree with branching logic to guide respondents through different survey paths based on their answers</li>
+          <li>Decision trees with branching logic to guide respondents through different survey paths based on their answers</li>
           <li>Text replacement to dynamically insert values or responses into survey questions and instructions</li>
           <li>Repeatable items to allow sections or questions to be repeated for multiple entries (e.g., family members, medications)</li>
         </ul>
       </ul>
     </li>
-    <li><a href=https://github.com/ElicitSoftware/Survey/>Survey</a><br/>
+    <li><a href="https://github.com/ElicitSoftware/Survey/">Survey</a><br/>
       <ul>
         <li>The subject-facing application that presents questions, guides users through the decision tree, records answers, and produces final reports.</li>
       </ul>
     </li>
-    <li><a href=https://github.com/ElicitSoftware/FHHS/>Family Health History Survey (FHHS)</a><br/>
+    <li><a href="https://github.com/ElicitSoftware/FHHS/">Family Health History Survey (FHHS)</a><br/>
       <ul>
-       <li>A fully functioning Elicit Survey created to support the <a href="https://info.mightstudy.org/">Michigan Genetic Hereditary Testing Study</a></li>
+       <li>A fully functioning Elicit Survey created to support the <a href="https://info.mightstudy.org/">Michigan Genetic Hereditary Testing Study</a>.</li>
        <li>The FHHS has been shared under an open source license for all cancer oncology practices to use and adapt.</li>
       </ul>
     </li>
-    <li><a href=https://github.com/ElicitSoftware/Pedigree/>Pedigree</a><br/>
+    <li><a href="https://github.com/ElicitSoftware/Pedigree/">Pedigree</a><br/>
       <ul>
-        <li>A docker container to serve the Kinship2 R package. This container supports the visual drawing of family pedigrees for the FHHS Survey </li>
+        <li>A Docker container to serve the <a href="https://cran.r-project.org/web/packages/kinship2/index.html">Kinship2</a> R package. This container supports the visual drawing of family pedigrees for the FHHS Survey.</li>
       </ul>
     </li>
-    <li><a href=https://github.com/ElicitSoftware/Elicit/tree/main/postgresql/>PostgreSQL Database</a><br/>
+    <li><a href="https://github.com/ElicitSoftware/Elicit/tree/main/postgresql/">PostgreSQL Database</a><br/>
       <ul>
-        <li>An open source object-relational database used for storing decision tree logic and data</li>
+        <li>An open source object-relational database used to store decision tree logic and data.</li>
       </ul>
     </li>
     </ul>
-
   </p>
 
 <!-- [![Product Name Screen Shot][product-screenshot]](https://example.com)
@@ -107,15 +106,15 @@ Here's a blank template to get started. To avoid retyping too much info, do a se
 
 <!-- GETTING STARTED -->
 ## Getting Started
-The easiest way to see Elicit Software in action is to check out the <a href=https://github.com/ElicitSoftware/FHHS/>Family Health History Survey</a>.
+The easiest way to see Elicit Software in action is to check out the <a href="https://github.com/ElicitSoftware/FHHS/">Family Health History Survey</a>.
 
 <!-- USAGE EXAMPLES -->
 ## Usage
 To use the Elicit System:
 
 1. **Download the Authoring Tool** (available Winter 2025/26).
-2. **Create a New Survey** using the Authoring Tool.
-3. **Publish the Survey** to the database.
+2. **Create a new survey** using the Authoring Tool.
+3. **Publish the survey** to the database.
 
 Next, use the **Admin application** to:
 
@@ -126,10 +125,8 @@ Next, use the **Admin application** to:
 Subjects receive the email, follow the link, and enter their token in the Elicit Software to complete the questionnaire.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
-
 <!-- ROADMAP
 ## Roadmap
-
 - [ ] Feature 1
 - [ ] Feature 2
 - [ ] Feature 3
@@ -148,11 +145,11 @@ Contributions are what make the open source community such an amazing place to l
 If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement".
 Don't forget to give the project a star! Thanks again!
 
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+1. Fork the project
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a pull request
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -176,12 +173,11 @@ Distributed under the PolyForm Noncommercial License 1.0.0. See `LICENSE.md` for
 <!-- CONTACT -->
 ## Contact
 
-Matthew Demerath - m.demerath@elicitsoftware.com
+Matthew Demerath – m.demerath@elicitsoftware.com
 
 Project Link: [https://github.com/ElicitSoftware/Elicit](https://github.com/ElicitSoftware/Elicit)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
-
 
 <!-- ACKNOWLEDGMENTS -->
 ## Acknowledgments
@@ -192,8 +188,6 @@ Project Link: [https://github.com/ElicitSoftware/Elicit](https://github.com/Elic
 <br/>
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
 
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
