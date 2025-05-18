@@ -1,8 +1,8 @@
 CREATE SCHEMA survey AUTHORIZATION survey_owner;
 GRANT USAGE on SCHEMA survey to survey_user;
-
-CREATE SCHEMA surveyadmin AUTHORIZATION surveyadmin_owner;
-GRANT USAGE on SCHEMA surveyadmin to surveyadmin_user;
+GRANT USAGE on SCHEMA survey to surveyadmin_owner;
+GRANT USAGE on SCHEMA survey to surveyadmin_user;
+GRANT USAGE on SCHEMA survey to surveyreport_user;
 
 CREATE SCHEMA surveyreport AUTHORIZATION surveyreport_owner;
 GRANT USAGE on SCHEMA surveyreport to surveyreport_user;
