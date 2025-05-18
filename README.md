@@ -1,36 +1,218 @@
-## Elicit.Software
+<a id="readme-top"></a>
 
-## Description
+<!-- PROJECT SHIELDS -->
+<!--
+*** I'm using markdown "reference style" links for readability.
+*** Reference links are enclosed in brackets [ ] instead of parentheses ( ).
+*** See the bottom of this document for the declaration of the reference variables
+*** for contributors-url, forks-url, etc. This is an optional, concise syntax you may use.
+*** https://www.markdownguide.org/basic-syntax/#reference-style-links
+-->
+<!-- [![Contributors][contributors-shield]][contributors-url]
+[![Forks][forks-shield]][forks-url]
+[![Stargazers][stars-shield]][stars-url]
+[![Issues][issues-shield]][issues-url]
+[![project_license][license-shield]][https://polyformproject.org/licenses/noncommercial/1.0.0]
+[![LinkedIn][linkedin-shield]][linkedin-url] -->
 
-Elicit Software is a modular survey system. Survey is the base system
+<!-- Powered by Michigan -->
+<br />
+<div align="center">
+  <a href="https://github.com/elicitsoftware/elicit">
+    <img src="images/stacked.png" alt="Logo" width="15%" >
+  </a>
+<h3 align="center">Elicit Software</h3>
+  <p>Copyright © 2025 The Regents of the University of Michigan</p>
+</div>
+<!-- TABLE OF CONTENTS -->
+<details>
+  <summary>Table of Contents</summary>
+  <ol>
+    <li><a href="#built-with">Built With</a></li>
+    <li><a href="#getting-started">Getting Started</a></li>
+    <li><a href="#usage">Usage</a></li>
+    <!-- <li><a href="#roadmap">Roadmap</a></li> -->
+    <li><a href="#contributing">Contributing</a></li>
+    <li><a href="#license">License</a></li>
+    <li><a href="#contact">Contact</a></li>
+    <li><a href="#acknowledgments">Acknowledgments</a></li>
+  </ol>
+</details>
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+<!-- ABOUT THE PROJECT -->
+## About The Project
+  <p align="left">
+    Elicit Software was designed and developed by <a href="https://www.michiganmedicine.org/">Michigan Medicine</a>. It is a modular system to build and deliver complex surveys with custom reporting.<br/>
+    The modules include:
+    <ul>
+    <li><a href="https://github.com/ElicitSoftware/Admin/">Admin</a><br/>
+      <ul>
+      <li>Expected release in Summer 2025</li>
+      <li>The Admin application is used by survey administrators to register subjects, view survey progress, and view final reports.</li>
+      </ul>
+    </li>
+    <li><a href="https://github.com/ElicitSoftware/Author/">Author</a><br/>
+      <ul>
+        <li>Expected release in Winter 2025/26</li>
+        <li>This tool allows users to design new surveys with:</li>
+        <ul>
+          <li>Decision trees with branching logic to guide respondents through different survey paths based on their answers</li>
+          <li>Text replacement to dynamically insert values or responses into survey questions and instructions</li>
+          <li>Repeatable items to allow sections or questions to be repeated for multiple entries (e.g., family members, medications)</li>
+        </ul>
+      </ul>
+    </li>
+    <li><a href="https://github.com/ElicitSoftware/Survey/">Survey</a><br/>
+      <ul>
+        <li>The subject-facing application that presents questions, guides users through the decision tree, records answers, and produces final reports.</li>
+      </ul>
+    </li>
+    <li><a href="https://github.com/ElicitSoftware/FHHS/">Family Health History Survey (FHHS)</a><br/>
+      <ul>
+       <li>A fully functioning Elicit Survey created to support the <a href="https://info.mightstudy.org/">Michigan Genetic Hereditary Testing Study</a>.</li>
+       <li>The FHHS has been shared under an open source license for all cancer oncology practices to use and adapt.</li>
+      </ul>
+    </li>
+    <li><a href="https://github.com/ElicitSoftware/Pedigree/">Pedigree</a><br/>
+      <ul>
+        <li>A Docker container to serve the <a href="https://cran.r-project.org/web/packages/kinship2/index.html">Kinship2</a> R package. This container supports the visual drawing of family pedigrees for the FHHS Survey.</li>
+      </ul>
+    </li>
+    <li><a href="https://github.com/ElicitSoftware/Elicit/tree/main/postgresql/">PostgreSQL Database</a><br/>
+      <ul>
+        <li>An open source object-relational database used to store decision tree logic and data.</li>
+      </ul>
+    </li>
+    </ul>
+  </p>
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+<!-- [![Product Name Screen Shot][product-screenshot]](https://example.com)
 
+Here's a blank template to get started. To avoid retyping too much info, do a search and replace with your text editor for the following: `github_username`, `repo_name`, `twitter_handle`, `linkedin_username`, `email_client`, `email`, `project_title`, `project_description`, `project_license`
+ -->
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+### Built With
+
+[![Java][Java]][Java-url]
+[![Quarkus][Quarkus.io]][Quarkus-url]
+[![Vaadin][Vaadin.com]][Vaadin-url]
+[![Postgresql][Postgresql.com]][Postgresql-url]
+[![Maven][Maven.org]][Maven-url]
+[![Docker][Docker.com]][Docker-url]
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+<!-- GETTING STARTED -->
+## Getting Started
+The easiest way to see Elicit Software in action is to check out the <a href="https://github.com/ElicitSoftware/FHHS/">Family Health History Survey</a>.
+
+<!-- USAGE EXAMPLES -->
 ## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+To use the Elicit System:
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+1. **Download the Authoring Tool** (available Winter 2025/26).
+2. **Create a new survey** using the Authoring Tool.
+3. **Publish the survey** to the database.
 
+Next, use the **Admin application** to:
+
+- Register subjects.
+- Generate unique tokens for each subject.
+- Send invitation emails containing the survey link and token.
+
+Subjects receive the email, follow the link, and enter their token in the Elicit Software to complete the questionnaire.
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+<!-- ROADMAP
 ## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+- [ ] Feature 1
+- [ ] Feature 2
+- [ ] Feature 3
+    - [ ] Nested Feature
+ -->
 
+See the [open issues](https://github.com/ElicitSoftware/Elicit/issues) for a full list of proposed features (and known issues).
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+<!-- CONTRIBUTING -->
 ## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement".
+Don't forget to give the project a star! Thanks again!
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+1. Fork the project
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a pull request
 
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+<!-- ### Top contributors:
+
+<a href="https://github.com/ElicitSoftware/Elicit/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=ElicitSoftware/Elicit" alt="contrib.rocks image" />
+</a> -->
+
+<!-- LICENSE -->
 ## License
-For open source projects, say how it is licensed.
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+Distributed under the PolyForm Noncommercial License 1.0.0. See `LICENSE.md` for more information.
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+<!-- ## Journal Articles
+
+<p>Stoffel, E. M. and J. M. Carethers (2020). <a href="https://www-annualreviews-org.proxy.lib.umich.edu/doi/10.1146/annurev-med-052318-101009?url_ver=Z39.88-2003&amp;rfr_id=ori%3Arid%3Acrossref.org&amp;rfr_dat=cr_pub++0pubmed">&#8220;Current Approaches to Germline Cancer Genetic Testing.&#8221;</a> Annu Rev Med <b>71</b>: 85-102.</p> -->
+
+<!-- CONTACT -->
+## Contact
+
+Matthew Demerath – m.demerath@elicitsoftware.com
+
+Project Link: [https://github.com/ElicitSoftware/Elicit](https://github.com/ElicitSoftware/Elicit)
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+<!-- ACKNOWLEDGMENTS -->
+## Acknowledgments
+
+<!-- <a href="https://www.michiganmedicine.org"><img src="images/Rogel-Cancer_Logo-Horizontal-CMYK.png" height="30"></a><br/> -->
+<br/>
+<a href="https://info.mightstudy.org"><img src="images/MiGHT-shortlogo.png" height="50"></a><br/>
+<br/>
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+<!-- MARKDOWN LINKS & IMAGES -->
+<!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
+[contributors-shield]: https://img.shields.io/github/contributors/ElicitSoftware/Elicit.svg?style=for-the-badge
+[contributors-url]: https://github.com/ElicitSoftware/Elicit/graphs/contributors
+[forks-shield]: https://img.shields.io/github/forks/ElicitSoftware/Elicit.svg?style=for-the-badge
+[forks-url]: https://github.com/ElicitSoftware/Elicit/network/members
+[stars-shield]: https://img.shields.io/github/stars/ElicitSoftware/Elicit.svg?style=for-the-badge
+[stars-url]: https://github.com/ElicitSoftware/Elicit/stargazers
+[issues-shield]: https://img.shields.io/github/issues/ElicitSoftware/Elicit.svg?style=for-the-badge
+[issues-url]: https://github.com/ElicitSoftware/Elicit/issues
+[license-shield]: https://img.shields.io/github/license/ElicitSoftware/Elicit.svg?style=for-the-badge
+[license-url]: https://github.com/ElicitSoftware/Elicit/blob/master/LICENSE.txt
+[linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
+[linkedin-url]: https://linkedin.com/in/linkedin_username
+[product-screenshot]: images/screenshot.png
+[Quarkus.io]: https://img.shields.io/badge/quarkus-000000?style=for-the-badge&logo=quarkus&logoColor=white
+[Quarkus-url]: https://quarkus.io/
+[Vaadin.com]: https://img.shields.io/badge/Vaadin-20232A?style=for-the-badge&logo=vaadin&logoColor=61DAFB
+[Vaadin-url]: https://vaadin.com/
+[Postgresql.com]: https://img.shields.io/badge/postgresql-white?style=for-the-badge&logo=postgresql&logoColor=blue
+[Postgresql-url]: https://postgresql.org/
+[Docker.com]: https://img.shields.io/badge/docker-257bd6?style=for-the-badge&logo=docker&logoColor=white
+[Docker-url]: https://docker.com
+[Java]: https://img.shields.io/badge/Java-3a75b0?style=for-the-badge&logo=openjdk&logoColor=white
+[Java-url]: https://dev.java/
+[Maven.org]:https://img.shields.io/badge/MAVEN-000000?style=for-the-badge&logo=apachemaven&logoColor=blue
+[Maven-url]: https://maven.apache.org/
