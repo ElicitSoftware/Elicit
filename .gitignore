@@ -5,6 +5,7 @@
 /keycloak/db
 /keycloak/elicit-realm-export.json
 /vaadin-quarkus-keycloak
+/vaadin-quarkus-smtp
 /postgresql/PGDATA
 .DS_Store
 .vscode
