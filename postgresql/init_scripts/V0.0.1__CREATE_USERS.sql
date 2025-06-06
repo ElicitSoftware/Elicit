@@ -26,7 +26,7 @@ GRANT USAGE ON SCHEMA public TO dbuser;
 GRANT CONNECT ON DATABASE Survey TO dbuser;
 GRANT USAGE ON SCHEMA public TO dbuser;
 
-CREATE ROLE survey_owner WITH
+CREATE ROLE elicit_owner WITH
     LOGIN
     SUPERUSER
     INHERIT
@@ -34,8 +34,6 @@ CREATE ROLE survey_owner WITH
     NOCREATEROLE
     NOREPLICATION
     ENCRYPTED PASSWORD 'SURVEYPW';
-
-GRANT dbowner to survey_owner;
 
 CREATE ROLE survey_user WITH
   LOGIN
@@ -47,20 +45,9 @@ CREATE ROLE survey_user WITH
   ENCRYPTED PASSWORD 'SURVEYPW';
 
 -- I need to research this. I don't know if I want to give this much power to user.
--- In order to allow it to create tables. Maybe this function of the ETL Service belongs in the admin tool. 
--- GRANT dbuser TO survey_user; 
-GRANT dbowner TO survey_user;
-
-CREATE ROLE surveyadmin_owner WITH
-  LOGIN
-  SUPERUSER
-  INHERIT
-  NOCREATEDB
-  NOCREATEROLE
-  NOREPLICATION
-  ENCRYPTED PASSWORD 'SAOWNERPW';
-
-GRANT dbowner to surveyadmin_owner;
+-- In order to allow it to create tables. Maybe this function of the ETL Service belongs in the admin tool.
+-- GRANT dbuser TO survey_user;
+GRANT dbuser TO survey_user;
 
 CREATE ROLE surveyadmin_user WITH
   LOGIN
@@ -72,17 +59,6 @@ CREATE ROLE surveyadmin_user WITH
   ENCRYPTED PASSWORD 'SAOWNERPW';
 
 GRANT dbuser TO surveyadmin_user;
-
-CREATE ROLE surveyreport_owner WITH
-  LOGIN
-  SUPERUSER
-  INHERIT
-  NOCREATEDB
-  NOCREATEROLE
-  NOREPLICATION
-  ENCRYPTED PASSWORD 'SROWNERPW';
-
-GRANT dbowner to surveyreport_owner;
 
 CREATE ROLE surveyreport_user WITH
   LOGIN
