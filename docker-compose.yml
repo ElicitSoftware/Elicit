@@ -33,7 +33,7 @@
 
 services:
   db:
-    image: elicitsoftware/elicit_db:1.0.0-alpha.1
+    image: elicitsoftware/elicit_db:1.0.0-alpha.2
     # Setup the directories to persist data between starts.
     # if you need to reset your database you can delete the PGDATA directory and restart the containers
     # this will cause the database to be recreated.
@@ -52,7 +52,7 @@ services:
       timeout: 5s
       retries: 15
   survey:
-    image: elicitsoftware/survey:1.0.0-alpha.1
+    image: elicitsoftware/survey:1.0.0-alpha.2
     ports:
       - 8080:8080
     environment:
@@ -67,9 +67,9 @@ services:
         timeout: 5s
         retries: 20
     depends_on:
-      - db
+     - db
   fhhs:
-    image: elicitsoftware/fhhs:1.0.0-alpha.1
+    image: elicitsoftware/fhhs:1.0.0-alpha.2
     #open this port for local testing. It is not needed for inter container communication.
     ports:
       - 8081:8080
@@ -83,14 +83,30 @@ services:
     depends_on:
       - db
       - survey
+  # admin:
+  #   image: elicitsoftware/admin:latest
+  #   #open this port for local testing. It is not needed for inter container communication.
+  #   ports:
+  #     - 8083:8080
+  #   healthcheck:
+  #       test: ["CMD", "curl", "--head","fsS", "http://localhost:8081/q/health/ready"]
+  #       interval: 15s
+  #       timeout: 5s
+  #       retries: 20
+  #   environment:
+  #     - fhhs.url=http://fhhs:8080
+  #   depends_on:
+  #     - db
+  #     - survey
+  #     - fhhs
   pedigree:
-    image: elicitsoftware/pedigree:1.0.0-alpha.1
+    image: elicitsoftware/pedigree:1.0.0-alpha.2
     #open this port for local testing. It is not needed for inter container communication.
     ports:
       - 8082:8000
   keycloak:
     image: quay.io/keycloak/keycloak:26.2.3
-    command: start-dev --import-realm
+    command: start-dev --import-realm --verbose -Dkeycloak.features=scripts
     ports:
       - "8180:8080"
     environment:
