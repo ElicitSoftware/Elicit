@@ -1,4 +1,3 @@
-
 #This file will setup a docker network named elicit (or what ever directory it is run from)
 # It will then create 4 containers:
 #   1. db - postgres database
@@ -60,7 +59,6 @@ services:
      # The Admin tool is used to create tokens and manage respondents.
      # Remove this for production, the default is false.
       - token.autoRegister=true
-      - fhhs.url=http://fhhs:8080
     healthcheck:
         test: ["CMD", "curl", "--head","fsS", "http://localhost:8080/q/health/ready"]
         interval: 15s
@@ -72,9 +70,9 @@ services:
     image: elicitsoftware/fhhs:1.0.0-alpha.2
     #open this port for local testing. It is not needed for inter container communication.
     ports:
-      - 8081:8080
+      - 8082:8080
     healthcheck:
-        test: ["CMD", "curl", "--head","fsS", "http://localhost:8081/q/health/ready"]
+        test: ["CMD", "curl", "--head","fsS", "http://localhost:8082/q/health/ready"]
         interval: 15s
         timeout: 5s
         retries: 20
@@ -84,17 +82,16 @@ services:
       - db
       - survey
   # admin:
-  #   image: elicitsoftware/admin:latest
+  #   image: elicitsoftware/admin:1.0.0-alpha.2
   #   #open this port for local testing. It is not needed for inter container communication.
   #   ports:
-  #     - 8083:8080
+  #     - 8081:8080
   #   healthcheck:
   #       test: ["CMD", "curl", "--head","fsS", "http://localhost:8081/q/health/ready"]
   #       interval: 15s
   #       timeout: 5s
   #       retries: 20
-  #   environment:
-  #     - fhhs.url=http://fhhs:8080
+  #   # environment:
   #   depends_on:
   #     - db
   #     - survey
@@ -103,17 +100,29 @@ services:
     image: elicitsoftware/pedigree:1.0.0-alpha.2
     #open this port for local testing. It is not needed for inter container communication.
     ports:
-      - 8082:8000
+      - 8083:8000
+  premm5:
+    image: elicitsoftware/premm5:1.0.0-alpha.2
+    #open this port for local testing. It is not needed for inter container communication.
+    ports:
+      - 8084:8080
+    healthcheck:
+        test: ["CMD", "curl", "--head","fsS", "http://localhost:8084/q/health/ready"]
+        interval: 15s
+        timeout: 5s
+        retries: 20
+    # environment:
+    depends_on:
+      - db
+      - survey
   keycloak:
     image: quay.io/keycloak/keycloak:26.2.3
     command: start-dev --import-realm --verbose -Dkeycloak.features=scripts
     ports:
       - "8180:8080"
     environment:
-      - KC_BOOTSTRAP_ADMIN_USERNAME=admin
-      - KC_BOOTSTRAP_ADMIN_PASSWORD=admin
-      - KC_DB=dev-file
-      - KC_DB_URL=jdbc:h2:file:/h2/keycloakdb;NON_KEYWORDS=VALUE
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
     volumes:
       - ./keycloak:/opt/keycloak/data/import
       - ./keycloak/db:/h2
