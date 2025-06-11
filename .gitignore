@@ -8,5 +8,7 @@
 /vaadin-quarkus-keycloak
 /vaadin-quarkus-smtp
 /postgresql/PGDATA
+/mailpit_data
+.idea/
 .DS_Store
 .vscode
