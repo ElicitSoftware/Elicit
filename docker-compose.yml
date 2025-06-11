@@ -81,21 +81,28 @@ services:
     depends_on:
       - db
       - survey
-  # admin:
-  #   image: elicitsoftware/admin:1.0.0-alpha.2
-  #   #open this port for local testing. It is not needed for inter container communication.
-  #   ports:
-  #     - 8081:8080
-  #   healthcheck:
-  #       test: ["CMD", "curl", "--head","fsS", "http://localhost:8081/q/health/ready"]
-  #       interval: 15s
-  #       timeout: 5s
-  #       retries: 20
-  #   # environment:
-  #   depends_on:
-  #     - db
-  #     - survey
-  #     - fhhs
+  admin:
+    image: elicitsoftware/admin:1.0.0-alpha.2
+    #open this port for local testing. It is not needed for inter container communication.
+    ports:
+      - 8081:8080
+    healthcheck:
+        test: ["CMD", "curl", "--head","fsS", "http://localhost:8081/q/health/ready"]
+        interval: 15s
+        timeout: 5s
+        retries: 20
+    environment:
+      - quarkus.mailer.from=elicit@localhost
+      - quarkus.mailer.host=mailpit
+      - quarkus.mailer.port=1025
+      - quarkus.mailer.tls=false
+      # - quarkus.mailer.auth-methods=
+      # - quarkus.mailer.username=
+      # - quarkus.mailer.password=
+    depends_on:
+      - db
+      - survey
+      - fhhs
   pedigree:
     image: elicitsoftware/pedigree:1.0.0-alpha.2
     #open this port for local testing. It is not needed for inter container communication.
@@ -127,3 +134,17 @@ services:
       - ./keycloak:/opt/keycloak/data/import
       - ./keycloak/db:/h2
     restart: unless-stopped
+  mailpit:
+    image: axllent/mailpit
+    container_name: mailpit
+    restart: unless-stopped
+    volumes:
+      - ./mailpit_data:/data
+    ports:
+      - 8025:8025
+      - 1025:1025
+    environment:
+      MP_MAX_MESSAGES: 5000
+      MP_DATABASE: /data/mailpit.db
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
