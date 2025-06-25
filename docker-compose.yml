@@ -23,16 +23,16 @@
 # 3. docker-compose restart
 #
 # For Mac and Linux users these can be combined into a single command:
-# docker compose up -d && sleep 15 && docker compose restart && sleep 15 && docker compose restart && sleep 15 && echo "Initialization complete Please visit http://localhost:8080"
+# docker compose up -d && sleep 25 && docker compose restart && sleep 25 && docker compose restart && sleep 25 && echo "Initialization complete Please visit http://localhost:8080"
 #
 # For Windows users you can use the following command:
-# docker-compose up -d && timeout /t 15 && docker-compose restart && timeout /t 15 && docker-compose restart && timeout /t 15 && echo "Initialization complete Please visit http://localhost:8080"
+# docker-compose up -d && timeout /t 25 && docker-compose restart && timeout /t 25 && docker-compose restart && timeout /t 25 && echo "Initialization complete Please visit http://localhost:8080"
 #
 # The application will be available at the following URL: http://localhost:8080
 
 services:
   db:
-    image: elicitsoftware/elicit_db:1.0.0-alpha.2
+    image: elicitsoftware/elicit_db:Beta-1
     # Setup the directories to persist data between starts.
     # if you need to reset your database you can delete the PGDATA directory and restart the containers
     # this will cause the database to be recreated.
@@ -51,7 +51,7 @@ services:
       timeout: 5s
       retries: 15
   survey:
-    image: elicitsoftware/survey:1.0.0-alpha.2
+    image: elicitsoftware/survey:Beta-1
     ports:
       - 8080:8080
     environment:
@@ -67,7 +67,7 @@ services:
     depends_on:
      - db
   fhhs:
-    image: elicitsoftware/fhhs:1.0.0-alpha.2
+    image: elicitsoftware/fhhs:Beta-1
     #open this port for local testing. It is not needed for inter container communication.
     ports:
       - 8082:8080
@@ -81,9 +81,25 @@ services:
     depends_on:
       - db
       - survey
-  admin:
-    image: elicitsoftware/admin:1.0.0-alpha.2
+  pedigree:
+    image: elicitsoftware/pedigree:Beta-1
     #open this port for local testing. It is not needed for inter container communication.
+    ports:
+      - 8083:8000
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.2.3
+    command: start-dev --import-realm --verbose -Dkeycloak.features=scripts
+    ports:
+      - "8180:8080"
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    volumes:
+      - ./keycloak:/opt/keycloak/data/import
+      - ./keycloak/db:/h2
+    restart: unless-stopped
+  admin:
+    image: elicitsoftware/admin:Beta-1
     ports:
       - 8081:8080
     healthcheck:
@@ -103,37 +119,7 @@ services:
       - db
       - survey
       - fhhs
-  pedigree:
-    image: elicitsoftware/pedigree:1.0.0-alpha.2
-    #open this port for local testing. It is not needed for inter container communication.
-    ports:
-      - 8083:8000
-  premm5:
-    image: elicitsoftware/premm5:1.0.0-alpha.2
-    #open this port for local testing. It is not needed for inter container communication.
-    ports:
-      - 8084:8080
-    healthcheck:
-        test: ["CMD", "curl", "--head","fsS", "http://localhost:8084/q/health/ready"]
-        interval: 15s
-        timeout: 5s
-        retries: 20
-    # environment:
-    depends_on:
-      - db
-      - survey
-  keycloak:
-    image: quay.io/keycloak/keycloak:26.2.3
-    command: start-dev --import-realm --verbose -Dkeycloak.features=scripts
-    ports:
-      - "8180:8080"
-    environment:
-      KEYCLOAK_ADMIN: admin
-      KEYCLOAK_ADMIN_PASSWORD: admin
-    volumes:
-      - ./keycloak:/opt/keycloak/data/import
-      - ./keycloak/db:/h2
-    restart: unless-stopped
+      - pedigree
   mailpit:
     image: axllent/mailpit
     container_name: mailpit
