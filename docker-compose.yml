@@ -77,18 +77,18 @@ services:
         timeout: 5s
         retries: 20
     environment:
-      - quarkus.mailer.from=elicit@localhost
-      - quarkus.mailer.host=mailpit
-      - quarkus.mailer.port=1025
-      - quarkus.mailer.tls=false
+      - QUARKUS_MAILER_FROM=elicit@localhost
+      - QUARKUS_MAILER_HOST=mailpit
+      - QUARKUS_MAILER_PORT=1025
+      - QUARKUS_MAILER_TLS=false
       # - quarkus.mailer.auth-methods=
       # - quarkus.mailer.username=
       # - quarkus.mailer.password=
-      - sftp.host=sftpServer      
-      - sftp.port=22
-      - sftp.username=b2b_might
-      - sftp.password=pass
-      - sftp.path=/upload/           
+      - SFTP_HOST=sftpServer
+      - SFTP_PORT=22
+      - SFTP_USERNAME=b2b_might
+      - SFTP_PASSWORD=pass
+      - SFTP_PATH=/upload/
     depends_on:
       - db
       - survey
