@@ -31,8 +31,75 @@
 # The application will be available at the following URL: http://localhost:8080
 
 services:
+  survey:
+    image: elicitsoftware/survey:latest
+    ports:
+      - 8080:8080
+    environment:
+     # AutoRegister allows for users to type in any token for testing.
+     # The Admin tool is used to create tokens and manage respondents.
+     # Remove this for production, the default is false.
+      - token.autoRegister=true
+    healthcheck:
+        test: ["CMD", "curl", "--head","fsS", "http://localhost:8080/q/health/ready"]
+        interval: 15s
+        timeout: 5s
+        retries: 20
+    depends_on:
+     - db
+  fhhs:
+    image: elicitsoftware/fhhs:latest
+    #open this port for local testing. It is not needed for inter container communication.
+    ports:
+      - 8082:8080
+    healthcheck:
+        test: ["CMD", "curl", "--head","fsS", "http://localhost:8082/q/health/ready"]
+        interval: 15s
+        timeout: 5s
+        retries: 20
+    environment:
+      - pedigree.url=http://pedigree:8000/svg 
+    depends_on:
+      - db
+      - survey
+  pedigree:
+    image: elicitsoftware/pedigree:latest
+    #open this port for local testing. It is not needed for inter container communication.
+    ports:
+      - 8083:8000
+  admin:
+    image: elicitsoftware/admin:latest
+    ports:
+      - 8081:8080
+    healthcheck:
+        test: ["CMD", "curl", "--head","fsS", "http://localhost:8081/q/health/ready"]
+        interval: 15s
+        timeout: 5s
+        retries: 20
+    environment:
+      - quarkus.mailer.from=elicit@localhost
+      - quarkus.mailer.host=mailpit
+      - quarkus.mailer.port=1025
+      - quarkus.mailer.tls=false
+      # - quarkus.mailer.auth-methods=
+      # - quarkus.mailer.username=
+      # - quarkus.mailer.password=
+      - sftp.host=sftpServer      
+      - sftp.port=22
+      - sftp.username=b2b_might
+      - sftp.password=pass
+      - sftp.path=/upload/           
+    depends_on:
+      - db
+      - survey
+      - fhhs
+      - pedigree
+# Test containers
+# These containers are used for running the application in a development environment.
+# They are not needed for production or will be replaced by non containerized applications.
+## Postgres Database
   db:
-    image: elicitsoftware/elicit_db:Beta-1
+    image: elicitsoftware/elicit_db:latest
     # Setup the directories to persist data between starts.
     # if you need to reset your database you can delete the PGDATA directory and restart the containers
     # this will cause the database to be recreated.
@@ -50,42 +117,8 @@ services:
       interval: 15s
       timeout: 5s
       retries: 15
-  survey:
-    image: elicitsoftware/survey:Beta-1
-    ports:
-      - 8080:8080
-    environment:
-     # AutoRegister allows for users to type in any token for testing.
-     # The Admin tool is used to create tokens and manage respondents.
-     # Remove this for production, the default is false.
-      - token.autoRegister=true
-    healthcheck:
-        test: ["CMD", "curl", "--head","fsS", "http://localhost:8080/q/health/ready"]
-        interval: 15s
-        timeout: 5s
-        retries: 20
-    depends_on:
-     - db
-  fhhs:
-    image: elicitsoftware/fhhs:Beta-1
-    #open this port for local testing. It is not needed for inter container communication.
-    ports:
-      - 8082:8080
-    healthcheck:
-        test: ["CMD", "curl", "--head","fsS", "http://localhost:8082/q/health/ready"]
-        interval: 15s
-        timeout: 5s
-        retries: 20
-    environment:
-      - pedigree.url=http://pedigree:8000/svg
-    depends_on:
-      - db
-      - survey
-  pedigree:
-    image: elicitsoftware/pedigree:Beta-1
-    #open this port for local testing. It is not needed for inter container communication.
-    ports:
-      - 8083:8000
+# OIDC Server
+# This is a Keycloak server that is used for testing the OIDC integration.
   keycloak:
     image: quay.io/keycloak/keycloak:26.2.3
     command: start-dev --import-realm --verbose -Dkeycloak.features=scripts
@@ -96,34 +129,12 @@ services:
       KEYCLOAK_ADMIN_PASSWORD: admin
     volumes:
       - ./keycloak:/opt/keycloak/data/import
-      - ./keycloak/db:/h2
-    restart: unless-stopped
-  admin:
-    image: elicitsoftware/admin:Beta-1
-    ports:
-      - 8081:8080
-    healthcheck:
-        test: ["CMD", "curl", "--head","fsS", "http://localhost:8081/q/health/ready"]
-        interval: 15s
-        timeout: 5s
-        retries: 20
-    environment:
-      - quarkus.mailer.from=elicit@localhost
-      - quarkus.mailer.host=mailpit
-      - quarkus.mailer.port=1025
-      - quarkus.mailer.tls=false
-      # - quarkus.mailer.auth-methods=
-      # - quarkus.mailer.username=
-      # - quarkus.mailer.password=
-    depends_on:
-      - db
-      - survey
-      - fhhs
-      - pedigree
+      - ./keycloak/db:/h2  
+# SMTP Server
+# This is a Mailpit server that is used for testing the email integration.    
   mailpit:
     image: axllent/mailpit
     container_name: mailpit
-    restart: unless-stopped
     volumes:
       - ./mailpit_data:/data
     ports:
@@ -134,3 +145,13 @@ services:
       MP_DATABASE: /data/mailpit.db
       MP_SMTP_AUTH_ACCEPT_ANY: 1
       MP_SMTP_AUTH_ALLOW_INSECURE: 1
+# SFTP Server
+# This is a SFTP server that is used for testing the SFTP integration.      
+  sftpServer:
+    image: atmoz/sftp:alpine-3.7
+    ports:
+      - "22:22"
+    environment:
+      SFTP_USERS: b2b_might:pass:::upload
+    volumes:
+      - ./survey_ms_reporting/temp:/home/b2b_might/upload      
