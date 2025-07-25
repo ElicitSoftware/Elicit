@@ -36,9 +36,10 @@ services:
     ports:
       - 8080:8080
     environment:
-     # AutoRegister allows for users to type in any token for testing.
-     # The Admin tool is used to create tokens and manage respondents.
-     # Remove this for production, the default is false.
+      - TZ=America/Detroit
+      # AutoRegister allows for users to type in any token for testing.
+      # The Admin tool is used to create tokens and manage respondents.
+      # Remove this for production, the default is false.
       - token.autoRegister=true
     healthcheck:
         test: ["CMD", "curl", "--head","fsS", "http://localhost:8080/q/health/ready"]
@@ -58,10 +59,18 @@ services:
         timeout: 5s
         retries: 20
     environment:
-      - pedigree.url=http://pedigree:8000/svg 
+      - TZ=America/Detroit
+      - pedigree.url=http://pedigree:8080/svg
+      - family.history.sftp.host=sftpServer
+      - family.history.sftp.username=fhhs_user
+      - family.history.sftp.password=pass
+      - family.history.sftp.path=/upload/reports
+      - family.history.sftp.port=22
+      - family.history.upload.psa.id=1
     depends_on:
       - db
       - survey
+      - sftpServer
   pedigree:
     image: elicitsoftware/pedigree:latest
     #open this port for local testing. It is not needed for inter container communication.
@@ -77,18 +86,14 @@ services:
         timeout: 5s
         retries: 20
     environment:
+      - TZ=America/Detroit
       - quarkus.mailer.from=elicit@localhost
       - quarkus.mailer.host=mailpit
       - quarkus.mailer.port=1025
       - quarkus.mailer.tls=false
       # - quarkus.mailer.auth-methods=
       # - quarkus.mailer.username=
-      # - quarkus.mailer.password=
-      - sftp.host=sftpServer      
-      - sftp.port=22
-      - sftp.username=b2b_might
-      - sftp.password=pass
-      - sftp.path=/upload/           
+      # - quarkus.mailer.password=          
     depends_on:
       - db
       - survey
@@ -108,10 +113,10 @@ services:
     ports:
       - 5452:5432
     environment:
+      TZ: "America/Detroit"    
       POSTGRES_USER: "survey"
       POSTGRES_PASSWORD: "admin"
       PGDATA: "/var/lib/postgresql/data/pgdata"
-      TZ: "America/Detroit"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U survey"]
       interval: 15s
@@ -125,6 +130,7 @@ services:
     ports:
       - "8180:8080"
     environment:
+      TZ: "America/Detroit"
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
     volumes:
@@ -141,6 +147,7 @@ services:
       - 8025:8025
       - 1025:1025
     environment:
+      TZ: "America/Detroit"
       MP_MAX_MESSAGES: 5000
       MP_DATABASE: /data/mailpit.db
       MP_SMTP_AUTH_ACCEPT_ANY: 1
@@ -152,6 +159,7 @@ services:
     ports:
       - "22:22"
     environment:
-      SFTP_USERS: b2b_might:pass:::upload
+      TZ: "America/Detroit"
+      SFTP_USERS: fhhs_user:pass:::upload/reports
     volumes:
-      - ./survey_ms_reporting/temp:/home/b2b_might/upload      
+      - ./sftp_data/temp/upload/reports:/home/fhhs_user/upload/reports
