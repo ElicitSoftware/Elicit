@@ -138,6 +138,7 @@ services:
       - ./keycloak/db:/h2  
 # SMTP Server
 # This is a Mailpit server that is used for testing the email integration.    
+# visit http://localhost:8025/ to view the emails sent by the application.
   mailpit:
     image: axllent/mailpit
     container_name: mailpit
