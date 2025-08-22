@@ -246,7 +246,7 @@
         "attributes" : { }
       } ],
       "security-admin-console" : [ ],
-      "token-service" : [ ],
+      "import-service" : [ ],
       "elicit-admin" : [ {
         "id" : "7fa0047c-8278-4516-8dee-0c0a0591958c",
         "name" : "elicit_user",
@@ -265,8 +265,8 @@
         "attributes" : { }
       }, {
         "id" : "775cd6e6-f5e9-4581-8409-a9683f4982c7",
-        "name" : "elicit_token",
-        "description" : "Token Service",
+        "name" : "elicit_import",
+        "description" : "Import Service",
         "composite" : false,
         "clientRole" : true,
         "containerId" : "70661d4b-1e24-4196-ac34-203efbbdcef3",
@@ -369,10 +369,10 @@
     "groups" : [ ]
   }, {
     "id" : "ba7d25a7-8517-479a-9432-a1971e2cfa43",
-    "username" : "token",
-    "firstName" : "token",
-    "lastName" : "service",
-    "email" : "token@service.org",
+    "username" : "ETL",
+    "firstName" : "ETL",
+    "lastName" : "Service",
+    "email" : "etl@service.org",
     "emailVerified" : true,
     "createdTimestamp" : 1755874017604,
     "enabled" : true,
@@ -389,7 +389,7 @@
     "requiredActions" : [ ],
     "realmRoles" : [ "default-roles-elicit" ],
     "clientRoles" : {
-      "elicit-admin" : [ "elicit_token" ]
+      "elicit-admin" : [ "elicit_import" ]
     },
     "notBefore" : 0,
     "groups" : [ ]
@@ -698,9 +698,9 @@
     "optionalClientScopes" : [ "address", "phone", "organization", "offline_access", "microprofile-jwt" ]
   }, {
     "id" : "3d6e8765-ae1b-4a28-836a-27edf5e1924d",
-    "clientId" : "token-service",
-    "name" : "${token-token-service}",
-    "description" : "Service client for token-based access to elicit-admin APIs",
+    "clientId" : "import-service",
+    "name" : "${import-service}",
+    "description" : "Service client for bearer-based access to elicit-admin APIs",
     "rootUrl" : "",
     "adminUrl" : "",
     "baseUrl" : "",
