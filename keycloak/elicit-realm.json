@@ -49,6 +49,14 @@
   "failureFactor" : 30,
   "roles" : {
     "realm" : [ {
+      "id" : "847edd88-3151-4e46-805d-95c1344aa903",
+      "name" : "elicit_importer",
+      "description" : "Role for using the Rest API to import subjects",
+      "composite" : false,
+      "clientRole" : false,
+      "containerId" : "fec3f0c9-8873-4fcd-b845-e6bd10066ea5",
+      "attributes" : { }
+    }, {
       "id" : "63fdb1f9-85b8-4192-a6a0-850f77caafc6",
       "name" : "offline_access",
       "description" : "${role_offline-access}",
@@ -246,8 +254,15 @@
         "attributes" : { }
       } ],
       "security-admin-console" : [ ],
-      "import-service" : [ ],
       "elicit-admin" : [ {
+        "id" : "e20e4d8d-ace2-45c5-bd78-90ee50b98533",
+        "name" : "elicit_importer",
+        "description" : "Role to allow use of the import Rest API",
+        "composite" : false,
+        "clientRole" : true,
+        "containerId" : "70661d4b-1e24-4196-ac34-203efbbdcef3",
+        "attributes" : { }
+      }, {
         "id" : "7fa0047c-8278-4516-8dee-0c0a0591958c",
         "name" : "elicit_user",
         "description" : "Elicit Admin Application User",
@@ -259,14 +274,6 @@
         "id" : "7a0ac7a4-7952-423d-af2c-18013b8bc8cf",
         "name" : "elicit_admin",
         "description" : "Elicit Admin Application Administrator",
-        "composite" : false,
-        "clientRole" : true,
-        "containerId" : "70661d4b-1e24-4196-ac34-203efbbdcef3",
-        "attributes" : { }
-      }, {
-        "id" : "775cd6e6-f5e9-4581-8409-a9683f4982c7",
-        "name" : "elicit_import",
-        "description" : "Import Service",
         "composite" : false,
         "clientRole" : true,
         "containerId" : "70661d4b-1e24-4196-ac34-203efbbdcef3",
@@ -297,7 +304,8 @@
         "clientRole" : true,
         "containerId" : "972deed9-26a0-4d56-8c2e-49fcd0c96fd6",
         "attributes" : { }
-      } ]
+      } ],
+      "import-service" : [ ]
     }
   },
   "groups" : [ ],
@@ -368,29 +376,54 @@
     "notBefore" : 0,
     "groups" : [ ]
   }, {
-    "id" : "ba7d25a7-8517-479a-9432-a1971e2cfa43",
-    "username" : "ETL",
-    "firstName" : "ETL",
-    "lastName" : "Service",
-    "email" : "etl@service.org",
-    "emailVerified" : true,
-    "createdTimestamp" : 1755874017604,
+    "id" : "33deb239-159d-493e-bae4-64384a763345",
+    "username" : "etl",
+    "firstName" : "etl",
+    "lastName" : "Elicit",
+    "email" : "etl@temp.org",
+    "emailVerified" : false,
+    "createdTimestamp" : 1756145741691,
     "enabled" : true,
     "totp" : false,
     "credentials" : [ {
-      "id" : "35d7b4e1-230f-4189-9e2c-28d8b20397a3",
+      "id" : "19524ee3-1a89-4f47-97c7-0bb1651608a5",
       "type" : "password",
       "userLabel" : "My password",
-      "createdDate" : 1755874033988,
-      "secretData" : "{\"value\":\"vdcqLH5WL9TgN4sdseVSjeeflbNmhS5YVzC/178YdRk=\",\"salt\":\"51AOkQa1s+JOuq7m0OInpg==\",\"additionalParameters\":{}}",
+      "createdDate" : 1756147777112,
+      "secretData" : "{\"value\":\"9eR60hbGHdZm6WtM0ZaLXx1qzWoF344La4gU47RY+jY=\",\"salt\":\"oESuTDcss77tnmi7zhcmSQ==\",\"additionalParameters\":{}}",
       "credentialData" : "{\"hashIterations\":5,\"algorithm\":\"argon2\",\"additionalParameters\":{\"hashLength\":[\"32\"],\"memory\":[\"7168\"],\"type\":[\"id\"],\"version\":[\"1.3\"],\"parallelism\":[\"1\"]}}"
     } ],
     "disableableCredentialTypes" : [ ],
     "requiredActions" : [ ],
+    "realmRoles" : [ "elicit_importer", "default-roles-elicit" ],
+    "notBefore" : 0,
+    "groups" : [ ]
+  }, {
+    "id" : "cd6a0ae6-228e-430e-b9a4-35f99bdd3b2e",
+    "username" : "service-account-elicit-admin",
+    "emailVerified" : false,
+    "createdTimestamp" : 1756147801205,
+    "enabled" : true,
+    "totp" : false,
+    "serviceAccountClientId" : "elicit-admin",
+    "credentials" : [ ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ ],
     "realmRoles" : [ "default-roles-elicit" ],
-    "clientRoles" : {
-      "elicit-admin" : [ "elicit_import" ]
-    },
+    "notBefore" : 0,
+    "groups" : [ ]
+  }, {
+    "id" : "c5fd8ede-198e-4b58-b953-eee3bf57b2ed",
+    "username" : "service-account-import-service",
+    "emailVerified" : false,
+    "createdTimestamp" : 1756145703557,
+    "enabled" : true,
+    "totp" : false,
+    "serviceAccountClientId" : "import-service",
+    "credentials" : [ ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ ],
+    "realmRoles" : [ "elicit_importer", "default-roles-elicit" ],
     "notBefore" : 0,
     "groups" : [ ]
   }, {
@@ -580,8 +613,8 @@
     "consentRequired" : false,
     "standardFlowEnabled" : true,
     "implicitFlowEnabled" : false,
-    "directAccessGrantsEnabled" : false,
-    "serviceAccountsEnabled" : false,
+    "directAccessGrantsEnabled" : true,
+    "serviceAccountsEnabled" : true,
     "publicClient" : false,
     "frontchannelLogout" : false,
     "protocol" : "openid-connect",
@@ -616,7 +649,61 @@
     },
     "fullScopeAllowed" : true,
     "nodeReRegistrationTimeout" : -1,
-    "defaultClientScopes" : [ "web-origins", "acr", "roles", "profile", "basic", "email" ],
+    "defaultClientScopes" : [ "web-origins", "service_account", "acr", "roles", "profile", "basic", "email" ],
+    "optionalClientScopes" : [ "address", "phone", "organization", "offline_access", "microprofile-jwt" ]
+  }, {
+    "id" : "3d6e8765-ae1b-4a28-836a-27edf5e1924d",
+    "clientId" : "import-service",
+    "name" : "${import-service}",
+    "description" : "Service client for bearer-based access to elicit-admin APIs",
+    "rootUrl" : "",
+    "adminUrl" : "",
+    "baseUrl" : "",
+    "surrogateAuthRequired" : false,
+    "enabled" : true,
+    "alwaysDisplayInConsole" : false,
+    "clientAuthenticatorType" : "client-secret",
+    "secret" : "importer",
+    "redirectUris" : [ "/*" ],
+    "webOrigins" : [ "/*" ],
+    "notBefore" : 0,
+    "bearerOnly" : false,
+    "consentRequired" : false,
+    "standardFlowEnabled" : false,
+    "implicitFlowEnabled" : false,
+    "directAccessGrantsEnabled" : false,
+    "serviceAccountsEnabled" : true,
+    "publicClient" : false,
+    "frontchannelLogout" : false,
+    "protocol" : "openid-connect",
+    "attributes" : {
+      "client.secret.creation.time" : "1748443705",
+      "request.object.signature.alg" : "any",
+      "request.object.encryption.alg" : "any",
+      "client.introspection.response.allow.jwt.claim.enabled" : "false",
+      "standard.token.exchange.enabled" : "false",
+      "post.logout.redirect.uris" : "+",
+      "frontchannel.logout.session.required" : "true",
+      "oauth2.device.authorization.grant.enabled" : "false",
+      "backchannel.logout.revoke.offline.tokens" : "false",
+      "use.refresh.tokens" : "true",
+      "realm_client" : "false",
+      "oidc.ciba.grant.enabled" : "false",
+      "client.use.lightweight.access.token.enabled" : "false",
+      "backchannel.logout.session.required" : "true",
+      "request.object.required" : "not required",
+      "client_credentials.use_refresh_token" : "false",
+      "access.token.header.type.rfc9068" : "false",
+      "tls.client.certificate.bound.access.tokens" : "false",
+      "require.pushed.authorization.requests" : "false",
+      "display.on.consent.screen" : "false",
+      "request.object.encryption.enc" : "any",
+      "token.response.type.bearer.lower-case" : "false"
+    },
+    "authenticationFlowBindingOverrides" : { },
+    "fullScopeAllowed" : true,
+    "nodeReRegistrationTimeout" : -1,
+    "defaultClientScopes" : [ "web-origins", "service_account", "acr", "roles", "profile", "basic", "email" ],
     "optionalClientScopes" : [ "address", "phone", "organization", "offline_access", "microprofile-jwt" ]
   }, {
     "id" : "bbc180ac-0b2c-45d7-a06f-e729e26bd26c",
@@ -694,47 +781,6 @@
         "jsonType.label" : "String"
       }
     } ],
-    "defaultClientScopes" : [ "web-origins", "acr", "roles", "profile", "basic", "email" ],
-    "optionalClientScopes" : [ "address", "phone", "organization", "offline_access", "microprofile-jwt" ]
-  }, {
-    "id" : "3d6e8765-ae1b-4a28-836a-27edf5e1924d",
-    "clientId" : "import-service",
-    "name" : "${import-service}",
-    "description" : "Service client for bearer-based access to elicit-admin APIs",
-    "rootUrl" : "",
-    "adminUrl" : "",
-    "baseUrl" : "",
-    "surrogateAuthRequired" : false,
-    "enabled" : true,
-    "alwaysDisplayInConsole" : false,
-    "clientAuthenticatorType" : "client-secret",
-    "redirectUris" : [ "/*" ],
-    "webOrigins" : [ "/*" ],
-    "notBefore" : 0,
-    "bearerOnly" : false,
-    "consentRequired" : false,
-    "standardFlowEnabled" : false,
-    "implicitFlowEnabled" : false,
-    "directAccessGrantsEnabled" : true,
-    "serviceAccountsEnabled" : false,
-    "publicClient" : true,
-    "frontchannelLogout" : false,
-    "protocol" : "openid-connect",
-    "attributes" : {
-      "realm_client" : "false",
-      "oidc.ciba.grant.enabled" : "false",
-      "client.secret.creation.time" : "1748443705",
-      "backchannel.logout.session.required" : "true",
-      "standard.token.exchange.enabled" : "false",
-      "post.logout.redirect.uris" : "+",
-      "frontchannel.logout.session.required" : "true",
-      "oauth2.device.authorization.grant.enabled" : "false",
-      "display.on.consent.screen" : "false",
-      "backchannel.logout.revoke.offline.tokens" : "false"
-    },
-    "authenticationFlowBindingOverrides" : { },
-    "fullScopeAllowed" : true,
-    "nodeReRegistrationTimeout" : -1,
     "defaultClientScopes" : [ "web-origins", "acr", "roles", "profile", "basic", "email" ],
     "optionalClientScopes" : [ "address", "phone", "organization", "offline_access", "microprofile-jwt" ]
   } ],
@@ -1436,7 +1482,7 @@
       "subType" : "authenticated",
       "subComponents" : { },
       "config" : {
-        "allowed-protocol-mapper-types" : [ "oidc-sha256-pairwise-sub-mapper", "oidc-address-mapper", "saml-role-list-mapper", "oidc-full-name-mapper", "oidc-usermodel-attribute-mapper", "saml-user-attribute-mapper", "saml-user-property-mapper", "oidc-usermodel-property-mapper" ]
+        "allowed-protocol-mapper-types" : [ "oidc-usermodel-property-mapper", "oidc-usermodel-attribute-mapper", "oidc-address-mapper", "oidc-sha256-pairwise-sub-mapper", "oidc-full-name-mapper", "saml-user-property-mapper", "saml-user-attribute-mapper", "saml-role-list-mapper" ]
       }
     }, {
       "id" : "e8b85dd4-cac7-4caf-a0f0-cfba9ec4063d",
@@ -1445,7 +1491,7 @@
       "subType" : "anonymous",
       "subComponents" : { },
       "config" : {
-        "allowed-protocol-mapper-types" : [ "oidc-full-name-mapper", "oidc-usermodel-attribute-mapper", "oidc-usermodel-property-mapper", "saml-user-property-mapper", "saml-role-list-mapper", "oidc-sha256-pairwise-sub-mapper", "saml-user-attribute-mapper", "oidc-address-mapper" ]
+        "allowed-protocol-mapper-types" : [ "oidc-sha256-pairwise-sub-mapper", "saml-user-attribute-mapper", "saml-user-property-mapper", "oidc-usermodel-property-mapper", "oidc-address-mapper", "oidc-usermodel-attribute-mapper", "saml-role-list-mapper", "oidc-full-name-mapper" ]
       }
     }, {
       "id" : "629bb38c-fd19-4622-8c02-ec73a99d41a9",
