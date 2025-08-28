@@ -3,6 +3,7 @@
 /Survey
 /PREMM5
 /Pedigree
+/PostgreSQL
 /keycloak/db
 /keycloak/elicit-realm-export.json
 /vaadin-quarkus-keycloak
