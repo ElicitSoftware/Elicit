@@ -82,7 +82,10 @@ After starting a new Elicit system you will need to alter some of the template d
 5) Update Report URLs
    The reporting system also uses URLs to communicate. 
    Update the host of the URLs in the reports table. 
+   
    UPDATE survey.reports set url = 'http://host.docker.internal:8082/proband/report' WHERE id = 1;
+
    UPDATE survey.reports set url = 'http://host.docker.internal:8082/casummary/report' WHERE id = 2;
+
    UPDATE survey.reports set url = 'http://host.docker.internal:8082/pedigree/report' WHERE id = 3;
 
