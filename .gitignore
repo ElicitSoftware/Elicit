@@ -6,10 +6,13 @@
 /PostgreSQL
 /keycloak/db
 /keycloak/elicit-realm-export.json
+/keycloak/certs/
 /vaadin-quarkus-keycloak
 /vaadin-quarkus-smtp
 /postgresql/PGDATA
 /mailpit_data
+TEMP.sql
+/sftp_data/
 .idea/
 .DS_Store
 .vscode
