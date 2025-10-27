@@ -36,16 +36,20 @@ services:
     ports:
       - 8080:8080
     environment:
-      - TZ=America/Detroit
+      TZ: America/Detroit
       # AutoRegister allows for users to type in any token for testing.
       # The Admin tool is used to create tokens and manage respondents.
       # Remove this for production, the default is false.
-      - token.autoRegister=true
+      token.autoRegister: true
     healthcheck:
         test: ["CMD", "curl", "--head","fsS", "http://localhost:8080/q/health/ready"]
         interval: 15s
         timeout: 5s
         retries: 20
+    volumes:
+      # - ./um-brand/:/brand:ro
+      - ./test-brand/:/brand:ro
+      # - ./test-partial-brand/:/brand:ro
     depends_on:
      - db
   fhhs:
@@ -59,18 +63,49 @@ services:
         timeout: 5s
         retries: 20
     environment:
-      - TZ=America/Detroit
-      - pedigree.url=http://pedigree:8080/svg
-      - family.history.sftp.host=sftpServer
-      - family.history.sftp.username=fhhs_user
-      - family.history.sftp.password=pass
-      - family.history.sftp.path=/upload/reports
-      - family.history.sftp.port=22
-      - family.history.upload.psa.id=1
+      TZ: America/Detroit
+      pedigree.url: http://pedigree:8080/svg
+      family.history.sftp.host: sftpServer
+      family.history.sftp.username: fhhs_user
+      family.history.sftp.password: pass
+      family.history.sftp.path: /upload/reports
+      family.history.sftp.port: 22
+      family.history.upload.psa.id: 1
+      family.history.sftp.xml.template: |+
+        <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+        <umhsdoc2>
+            <imageSource>MiGHT</imageSource>
+            <updateFlag>N</updateFlag>
+            <externalSourceId>{RespondentId}</externalSourceId>
+            <mrn>{Xid}</mrn>
+            <formDesignatorNum>38670</formDesignatorNum>
+            <docDate>{Finalized}</docDate>
+            <pages>
+                <page>{Xid}.pdf</page>
+            </pages>
+        </umhsdoc2>       
     depends_on:
       - db
       - survey
       - sftpServer
+  premm5:
+    image: elicitsoftware/premm5:latest
+    #open this port for local testing. It is not needed for inter container communication.
+    ports:
+      - 8084:8080
+    healthcheck:
+        test: ["CMD", "curl", "--head","fsS", "http://localhost:8084/q/health/ready"]
+        interval: 15s
+        timeout: 5s
+        retries: 20
+    environment:
+      TZ: America/Detroit
+      truelicense.store.file: /license/PREMM5.license
+    depends_on:
+      - db
+      - survey
+    volumes:
+      - ./PREMM5/PREMM5.license:/license/PREMM5.license:ro      
   pedigree:
     image: elicitsoftware/pedigree:latest
     #open this port for local testing. It is not needed for inter container communication.
@@ -86,14 +121,18 @@ services:
         timeout: 5s
         retries: 20
     environment:
-      - TZ=America/Detroit
-      - quarkus.mailer.from=elicit@localhost
-      - quarkus.mailer.host=mailpit
-      - quarkus.mailer.port=1025
-      - quarkus.mailer.tls=false
-      # - quarkus.mailer.auth-methods=
-      # - quarkus.mailer.username=
-      # - quarkus.mailer.password=          
+      TZ: America/Detroit
+      quarkus.mailer.from: elicit@localhost
+      quarkus.mailer.host: mailpit
+      quarkus.mailer.port: 1025
+      quarkus.mailer.tls: false
+      # quarkus.mailer.auth-methods:
+      # quarkus.mailer.username:
+      # quarkus.mailer.password=
+    volumes:
+      # - ./um-brand/:/brand:ro
+      - ./test-brand/:/brand:ro
+      # - ./test-partial-brand/:/brand:ro                
     depends_on:
       - db
       - survey
