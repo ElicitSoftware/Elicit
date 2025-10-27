@@ -1,0 +1,57 @@
+{
+  "name": "Covenant Healthcare Inspired Test Brand",
+  "version": "1.0.0",
+  "description": "Test brand implementation inspired by Covenant Healthcare color scheme",
+  "organization": "Healthcare Organization",
+  "website": "https://www.covenanthealthcare.com/",
+  "brandGuidelines": "Color palette inspired by Covenant Healthcare website design",
+  "colors": {
+    "primary": {
+      "healthcareBlue": "#003366",
+      "healthcareMagenta": "#A6216B",
+      "healthcarePurple": "#A6216B",
+      "healthcareCyan": "#00B2CC",
+      "healthcareTeal": "#00B2CC",
+      "healthcareNavy": "#002244"
+    },
+    "secondary": {
+      "lightBlue": "#4A90C2",
+      "mediumBlue": "#2C5F88",
+      "darkBlue": "#1A3A55",
+      "lightMagenta": "#C564A3",
+      "lightPurple": "#C564A3",
+      "darkMagenta": "#7A1B4A",
+      "darkPurple": "#7A1B4A",
+      "lightCyan": "#33C2D9",
+      "darkCyan": "#007A8C",
+      "tealAccent": "#00B2CC",
+      "lightTeal": "#33C2D9",
+      "darkTeal": "#007A8C"
+    },
+    "neutral": {
+      "white": "#FFFFFF",
+      "lightGray": "#F8F9FA",
+      "mediumGray": "#DEE2E6",
+      "darkGray": "#6C757D",
+      "charcoal": "#343A40",
+      "black": "#000000"
+    },
+    "semantic": {
+      "success": "#28A745",
+      "warning": "#FD7E14",
+      "error": "#DC3545",
+      "info": "#17A2B8"
+    }
+  },
+  "typography": {
+    "primary": "Open Sans",
+    "secondary": "Roboto",
+    "heading": "Montserrat",
+    "body": "Open Sans",
+    "monospace": "Source Code Pro"
+  },
+  "logos": {
+    "horizontal": "HorizontalLogo.png"
+  },
+  "favicon": "favicon.svg"
+}

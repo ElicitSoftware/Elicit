@@ -1,0 +1,10 @@
+{
+  "brand": {
+    "name": "Healthcare Test Brand",
+    "version": "1.0.0",
+    "description": "Healthcare organization brand with professional magenta color scheme",
+    "primaryColor": "#A6216B",
+    "organization": "Healthcare Test Organization",
+    "lastUpdated": "2025-10-27"
+  }
+}

@@ -1,0 +1,99 @@
+/* Covenant Healthcare Inspired Brand Color Palette */
+/* Based on Covenant Healthcare website color analysis */
+
+:root {
+  /* Primary Brand Colors - Actual Covenant Healthcare Colors */
+  --healthcare-blue: #003366;
+  --healthcare-purple: #A6216B;
+  --healthcare-magenta: #A6216B;
+  --healthcare-teal: #00B2CC;
+  --healthcare-cyan: #00B2CC;
+  --healthcare-navy: #002244;
+  
+  /* Primary color aliases for semantic use */
+  --brand-primary: var(--healthcare-magenta);
+  --brand-primary-contrast: var(--healthcare-white);
+  --brand-primary-50pct: rgba(166, 33, 107, 0.5);
+  --brand-primary-10pct: rgba(166, 33, 107, 0.1);
+  --brand-secondary: var(--healthcare-cyan);
+  --brand-accent: var(--healthcare-cyan);
+  --brand-base: var(--healthcare-white);
+  --brand-header-bg: var(--healthcare-white);
+  --brand-header-text: var(--healthcare-magenta);
+  
+  /* Secondary Supporting Colors - Covenant Healthcare Palette */
+  --healthcare-light-blue: #4A90C2;
+  --healthcare-medium-blue: #2C5F88;
+  --healthcare-dark-blue: #1A3A55;
+  --healthcare-light-purple: #C564A3;
+  --healthcare-light-magenta: #C564A3;
+  --healthcare-dark-purple: #7A1B4A;
+  --healthcare-dark-magenta: #7A1B4A;
+  --healthcare-light-cyan: #33C2D9;
+  --healthcare-dark-cyan: #007A8C;
+  --healthcare-teal-accent: var(--healthcare-cyan);
+  --healthcare-light-teal: var(--healthcare-light-cyan);
+  --healthcare-dark-teal: var(--healthcare-dark-cyan);
+  
+  /* Neutral Colors - Clean Healthcare Aesthetic */
+  --healthcare-white: #FFFFFF;
+  --healthcare-light-gray: #F8F9FA;
+  --healthcare-medium-gray: #DEE2E6;
+  --healthcare-dark-gray: #6C757D;
+  --healthcare-charcoal: #343A40;
+  --healthcare-black: #000000;
+  
+  /* Semantic Colors - Healthcare Standard */
+  --healthcare-success: #28A745;
+  --healthcare-warning: #FD7E14;
+  --healthcare-error: #DC3545;
+  --healthcare-info: #17A2B8;
+  
+  /* Brand semantic mappings */
+  --brand-background: var(--healthcare-white);
+  --brand-surface: var(--healthcare-light-gray);
+  --brand-text-primary: var(--healthcare-charcoal);
+  --brand-text-secondary: var(--healthcare-dark-gray);
+  --brand-text-on-primary: var(--healthcare-white);
+  --brand-text-on-secondary: var(--healthcare-white);
+  --brand-text-on-accent: var(--healthcare-white);
+  
+  /* Interactive states - Enhanced for accessibility */
+  --brand-hover: color-mix(in srgb, var(--healthcare-magenta) 80%, var(--healthcare-cyan) 20%);
+  --brand-active: color-mix(in srgb, var(--healthcare-dark-magenta) 95%, var(--healthcare-cyan) 5%);
+  --brand-focus: var(--healthcare-cyan);
+  
+  /* Status colors */
+  --brand-success: var(--healthcare-success);
+  --brand-success-50pct: rgba(76, 175, 80, 0.5);
+  --brand-success-10pct: rgba(76, 175, 80, 0.1);
+  --brand-warning: var(--healthcare-warning);
+  --brand-warning-50pct: rgba(255, 193, 7, 0.5);
+  --brand-warning-10pct: rgba(255, 193, 7, 0.1);
+  --brand-error: var(--healthcare-error);
+  --brand-error-50pct: rgba(244, 67, 54, 0.5);
+  --brand-error-10pct: rgba(244, 67, 54, 0.1);
+  --brand-info: var(--healthcare-info);
+  
+  /* Border and shadow colors */
+  --brand-border: var(--healthcare-medium-gray);
+  --brand-border-light: var(--healthcare-light-gray);
+  --brand-shadow: color-mix(in srgb, var(--healthcare-navy) 20%, transparent 80%);
+  
+  /* Healthcare-specific color mappings */
+  --healthcare-trust: var(--healthcare-blue);
+  --healthcare-calm: var(--healthcare-teal);
+  --healthcare-professional: var(--healthcare-navy);
+  --healthcare-caring: var(--healthcare-light-teal);
+  --healthcare-reliable: var(--healthcare-dark-blue);
+  
+  /* Accessibility enhancements */
+  --high-contrast-text: var(--healthcare-black);
+  --high-contrast-background: var(--healthcare-white);
+  --focus-indicator: var(--healthcare-teal);
+  
+  /* Gradient definitions - Covenant inspired */
+  --brand-gradient-primary: linear-gradient(135deg, var(--healthcare-magenta) 0%, var(--healthcare-cyan) 100%);
+  --brand-gradient-secondary: linear-gradient(135deg, var(--healthcare-dark-magenta) 0%, var(--healthcare-magenta) 100%);
+  --brand-gradient-accent: linear-gradient(135deg, var(--healthcare-cyan) 0%, var(--healthcare-light-cyan) 100%);
+}

@@ -1,0 +1,48 @@
+{
+  "name": "University of Michigan - Michigan Medicine",
+  "version": "1.0.0",
+  "description": "Official University of Michigan brand implementation for Michigan Medicine",
+  "organization": "University of Michigan",
+  "website": "https://www.michiganmedicine.org/",
+  "brandGuidelines": "https://brand.umich.edu/",
+  "colors": {
+    "primary": {
+      "maize": "#FFCB05",
+      "blue": "#00274C"
+    },
+    "secondary": {
+      "red": "#9A3324",
+      "orange": "#D86018",
+      "teal": "#75988d",
+      "green": "#A5A508",
+      "cyan": "#00B2A9",
+      "mediumBlue": "#2F65A7",
+      "purple": "#702082",
+      "violet": "#575294",
+      "tan": "#CFC096",
+      "olive": "#9B9A6D",
+      "warmGray": "#989C97",
+      "darkGray": "#655A52",
+      "black": "#131516"
+    },
+    "neutral": {
+      "white": "#FFFFFF",
+      "black": "#000000"
+    }
+  },
+  "typography": {
+    "primary": "IBM Plex Sans",
+    "secondary": "Montserrat",
+    "body": "Nunito Sans",
+    "serif": "Merriweather",
+    "display": "Playfair Display",
+    "accessibility": "Atkinson Hyperlegible"
+  },
+  "logos": {
+    "primary": "um-primary-logo.svg",
+    "horizontal": "um-horizontal-logo.svg",
+    "blockM": "um-block-m.svg",
+    "michiganMedicine": "michigan-medicine-logo.svg"
+  },
+  "favicon": "favicon.ico"
+}
