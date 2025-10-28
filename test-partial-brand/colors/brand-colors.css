@@ -1,0 +1,103 @@
+:root {
+  /* Halloween Theme Colors for Test Partial Brand */
+  /* Spooky orange, black, purple, and dark green palette with high contrast */
+  
+  /* Primary Brand Colors - Halloween Orange */
+  --brand-primary: #FF6600; /* Bright Halloween Orange */
+  --brand-primary-hsl: 24, 100%, 50%;
+  --brand-primary-contrast: #FFFFFF; /* White text on orange for high contrast */
+  --brand-base: #2D2D2D; /* Lighter dark background for better contrast */
+  
+  /* Secondary Halloween Colors */
+  --brand-secondary: #8B00FF; /* Electric Purple */
+  --brand-accent: #32CD32; /* Brighter Green for better visibility */
+  --brand-tertiary: #FFFFFF; /* White for high contrast text */
+
+  /* Interactive Colors - Halloween Theme */
+  --brand-interactive: #FF6600; /* Halloween Orange for interactions */
+  --brand-interactive-rgb: 255, 102, 0;
+  --brand-interactive-light: rgba(255, 102, 0, 0.15);
+
+  /* Color Variants for Theme Integration */
+  --brand-primary-50pct: rgba(255, 102, 0, 0.5);
+  --brand-primary-10pct: rgba(255, 102, 0, 0.1);
+  --brand-secondary-50pct: rgba(139, 0, 255, 0.5);
+  --brand-secondary-10pct: rgba(139, 0, 255, 0.1);
+
+  /* Legacy Lumo Theme Variables Mapping for compatibility */
+  --lumo-primary-color: var(--brand-primary) !important;
+  --lumo-primary-text-color: var(--brand-primary) !important;
+  --lumo-primary-contrast-color: var(--brand-primary-contrast) !important;
+  --lumo-base-color: #2D2D2D !important; /* Dark background for content areas to match theme */
+
+  /* Text Colors for High Contrast */
+  --lumo-body-text-color: #FFFFFF !important; /* White text for dark backgrounds */
+  --lumo-secondary-text-color: #CCCCCC !important; /* Light gray for secondary text */
+  --lumo-header-text-color: #FFFFFF !important; /* White text for headers */
+  
+  /* Additional text and background overrides */
+  --lumo-text-color: #FFFFFF !important; /* Primary text color - white */
+  --lumo-disabled-text-color: #999999 !important; /* Disabled text - medium gray */
+
+  /* Primary Color Variants */
+  --lumo-primary-color-50pct: var(--brand-primary-50pct) !important;
+  --lumo-primary-color-10pct: var(--brand-primary-10pct) !important;
+
+  /* Halloween Shade Variants - with better contrast */
+  --lumo-shade-5pct: rgba(255, 255, 255, 0.05);
+  --lumo-shade-10pct: rgba(255, 255, 255, 0.1);
+  --lumo-shade-20pct: rgba(255, 255, 255, 0.2);
+  --lumo-shade-30pct: rgba(255, 255, 255, 0.3);
+  --lumo-shade-40pct: rgba(255, 255, 255, 0.4);
+  --lumo-shade-50pct: rgba(255, 255, 255, 0.5);
+
+  /* Halloween Tint Variants - lighter tints for dark theme */
+  --lumo-tint-5pct: color-mix(in srgb, #FF6600 5%, #2D2D2D 95%);
+  --lumo-tint-10pct: color-mix(in srgb, #FF6600 10%, #2D2D2D 90%);
+  --lumo-tint-20pct: color-mix(in srgb, #FF6600 20%, #2D2D2D 80%);
+  --lumo-tint-30pct: color-mix(in srgb, #FF6600 30%, #2D2D2D 70%);
+  --lumo-tint-40pct: color-mix(in srgb, #FF6600 40%, #2D2D2D 60%);
+  --lumo-tint-50pct: color-mix(in srgb, #FF6600 50%, #2D2D2D 50%);
+
+  /* Halloween Status Colors - brighter for dark theme */
+  --brand-success: #00FF7F; /* Spring Green - brighter for dark backgrounds */
+  --brand-warning: #FFD700; /* Gold - stays the same */
+  --brand-error: #FF4444; /* Brighter red for better visibility */
+  --brand-info: #8B00FF; /* Electric Purple */
+
+  /* Additional contrast overrides for Lumo dark theme compatibility */
+  --lumo-contrast: #FFFFFF !important; /* White for high contrast */
+  --lumo-contrast-90pct: rgba(255, 255, 255, 0.9) !important;
+  --lumo-contrast-80pct: rgba(255, 255, 255, 0.8) !important;
+  --lumo-contrast-70pct: rgba(255, 255, 255, 0.7) !important;
+  --lumo-contrast-60pct: rgba(255, 255, 255, 0.6) !important;
+  --lumo-contrast-50pct: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Halloween Theme Specific Classes */
+.halloween-header {
+  background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-secondary) 100%);
+  color: var(--brand-tertiary);
+}
+
+.halloween-button {
+  background: var(--brand-primary);
+  color: var(--brand-tertiary);
+  border: 2px solid var(--brand-tertiary);
+}
+
+.halloween-button:hover {
+  background: var(--brand-secondary);
+  color: #FFFFFF;
+}
+
+.halloween-card {
+  background: var(--brand-base);
+  border: 2px solid var(--brand-primary);
+  color: var(--brand-tertiary); /* Changed to white for better contrast */
+}
+
+.spooky-accent {
+  color: var(--brand-secondary);
+  text-shadow: 0 0 10px var(--brand-secondary);
+}

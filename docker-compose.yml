@@ -47,7 +47,7 @@ services:
         timeout: 5s
         retries: 20
     volumes:
-      - ./um-brand/:/brand:ro
+      - ../Elicit_Campsites/um-brand/:/brand:ro
       # - ./test-brand/:/brand:ro
       # - ./test-partial-brand/:/brand:ro
     depends_on:
@@ -130,7 +130,7 @@ services:
       # quarkus.mailer.username:
       # quarkus.mailer.password=
     volumes:
-      - ./um-brand/:/brand:ro
+      - ../Elicit_Campsites/um-brand/:/brand:ro
       # - ./test-brand/:/brand:ro
       # - ./test-partial-brand/:/brand:ro                
     depends_on:
