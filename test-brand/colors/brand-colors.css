@@ -1,27 +1,31 @@
-/* Covenant Healthcare Inspired Brand Color Palette */
-/* Based on Covenant Healthcare website color analysis */
+/* Brand Color Palette */
+/* Healthcare-inspired brand colors */
 
 :root {
-  /* Primary Brand Colors - Actual Covenant Healthcare Colors */
+  /* Primary Brand Colors - Healthcare-inspired */
   --healthcare-blue: #003366;
   --healthcare-purple: #A6216B;
   --healthcare-magenta: #A6216B;
-  --healthcare-teal: #00B2CC;
-  --healthcare-cyan: #00B2CC;
+  --healthcare-teal: #A6216B;
+  --healthcare-cyan: #A6216B;
   --healthcare-navy: #002244;
   
-  /* Primary color aliases for semantic use */
+  /* Generic brand color mappings */
   --brand-primary: var(--healthcare-magenta);
   --brand-primary-contrast: var(--healthcare-white);
   --brand-primary-50pct: rgba(166, 33, 107, 0.5);
   --brand-primary-10pct: rgba(166, 33, 107, 0.1);
-  --brand-secondary: var(--healthcare-cyan);
-  --brand-accent: var(--healthcare-cyan);
-  --brand-base: var(--healthcare-white);
-  --brand-header-bg: var(--healthcare-white);
-  --brand-header-text: var(--healthcare-magenta);
+  --brand-secondary: var(--healthcare-dark-magenta);
+  --brand-accent: var(--healthcare-magenta);
+  --brand-background: var(--healthcare-white);
+  --brand-surface: var(--healthcare-light-gray);
+  --brand-text-primary: var(--healthcare-magenta);
+  --brand-text-secondary: var(--healthcare-charcoal);
+  --brand-text-on-primary: var(--healthcare-white);
+  --brand-text-on-secondary: var(--healthcare-white);
+  --brand-text-on-accent: var(--healthcare-white);
   
-  /* Secondary Supporting Colors - Covenant Healthcare Palette */
+  /* Secondary Supporting Colors - Healthcare Palette */
   --healthcare-light-blue: #4A90C2;
   --healthcare-medium-blue: #2C5F88;
   --healthcare-dark-blue: #1A3A55;
@@ -29,9 +33,9 @@
   --healthcare-light-magenta: #C564A3;
   --healthcare-dark-purple: #7A1B4A;
   --healthcare-dark-magenta: #7A1B4A;
-  --healthcare-light-cyan: #33C2D9;
-  --healthcare-dark-cyan: #007A8C;
-  --healthcare-teal-accent: var(--healthcare-cyan);
+  --healthcare-light-cyan: #B83C7A;
+  --healthcare-dark-cyan: #7A1B4B;
+  --healthcare-teal-accent: var(--healthcare-magenta);
   --healthcare-light-teal: var(--healthcare-light-cyan);
   --healthcare-dark-teal: var(--healthcare-dark-cyan);
   
@@ -43,44 +47,37 @@
   --healthcare-charcoal: #343A40;
   --healthcare-black: #000000;
   
+  /* Interactive states using generic brand names */
+  --brand-hover: color-mix(in srgb, var(--brand-primary) 85%, var(--brand-secondary) 15%);
+  --brand-active: color-mix(in srgb, var(--brand-secondary) 85%, var(--brand-primary) 15%);
+  --brand-focus: var(--healthcare-magenta);
+  
   /* Semantic Colors - Healthcare Standard */
   --healthcare-success: #28A745;
   --healthcare-warning: #FD7E14;
   --healthcare-error: #DC3545;
   --healthcare-info: #17A2B8;
   
-  /* Brand semantic mappings */
-  --brand-background: var(--healthcare-white);
-  --brand-surface: var(--healthcare-light-gray);
-  --brand-text-primary: var(--healthcare-charcoal);
-  --brand-text-secondary: var(--healthcare-dark-gray);
-  --brand-text-on-primary: var(--healthcare-white);
-  --brand-text-on-secondary: var(--healthcare-white);
-  --brand-text-on-accent: var(--healthcare-white);
-  
-  /* Interactive states - Enhanced for accessibility */
-  --brand-hover: color-mix(in srgb, var(--healthcare-magenta) 80%, var(--healthcare-cyan) 20%);
-  --brand-active: color-mix(in srgb, var(--healthcare-dark-magenta) 95%, var(--healthcare-cyan) 5%);
-  --brand-focus: var(--healthcare-cyan);
-  
-  /* Status colors */
+  /* Generic brand status color mappings */
   --brand-success: var(--healthcare-success);
-  --brand-success-50pct: rgba(76, 175, 80, 0.5);
-  --brand-success-10pct: rgba(76, 175, 80, 0.1);
+  --brand-success-50pct: rgba(40, 167, 69, 0.5);
+  --brand-success-10pct: rgba(40, 167, 69, 0.1);
   --brand-warning: var(--healthcare-warning);
-  --brand-warning-50pct: rgba(255, 193, 7, 0.5);
-  --brand-warning-10pct: rgba(255, 193, 7, 0.1);
+  --brand-warning-50pct: rgba(253, 126, 20, 0.5);
+  --brand-warning-10pct: rgba(253, 126, 20, 0.1);
   --brand-error: var(--healthcare-error);
-  --brand-error-50pct: rgba(244, 67, 54, 0.5);
-  --brand-error-10pct: rgba(244, 67, 54, 0.1);
+  --brand-error-50pct: rgba(220, 53, 69, 0.5);
+  --brand-error-10pct: rgba(220, 53, 69, 0.1);
   --brand-info: var(--healthcare-info);
+  --brand-info-50pct: rgba(23, 162, 184, 0.5);
+  --brand-info-10pct: rgba(23, 162, 184, 0.1);
   
-  /* Border and shadow colors */
+  /* Border and shadow colors using generic brand names */
   --brand-border: var(--healthcare-medium-gray);
   --brand-border-light: var(--healthcare-light-gray);
   --brand-shadow: color-mix(in srgb, var(--healthcare-navy) 20%, transparent 80%);
   
-  /* Healthcare-specific color mappings */
+  /* Healthcare-specific color mappings for specialized use */
   --healthcare-trust: var(--healthcare-blue);
   --healthcare-calm: var(--healthcare-teal);
   --healthcare-professional: var(--healthcare-navy);
@@ -90,10 +87,34 @@
   /* Accessibility enhancements */
   --high-contrast-text: var(--healthcare-black);
   --high-contrast-background: var(--healthcare-white);
-  --focus-indicator: var(--healthcare-teal);
-  
-  /* Gradient definitions - Covenant inspired */
-  --brand-gradient-primary: linear-gradient(135deg, var(--healthcare-magenta) 0%, var(--healthcare-cyan) 100%);
-  --brand-gradient-secondary: linear-gradient(135deg, var(--healthcare-dark-magenta) 0%, var(--healthcare-magenta) 100%);
-  --brand-gradient-accent: linear-gradient(135deg, var(--healthcare-cyan) 0%, var(--healthcare-light-cyan) 100%);
+  --focus-indicator: var(--healthcare-magenta);
+}
+
+/* Explicit overrides to prevent Vaadin gradients and force solid colors */
+vaadin-app-layout[theme="default"] [slot="navbar"],
+vaadin-app-layout [slot="navbar"],
+.app-layout-navbar,
+header,
+.header,
+vaadin-header,
+.navbar,
+.toolbar {
+  background: var(--brand-primary) !important;
+  background-image: none !important;
+  background-color: var(--brand-primary) !important;
+}
+
+/* Override any Lumo primary color gradients */
+[theme~="primary"],
+vaadin-button[theme~="primary"],
+.primary {
+  background: var(--brand-primary) !important;
+  background-image: none !important;
+  background-color: var(--brand-primary) !important;
+}
+
+/* Header-specific brand colors - Default header styling */
+:root {
+  --brand-header-background: var(--brand-primary);
+  --brand-header-text: var(--brand-primary-contrast);
 }

@@ -101,3 +101,9 @@
   color: var(--brand-secondary);
   text-shadow: 0 0 10px var(--brand-secondary);
 }
+
+/* Header-specific brand colors - Default header styling */
+:root {
+  --brand-header-background: var(--brand-primary);
+  --brand-header-text: var(--brand-primary-contrast);
+}

@@ -1,33 +1,35 @@
-# Covenant Healthcare Inspired Color Palette
+# Healthcare Test Brand Color Palette
 
-Based on the color scheme from Covenant Healthcare website (www.covenanthealthcare.com).
+Healthcare-inspired brand colors designed for trust, professionalism, and patient care. **Note**: All teal/cyan colors have been remapped to magenta variants to ensure solid color rendering without gradients.
 
 ## Primary Brand Colors
-
-The primary color palette matches the actual Covenant Healthcare website branding.
 
 | Color | Hex Code | RGB | Usage |
 |-------|----------|-----|-------|
 | **Healthcare Magenta** | `#A6216B` | 166, 33, 107 | Primary brand color, navigation, headings |
-| **Healthcare Cyan** | `#00B2CC` | 0, 178, 204 | Secondary brand, accents, highlights |
+| **Healthcare Dark Magenta** | `#7A1B4A` | 122, 27, 74 | Secondary brand, dark variants |
 | **Healthcare Blue** | `#003366` | 0, 51, 102 | Supporting blue for depth |
 | **Healthcare Navy** | `#002244` | 0, 34, 68 | Deep accent, professional tone |
 
-## Header Styling
+## Color Remapping for Gradient Elimination
 
-Actual Covenant Healthcare header design:
-- **Background**: White (`#FFFFFF`)
-- **Text Color**: Magenta (`#A6216B`)
-- **Navigation Bar**: Magenta background with white text
-- **Accents**: Cyan highlights and interactive elements
+To ensure solid colors without browser gradient rendering issues:
 
-## Secondary Supporting Colors
+| Original Variable | Remapped Color | Purpose |
+|-------------------|----------------|---------|
+| `--healthcare-teal` | `#A6216B` (magenta) | Eliminated teal gradients |
+| `--healthcare-cyan` | `#A6216B` (magenta) | Eliminated cyan gradients |
+| `--healthcare-light-cyan` | `#B83C7A` (light magenta) | Light variant |
+| `--healthcare-dark-cyan` | `#7A1B4B` (dark magenta) | Dark variant |
 
-Extended palette for flexible design applications.
+## Generic Brand Variable Mapping
 
-| Color | Hex Code | RGB | Usage |
-|-------|----------|-----|-------|
-| **Light Blue** | `#4A90C2` | 74, 144, 194 | Highlights, interactive elements |
+| Generic Variable | Maps To | Color |
+|------------------|---------|-------|
+| `--brand-primary` | `--healthcare-magenta` | `#A6216B` |
+| `--brand-secondary` | `--healthcare-dark-magenta` | `#7A1B4A` |
+| `--brand-accent` | `--healthcare-magenta` | `#A6216B` |
+| `--brand-focus` | `--healthcare-magenta` | `#A6216B` |
 | **Medium Blue** | `#2C5F88` | 44, 95, 136 | Mid-tone applications |
 | **Dark Blue** | `#1A3A55` | 26, 58, 85 | Deep backgrounds, contrast |
 | **Light Magenta** | `#C564A3` | 197, 100, 163 | Hover states, light accents |

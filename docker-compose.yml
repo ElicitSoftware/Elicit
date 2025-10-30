@@ -41,15 +41,16 @@ services:
       # The Admin tool is used to create tokens and manage respondents.
       # Remove this for production, the default is false.
       token.autoRegister: true
+      # brand.file.system.path: /opt/brand
     healthcheck:
         test: ["CMD", "curl", "--head","fsS", "http://localhost:8080/q/health/ready"]
         interval: 15s
         timeout: 5s
         retries: 20
-    volumes:
-      - ../Elicit_Campsites/um-brand/:/brand:ro
-      # - ./test-brand/:/brand:ro
-      # - ./test-partial-brand/:/brand:ro
+    # volumes:
+      # - ../Elicit_Campsites/um-brand/:/opt/brand:ro
+      # - ./test-brand/:/opt/brand:ro
+      # - ./test-partial-brand/:/opt/brand:ro
     depends_on:
      - db
   fhhs:
@@ -129,8 +130,8 @@ services:
       # quarkus.mailer.auth-methods:
       # quarkus.mailer.username:
       # quarkus.mailer.password=
-    volumes:
-      - ../Elicit_Campsites/um-brand/:/brand:ro
+    # volumes:
+      # - ../Elicit_Campsites/um-brand/:/opt/brand:ro
       # - ./test-brand/:/brand:ro
       # - ./test-partial-brand/:/brand:ro                
     depends_on:

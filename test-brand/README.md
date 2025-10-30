@@ -1,4 +1,4 @@
-# Covenant Healthcare Inspired Test Brand Implementation
+# Healthcare Test Brand Implementation
 
 Comprehensive healthcare brand system inspired by Covenant Healthcare's professional color palette. This brand implementation provides a complete visual identity system for healthcare applications, focusing on trust, professionalism, and patient care. The brand balances medical authority with warmth and accessibility.
 
@@ -11,21 +11,19 @@ This test brand implementation provides a complete visual identity system for he
 ```
 test-brand/
 ├── brand-config.json          # Brand configuration and metadata
-├── colors/                    # Healthcare color palette
-│   ├── brand-colors.css      # CSS custom properties for colors
-│   └── README.md             # Color usage guidelines
-├── typography/                # Healthcare typography system
-│   ├── brand-typography.css  # CSS typography definitions
-│   └── README.md             # Typography guidelines
-├── logos/                     # Healthcare logos and marks
-│   ├── HorizontalLogo.png     # Main horizontal logo for headers
-│   └── README.md              # Logo guidelines
-├── visual-assets/             # Additional visual elements
-│   └── icons/                # Healthcare icons
-│       ├── favicon.svg        # Browser favicon
-│       └── README.md          # Icon guidelines
-├── theme.css                 # Vaadin integration styles
-└── README.md                 # This file
+├── brand-info.json           # Extended brand information
+├── colors/                   # Healthcare color palette
+│   ├── brand-colors.css     # CSS custom properties for colors
+│   └── README.md            # Color usage guidelines
+├── typography/               # Healthcare typography system
+│   ├── brand-typography.css # CSS typography definitions
+│   └── README.md            # Typography guidelines
+├── images/                   # Additional brand images
+├── visual-assets/           # Additional visual elements
+│   └── icons/              # Healthcare icons
+│       ├── favicon.svg     # Browser favicon
+│       └── README.md       # Icon guidelines
+└── README.md               # This file
 ```
 
 ## Brand Foundation
@@ -46,24 +44,38 @@ test-brand/
 
 ## Quick Start
 
-### 1. Include Brand Styles
+### 1. Docker Volume Mount
 
-```html
-<!-- Complete Healthcare theme -->
-<link rel="stylesheet" href="/test-brand/theme.css">
+The brand is automatically loaded when mounted as a Docker volume:
 
-<!-- Or individual components -->
-<link rel="stylesheet" href="/test-brand/colors/brand-colors.css">
-<link rel="stylesheet" href="/test-brand/typography/brand-typography.css">
+```bash
+# Survey application with test-brand
+docker run -v ./test-brand:/brand:ro -p 8080:8080 elicitsoftware/survey:latest
+
+# Admin application with test-brand  
+docker run -v ./test-brand:/brand:ro -p 8081:8080 elicitsoftware/admin:latest
 ```
 
-### 2. Use Brand Variables
+### 2. Brand Loading Architecture
+
+The application automatically loads brand files in this order:
+1. **Colors** (`colors/brand-colors.css`) - CSS custom properties
+2. **Typography** (`typography/brand-typography.css`) - Font definitions  
+
+All CSS is injected inline to avoid @import caching issues. Theme integration is handled by the application's default theme.css file.
+
+### 3. Use Brand Variables
 
 ```css
 /* Primary healthcare colors */
-background-color: var(--healthcare-blue);
+background-color: var(--brand-primary);      /* Maps to --healthcare-magenta */
+color: var(--brand-primary-contrast);        /* Maps to --healthcare-white */
+border-color: var(--brand-secondary);        /* Maps to --healthcare-dark-magenta */
+
+/* Direct healthcare variables */
+background-color: var(--healthcare-magenta);
 color: var(--healthcare-white);
-accent-color: var(--healthcare-teal);
+accent-color: var(--healthcare-teal);        /* Now also magenta variant */
 
 /* Healthcare typography */
 font-family: var(--healthcare-font-primary);
@@ -110,14 +122,6 @@ font-size: var(--healthcare-font-size-lg);
 - Enhanced line spacing for medical content
 - Larger base font sizes for patient information
 - High contrast ratios for accessibility compliance
-
-### Healthcare Logos
-
-**Professional Mark System:**
-- Medical cross symbol for healthcare recognition
-- Clean, trustworthy wordmark
-- Scalable for all healthcare applications
-- Compliant with medical branding standards
 
 ## Healthcare Applications
 
@@ -171,7 +175,7 @@ font-size: var(--healthcare-font-size-lg);
 ## Integration with Existing Systems
 
 ### Vaadin Framework Integration
-The `theme.css` provides seamless integration with Vaadin Lumo theme:
+The application's default theme provides seamless integration with Vaadin Lumo theme by automatically importing brand CSS files:
 
 ```css
 /* Lumo theme variables automatically mapped */
