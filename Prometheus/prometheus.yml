@@ -1,0 +1,53 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  - "recording_rules.yml"
+  - "alerting_rules.yml"
+
+scrape_configs:
+  # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  # Elicit Survey application
+  - job_name: "survey-app"
+    static_configs:
+      - targets: ["survey:8080"]
+    metrics_path: "/q/metrics"
+    scrape_interval: 30s
+    
+  # Elicit Admin application  
+  - job_name: "admin-app"
+    static_configs:
+      - targets: ["admin:8080"]
+    metrics_path: "/q/metrics"
+    scrape_interval: 30s
+    
+  # Elicit FHHS application
+  - job_name: "fhhs-app"
+    static_configs:
+      - targets: ["fhhs:8080"]
+    metrics_path: "/q/metrics"
+    scrape_interval: 30s
+    
+  # Elicit PREMM5 application
+  - job_name: "premm5-app"
+    static_configs:
+      - targets: ["premm5:8080"]
+    metrics_path: "/q/metrics"
+    scrape_interval: 30s
+
+  # PostgreSQL database metrics (if using postgres_exporter)
+  - job_name: "postgresql"
+    static_configs:
+      - targets: ["postgres-exporter:9187"]
+    scrape_interval: 30s
+
+  # Docker container metrics (if using cadvisor)
+  - job_name: "cadvisor"
+    static_configs:
+      - targets: ["cadvisor:8080"]
+    scrape_interval: 30s

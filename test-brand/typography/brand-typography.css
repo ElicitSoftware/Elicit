@@ -1,27 +1,29 @@
-/* Healthcare Test Brand Typography */
-/* Based on design guidelines and healthcare industry best practices */
+/* Brand Typography */
+/* Healthcare-inspired typography for brand consistency */
 
-/* Import professional healthcare fonts */
+/* Import professional fonts */
 @import url('https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400;1,500;1,600;1,700;1,800&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Source+Code+Pro:ital,wght@0,200..900;1,200..900&display=swap');
 
 :root {
-  /* Font Family Variables */
+  /* Font Family Variables - Healthcare-inspired fonts */
   --healthcare-font-primary: 'Open Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --healthcare-font-secondary: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --healthcare-font-heading: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --healthcare-font-body: 'Open Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --healthcare-font-mono: 'Source Code Pro', 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', monospace;
   
-  /* Brand typography mappings */
-  --brand-font-family: var(--healthcare-font-primary);
-  --brand-font-family-heading: var(--healthcare-font-heading);
-  --brand-font-family-body: var(--healthcare-font-body);
-  --brand-font-family-mono: var(--healthcare-font-mono);
+  /* Generic brand typography mappings */
+  --brand-font-primary: var(--healthcare-font-primary);
+  --brand-font-secondary: var(--healthcare-font-secondary);
+  --brand-font-body: var(--healthcare-font-body);
+  --brand-font-serif: var(--healthcare-font-heading);
+  --brand-font-display: var(--healthcare-font-heading);
+  --brand-font-mono: var(--healthcare-font-mono);
   
-  /* Font Weights */
+  /* Font Weights - Healthcare specific */
   --healthcare-font-weight-light: 300;
   --healthcare-font-weight-normal: 400;
   --healthcare-font-weight-medium: 500;
@@ -30,9 +32,11 @@
   --healthcare-font-weight-extrabold: 800;
   --healthcare-font-weight-black: 900;
   
-  /* Brand font weight mappings */
-  --brand-font-weight: var(--healthcare-font-weight-normal);
-  --brand-font-weight-heading: var(--healthcare-font-weight-semibold);
+  /* Generic brand font weight mappings */
+  --brand-font-weight-light: var(--healthcare-font-weight-light);
+  --brand-font-weight-normal: var(--healthcare-font-weight-normal);
+  --brand-font-weight-medium: var(--healthcare-font-weight-medium);
+  --brand-font-weight-semibold: var(--healthcare-font-weight-semibold);
   --brand-font-weight-bold: var(--healthcare-font-weight-bold);
   
   /* Font Sizes - Healthcare optimized for readability */

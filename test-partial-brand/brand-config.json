@@ -1,5 +1,8 @@
 {
   "name": "Test Partial Brand",
   "version": "1.0.0",
-  "description": "Test brand with only colors defined"
+  "organization": "Test Organization",
+  "logos": {
+    "horizontal": "HorizontalLogo.png"
+  }
 }
