@@ -1,0 +1,125 @@
+groups:
+  - name: elicit_application_metrics
+    interval: 30s
+    rules:
+      # Application Request Rate Rules
+      - record: elicit:http_requests_per_second
+        expr: rate(http_server_requests_seconds_count[5m])
+        labels:
+          description: "HTTP requests per second across all Elicit applications"
+      
+      - record: elicit:http_requests_per_second_by_app
+        expr: sum(rate(http_server_requests_seconds_count[5m])) by (job, uri, method, status)
+        labels:
+          description: "HTTP requests per second by application and endpoint"
+      
+      # Application Response Time Rules
+      - record: elicit:http_response_time_avg
+        expr: rate(http_server_requests_seconds_sum[5m]) / rate(http_server_requests_seconds_count[5m])
+        labels:
+          description: "Average HTTP response time across all applications"
+      
+      - record: elicit:http_response_time_p95
+        expr: histogram_quantile(0.95, rate(http_server_requests_seconds_bucket[5m]))
+        labels:
+          description: "95th percentile HTTP response time"
+      
+      - record: elicit:http_response_time_p99
+        expr: histogram_quantile(0.99, rate(http_server_requests_seconds_bucket[5m]))
+        labels:
+          description: "99th percentile HTTP response time"
+
+  - name: elicit_database_metrics
+    interval: 30s
+    rules:
+      # Database Connection Pool Rules
+      - record: elicit:db_connections_active
+        expr: sum(agroal_active_count) by (job, datasource)
+        labels:
+          description: "Active database connections by application"
+      
+      - record: elicit:db_connections_usage_ratio
+        expr: sum(agroal_active_count) by (job, datasource) / sum(agroal_max_used_count) by (job, datasource)
+        labels:
+          description: "Database connection pool usage ratio"
+      
+      # Database Query Performance
+      - record: elicit:db_query_rate
+        expr: rate(hibernate_sessions_opened_total[5m])
+        labels:
+          description: "Database query rate per second"
+      
+      # SQL Execution Time Rules
+      - record: elicit:sql_execution_time_avg
+        expr: rate(hibernate_second_level_cache_hit_count[5m]) / rate(hibernate_sessions_opened_total[5m])
+        labels:
+          description: "Average SQL execution time based on Hibernate metrics"
+      
+      # Database Transaction Performance
+      - record: elicit:db_transaction_rate
+        expr: rate(hibernate_transactions_total[5m])
+        labels:
+          description: "Database transaction rate per second"
+      
+      - record: elicit:db_transaction_success_rate
+        expr: rate(hibernate_transactions_total{result="success"}[5m]) / rate(hibernate_transactions_total[5m])
+        labels:
+          description: "Database transaction success rate"
+      
+      # Connection Pool Health
+      - record: elicit:db_pool_exhaustion_events
+        expr: increase(agroal_creation_count[5m]) - increase(agroal_destroy_count[5m])
+        labels:
+          description: "Net connection creation events indicating pool pressure"
+      
+      # Database Lock and Wait Times
+      - record: elicit:db_connection_acquire_time_avg
+        expr: rate(agroal_acquire_count[5m]) / rate(agroal_creation_count[5m])
+        labels:
+          description: "Average connection acquisition time"
+
+  - name: elicit_jvm_metrics
+    interval: 30s
+    rules:
+      # JVM Memory Rules
+      - record: elicit:jvm_memory_used_ratio
+        expr: jvm_memory_used_bytes / jvm_memory_max_bytes
+        labels:
+          description: "JVM memory usage ratio by memory area"
+      
+      - record: elicit:jvm_heap_used_ratio
+        expr: sum(jvm_memory_used_bytes{area="heap"}) by (job) / sum(jvm_memory_max_bytes{area="heap"}) by (job)
+        labels:
+          description: "JVM heap memory usage ratio by application"
+      
+      # JVM Garbage Collection Rules
+      - record: elicit:jvm_gc_rate
+        expr: rate(jvm_gc_collection_seconds_count[5m])
+        labels:
+          description: "JVM garbage collection rate per second"
+      
+      - record: elicit:jvm_gc_time_ratio
+        expr: rate(jvm_gc_collection_seconds_sum[5m])
+        labels:
+          description: "Time spent in garbage collection as ratio"
+
+  - name: elicit_business_metrics
+    interval: 60s
+    rules:
+      # Survey Completion Metrics (these would need custom metrics from your apps)
+      - record: elicit:survey_completion_rate
+        expr: increase(survey_completed_total[1h]) / increase(survey_started_total[1h])
+        labels:
+          description: "Survey completion rate per hour"
+      
+      # Application Health Status
+      - record: elicit:application_up
+        expr: up
+        labels:
+          description: "Application availability status"
+      
+      # Error Rate Metrics
+      - record: elicit:error_rate
+        expr: rate(http_server_requests_seconds_count{status=~"4..|5.."}[5m]) / rate(http_server_requests_seconds_count[5m])
+        labels:
+          description: "HTTP error rate (4xx and 5xx responses)"

@@ -41,18 +41,21 @@ services:
       # The Admin tool is used to create tokens and manage respondents.
       # Remove this for production, the default is false.
       token.autoRegister: true
-      # brand.file.system.path: /opt/brand
+      brand.file.system.path: /opt/brand
     healthcheck:
         test: ["CMD", "curl", "--head","fsS", "http://localhost:8080/q/health/ready"]
         interval: 15s
         timeout: 5s
         retries: 20
-    # volumes:
-      # - ../Elicit_Campsites/um-brand/:/opt/brand:ro
+        start_period: 60s
+    volumes:
+      - ../Elicit_Campsites/um-brand/:/opt/brand:ro
       # - ./test-brand/:/opt/brand:ro
       # - ./test-partial-brand/:/opt/brand:ro
     depends_on:
-     - db
+      db:
+        condition: service_healthy
+    restart: unless-stopped
   fhhs:
     image: elicitsoftware/fhhs:latest
     #open this port for local testing. It is not needed for inter container communication.
@@ -63,6 +66,7 @@ services:
         interval: 15s
         timeout: 5s
         retries: 20
+        start_period: 90s
     environment:
       TZ: America/Detroit
       pedigree.url: http://pedigree:8080/svg
@@ -86,9 +90,13 @@ services:
             </pages>
         </umhsdoc2>       
     depends_on:
-      - db
-      - survey
-      - sftpServer
+      db:
+        condition: service_healthy
+      survey:
+        condition: service_healthy
+      sftpServer:
+        condition: service_started
+    restart: unless-stopped
   premm5:
     image: elicitsoftware/premm5:latest
     #open this port for local testing. It is not needed for inter container communication.
@@ -99,14 +107,18 @@ services:
         interval: 15s
         timeout: 5s
         retries: 20
+        start_period: 45s
     environment:
       TZ: America/Detroit
       truelicense.store.file: /license/PREMM5.license
     depends_on:
-      - db
-      - survey
+      db:
+        condition: service_healthy
+      survey:
+        condition: service_healthy
     volumes:
-      - ./PREMM5/PREMM5.license:/license/PREMM5.license:ro      
+      - ./PREMM5/PREMM5.license:/license/PREMM5.license:ro
+    restart: unless-stopped      
   pedigree:
     image: elicitsoftware/pedigree:latest
     #open this port for local testing. It is not needed for inter container communication.
@@ -121,6 +133,7 @@ services:
         interval: 15s
         timeout: 5s
         retries: 20
+        start_period: 60s
     environment:
       TZ: America/Detroit
       quarkus.mailer.from: elicit@localhost
@@ -130,15 +143,20 @@ services:
       # quarkus.mailer.auth-methods:
       # quarkus.mailer.username:
       # quarkus.mailer.password=
-    # volumes:
-      # - ../Elicit_Campsites/um-brand/:/opt/brand:ro
+    volumes:
+      - ../Elicit_Campsites/um-brand/:/opt/brand:ro
       # - ./test-brand/:/brand:ro
       # - ./test-partial-brand/:/brand:ro                
     depends_on:
-      - db
-      - survey
-      - fhhs
-      - pedigree
+      db:
+        condition: service_healthy
+      survey:
+        condition: service_healthy
+      fhhs:
+        condition: service_started  # Changed from service_healthy to service_started
+      pedigree:
+        condition: service_started
+    restart: unless-stopped
 # Test containers
 # These containers are used for running the application in a development environment.
 # They are not needed for production or will be replaced by non containerized applications.
@@ -158,10 +176,12 @@ services:
       POSTGRES_PASSWORD: "admin"
       PGDATA: "/var/lib/postgresql/data/pgdata"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U survey"]
-      interval: 15s
+      test: ["CMD-SHELL", "pg_isready -U survey && psql -U survey -d survey -c 'SELECT 1;'"]
+      interval: 10s
       timeout: 5s
-      retries: 15
+      retries: 30
+      start_period: 60s
+    restart: unless-stopped
 # OIDC Server
 # This is a Keycloak server that is used for testing the OIDC integration.
   keycloak:
@@ -204,3 +224,20 @@ services:
       SFTP_USERS: fhhs_user:pass:::upload/reports
     volumes:
       - ./sftp_data/temp/upload/reports:/home/fhhs_user/upload/reports
+
+  prometheus:
+    image: prom/prometheus:v2.45.0
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./Prometheus:/etc/prometheus
+      - ./Prometheus/data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+    depends_on:
+      - survey
+      - admin
+      - fhhs

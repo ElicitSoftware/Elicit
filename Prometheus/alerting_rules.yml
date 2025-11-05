@@ -1,0 +1,108 @@
+groups:
+  - name: elicit_alerts
+    rules:
+      # Application Availability Alerts
+      - alert: ApplicationDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: "{{ $labels.job }}"
+        annotations:
+          summary: "Elicit application {{ $labels.job }} is down"
+          description: "{{ $labels.job }} has been down for more than 1 minute"
+      
+      # High Error Rate Alerts
+      - alert: HighErrorRate
+        expr: elicit:error_rate > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          service: "{{ $labels.job }}"
+        annotations:
+          summary: "High error rate detected for {{ $labels.job }}"
+          description: "Error rate is {{ $value | humanizePercentage }} for {{ $labels.job }}"
+      
+      # High Response Time Alerts
+      - alert: HighResponseTime
+        expr: elicit:http_response_time_p95 > 2
+        for: 5m
+        labels:
+          severity: warning
+          service: "{{ $labels.job }}"
+        annotations:
+          summary: "High response time for {{ $labels.job }}"
+          description: "95th percentile response time is {{ $value }}s for {{ $labels.job }}"
+      
+      # Memory Usage Alerts
+      - alert: HighMemoryUsage
+        expr: elicit:jvm_heap_used_ratio > 0.85
+        for: 5m
+        labels:
+          severity: warning
+          service: "{{ $labels.job }}"
+        annotations:
+          summary: "High memory usage for {{ $labels.job }}"
+          description: "Heap memory usage is {{ $value | humanizePercentage }} for {{ $labels.job }}"
+      
+      # Database Connection Pool Alerts
+      - alert: DatabaseConnectionPoolExhaustion
+        expr: (agroal_active_count / agroal_max_count) > 0.9
+        for: 1m
+        labels:
+          severity: critical
+          component: database
+        annotations:
+          summary: "Database connection pool nearly exhausted"
+          description: "Application {{ $labels.job }} has used {{ $value | humanizePercentage }} of available database connections"
+
+      - alert: DatabaseTransactionFailureRate
+        expr: (rate(hibernate_transactions_total{result="failure"}[5m]) / rate(hibernate_transactions_total[5m])) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+          component: database
+        annotations:
+          summary: "High database transaction failure rate"
+          description: "Application {{ $labels.job }} has {{ $value | humanizePercentage }} transaction failure rate"
+
+      - alert: DatabaseSlowQueries
+        expr: elicit:sql_execution_time_avg > 1000
+        for: 3m
+        labels:
+          severity: warning
+          component: database
+        annotations:
+          summary: "Slow SQL queries detected"
+          description: "Application {{ $labels.job }} has average SQL execution time of {{ $value }}ms"
+
+      - alert: DatabaseConnectionLeaks
+        expr: increase(agroal_leak_detection_count[1h]) > 5
+        for: 5m
+        labels:
+          severity: warning
+          component: database
+        annotations:
+          summary: "Database connection leaks detected"
+          description: "Application {{ $labels.job }} has {{ $value }} connection leaks in the last hour"
+
+      - alert: DatabaseHighConnectionChurn
+        expr: rate(agroal_creation_count[5m]) > 10
+        for: 2m
+        labels:
+          severity: warning
+          component: database
+        annotations:
+          summary: "High database connection creation rate"
+          description: "Application {{ $labels.job }} is creating {{ $value }} connections per second, indicating possible connection pool issues"
+
+      # Excessive GC Time Alert
+      - alert: HighGarbageCollectionTime
+        expr: elicit:jvm_gc_time_ratio > 0.10
+        for: 5m
+        labels:
+          severity: warning
+          service: "{{ $labels.job }}"
+        annotations:
+          summary: "High garbage collection time for {{ $labels.job }}"
+          description: "Application is spending {{ $value | humanizePercentage }} time in garbage collection"
