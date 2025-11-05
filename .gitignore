@@ -4,6 +4,7 @@
 /PREMM5
 /Pedigree
 /PostgreSQL
+/Prometheus/data
 /keycloak/db
 /keycloak/elicit-realm-export.json
 /keycloak/certs/
