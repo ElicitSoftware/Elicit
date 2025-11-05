@@ -2,7 +2,7 @@
 
 > **Implementation Status**: 📋 **PLANNED** - Complete observability stack for monitoring performance across all Elicit applications.
 
-This document provides comprehensive instructions for implementing observability across the Elicit ecosystem, including metrics, tracing, and logging for Admin, Survey, FHHS, Pedigree, and PREMM5 applications.
+This document provides comprehensive instructions for implementing observability across the Elicit ecosystem, including metrics and logging for Admin, Survey, FHHS, Pedigree, and PREMM5 applications.
 
 ## Overview
 
@@ -11,12 +11,11 @@ This document provides comprehensive instructions for implementing observability
 The observability implementation uses the following components:
 
 - **Metrics**: Micrometer + Prometheus (JVM, application, database, and custom metrics)
-- **Tracing**: OpenTelemetry (application-level tracing and performance monitoring)  
 - **Logging**: Structured JSON logging (application-level debugging and audit trails)
 - **Dashboards**: Prometheus Web UI (metrics exploration and basic visualization)
 - **Health Checks**: Quarkus SmallRye Health (application health monitoring)
 
-> **Note**: This implementation focuses on Prometheus for metrics collection and visualization, with OpenTelemetry providing application-level tracing. The architecture is designed for simplicity and effectiveness without the complexity of distributed tracing systems.
+> **Note**: This implementation focuses on Prometheus for metrics collection and visualization. The architecture is designed for simplicity and effectiveness with comprehensive application monitoring.
 
 ### Architecture Summary
 
@@ -46,7 +45,6 @@ The observability implementation uses the following components:
 
 - **Configurable**: Enable/disable observability per application via environment variables
 - **Comprehensive**: Network, database, JVM, and application-level metrics
-- **Application Tracing**: OpenTelemetry provides detailed application performance insights
 - **Prometheus-Based**: Direct metrics exploration via Prometheus Web UI with PromQL queries
 - **Pre-configured Rules**: Recording rules and alerting rules for common monitoring scenarios
 - **Ready-to-Use Queries**: Comprehensive PromQL query library for immediate monitoring insights
@@ -65,23 +63,9 @@ The Prometheus configuration includes pre-built recording rules and alerts:
 **Access Prometheus**: http://localhost:9090
 **Quick Queries**: See `docs/metrics/PROMETHEUS_QUERIES.md` for comprehensive monitoring queries
 
-## Types of Signals Traced in the Elicit System
+## Types of Signals Monitored in the Elicit System
 
-The Elicit system implements a comprehensive **three-pillar observability stack** with the following signal types:
-
-### 🔍 **Application Tracing Signals** (via OpenTelemetry)
-
-**Application-Level Tracing:**
-- **HTTP Request Flows**: Complete request/response cycles within each application (Survey, Admin, FHHS, Pedigree, PREMM5)
-- **Database Operations**: SQL query execution, connection pooling, and transaction boundaries
-- **Business Logic Timing**: Custom spans for critical application operations and workflows
-- **Performance Monitoring**: Method-level timing and resource utilization tracking
-
-**Framework Integration:**
-- **Quarkus Integration**: Automatic instrumentation of Quarkus components and endpoints
-- **JAX-RS Endpoints**: REST API performance monitoring with automatic span creation
-- **Database Queries**: Hibernate/Panache query performance and connection pool metrics
-- **Security Context**: Authentication and authorization flow timing
+The Elicit system implements a comprehensive **two-pillar observability stack** with the following signal types:
 
 ### 📊 **Metrics Signals** (via Micrometer + Prometheus)
 
@@ -158,7 +142,7 @@ The system provides **granular control** over signal collection with environment
 
 **Real-Time Processing:**
 - **Live Monitoring**: Real-time metrics exploration via Prometheus Web UI with PromQL queries
-- **Performance Analysis**: Application-level tracing insights through OpenTelemetry data
+- **Performance Analysis**: Application-level performance insights through metrics data
 - **Health Monitoring**: Continuous health check validation and application status tracking
 
 **Historical Analysis:**
@@ -169,16 +153,13 @@ The system provides **granular control** over signal collection with environment
 ### 🔧 **Implementation Status**
 
 **Currently Implemented:**
-- ✅ Basic infrastructure and database tracing via Quarkus OpenTelemetry integration
 - ✅ JVM and system metrics via Micrometer with Prometheus export
 - ✅ Health endpoint monitoring with SmallRye Health
 - ✅ Structured JSON logging configuration with environment-based toggles
 
 **In Development:**
 - 🔄 Custom business metrics for survey workflows and user journeys
-- 🔄 Advanced trace instrumentation for cross-service operations
-- 🔄 Enhanced log correlation with trace IDs and business context
-- 🔄 Performance-optimized sampling strategies for production environments
+- 🔄 Performance-optimized configurations for production environments
 
 **Planned Enhancements:**
 - 📋 Machine learning-based anomaly detection for survey workflow optimization
@@ -196,25 +177,19 @@ This comprehensive signal collection strategy ensures **complete visibility** in
 3. Implement database connection pool monitoring
 4. Add custom business metrics for key operations
 
-### Phase 2: Application Tracing
-1. Integrate OpenTelemetry SDK in all applications
-2. Configure application-level tracing and performance monitoring
-3. Implement custom spans for critical business operations
-4. Add method-level timing for performance analysis
-
-### Phase 3: Structured Logging
+### Phase 2: Structured Logging
 1. Configure structured JSON logging with Logback
 2. Implement request correlation and context tracking
 3. Add business event logging and audit trails
 4. Set up log rotation and retention policies
 
-### Phase 4: Monitoring and Analysis
+### Phase 3: Monitoring and Analysis
 1. Configure Prometheus-based monitoring and queries
 2. Set up application health monitoring and alerts
-3. Implement performance optimization based on tracing data
+3. Implement performance optimization based on metrics data
 4. Plan future dashboard integration if advanced visualization is needed
 
-### Phase 5: Production Optimization
+### Phase 4: Production Optimization
 1. Configure metric retention and sampling
 2. Implement performance-optimized configurations
 3. Add Kubernetes-specific monitoring
@@ -233,15 +208,11 @@ environment:
   
   # Component-specific toggles
   METRICS_ENABLED: "true"
-  TRACING_ENABLED: "true"
   LOGGING_ENHANCED: "true"
   
   # Metric collection intervals
   METRICS_COLLECTION_INTERVAL: "10s"
   HEALTH_CHECK_INTERVAL: "30s"
-  
-  # Sampling rates (for performance)
-  TRACE_SAMPLING_RATE: "0.1"  # 10% sampling in production
 ```
 
 ### Performance Monitoring Coverage
@@ -384,7 +355,6 @@ Given your healthcare focus, we'll implement specialized metrics:
 ## Performance Impact Mitigation
 
 ### Sampling Strategies
-- Intelligent trace sampling to reduce overhead
 - Metric aggregation to minimize storage requirements
 - Asynchronous metric collection to avoid blocking operations
 - Configurable collection intervals based on environment
@@ -409,9 +379,7 @@ Given your healthcare focus, we'll implement specialized metrics:
 - [x] Configure Prometheus scraping and retention (✅ **Complete**)
 - [ ] Set up basic alerting rules (❌ **Not implemented**)
 
-### Week 5-6: Application Tracing and Logging
-- [x] Integrate OpenTelemetry across all services (✅ **Complete - All Java applications**)
-- [x] Configure application-level tracing and performance monitoring (✅ **Complete**)
+### Week 5-6: Structured Logging
 - [x] Implement structured JSON logging (✅ **Complete**)
 - [ ] Create application performance correlation analysis (❌ **Not implemented**)
 
@@ -421,7 +389,6 @@ Given your healthcare focus, we'll implement specialized metrics:
 
 ### Future Enhancements (Deferred)
 - [ ] Advanced Dashboard Implementation (🔮 **Deferred - Advanced visualization planned for future iteration**)
-- [ ] Distributed tracing across services (🔮 **Deferred - Only if complex inter-service workflows develop**)
 - [ ] Centralized log aggregation (🔮 **Deferred - Current structured logging sufficient**)
 - [ ] Custom alert manager configurations (🔮 **Deferred**)
 - [ ] Set up production alerting and notifications (❌ **Not implemented**)
@@ -480,7 +447,6 @@ metrics_endpoint <- function() {
 - **Health Checks**: HTTP `/health` endpoint for Kubernetes liveness/readiness probes
 - **Metrics Export**: Prometheus `/metrics` endpoint for scraping
 - **Logging**: Structured JSON logs sent to stdout for container log collection
-- **Tracing**: HTTP request/response logging with correlation IDs
 
 **Prometheus Configuration:**
 ```yaml
@@ -500,8 +466,8 @@ metrics_endpoint <- function() {
 
 **Medium Priority - Configuration Completion:**
 - [ ] **Custom business metrics implementation** across all applications
-- [ ] **Application performance optimization** based on tracing data
-- [ ] **Performance-optimized sampling** for production environments
+- [ ] **Application performance optimization** based on metrics data
+- [ ] **Performance-optimized configurations** for production environments
 
 **Low Priority - Production Features:**
 - [ ] **Prometheus AlertManager** configuration and rules
@@ -512,7 +478,6 @@ metrics_endpoint <- function() {
 **✅ Implementation Status Update:**
 All Java applications (Admin, Survey, FHHS, PREMM5) now have **complete observability integration** with:
 - Prometheus metrics collection
-- OpenTelemetry distributed tracing  
 - SmallRye Health endpoints
 - JSON structured logging
 - Database connection pool monitoring
