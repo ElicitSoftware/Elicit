@@ -71,8 +71,22 @@ services:
       TZ: America/Detroit
       pedigree.url: http://pedigree:8080/svg
       family.history.sftp.host: sftpServer
+      # SFTP Authentication settings there are two options for authentication
+      # 1. Password Authentication - set family.history.sftp.username and family.history.sftp.password
+      # 2. SSH Key Authentication - set family.history.sftp.username and family.history.sftp.privateKey
+      #
+      # See FHHS/SSH_AUTHENTICATION_GUIDE.md for more information on setting up SSH Key Authentication.
+      #
+      # family.history.sftp.privateKey can be either the path to the private key file
+      # or the private key itself. If using the path make sure the file is mounted as a volume.
+      # family.history.sftp.privateKey:
       family.history.sftp.username: fhhs_user
       family.history.sftp.password: pass
+      # family.history.sftp.privateKey: /ssh/fhhs_user
+      # family.history.sftp.privateKey: |+
+      #   -----BEGIN RSA PRIVATE KEY-----     
+      #   Put the key here. 
+      #   -----END RSA PRIVATE KEY-----
       family.history.sftp.path: /upload/reports
       family.history.sftp.port: 22
       family.history.upload.psa.id: 1
@@ -96,6 +110,8 @@ services:
         condition: service_healthy
       sftpServer:
         condition: service_started
+    # volumes:
+      # - ./sftp_ssh/fhhs_user:/ssh/fhhs_user:ro        
     restart: unless-stopped
   premm5:
     image: elicitsoftware/premm5:latest
@@ -140,6 +156,7 @@ services:
       quarkus.mailer.host: mailpit
       quarkus.mailer.port: 1025
       quarkus.mailer.tls: false
+      brand.file.system.path: /opt/brand
       # quarkus.mailer.auth-methods:
       # quarkus.mailer.username:
       # quarkus.mailer.password=
@@ -224,6 +241,7 @@ services:
       SFTP_USERS: fhhs_user:pass:::upload/reports
     volumes:
       - ./sftp_data/temp/upload/reports:/home/fhhs_user/upload/reports
+      - ./sftp_ssh/fhhs_user.pub:/home/fhhs_user/.ssh/authorized_keys:ro
 
   prometheus:
     image: prom/prometheus:v2.45.0
