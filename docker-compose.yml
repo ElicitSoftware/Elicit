@@ -55,7 +55,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    restart: unless-stopped
   fhhs:
     image: elicitsoftware/fhhs:latest
     #open this port for local testing. It is not needed for inter container communication.
@@ -112,7 +111,6 @@ services:
         condition: service_started
     # volumes:
       # - ./sftp_ssh/fhhs_user:/ssh/fhhs_user:ro        
-    restart: unless-stopped
   premm5:
     image: elicitsoftware/premm5:latest
     #open this port for local testing. It is not needed for inter container communication.
@@ -134,7 +132,6 @@ services:
         condition: service_healthy
     volumes:
       - ./PREMM5/PREMM5.license:/license/PREMM5.license:ro
-    restart: unless-stopped      
   pedigree:
     image: elicitsoftware/pedigree:latest
     #open this port for local testing. It is not needed for inter container communication.
@@ -173,7 +170,6 @@ services:
         condition: service_started  # Changed from service_healthy to service_started
       pedigree:
         condition: service_started
-    restart: unless-stopped
 # Test containers
 # These containers are used for running the application in a development environment.
 # They are not needed for production or will be replaced by non containerized applications.
@@ -198,7 +194,6 @@ services:
       timeout: 5s
       retries: 30
       start_period: 60s
-    restart: unless-stopped
 # OIDC Server
 # This is a Keycloak server that is used for testing the OIDC integration.
   keycloak:
@@ -242,7 +237,6 @@ services:
     volumes:
       - ./sftp_data/temp/upload/reports:/home/fhhs_user/upload/reports
       - ./sftp_ssh/fhhs_user.pub:/home/fhhs_user/.ssh/authorized_keys:ro
-
   prometheus:
     image: prom/prometheus:v2.45.0
     ports:
