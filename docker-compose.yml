@@ -42,6 +42,18 @@ services:
       # Remove this for production, the default is false.
       token.autoRegister: true
       brand.file.system.path: /opt/brand
+      # OpenTelemetry configuration
+      quarkus.application.name: survey
+      quarkus.otel.enabled: true
+      quarkus.otel.exporter.otlp.endpoint: http://jaeger:4317
+      quarkus.otel.exporter.otlp.traces.endpoint: http://jaeger:4317
+      quarkus.otel.traces.enabled: true
+      quarkus.otel.metrics.enabled: true
+      quarkus.otel.logs.enabled: true
+      quarkus.datasource.jdbc.telemetry: true
+      quarkus.otel.instrument.jdbc: true
+      OTEL_SERVICE_NAME: survey
+      OTEL_RESOURCE_ATTRIBUTES: service.name=survey,service.version=1.0,deployment.environment=local
     healthcheck:
         test: ["CMD", "curl", "--head","fsS", "http://localhost:8080/q/health/ready"]
         interval: 15s
@@ -49,8 +61,8 @@ services:
         retries: 20
         start_period: 60s
     volumes:
-      - ../Elicit_Campsites/um-brand/:/opt/brand:ro
-      # - ./test-brand/:/opt/brand:ro
+      # - ../Elicit_Campsites/um-brand/:/opt/brand:ro
+      - ./test-brand/:/opt/brand:ro
       # - ./test-partial-brand/:/opt/brand:ro
     depends_on:
       db:
@@ -101,7 +113,19 @@ services:
             <pages>
                 <page>{Xid}.pdf</page>
             </pages>
-        </umhsdoc2>       
+        </umhsdoc2>
+      # OpenTelemetry configuration
+      quarkus.application.name: fhhs
+      quarkus.otel.enabled: true
+      quarkus.otel.exporter.otlp.endpoint: http://jaeger:4317
+      quarkus.otel.exporter.otlp.traces.endpoint: http://jaeger:4317
+      quarkus.otel.traces.enabled: true
+      quarkus.otel.metrics.enabled: true
+      quarkus.otel.logs.enabled: true
+      quarkus.datasource.jdbc.telemetry: true
+      quarkus.otel.instrument.jdbc: true
+      OTEL_SERVICE_NAME: fhhs
+      OTEL_RESOURCE_ATTRIBUTES: service.name=fhhs,service.version=1.0,deployment.environment=local
     depends_on:
       db:
         condition: service_healthy
@@ -111,27 +135,37 @@ services:
         condition: service_started
     # volumes:
       # - ./sftp_ssh/fhhs_user:/ssh/fhhs_user:ro        
-  premm5:
-    image: elicitsoftware/premm5:latest
-    #open this port for local testing. It is not needed for inter container communication.
-    ports:
-      - 8084:8080
-    healthcheck:
-        test: ["CMD", "curl", "--head","fsS", "http://localhost:8084/q/health/ready"]
-        interval: 15s
-        timeout: 5s
-        retries: 20
-        start_period: 45s
-    environment:
-      TZ: America/Detroit
-      truelicense.store.file: /license/PREMM5.license
-    depends_on:
-      db:
-        condition: service_healthy
-      survey:
-        condition: service_healthy
-    volumes:
-      - ./PREMM5/PREMM5.license:/license/PREMM5.license:ro
+  # premm5:
+  #   image: elicitsoftware/premm5:latest
+  #   #open this port for local testing. It is not needed for inter container communication.
+  #   ports:
+  #     - 8084:8080
+  #   healthcheck:
+  #       test: ["CMD", "curl", "--head","fsS", "http://localhost:8084/q/health/ready"]
+  #       interval: 15s
+  #       timeout: 5s
+  #       retries: 20
+  #       start_period: 45s
+  #   environment:
+  #     TZ: America/Detroit
+  #     truelicense.store.file: /license/PREMM5.license
+  #     # OpenTelemetry configuration
+  #     quarkus.application.name: premm5
+  #     quarkus.otel.enabled: true
+  #     quarkus.otel.exporter.otlp.endpoint: http://jaeger:4317
+  #     quarkus.otel.exporter.otlp.traces.endpoint: http://jaeger:4317
+  #     quarkus.otel.traces.enabled: true
+  #     quarkus.otel.metrics.enabled: true
+  #     quarkus.otel.logs.enabled: true
+  #     OTEL_SERVICE_NAME: premm5
+  #     OTEL_RESOURCE_ATTRIBUTES: service.name=premm5,service.version=1.0,deployment.environment=local
+  #   depends_on:
+  #     # db:
+  #     #   condition: service_healthy
+  #     survey:
+  #       condition: service_healthy
+  #   volumes:
+  #     - ./PREMM5/PREMM5.license:/license/PREMM5.license:ro
   pedigree:
     image: elicitsoftware/pedigree:latest
     #open this port for local testing. It is not needed for inter container communication.
@@ -157,6 +191,18 @@ services:
       # quarkus.mailer.auth-methods:
       # quarkus.mailer.username:
       # quarkus.mailer.password=
+      # OpenTelemetry configuration
+      quarkus.application.name: admin
+      quarkus.otel.enabled: true
+      quarkus.otel.exporter.otlp.endpoint: http://jaeger:4317
+      quarkus.otel.exporter.otlp.traces.endpoint: http://jaeger:4317
+      quarkus.otel.traces.enabled: true
+      quarkus.otel.metrics.enabled: true
+      quarkus.otel.logs.enabled: true
+      quarkus.datasource.jdbc.telemetry: true
+      quarkus.otel.instrument.jdbc: true
+      OTEL_SERVICE_NAME: admin
+      OTEL_RESOURCE_ATTRIBUTES: service.name=admin,service.version=1.0,deployment.environment=local
     volumes:
       - ../Elicit_Campsites/um-brand/:/opt/brand:ro
       # - ./test-brand/:/brand:ro
@@ -237,19 +283,19 @@ services:
     volumes:
       - ./sftp_data/temp/upload/reports:/home/fhhs_user/upload/reports
       - ./sftp_ssh/fhhs_user.pub:/home/fhhs_user/.ssh/authorized_keys:ro
-  prometheus:
-    image: prom/prometheus:v2.45.0
+# OpenTelemetry Tracing
+# Jaeger - Distributed tracing UI and backend
+# Visit http://localhost:16686 to view traces
+  jaeger:
+    image: jaegertracing/all-in-one:1.53
+    container_name: jaeger
     ports:
-      - "9090:9090"
-    volumes:
-      - ./Prometheus:/etc/prometheus
-      - ./Prometheus/data:/prometheus
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--web.console.libraries=/etc/prometheus/console_libraries'
-      - '--web.console.templates=/etc/prometheus/consoles'
-    depends_on:
-      - survey
-      - admin
-      - fhhs
+      - "16686:16686"  # Jaeger UI
+      - "14268:14268"  # Jaeger collector HTTP
+      - "14250:14250"  # Jaeger gRPC
+      - "4317:4317"    # OTLP gRPC receiver
+      - "4318:4318"    # OTLP HTTP receiver
+    environment:
+      TZ: "America/Detroit"
+      COLLECTOR_OTLP_ENABLED: "true"
+    restart: unless-stopped
