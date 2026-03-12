@@ -132,11 +132,17 @@ The Elicit system implements a comprehensive **two-pillar observability stack** 
 The system provides **granular control** over signal collection with environment-based toggles:
 
 ```yaml
-  # Health check configuration
-  HEALTH_CHECK_ENABLED: "true"
+  # Observability configuration
+  QUARKUS_MICROMETER_ENABLED: "true"  # Master switch for all metrics
   METRICS_COLLECTION_INTERVAL: "10s"
   HEALTH_CHECK_INTERVAL: "30s"
 ```
+
+**Configuration Pattern**: All observability features reference `quarkus.micrometer.enabled` internally:
+- `quarkus.micrometer.export.prometheus.enabled=${quarkus.micrometer.enabled}`
+- `quarkus.smallrye-health.enabled=${quarkus.micrometer.enabled}`
+- `quarkus.datasource.metrics.enabled=${quarkus.micrometer.enabled}`
+- `fhhs.metrics.report.generation.enabled=${quarkus.micrometer.enabled}`
 
 ### 📈 **Signal Processing and Analysis**
 
@@ -203,17 +209,19 @@ Each application supports enabling/disabling observability via environment varia
 
 ```yaml
 environment:
-  # Core observability toggle
-  OBSERVABILITY_ENABLED: "true"
+  # Core observability toggle - set via Quarkus property
+  QUARKUS_MICROMETER_ENABLED: "true"
   
-  # Component-specific toggles
-  METRICS_ENABLED: "true"
+  # Logging configuration
   LOGGING_ENHANCED: "true"
+  LOG_LEVEL: "INFO"
   
   # Metric collection intervals
   METRICS_COLLECTION_INTERVAL: "10s"
   HEALTH_CHECK_INTERVAL: "30s"
 ```
+
+**Note**: All metrics-related properties reference `quarkus.micrometer.enabled` as the master switch. Set `QUARKUS_MICROMETER_ENABLED=false` as an environment variable to disable all metrics collection.
 
 ### Performance Monitoring Coverage
 
