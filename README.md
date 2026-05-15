@@ -19,7 +19,7 @@
 <br />
 <div align="center">
   <a href="https://innovationpartnerships.umich.edu/">
-    <img src="images/stacked.png" alt="Logo" width="15%" >
+    <img src="https://github.com/ElicitSoftware/Elicit/blob/main/images/stacked.png" alt="Logo" width="15%" >
   </a>
 <h3 align="center">Elicit Software</h3>
   <p>Copyright © 2025 The Regents of the University of Michigan</p>
@@ -182,9 +182,9 @@ Project Link: [https://github.com/ElicitSoftware/Elicit](https://github.com/Elic
 <!-- ACKNOWLEDGMENTS -->
 ## Acknowledgments
 
-<!-- <a href="https://www.michiganmedicine.org"><img src="images/Rogel-Cancer_Logo-Horizontal-CMYK.png" height="30"></a><br/> -->
+<!-- <a href="https://www.michiganmedicine.org"><img src="https://github.com/ElicitSoftware/Elicit/blob/main/images/Rogel-Cancer_Logo-Horizontal-CMYK.png" height="30"></a><br/> -->
 <br/>
-<a href="https://info.mightstudy.org"><img src="images/MiGHT-shortlogo.png" height="50"></a><br/>
+<a href="https://info.mightstudy.org"><img src="https://github.com/ElicitSoftware/Elicit/blob/main/images/MiGHT-shortlogo.png" height="50"></a><br/>
 <br/>
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
