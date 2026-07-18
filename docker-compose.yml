@@ -62,7 +62,8 @@ services:
         start_period: 60s
     volumes:
       # - ../Elicit_Campsites/um-brand/:/opt/brand:ro
-      - ./test-brand/:/opt/brand:ro
+      - ./kindred-brand/:/opt/brand:ro
+      # - ./test-brand/:/opt/brand:ro
       # - ./test-partial-brand/:/opt/brand:ro
     depends_on:
       db:
@@ -81,6 +82,7 @@ services:
     environment:
       TZ: America/Detroit
       pedigree.url: http://pedigree:8080/svg
+      family.history.sftp.enabled: true
       family.history.sftp.host: sftpServer
       # SFTP Authentication settings there are two options for authentication
       # 1. Password Authentication - set family.history.sftp.username and family.history.sftp.password
@@ -204,7 +206,8 @@ services:
       OTEL_SERVICE_NAME: admin
       OTEL_RESOURCE_ATTRIBUTES: service.name=admin,service.version=1.0,deployment.environment=local
     volumes:
-      - ../Elicit_Campsites/um-brand/:/opt/brand:ro
+      # - ../Elicit_Campsites/um-brand/:/opt/brand:ro
+      - ./kindred-brand/:/opt/brand:ro
       # - ./test-brand/:/brand:ro
       # - ./test-partial-brand/:/brand:ro                
     depends_on:
