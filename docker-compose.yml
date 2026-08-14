@@ -62,7 +62,7 @@ services:
         start_period: 60s
     volumes:
       # - ../Elicit_Campsites/um-brand/:/opt/brand:ro
-      - ./kindred-brand/:/opt/brand:ro
+      - ../Kindred/kindred-brand/:/opt/brand:ro
       # - ./test-brand/:/opt/brand:ro
       # - ./test-partial-brand/:/opt/brand:ro
     depends_on:
@@ -82,40 +82,41 @@ services:
     environment:
       TZ: America/Detroit
       pedigree.url: http://pedigree:8080/svg
-      family.history.sftp.enabled: true
-      family.history.sftp.host: sftpServer
-      # SFTP Authentication settings there are two options for authentication
-      # 1. Password Authentication - set family.history.sftp.username and family.history.sftp.password
-      # 2. SSH Key Authentication - set family.history.sftp.username and family.history.sftp.privateKey
-      #
-      # See FHHS/SSH_AUTHENTICATION_GUIDE.md for more information on setting up SSH Key Authentication.
-      #
-      # family.history.sftp.privateKey can be either the path to the private key file
-      # or the private key itself. If using the path make sure the file is mounted as a volume.
-      # family.history.sftp.privateKey:
-      family.history.sftp.username: fhhs_user
-      family.history.sftp.password: pass
-      # family.history.sftp.privateKey: /ssh/fhhs_user
-      # family.history.sftp.privateKey: |+
-      #   -----BEGIN RSA PRIVATE KEY-----     
-      #   Put the key here. 
-      #   -----END RSA PRIVATE KEY-----
-      family.history.sftp.path: /upload/reports
-      family.history.sftp.port: 22
-      family.history.upload.psa.id: 1
-      family.history.sftp.xml.template: |+
-        <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-        <umhsdoc2>
-            <imageSource>MiGHT</imageSource>
-            <updateFlag>N</updateFlag>
-            <externalSourceId>{RespondentId}</externalSourceId>
-            <mrn>{Xid}</mrn>
-            <formDesignatorNum>38670</formDesignatorNum>
-            <docDate>{Finalized}</docDate>
-            <pages>
-                <page>{Xid}.pdf</page>
-            </pages>
-        </umhsdoc2>
+      family.history.sftp.enabled: false
+      # family.history.sftp.enabled: true
+      # family.history.sftp.host: sftpServer
+      # # SFTP Authentication settings there are two options for authentication
+      # # 1. Password Authentication - set family.history.sftp.username and family.history.sftp.password
+      # # 2. SSH Key Authentication - set family.history.sftp.username and family.history.sftp.privateKey
+      # #
+      # # See FHHS/SSH_AUTHENTICATION_GUIDE.md for more information on setting up SSH Key Authentication.
+      # #
+      # # family.history.sftp.privateKey can be either the path to the private key file
+      # # or the private key itself. If using the path make sure the file is mounted as a volume.
+      # # family.history.sftp.privateKey:
+      # family.history.sftp.username: fhhs_user
+      # family.history.sftp.password: pass
+      # # family.history.sftp.privateKey: /ssh/fhhs_user
+      # # family.history.sftp.privateKey: |+
+      # #   -----BEGIN RSA PRIVATE KEY-----     
+      # #   Put the key here. 
+      # #   -----END RSA PRIVATE KEY-----
+      # family.history.sftp.path: /upload/reports
+      # family.history.sftp.port: 22
+      # family.history.upload.psa.id: 1
+      # family.history.sftp.xml.template: |+
+      #   <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+      #   <umhsdoc2>
+      #       <imageSource>MiGHT</imageSource>
+      #       <updateFlag>N</updateFlag>
+      #       <externalSourceId>{RespondentId}</externalSourceId>
+      #       <mrn>{Xid}</mrn>
+      #       <formDesignatorNum>38670</formDesignatorNum>
+      #       <docDate>{Finalized}</docDate>
+      #       <pages>
+      #           <page>{Xid}.pdf</page>
+      #       </pages>
+      #   </umhsdoc2>
       # OpenTelemetry configuration
       quarkus.application.name: fhhs
       quarkus.otel.enabled: true
@@ -190,6 +191,11 @@ services:
       quarkus.mailer.port: 1025
       quarkus.mailer.tls: false
       brand.file.system.path: /opt/brand
+      
+      # DATABASE sources roles from survey.user_roles (managed via the Edit User
+      # screen) instead of relying solely on OIDC/Keycloak. Default is OIDC.
+      # elicit.authorization.mode: DATABASE
+
       # quarkus.mailer.auth-methods:
       # quarkus.mailer.username:
       # quarkus.mailer.password=
@@ -207,7 +213,7 @@ services:
       OTEL_RESOURCE_ATTRIBUTES: service.name=admin,service.version=1.0,deployment.environment=local
     volumes:
       # - ../Elicit_Campsites/um-brand/:/opt/brand:ro
-      - ./kindred-brand/:/opt/brand:ro
+      - ../Kindred/kindred-brand/:/opt/brand:ro
       # - ./test-brand/:/brand:ro
       # - ./test-partial-brand/:/brand:ro                
     depends_on:
