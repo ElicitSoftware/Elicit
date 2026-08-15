@@ -1,0 +1,10 @@
+/* Brand Theme Integration */
+/* Integrates brand colors and typography with the application's starter-theme */
+
+@import url('./colors/brand-colors.css');
+@import url('./typography/brand-typography.css');
+
+/*
+   The starter-theme automatically maps brand variables to Lumo theme properties.
+   Brand-specific customizations can be added below as needed.
+*/

@@ -1,0 +1,42 @@
+{
+  "brand": {
+    "name": "Elicit Default Brand",
+    "version": "1.0.0",
+    "description": "Typography configuration for the Elicit default brand"
+  },
+  "typography": {
+    "primary": {
+      "name": "System Font Stack",
+      "family": "system-ui",
+      "fallback": ["-apple-system", "BlinkMacSystemFont", "Roboto", "Segoe UI", "Helvetica", "Arial", "sans-serif"],
+      "weight": "normal",
+      "style": "normal",
+      "display": "swap"
+    },
+    "monospace": {
+      "name": "System Monospace Stack",
+      "family": "monospace",
+      "fallback": ["SF Mono", "Monaco", "Inconsolata", "Roboto Mono", "Consolas", "Courier New"],
+      "weight": "normal",
+      "style": "normal",
+      "display": "swap"
+    }
+  },
+  "styles": {
+    "body": {
+      "fontFamily": "system-ui",
+      "fontSize": "16px",
+      "lineHeight": "1.5"
+    },
+    "heading": {
+      "fontFamily": "system-ui",
+      "fontSize": "32px",
+      "fontWeight": "600",
+      "textAlign": "start",
+      "textTransform": "none",
+      "lineHeight": "1.25",
+      "letterSpacing": "normal",
+      "fontStyle": "normal"
+    }
+  }
+}

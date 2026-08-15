@@ -60,10 +60,10 @@ services:
         timeout: 5s
         retries: 20
         start_period: 60s
-    volumes:
+    # volumes:
+      # - ./elicit-brand/:/opt/brand:ro
       # - ../Elicit_Campsites/um-brand/:/opt/brand:ro
-      - ../Kindred/kindred-brand/:/opt/brand:ro
-      # - ./test-brand/:/opt/brand:ro
+      # - ../Kindred/kindred-brand/:/opt/brand:ro
       # - ./test-partial-brand/:/opt/brand:ro
     depends_on:
       db:
@@ -212,9 +212,9 @@ services:
       OTEL_SERVICE_NAME: admin
       OTEL_RESOURCE_ATTRIBUTES: service.name=admin,service.version=1.0,deployment.environment=local
     volumes:
+      - ./elicit-brand/:/opt/brand:ro
       # - ../Elicit_Campsites/um-brand/:/opt/brand:ro
-      - ../Kindred/kindred-brand/:/opt/brand:ro
-      # - ./test-brand/:/brand:ro
+      # - ../Kindred/kindred-brand/:/opt/brand:ro
       # - ./test-partial-brand/:/brand:ro                
     depends_on:
       db:
