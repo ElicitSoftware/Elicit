@@ -191,6 +191,9 @@ services:
       quarkus.mailer.port: 1025
       quarkus.mailer.tls: false
       brand.file.system.path: /opt/brand
+      ELICIT_DB_PASSWORD: SAOWNERPW
+      ELICIT_OWNER_DB_PASSWORD: SURVEYPW
+      OIDC_CLIENT_SECRET: secret
       
       # DATABASE sources roles from survey.user_roles (managed via the Edit User
       # screen) instead of relying solely on OIDC/Keycloak. Default is OIDC.
