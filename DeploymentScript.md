@@ -34,17 +34,21 @@ effective-dated rows. It creates several new Postgres sequences
 (`survey.questions_durable_seq` and seven others) that two *other* apps' own future
 migrations depend on:
 
-- Admin's planned `V0.0.12__Add_Kimball_Durable_Seq_Grants.sql` (see
+- Admin's `V0.0.12__Add_Kimball_Durable_Seq_Grants.sql` (see
   `Admin/docs/research/Kimball_type2.md`) grants `${surveyadmin_user}` access to those
   sequences.
-- FHHS's planned durable-key rewrite of `V0.0.5__UPDATE_CANCER_QUESTONS.sql`'s hardcoded
-  surrogate ids (see `FHHS/research/Kimball_type2.md`) looks up a durable `section_id` this
-  migration produces.
+- FHHS's `V0.0.8__REORDER_CANCER_QUESTIONS_DURABLE.sql`, a durable-key rewrite of
+  `V0.0.5__UPDATE_CANCER_QUESTONS.sql`'s hardcoded surrogate ids (see
+  `FHHS/research/Kimball_type2.md`), looks up a durable `section_id` this migration produces.
 
-**Neither of those migrations exists yet as of this writing** — both are still only
-documented plans. Whoever implements them must ensure they run *after* Survey's Kimball
-migration has completed on the shared database, or they will fail outright (the sequences/
-columns they reference won't exist yet) rather than silently corrupt anything.
+**Both migrations are now implemented, on each repo's own `V3.0.0_Kimball_Type2_SDC` branch
+— not yet merged to `main`.** FHHS's `V0.0.8` has been staging-verified against a real
+Survey-Kimball-migrated database and is idempotent. Admin's `V0.0.12` is a straightforward
+grant. Until these branches are merged, deploying a `main`-based Admin or FHHS build does
+not yet exercise this ordering dependency; once merged, whoever cuts the release must still
+ensure they run *after* Survey's Kimball migration has completed on the shared database, or
+they will fail outright (the sequences/columns they reference won't exist yet) rather than
+silently corrupt anything.
 
 - **docker-compose deployments**: already safe as long as `survey`, `admin`, and `fhhs` are
   upgraded together in the same `docker compose pull && docker compose up -d` — both `admin`
