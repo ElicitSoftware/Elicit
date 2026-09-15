@@ -310,4 +310,4 @@ services:
     environment:
       TZ: "America/Detroit"
       COLLECTOR_OTLP_ENABLED: "true"
-    restart: unless-stopped
+      
