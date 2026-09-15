@@ -67,6 +67,17 @@ silently corrupt anything.
 - **Rollback**: none of the three apps ships a Flyway down-migration for their Kimball
   work (see each repo's own research doc) — recovery from a bad rollout is an operational
   pre-upgrade database backup/restore, not a code-level rollback.
+- **Temporary upgrade-path scaffolding — remove once the V2→V3 rollout is complete.** Both
+  Survey and FHHS implement the V2.x→V3 upgrade via a `com.elicitsoftware.flyway.
+  ManualSchemaMigrator` class that routes each boot to either `db/migration` (the current,
+  Kimball-native schema) or a frozen `db/migration-v3/` copy (the pre-Kimball history),
+  based on Flyway checksum validation. **This entire mechanism — the `ManualSchemaMigrator`
+  class in each repo, both `db/migration-v3/` directories, and their dedicated upgrade-path
+  tests — exists only to support databases that haven't upgraded yet.** Once every real
+  Survey and FHHS deployment has converged onto `db/migration` (each app logs this when it
+  happens), delete all of it; see the `README.md` inside each `db/migration-v3/` directory for
+  the exact file list. Track this as a real follow-up once the rollout is confirmed
+  complete — don't let it get pulled into builds forever out of inertia.
 
 ### Modify template data
 After starting a new Elicit system you will need to alter some of the template data. 
