@@ -47,7 +47,7 @@ elicit-brand/
 - **Ink** (`--elicit-ink`, `#1B629C`) -- primary brand color, drives the
   header background and primary buttons.
 - **Verdigris** (`--elicit-verdigris`, `#2FA084`) -- accent/interactive color,
-  drives secondary buttons and the token-pill background.
+  drives secondary buttons and the access-code pill background.
 - **Paper** (`--elicit-paper`, `#F7F5F0`) -- warm off-white base background.
 - **Slate** (`--elicit-slate`, `#4A5A6A`) -- question/field-label text
   (`--brand-text-secondary`), ~6.5:1 contrast on Paper.

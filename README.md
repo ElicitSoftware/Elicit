@@ -119,10 +119,10 @@ To use the Elicit System:
 Next, use the **Admin application** to:
 
 - Register subjects.
-- Generate unique tokens for each subject.
-- Send invitation emails containing the survey link and token.
+- Generate a unique access code for each subject.
+- Send invitation emails containing the survey link and access code.
 
-Subjects receive the email, follow the link, and enter their token in the Elicit Software to complete the questionnaire.
+Subjects receive the email, follow the link, and enter their access code in the Elicit Software to complete the questionnaire.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 <!-- ROADMAP

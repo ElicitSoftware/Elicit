@@ -730,7 +730,7 @@ services:
       # - ./test-partial-brand/:/brand:ro
     environment:
       TZ: America/Detroit
-      token.autoRegister: true
+      accessCode.autoRegister: true
     depends_on:
      - db
 
