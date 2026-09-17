@@ -5,7 +5,7 @@
 /Survey
 /PREMM5
 /Pedigree
-/PostgreSQL
+/Postgr
 /Prometheus/data
 /keycloak/db
 /keycloak/elicit-realm-export.json
@@ -13,6 +13,7 @@
 /vaadin-quarkus-keycloak
 /vaadin-quarkus-smtp
 /postgresql/PGDATA
+/postgresql/pgdata
 /mailpit_data
 TEMP.sql
 /sftp_data/
