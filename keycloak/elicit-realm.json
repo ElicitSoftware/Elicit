@@ -305,7 +305,16 @@
         "containerId" : "972deed9-26a0-4d56-8c2e-49fcd0c96fd6",
         "attributes" : { }
       } ],
-      "import-service" : [ ]
+      "import-service" : [ ],
+      "elicit-author" : [ {
+        "id" : "b234bd3a-0b41-4d38-a244-3354adc4c6cc",
+        "name" : "elicit_author",
+        "description" : "Elicit Author application user (survey authoring)",
+        "composite" : false,
+        "clientRole" : true,
+        "containerId" : "5a3af96a-0f56-41aa-846e-f7f119d9639c",
+        "attributes" : { }
+      } ]
     }
   },
   "groups" : [ ],
@@ -449,6 +458,29 @@
     "realmRoles" : [ "default-roles-elicit" ],
     "clientRoles" : {
       "elicit-admin" : [ "elicit_user" ]
+    },
+    "notBefore" : 0,
+    "groups" : [ ]
+  }, {
+    "id" : "6708dbc2-a20d-4ce9-b61a-996bfb82bb3c",
+    "username" : "author",
+    "firstName" : "Author",
+    "lastName" : "Elicit",
+    "email" : "author@temp.org",
+    "emailVerified" : false,
+    "createdTimestamp" : 1789686634103,
+    "enabled" : true,
+    "totp" : false,
+    "credentials" : [ {
+      "type" : "password",
+      "value" : "author",
+      "temporary" : false
+    } ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ ],
+    "realmRoles" : [ "default-roles-elicit" ],
+    "clientRoles" : {
+      "elicit-author" : [ "elicit_author" ]
     },
     "notBefore" : 0,
     "groups" : [ ]
@@ -782,6 +814,64 @@
       }
     } ],
     "defaultClientScopes" : [ "web-origins", "acr", "roles", "profile", "basic", "email" ],
+    "optionalClientScopes" : [ "address", "phone", "organization", "offline_access", "microprofile-jwt" ]
+  }, {
+    "id" : "5a3af96a-0f56-41aa-846e-f7f119d9639c",
+    "clientId" : "elicit-author",
+    "name" : "Elicit Author",
+    "description" : "Survey authoring application",
+    "rootUrl" : "",
+    "adminUrl" : "",
+    "baseUrl" : "",
+    "surrogateAuthRequired" : false,
+    "enabled" : true,
+    "alwaysDisplayInConsole" : false,
+    "clientAuthenticatorType" : "client-secret",
+    "secret" : "secret",
+    "redirectUris" : [ "http://localhost:8084/*" ],
+    "webOrigins" : [ "/*" ],
+    "notBefore" : 0,
+    "bearerOnly" : false,
+    "consentRequired" : false,
+    "standardFlowEnabled" : true,
+    "implicitFlowEnabled" : false,
+    "directAccessGrantsEnabled" : true,
+    "serviceAccountsEnabled" : true,
+    "publicClient" : false,
+    "frontchannelLogout" : false,
+    "protocol" : "openid-connect",
+    "attributes" : {
+      "client.secret.creation.time" : "1747233802",
+      "request.object.signature.alg" : "any",
+      "request.object.encryption.alg" : "any",
+      "client.introspection.response.allow.jwt.claim.enabled" : "false",
+      "standard.token.exchange.enabled" : "false",
+      "frontchannel.logout.session.required" : "false",
+      "post.logout.redirect.uris" : "*",
+      "oauth2.device.authorization.grant.enabled" : "false",
+      "backchannel.logout.revoke.offline.tokens" : "false",
+      "use.refresh.tokens" : "true",
+      "realm_client" : "false",
+      "oidc.ciba.grant.enabled" : "false",
+      "client.use.lightweight.access.token.enabled" : "false",
+      "backchannel.logout.session.required" : "true",
+      "request.object.required" : "not required",
+      "client_credentials.use_refresh_token" : "false",
+      "access.token.header.type.rfc9068" : "false",
+      "tls.client.certificate.bound.access.tokens" : "false",
+      "require.pushed.authorization.requests" : "false",
+      "acr.loa.map" : "{}",
+      "display.on.consent.screen" : "false",
+      "request.object.encryption.enc" : "any",
+      "token.response.type.bearer.lower-case" : "false"
+    },
+    "authenticationFlowBindingOverrides" : {
+      "direct_grant" : "19a1281f-2a6f-4596-9261-b6828e677edb",
+      "browser" : "19a1281f-2a6f-4596-9261-b6828e677edb"
+    },
+    "fullScopeAllowed" : true,
+    "nodeReRegistrationTimeout" : -1,
+    "defaultClientScopes" : [ "web-origins", "service_account", "acr", "roles", "profile", "basic", "email" ],
     "optionalClientScopes" : [ "address", "phone", "organization", "offline_access", "microprofile-jwt" ]
   } ],
   "clientScopes" : [ {

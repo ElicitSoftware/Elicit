@@ -67,7 +67,7 @@ OIDC/Bearer token. Never call the respondent credential a token.
 
 ## Local Stack (`docker-compose.yml`)
 
-Applications: `survey`, `admin`, `fhhs`, `pedigree`. Supporting services:
+Applications: `survey`, `admin`, `fhhs`, `pedigree`, `author`. Supporting services:
 `db` (PostgreSQL), `keycloak` (OIDC), `mailpit` (SMTP), `sftpServer`, and
 `jaeger` (OpenTelemetry). All app images are built locally as
 `elicitsoftware/<name>:latest`.
@@ -78,6 +78,7 @@ Applications: `survey`, `admin`, `fhhs`, `pedigree`. Supporting services:
 | `8081`  | Admin                                      |
 | `8082`  | FHHS                                       |
 | `8083`  | Pedigree                                   |
+| `8084`  | Author                                     |
 | `8180`  | Keycloak (admin/admin)                     |
 | `8025`  | Mailpit web UI                             |
 | `16686` | Jaeger UI                                  |
@@ -128,10 +129,9 @@ restart Survey). To reset the database, stop the stack and delete
 
 - `cloneAllProjects.sh` — clone the five module repos.
 - `buildDockerImages.sh` — build the module images in dependency order:
-  Survey → FHHS → Pedigree → Admin. The PREMM5 step is commented out (that
-  module is not cloned and is commented out of compose), and there is no
+  Survey → FHHS → Pedigree → Admin → Author. The PREMM5 step is commented out
+  (that module is not cloned and is commented out of compose), and there is no
   `postgresql/` build step — `elicitsoftware/elicit_db` is pulled, not built.
-  It does not build `Author`, which has no compose service yet.
 - `deploy.sh` — bring up an initialized stack.
 - `status.sh` — container status plus an HTTP probe of each service.
 

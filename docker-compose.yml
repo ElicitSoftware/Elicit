@@ -232,6 +232,44 @@ services:
 # These containers are used for running the application in a development environment.
 # They are not needed for production or will be replaced by non containerized applications.
 ## Postgres Database
+
+  author:
+    image: elicitsoftware/author:latest
+    ports:
+      - 8084:8080
+    healthcheck:
+        test: ["CMD", "curl", "--head","fsS", "http://localhost:8080/q/health/ready"]
+        interval: 15s
+        timeout: 5s
+        retries: 20
+        start_period: 60s
+    environment:
+      TZ: America/Detroit
+      brand.file.system.path: /opt/brand
+      # Author connects as survey_user (Survey's grants cover every definition table).
+      ELICIT_DB_PASSWORD: SURVEYPW
+      OIDC_CLIENT_SECRET: secret
+      quarkus.oidc.auth-server-url: http://keycloak:8080/realms/elicit/
+      # OpenTelemetry configuration
+      quarkus.application.name: author
+      quarkus.otel.enabled: true
+      quarkus.otel.exporter.otlp.endpoint: http://jaeger:4317
+      quarkus.otel.exporter.otlp.traces.endpoint: http://jaeger:4317
+      quarkus.otel.traces.enabled: true
+      quarkus.otel.metrics.enabled: true
+      quarkus.otel.logs.enabled: true
+      quarkus.datasource.jdbc.telemetry: true
+      quarkus.otel.instrument.jdbc: true
+      OTEL_SERVICE_NAME: author
+      OTEL_RESOURCE_ATTRIBUTES: service.name=author,service.version=3.0.0,deployment.environment=local
+    volumes:
+      - ./elicit-brand/:/opt/brand:ro
+    depends_on:
+      db:
+        condition: service_healthy
+      survey:
+        condition: service_healthy
+
   db:
     image: elicitsoftware/elicit_db:latest
     # Setup the directories to persist data between starts.
