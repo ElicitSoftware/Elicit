@@ -12,8 +12,7 @@
 /keycloak/certs/
 /vaadin-quarkus-keycloak
 /vaadin-quarkus-smtp
-/postgresql/PGDATA
-/postgresql/pgdata
+/postgresql/
 /mailpit_data
 TEMP.sql
 /sftp_data/
