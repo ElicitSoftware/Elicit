@@ -79,6 +79,43 @@ silently corrupt anything.
   the exact file list. Track this as a real follow-up once the rollout is confirmed
   complete — don't let it get pulled into builds forever out of inertia.
 
+### Upgrading to access codes
+
+The credential a respondent enters to reach a survey used to be called a "token". It is now the
+**access code** everywhere, with no backwards-compatible aliases. This is a breaking change that
+spans Survey, Admin and FHHS, so upgrade all three from the same release.
+
+- **Deploy order: Survey, then Admin, then FHHS.** Survey's `V014` renames
+  `survey.respondents.token` to `access_code` (with its unique constraint and indexes). Admin's
+  `V0.0.17` then renames the `survey.status` view's output column to `access_code`, and FHHS reads
+  that view. An Admin or FHHS build from this release fails against a database Survey has not yet
+  migrated, and an older Admin or FHHS build fails against one it has. With docker compose,
+  upgrade all three together (`depends_on` orders their startup). Manual deployments must finish
+  Survey's migration before starting Admin and FHHS.
+- **Admin edits two applied migrations.** `V0.0.1` and `V0.0.7` now select `r.access_code`, so a
+  fresh database can create the `survey.status` view. `quarkus.flyway.owner.repair-at-start=true`
+  rewrites their recorded checksums on existing databases; no manual `flyway repair` is needed.
+- **Configuration key:** `token.autoRegister` is now `accessCode.autoRegister`. Rename it in any
+  environment that sets it; the old key is ignored.
+- **Email templates:** the placeholder `<TOKEN>` is now `<ACCESS_CODE>`. Admin's `V0.0.18`
+  converts every stored template automatically. Templates added later must use `<ACCESS_CODE>`;
+  `<TOKEN>` is left in the message as literal text.
+- **SFTP XML template:** the placeholder `{Token}` in `family.history.sftp.xml.template` is now
+  `{AccessCode}`. This value comes from deployment configuration, so update it by hand; `{Token}` is
+  no longer substituted.
+- **Integration API:** the JSON returned by `/api/secured/add/subject`, `/add/subjects` and
+  `/add/csv` names the credential `status.accessCode` instead of `status.token`. Update API clients
+  before upgrading. The smoke-test endpoint `/api/secured/test` now returns
+  `access code service test`.
+- **Admin links:** the subject edit route takes `?accessCode=` instead of `?token=`.
+- **Respondent sessions:** the session attribute was renamed, so a respondent who is mid-survey
+  during the upgrade must log in again with their access code. Their answers are kept.
+- **Respondent export files** keep the `ELICIT_EXPORT_V1` format and still import. New exports
+  label the header line `# access_code:` instead of `# token:`; the importer ignores that line.
+- **Branding:** the CSS class `.elicit-token` is now `.elicit-access-code`, and the variables
+  `--brand-token-bg`/`--brand-token-text` are now `--brand-access-code-bg`/`--brand-access-code-text`.
+  Rename them in any custom brand that overrides them.
+
 ### Modify template data
 After starting a new Elicit system you will need to alter some of the template data. 
 1) Update test users to real users. 
@@ -92,6 +129,8 @@ After starting a new Elicit system you will need to alter some of the template d
 
 3) Update the email message template
    This can be done in the ui under Admin | Message Templates
+   Use the placeholder <ACCESS_CODE> wherever the subject's access code belongs, e.g. in the
+   login link: https://<your survey host>/#/login/<ACCESS_CODE>
 
 4) Post Survey Actions. 
    If you would like to automatically upload the family history report to your system you can use a post survey action. 
@@ -108,7 +147,7 @@ After starting a new Elicit system you will need to alter some of the template d
         {Phone}
         {DepartmentName}
         {DepartmentID}
-        {Token}
+        {AccessCode}
         {Status}
         {Created}
         {Finalized}

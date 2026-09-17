@@ -37,10 +37,10 @@ services:
       - 8080:8080
     environment:
       TZ: America/Detroit
-      # AutoRegister allows for users to type in any token for testing.
-      # The Admin tool is used to create tokens and manage respondents.
+      # AutoRegister allows for users to type in any access code for testing.
+      # The Admin tool is used to create access codes and manage respondents.
       # Remove this for production, the default is false.
-      token.autoRegister: true
+      accessCode.autoRegister: true
       brand.file.system.path: /opt/brand
       # OpenTelemetry configuration
       quarkus.application.name: survey

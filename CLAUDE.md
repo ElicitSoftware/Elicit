@@ -41,6 +41,14 @@ GitHub repo, dropped into this directory and excluded from this repo via
   the conventions that govern them. Those take precedence inside their
   subtree. `Pedigree/` and `Prometheus/` have no such file.
 
+## Terminology: Access Code vs. Token
+
+The credential a respondent enters to reach a survey is the **access code**
+(`survey.respondents.access_code`, `accessCode` in Java, `<ACCESS_CODE>` in email
+templates, `{AccessCode}` in the FHHS SFTP XML template). "Token" means only a
+question-text placeholder (`{KEY|default}`, `survey.relationships.token`) or an
+OIDC/Bearer token. Never call the respondent credential a token.
+
 ## Module Conventions (shared by Survey, Admin, Author, FHHS)
 
 - Java 25, Quarkus 3.39.2, Maven. Vaadin 25.2.7 Flow for the three UI apps;
