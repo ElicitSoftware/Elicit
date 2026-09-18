@@ -61,9 +61,63 @@ OIDC/Bearer token. Never call the respondent credential a token.
   `/use-case-spec`, `/reverse-engineer`).
 - They share one PostgreSQL database and the `survey` schema, which the Survey
   app owns.
-- Use the **Quarkus Agent MCP tools** rather than raw `mvn` — these are
-  existing projects, so start with `quarkus_update` and `quarkus_skills`. Do
-  not run `mvn clean` while dev mode is running.
+- Use the **Quarkus, Vaadin, and IntelliJ MCP servers and skills** rather
+  than raw `mvn`, web search, or recalled API knowledge — see the next section.
+
+## MCP Servers and Skills
+
+Three MCP servers and their skill packs are configured for this workspace.
+Reach for them before falling back to raw Maven, grep, web search, or memory
+of an API. Each Java module's `CLAUDE.md` repeats the module-specific parts.
+
+### Quarkus — `quarkus-agent` plugin (Survey, Admin, Author, FHHS)
+
+- Every module is an **existing project**: begin with `quarkus_update`, then
+  `quarkus_skills` for each extension you are about to touch. Never
+  `quarkus_create`.
+- `quarkus_searchDocs` for Quarkus configuration and APIs — not Context7, not
+  web search.
+- `quarkus_start` / `quarkus_stop` / `quarkus_status` / `quarkus_logs` manage
+  dev mode. Reload after code changes with `quarkus_callTool` →
+  `devui-logstream_forceRestart`; after a `pom.xml` change do a full
+  stop/start.
+- Run tests with `quarkus_callTool` → `devui-testing_runTests` (or
+  `devui-testing_runTest` with a class name). Do not run `mvn test`, and never
+  `mvn clean` while dev mode is running.
+- `quarkus_searchTools` discovers the Dev MCP tools on the running app; the
+  list changes when extensions change.
+- Each module's `AGENTS.md` carries the full Quarkus-agent workflow.
+
+### Vaadin — `vaadin-skills` plugin (Survey, Admin, Author; not FHHS)
+
+- Before writing Flow code against 25.2, call `get_vaadin_primer` and
+  `get_new_apis` — API added after the model's training data is API it cannot
+  know it is missing.
+- Call `get_java_symbol` before concluding a method or enum constant does not
+  exist; it lists inherited members too.
+- `search_vaadin_docs` (ui_language `java`, vaadin_version `25.2`) for
+  guides; `get_component_java_api`, `get_component_styling`, and
+  `get_theme_css_properties` for a component's API and CSS.
+- Skills: `/vaadin-form-layout` for forms and entity editors,
+  `/vaadin-frontend-design` for polished views, `/aura-theme` for theme CSS.
+- Never target 25.3; it is unreleased.
+
+### IntelliJ IDEA — `idea` MCP server (all modules)
+
+- The umbrella `.run/` holds a Quarkus dev-mode run configuration per Java
+  module (`Survey`, `Admin`, `Author`, `FHHS`), and each module carries its own
+  copy. The local workflow is: support services in Docker Compose, the module
+  under development stopped in Docker and launched via
+  `execute_run_configuration` (list them with `get_run_configurations`).
+- Prefer IDE-backed navigation and checks over grep when the workspace is
+  open: `search_symbol`, `get_symbol_info`, `analyze_calls`,
+  `get_file_problems`, `lint_files`, `rename_refactoring`, `reformat_file`,
+  `build_project`.
+- The database tools (`list_database_connections`, `introspect_schema`,
+  `execute_sql_query`, `preview_table_data`) can inspect the shared `survey`
+  schema on the local stack (host port `5452`).
+- The `xdebug_*` tools set breakpoints and step through a running debug
+  session.
 
 ## Local Stack (`docker-compose.yml`)
 
