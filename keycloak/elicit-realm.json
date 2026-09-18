@@ -314,6 +314,23 @@
         "clientRole" : true,
         "containerId" : "5a3af96a-0f56-41aa-846e-f7f119d9639c",
         "attributes" : { }
+      } ],
+      "elicit-superset" : [ {
+        "id" : "0e2e1add-e029-4c23-a8d2-f236bb263289",
+        "name" : "elicit_analytics",
+        "description" : "Read access to the analytics dashboards (Superset role ElicitAnalyst; Admin Analytics menu item)",
+        "composite" : false,
+        "clientRole" : true,
+        "containerId" : "2d7a6470-3afc-4d6a-9da4-7faee0a7a94a",
+        "attributes" : { }
+      }, {
+        "id" : "b582b85c-1376-4f47-89ef-94b6b39ffdc4",
+        "name" : "elicit_superset_admin",
+        "description" : "Superset administrator (dashboard authoring); maps to the Superset Admin role",
+        "composite" : false,
+        "clientRole" : true,
+        "containerId" : "2d7a6470-3afc-4d6a-9da4-7faee0a7a94a",
+        "attributes" : { }
       } ]
     }
   },
@@ -380,7 +397,8 @@
     "requiredActions" : [ ],
     "realmRoles" : [ "default-roles-elicit" ],
     "clientRoles" : {
-      "elicit-admin" : [ "elicit_admin" ]
+      "elicit-admin" : [ "elicit_admin" ],
+      "elicit-superset" : [ "elicit_analytics", "elicit_superset_admin" ]
     },
     "notBefore" : 0,
     "groups" : [ ]
@@ -458,6 +476,29 @@
     "realmRoles" : [ "default-roles-elicit" ],
     "clientRoles" : {
       "elicit-admin" : [ "elicit_user" ]
+    },
+    "notBefore" : 0,
+    "groups" : [ ]
+  }, {
+    "id" : "02b43632-3d24-4631-b7a6-638ceef134ec",
+    "username" : "analyst",
+    "firstName" : "Analyst",
+    "lastName" : "Elicit",
+    "email" : "analyst@temp.org",
+    "emailVerified" : false,
+    "createdTimestamp" : 1747233456184,
+    "enabled" : true,
+    "totp" : false,
+    "credentials" : [ {
+      "type" : "password",
+      "value" : "analyst",
+      "temporary" : false
+    } ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ ],
+    "realmRoles" : [ "default-roles-elicit" ],
+    "clientRoles" : {
+      "elicit-superset" : [ "elicit_analytics" ]
     },
     "notBefore" : 0,
     "groups" : [ ]
@@ -890,6 +931,82 @@
       }
     } ],
     "defaultClientScopes" : [ "web-origins", "service_account", "acr", "roles", "profile", "basic", "email" ],
+    "optionalClientScopes" : [ "address", "phone", "organization", "offline_access", "microprofile-jwt" ]
+  }, {
+    "id" : "2d7a6470-3afc-4d6a-9da4-7faee0a7a94a",
+    "clientId" : "elicit-superset",
+    "name" : "Elicit Superset",
+    "description" : "Apache Superset analytics (Keycloak single sign-on); carries the elicit_analytics role",
+    "rootUrl" : "",
+    "adminUrl" : "",
+    "baseUrl" : "",
+    "surrogateAuthRequired" : false,
+    "enabled" : true,
+    "alwaysDisplayInConsole" : false,
+    "clientAuthenticatorType" : "client-secret",
+    "secret" : "secret",
+    "redirectUris" : [ "http://localhost:8088/*" ],
+    "webOrigins" : [ "http://localhost:8088" ],
+    "notBefore" : 0,
+    "bearerOnly" : false,
+    "consentRequired" : false,
+    "standardFlowEnabled" : true,
+    "implicitFlowEnabled" : false,
+    "directAccessGrantsEnabled" : true,
+    "serviceAccountsEnabled" : false,
+    "publicClient" : false,
+    "frontchannelLogout" : false,
+    "protocol" : "openid-connect",
+    "attributes" : {
+      "client.secret.creation.time" : "1747233802",
+      "request.object.signature.alg" : "any",
+      "request.object.encryption.alg" : "any",
+      "client.introspection.response.allow.jwt.claim.enabled" : "false",
+      "standard.token.exchange.enabled" : "false",
+      "frontchannel.logout.session.required" : "false",
+      "post.logout.redirect.uris" : "*",
+      "oauth2.device.authorization.grant.enabled" : "false",
+      "backchannel.logout.revoke.offline.tokens" : "false",
+      "use.refresh.tokens" : "true",
+      "realm_client" : "false",
+      "oidc.ciba.grant.enabled" : "false",
+      "client.use.lightweight.access.token.enabled" : "false",
+      "backchannel.logout.session.required" : "true",
+      "request.object.required" : "not required",
+      "client_credentials.use_refresh_token" : "false",
+      "access.token.header.type.rfc9068" : "false",
+      "tls.client.certificate.bound.access.tokens" : "false",
+      "require.pushed.authorization.requests" : "false",
+      "acr.loa.map" : "{}",
+      "display.on.consent.screen" : "false",
+      "request.object.encryption.enc" : "any",
+      "token.response.type.bearer.lower-case" : "false"
+    },
+    "authenticationFlowBindingOverrides" : {
+      "direct_grant" : "19a1281f-2a6f-4596-9261-b6828e677edb",
+      "browser" : "19a1281f-2a6f-4596-9261-b6828e677edb"
+    },
+    "fullScopeAllowed" : true,
+    "nodeReRegistrationTimeout" : -1,
+    "protocolMappers" : [ {
+      "id" : "524df3ef-5817-46e4-81eb-8023eedc4c8b",
+      "name" : "elicit-superset client roles",
+      "protocol" : "openid-connect",
+      "protocolMapper" : "oidc-usermodel-client-role-mapper",
+      "consentRequired" : false,
+      "config" : {
+        "introspection.token.claim" : "true",
+        "multivalued" : "true",
+        "userinfo.token.claim" : "true",
+        "id.token.claim" : "true",
+        "lightweight.claim" : "false",
+        "access.token.claim" : "true",
+        "claim.name" : "resource_access.${client_id}.roles",
+        "jsonType.label" : "String",
+        "usermodel.clientRoleMapping.clientId" : "elicit-superset"
+      }
+    } ],
+    "defaultClientScopes" : [ "web-origins", "acr", "roles", "profile", "basic", "email" ],
     "optionalClientScopes" : [ "address", "phone", "organization", "offline_access", "microprofile-jwt" ]
   } ],
   "clientScopes" : [ {
