@@ -249,7 +249,13 @@ services:
       # Author connects as survey_user (Survey's grants cover every definition table).
       ELICIT_DB_PASSWORD: SURVEYPW
       OIDC_CLIENT_SECRET: secret
-      quarkus.oidc.auth-server-url: http://keycloak:8080/realms/elicit/
+      # The OIDC URL is left at the image default, http://host.docker.internal:8180/realms/elicit/,
+      # the same one Admin uses. It has to work from both places the browser and the container reach
+      # Keycloak: the container resolves host.docker.internal to the Docker host, where Keycloak is
+      # published on 8180, and Docker Desktop maps the same name to 127.0.0.1 on the host. Pointing
+      # it at http://keycloak:8080 instead breaks the login redirect - the browser cannot reach the
+      # compose-internal name, and on a host with a "127.0.0.1 keycloak" hosts entry it lands on
+      # Survey, which listens on 8080.
       # OpenTelemetry configuration
       quarkus.application.name: author
       quarkus.otel.enabled: true
