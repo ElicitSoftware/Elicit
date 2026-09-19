@@ -258,6 +258,10 @@ services:
       TZ: America/Detroit
       # Preview only: an author types any access code to walk through a draft.
       accessCode.autoRegister: true
+      # Preview only: never build or update the reporting schema. Author's database holds
+      # many surveys (whose step names collide in surveyreport.dim_step) and nothing reports
+      # on preview answers.
+      elicit.etl.enabled: "false"
       brand.file.system.path: /opt/brand
       # Both of Survey's datasources move from the `survey` database to `author`.
       quarkus.datasource.jdbc.url: jdbc:postgresql://db:5432/author?connectTimeout=30&socketTimeout=600&tcpKeepAlive=true&tcpKeepAlivesIdle=60
