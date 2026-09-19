@@ -33,7 +33,7 @@ public class SearchPage extends PageObject {
 
     /** 9 data columns + Edit + Action, matching SearchView.getSubjectGrid(...). */
     private static final int TOTAL_COLUMNS = 11;
-    private static final int COL_TOKEN = 0;
+    private static final int COL_ACCESS_CODE = 0;
     private static final int COL_STATUS = 8;
     private static final int COL_ACTION = 10;
 
@@ -41,8 +41,8 @@ public class SearchPage extends PageObject {
         super(page);
     }
 
-    public void searchByToken(String token) {
-        input("token-filter").fill(token);
+    public void searchByAccessCode(String accessCode) {
+        input("access-code-filter").fill(accessCode);
         search();
     }
 
@@ -63,12 +63,12 @@ public class SearchPage extends PageObject {
     }
 
     /**
-     * Clears the token/name/email/phone text filters (leaves the department filter at its
+     * Clears the access-code/name/email/phone text filters (leaves the department filter at its
      * default "All Departments"). UC-002 alt-flow A2 (clearing the department filter itself)
      * is not covered here.
      */
     public void clearTextFilters() {
-        input("token-filter").fill("");
+        input("access-code-filter").fill("");
         input("first-name-filter").fill("");
         input("last-name-filter").fill("");
         input("email-filter").fill("");
@@ -96,7 +96,7 @@ public class SearchPage extends PageObject {
         int totalBlocks = cells.count() / TOTAL_COLUMNS;
         List<Integer> real = new ArrayList<>();
         for (int block = 1; block < totalBlocks; block++) { // block 0 is the header row
-            String token = cells.nth(block * TOTAL_COLUMNS + COL_TOKEN).innerText().trim();
+            String token = cells.nth(block * TOTAL_COLUMNS + COL_ACCESS_CODE).innerText().trim();
             if (!token.isEmpty()) {
                 real.add(block);
             }
@@ -108,9 +108,9 @@ public class SearchPage extends PageObject {
         return realRowBlocks().size();
     }
 
-    public String tokenAt(int row) {
+    public String accessCodeAt(int row) {
         int block = realRowBlocks().get(row);
-        return gridCellContents().nth(block * TOTAL_COLUMNS + COL_TOKEN).innerText().trim();
+        return gridCellContents().nth(block * TOTAL_COLUMNS + COL_ACCESS_CODE).innerText().trim();
     }
 
     public String statusAt(int row) {
@@ -118,22 +118,22 @@ public class SearchPage extends PageObject {
         return gridCellContents().nth(block * TOTAL_COLUMNS + COL_STATUS).innerText().trim();
     }
 
-    private int findRowBlockByToken(String token) {
+    private int findRowBlockByAccessCode(String accessCode) {
         for (int block : realRowBlocks()) {
-            if (token.equals(gridCellContents().nth(block * TOTAL_COLUMNS + COL_TOKEN).innerText().trim())) {
+            if (accessCode.equals(gridCellContents().nth(block * TOTAL_COLUMNS + COL_ACCESS_CODE).innerText().trim())) {
                 return block;
             }
         }
-        throw new IllegalStateException("No grid row found for token " + token);
+        throw new IllegalStateException("No grid row found for access code " + accessCode);
     }
 
     /**
-     * Selects the given action ("Send Email" / "Print Reports") on the row for {@code token} and
+     * Selects the given action ("Send Email" / "Print Reports") on the row for {@code accessCode} and
      * clicks Submit. For "Print Reports" (Admin UC-005) this opens the generated PDF in a new
      * browser tab -- wrap the call in {@link com.elicitsoftware.e2e.E2ETestBase#waitForPopup}.
      */
-    public void runRowAction(String token, String action) {
-        int block = findRowBlockByToken(token);
+    public void runRowAction(String accessCode, String action) {
+        int block = findRowBlockByAccessCode(accessCode);
         Locator actionCell = gridCellContents().nth(block * TOTAL_COLUMNS + COL_ACTION);
 
         actionCell.locator("vaadin-combo-box input").click();

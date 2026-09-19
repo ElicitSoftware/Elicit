@@ -11,11 +11,12 @@
 
     <name>Elicit E2E Tests</name>
     <description>
-        Cross-application Playwright browser tests driving the Admin (localhost:8081) and Survey
-        (localhost:8080) apps against an already-running docker-compose stack. This module starts
-        and manages neither app itself. See docs in each app's docs/use_cases/ for the UC-XXX ids
-        referenced by these tests. Requires the fhhs service to be up too (it populates real
-        survey content) and Playwright's Chromium browser installed locally (run
+        Cross-application Playwright browser tests driving the Author (localhost:8084), Admin
+        (localhost:8081) and Survey (localhost:8080) apps against an already-running docker-compose
+        stack. This module starts and manages none of the apps itself. See docs in each app's
+        docs/use_cases/ for the UC-XXX ids referenced by these tests. Requires the fhhs service to
+        be up too (it populates real survey content) and Playwright's Chromium browser installed
+        locally (run
         `mvn -pl e2e-tests exec:java -e -Dexec.mainClass=com.microsoft.playwright.CLI
         -Dexec.args="install chromium"` once if it isn't already).
     </description>
@@ -33,8 +34,14 @@
         <!-- Defaults match docker-compose.yml; override with -Dadmin.baseUrl=... etc for CI. -->
         <admin.baseUrl>http://localhost:8081</admin.baseUrl>
         <survey.baseUrl>http://localhost:8080</survey.baseUrl>
+        <author.baseUrl>http://localhost:8084</author.baseUrl>
         <admin.username>admin</admin.username>
         <admin.password>admin</admin.password>
+        <author.username>author</author.username>
+        <author.password>author</author.password>
+        <!-- Name of the survey the fhhs service seeds; the pre-existing journey tests register
+             against and log in to this one. -->
+        <seeded.survey.name>Family History Survey</seeded.survey.name>
         <!-- Override with -De2e.headless=false to watch the browser locally. -->
         <e2e.headless>true</e2e.headless>
     </properties>
@@ -81,6 +88,10 @@
                         <survey.baseUrl>${survey.baseUrl}</survey.baseUrl>
                         <admin.username>${admin.username}</admin.username>
                         <admin.password>${admin.password}</admin.password>
+                        <author.baseUrl>${author.baseUrl}</author.baseUrl>
+                        <author.username>${author.username}</author.username>
+                        <author.password>${author.password}</author.password>
+                        <seeded.survey.name>${seeded.survey.name}</seeded.survey.name>
                         <e2e.headless>${e2e.headless}</e2e.headless>
                     </systemPropertyVariables>
                 </configuration>

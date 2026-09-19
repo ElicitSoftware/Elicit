@@ -3,6 +3,7 @@ package com.elicitsoftware.e2e.survey;
 import com.elicitsoftware.e2e.PageObject;
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
+import com.microsoft.playwright.TimeoutError;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,19 +28,52 @@ public class SectionPage extends PageObject {
         super(page);
     }
 
-    /** Repeatedly fills whatever is visible and advances until the Review page is reached. */
+    /** What clicking the section's navigation button led to. */
+    private enum Navigation { NEXT_SECTION, REVIEW_REACHED, REVIEW_BLOCKED }
+
+    /** How many blocked Review clicks (validation failures on the last section) to tolerate. */
+    private static final int MAX_REVIEW_ATTEMPTS = 10;
+
+    /**
+     * Repeatedly fills whatever is visible and advances until the Review page is reached.
+     *
+     * <p>A Review click that validation blocks (required fields the previous pass could not
+     * see yet) is not an error: it simply sends the loop round again, so that the fields the
+     * last answers revealed get their turn. Only {@link #MAX_REVIEW_ATTEMPTS} consecutive
+     * blocked clicks -- nothing left to reveal, yet still invalid -- fail the run, with a
+     * dump of the offending fields.</p>
+     */
     public void answerSurveyUntilReview() {
         // FHHS-style surveys can legitimately spawn one set of sections per family member via
         // repeat-count branching (Survey UC-002 A3), so this needs real headroom, not just a
         // runaway-loop guard.
         int maxSections = 200;
+        int reviewAttempts = 0;
         for (int i = 0; i < maxSections; i++) {
             answerAllVisibleQuestions();
-            if (proceedToNextSectionOrReview()) {
-                return; // clicked Review and its navigation to /review completed
+            switch (proceedToNextSectionOrReview()) {
+                case REVIEW_REACHED -> {
+                    return;
+                }
+                case NEXT_SECTION -> reviewAttempts = 0;
+                case REVIEW_BLOCKED -> {
+                    if (++reviewAttempts >= MAX_REVIEW_ATTEMPTS) {
+                        throw new IllegalStateException("Review stayed blocked after " + reviewAttempts
+                                + " attempts on " + page.url() + "; " + invalidFieldsSummary());
+                    }
+                }
             }
         }
         throw new IllegalStateException("Survey did not reach /review within " + maxSections + " sections");
+    }
+
+    /** The section's invalid fields (tag, id, first label, error message), for failure messages. */
+    private String invalidFieldsSummary() {
+        Locator invalid = page.locator("[invalid]");
+        return "invalid fields: " + invalid.count() + " " + invalid.evaluateAll(
+                "els => els.slice(0, 12).map(e => e.tagName.toLowerCase() + '[' + e.id + ']:'"
+                        + " + (e.querySelector('label')?.textContent || '') + ':'"
+                        + " + (e.querySelector('[slot=error-message]')?.textContent || ''))");
     }
 
     /**
@@ -132,45 +166,42 @@ public class SectionPage extends PageObject {
 
     /**
      * Clicks Next (an in-place rebuild, no URL change -- SectionView.nextSection() explicitly
-     * avoids navigation) or Review (which does navigate to /review). Returns {@code true} once
-     * Review was clicked and the resulting navigation has completed.
+     * avoids navigation) or Review (which navigates to /review when the section validates).
+     *
+     * <p>Both are the same {@code section-next-button}, captioned "Next" while a further
+     * section exists and "Review" on the last one. The section (button included) is rebuilt
+     * after the last answer's save round trip, so this <em>waits</em> for the button and then
+     * reads its caption; a one-shot count of "Next" buttons taken mid-rebuild sees none and
+     * wrongly concludes the survey is on its last section -- confirmed live against FHHS, where
+     * it then spent all its Review retries on a page that plainly showed Next.</p>
      *
      * <p>Next has no URL change to wait on, but the rebuild is still an async server round trip:
      * without a settle wait here, the very next {@code answerAllVisibleQuestions()} pass can
      * read {@code .count()} against the outgoing section while the new section's elements are
-     * only partially attached, then hang forever on a since-removed index -- confirmed live.</p>
+     * only partially attached, then hang forever on a since-removed index -- confirmed live.
+     * (A Next click that validation blocks stays on the same section, which the next pass
+     * simply answers again -- indistinguishable from, and handled like, a real advance.)</p>
      */
-    private boolean proceedToNextSectionOrReview() {
-        Locator next = page.locator("vaadin-button").filter(new Locator.FilterOptions().setHasText("Next"));
-        if (next.count() > 0) {
-            clickAfterFill(next.first());
+    private Navigation proceedToNextSectionOrReview() {
+        Locator navButton = byId("section-next-button");
+        navButton.waitFor();
+        page.waitForTimeout(300); // let a rebuild that has just started swap the button in
+        navButton = byId("section-next-button");
+        navButton.waitFor();
+        if ("Next".equals(navButton.innerText().trim())) {
+            clickAfterFill(navButton);
             page.waitForTimeout(500);
-            return false;
+            return Navigation.NEXT_SECTION;
         }
-        clickReviewWithRetries();
-        return true;
-    }
-
-    /**
-     * Clicks Review and waits for the resulting {@code /review} navigation, retrying on a busy
-     * final section (e.g. one following a large batch of repeated family-member sections):
-     * confirmed live that the very first click attempt can time out there even though the button
-     * itself is present and eventually clickable a moment later.
-     */
-    private void clickReviewWithRetries() {
-        Locator review = page.locator("vaadin-button").filter(new Locator.FilterOptions().setHasText("Review")).first();
-        page.waitForTimeout(1500);
-        for (int attempt = 0; attempt < 5; attempt++) {
-            try {
-                review.click(new Locator.ClickOptions().setTimeout(8000));
-                page.waitForURL(url -> url.contains("/review"), new Page.WaitForURLOptions().setTimeout(8000));
-                return;
-            } catch (Exception e) {
-                if (attempt == 4) {
-                    throw e;
-                }
-                page.waitForTimeout(1500);
-            }
+        clickAfterFill(navButton);
+        try {
+            page.waitForURL(url -> url.contains("/review"), new Page.WaitForURLOptions().setTimeout(8000));
+            return Navigation.REVIEW_REACHED;
+        } catch (TimeoutError e) {
+            // Validation kept us on the section (or a busy final section was slow to respond --
+            // confirmed live after a large batch of repeated family-member sections). Either
+            // way: answer again and retry.
+            return Navigation.REVIEW_BLOCKED;
         }
     }
 }

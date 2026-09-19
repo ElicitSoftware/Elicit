@@ -28,9 +28,9 @@ class SearchFiltersE2ETest extends E2ETestBase {
 
         openAdmin("/register");
         RegisterPage registerPage = new RegisterPage(page);
-        registerPage.registerSubject(firstName, lastNameA, emailA);
+        registerPage.registerSubject(SEEDED_SURVEY_NAME, firstName, lastNameA, emailA);
         openAdmin("/register");
-        registerPage.registerSubject(firstName, lastNameB, emailB);
+        registerPage.registerSubject(SEEDED_SURVEY_NAME, firstName, lastNameB, emailB);
 
         SearchPage searchPage = new SearchPage(page); // stateless wrapper around `page`; reused below
 
