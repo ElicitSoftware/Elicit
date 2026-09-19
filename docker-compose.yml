@@ -29,6 +29,12 @@
 # docker-compose up -d && timeout /t 25 && docker-compose restart && timeout /t 25 && docker-compose restart && timeout /t 25 && echo "Initialization complete Please visit http://localhost:8080"
 #
 # The application will be available at the following URL: http://localhost:8080
+#
+# The Author stack (author-survey, author -- see the section below) uses its own
+# `author` database in the same Postgres container and needs no restart dance:
+#   Author            http://localhost:8084  (Keycloak user author/author)
+#   Author preview    http://localhost:8085  (Survey against the author database)
+#   Author database   localhost:5452, database `author` (survey/admin)
 
 services:
   survey:
@@ -228,11 +234,57 @@ services:
         condition: service_started  # Changed from service_healthy to service_started
       pedigree:
         condition: service_started
-# Test containers
-# These containers are used for running the application in a development environment.
-# They are not needed for production or will be replaced by non containerized applications.
-## Postgres Database
-
+# -----------------------------------------------------------------------------
+# Author stack
+# The authoring tool works in a database of its own -- `author`, a second database
+# in the same Postgres container, created by ./db-init/V0.0.4__CREATE_AUTHOR_DATABASE.sql
+# when the cluster is first initialised -- so drafts never touch the site's survey data:
+#   author-survey - a second Survey container pointed at db/author. Survey owns
+#                   the schema migrations, so this is what creates the survey
+#                   schema there; it also serves as the respondent preview of a
+#                   survey being authored (host port 8085, any access code works)
+#   author        - the authoring tool (host port 8084)
+# Keycloak, Jaeger and the brand assets are shared with the rest of the stack.
+# There is no FHHS on this side, so a single `docker compose up -d` is enough
+# for the Author stack; the restart dance above only concerns the site stack.
+# An existing ./postgresql/PGDATA does not get the `author` database automatically:
+# run the init script once (see the comment at the top of that file) or reset PGDATA.
+# -----------------------------------------------------------------------------
+  author-survey:
+    image: elicitsoftware/survey:latest
+    ports:
+      - 8085:8080
+    environment:
+      TZ: America/Detroit
+      # Preview only: an author types any access code to walk through a draft.
+      accessCode.autoRegister: true
+      brand.file.system.path: /opt/brand
+      # Both of Survey's datasources move from the `survey` database to `author`.
+      quarkus.datasource.jdbc.url: jdbc:postgresql://db:5432/author?connectTimeout=30&socketTimeout=600&tcpKeepAlive=true&tcpKeepAlivesIdle=60
+      quarkus.datasource.owner.jdbc.url: jdbc:postgresql://db:5432/author?connectTimeout=30&socketTimeout=600&tcpKeepAlive=true&tcpKeepAlivesIdle=60
+      # OpenTelemetry configuration
+      quarkus.application.name: author-survey
+      quarkus.otel.enabled: true
+      quarkus.otel.exporter.otlp.endpoint: http://jaeger:4317
+      quarkus.otel.exporter.otlp.traces.endpoint: http://jaeger:4317
+      quarkus.otel.traces.enabled: true
+      quarkus.otel.metrics.enabled: true
+      quarkus.otel.logs.enabled: true
+      quarkus.datasource.jdbc.telemetry: true
+      quarkus.otel.instrument.jdbc: true
+      OTEL_SERVICE_NAME: author-survey
+      OTEL_RESOURCE_ATTRIBUTES: service.name=author-survey,service.version=1.0,deployment.environment=local
+    healthcheck:
+        test: ["CMD", "curl", "--head","fsS", "http://localhost:8080/q/health/ready"]
+        interval: 15s
+        timeout: 5s
+        retries: 20
+        start_period: 60s
+    volumes:
+      - ./elicit-brand/:/opt/brand:ro
+    depends_on:
+      db:
+        condition: service_healthy
   author:
     image: elicitsoftware/author:latest
     ports:
@@ -246,7 +298,9 @@ services:
     environment:
       TZ: America/Detroit
       brand.file.system.path: /opt/brand
-      # Author connects as survey_user (Survey's grants cover every definition table).
+      # Author connects as survey_user (Survey's grants cover every definition table)
+      # to the `author` database; the schema there is created by author-survey.
+      quarkus.datasource.jdbc.url: jdbc:postgresql://db:5432/author?connectTimeout=30&socketTimeout=600&tcpKeepAlive=true&tcpKeepAlivesIdle=60
       ELICIT_DB_PASSWORD: SURVEYPW
       OIDC_CLIENT_SECRET: secret
       # The OIDC URL is left at the image default, http://host.docker.internal:8180/realms/elicit/,
@@ -273,9 +327,12 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      survey:
+      author-survey:
         condition: service_healthy
-
+# Test containers
+# These containers are used for running the application in a development environment.
+# They are not needed for production or will be replaced by non containerized applications.
+## Postgres Database
   db:
     image: elicitsoftware/elicit_db:latest
     # Setup the directories to persist data between starts.
@@ -283,6 +340,8 @@ services:
     # this will cause the database to be recreated.
     volumes:
       - ./postgresql/PGDATA:/var/lib/postgresql/data
+      # Adds the `author` database (Author stack) on first initialisation.
+      - ./db-init/V0.0.4__CREATE_AUTHOR_DATABASE.sql:/docker-entrypoint-initdb.d/V0.0.4__CREATE_AUTHOR_DATABASE.sql:ro
     ports:
       - 5452:5432
     environment:
