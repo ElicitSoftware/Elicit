@@ -203,6 +203,7 @@ services:
       SUPERSET_URL: http://localhost:8088
       SUPERSET_DASHBOARD_ID: 2c8d5a4e-3f6b-4c1d-8e9a-1b2c3d4e5f60
       SUPERSET_GUEST_TOKEN_SECRET: elicit-local-guest-token-secret-change-me
+      SUPERSET_GUEST_TOKEN_AUDIENCE: elicit-analytics
 
       # DATABASE sources roles from survey.user_roles (managed via the Edit User
       # screen) instead of relying solely on OIDC/Keycloak. Default is OIDC.
@@ -342,7 +343,9 @@ services:
       # Origins allowed to embed dashboards (the Admin console).
       SUPERSET_FRAME_ANCESTORS: http://localhost:8081
       # Shared with the admin service, which signs guest tokens for the embedded view.
+      # Superset 6 requires an audience claim; both sides must use the same value.
       SUPERSET_GUEST_TOKEN_SECRET: elicit-local-guest-token-secret-change-me
+      SUPERSET_GUEST_TOKEN_AUDIENCE: elicit-analytics
       # Read-only reporting connection; surveyreport_user's password is set by the
       # elicitsoftware/elicit_db image (V0.0.1__CREATE_USERS.sql).
       SUPERSET_REPORTING_DB_URI: postgresql+psycopg2://surveyreport_user:SRUSERPW@db:5432/survey

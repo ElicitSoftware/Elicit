@@ -108,8 +108,8 @@ def main():
         for role in (analyst, guest):
             grant_datasource_access(db, sm, role, database)
         share_with_role(db, sm, analyst)
-        allowed = [d.strip().replace("http://", "").replace("https://", "")
-                   for d in os.environ.get("SUPERSET_FRAME_ANCESTORS", "http://localhost:8081").split(",") if d.strip()]
+        # Superset compares these with same_origin(), so keep the scheme and port as given.
+        allowed = [d.strip() for d in os.environ.get("SUPERSET_FRAME_ANCESTORS", "http://localhost:8081").split(",") if d.strip()]
         ensure_embedded(db, allowed)
         db.session.commit()
         print(f"bootstrap: reporting database id={database.id} uuid={database.uuid}; "

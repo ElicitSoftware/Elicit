@@ -55,8 +55,10 @@ Embedding is not part of the export. `bootstrap.py` gives each dashboard listed 
 ## Environment (see `docker-compose.yml`)
 
 `SUPERSET_SECRET_KEY`, `SUPERSET_DB_URI`, `SUPERSET_REDIS_URL`, `SUPERSET_PUBLIC_URL`,
-`SUPERSET_INTERNAL_URL`, `SUPERSET_FRAME_ANCESTORS`, `SUPERSET_GUEST_TOKEN_SECRET`
-(shared with Admin), `SUPERSET_REPORTING_DB_URI`, `OIDC_SERVER_URL`, `OIDC_CLIENT_ID`,
+`SUPERSET_INTERNAL_URL`, `SUPERSET_FRAME_ANCESTORS` (full origins, e.g. `http://localhost:8081`;
+used both for the CSP and as the embedded dashboards' allowed domains),
+`SUPERSET_GUEST_TOKEN_SECRET` and `SUPERSET_GUEST_TOKEN_AUDIENCE` (both shared with Admin;
+Superset 6 rejects a guest token without an audience), `SUPERSET_REPORTING_DB_URI`, `OIDC_SERVER_URL`, `OIDC_CLIENT_ID`,
 `OIDC_CLIENT_SECRET`, `SUPERSET_SMTP_HOST`/`PORT`, and for init only
 `ELICIT_OWNER_DB_PASSWORD`, `SUPERSET_ADMIN_PASSWORD`.
 
