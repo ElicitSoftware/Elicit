@@ -30,7 +30,7 @@ echo -e "${BLUE}Service Health Check:${NC}"
 echo "===================="
 
 # Check each service
-services=("8080:Survey Platform" "8081:Admin Dashboard" "8082:Family History" "8084:Author" "8180:Keycloak Auth" "8025:Email Testing")
+services=("8080:Survey Platform" "8081:Admin Dashboard" "8082:Family History" "8084:Author" "8088:Superset Analytics" "8180:Keycloak Auth" "8025:Email Testing")
 
 for service in "${services[@]}"; do
     port=${service%%:*}

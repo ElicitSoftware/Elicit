@@ -23,6 +23,7 @@ GitHub repo, dropped into this directory and excluded from this repo via
 | `FHHS/`       | `ElicitSoftware/FHHS`        | Family Health History Survey; headless REST     |
 | `Pedigree/`   | `ElicitSoftware/Pedigree`    | R/Kinship2 pedigree-drawing service (plumber)   |
 | `Prometheus/` | *tracked here*               | Prometheus config; not a repo, not in compose   |
+| `superset/`   | *tracked here*               | Apache Superset image, config, and dashboard assets |
 | `postgresql/` | *not tracked, not a repo*    | Local `PGDATA` volume only                      |
 
 `cloneAllProjects.sh` bootstraps all five module clones.
@@ -121,10 +122,12 @@ of an API. Each Java module's `CLAUDE.md` repeats the module-specific parts.
 
 ## Local Stack (`docker-compose.yml`)
 
-Applications: `survey`, `admin`, `fhhs`, `pedigree`, `author`. Supporting services:
-`db` (PostgreSQL), `keycloak` (OIDC), `mailpit` (SMTP), `sftpServer`, and
-`jaeger` (OpenTelemetry). All app images are built locally as
-`elicitsoftware/<name>:latest`.
+Applications: `survey`, `admin`, `fhhs`, `pedigree`, `author`, and the analytics
+group `superset`, `superset-worker`, `superset-beat`, `superset-init`. Supporting
+services: `db` (PostgreSQL), `keycloak` (OIDC), `mailpit` (SMTP), `sftpServer`,
+`redis` (Superset cache and Celery broker), and `jaeger` (OpenTelemetry). All app
+images are built locally as `elicitsoftware/<name>:latest`; `superset/` holds the
+Superset image (official image plus Keycloak SSO, Playwright, and Elicit config).
 
 | Port    | Service                                    |
 | ------- | ------------------------------------------ |
@@ -133,6 +136,7 @@ Applications: `survey`, `admin`, `fhhs`, `pedigree`, `author`. Supporting servic
 | `8082`  | FHHS                                       |
 | `8083`  | Pedigree                                   |
 | `8084`  | Author                                     |
+| `8088`  | Superset (analytics; Keycloak SSO)         |
 | `8180`  | Keycloak (admin/admin)                     |
 | `8025`  | Mailpit web UI                             |
 | `16686` | Jaeger UI                                  |
@@ -174,7 +178,9 @@ docker compose up -d && sleep 25 && docker compose restart && sleep 25 \
   && docker compose restart && sleep 25
 ```
 
-An FHHS container that exits on the first pass is expected, not a bug.
+An FHHS container that exits on the first pass is expected, not a bug. So is
+`superset-init` exiting on every start: it is a run-once job (metadata DB, roles,
+reporting connection, dashboard import) that `superset` waits for.
 `deploy.sh` is the short form for an already-initialized stack (`up -d`, then
 restart Survey). To reset the database, stop the stack and delete
 `postgresql/PGDATA`.
@@ -183,7 +189,7 @@ restart Survey). To reset the database, stop the stack and delete
 
 - `cloneAllProjects.sh` — clone the five module repos.
 - `buildDockerImages.sh` — build the module images in dependency order:
-  Survey → FHHS → Pedigree → Admin → Author. The PREMM5 step is commented out
+  Survey → FHHS → Pedigree → Admin → Author → Superset. The PREMM5 step is commented out
   (that module is not cloned and is commented out of compose), and there is no
   `postgresql/` build step — `elicitsoftware/elicit_db` is pulled, not built.
 - `deploy.sh` — bring up an initialized stack.

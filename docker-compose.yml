@@ -4,6 +4,8 @@
 #   2. survey - the survey application
 #   3. fhhs - the family health history survey
 #   4. pedigree - the service for drawing pedigrees
+#   plus admin, author, and the analytics services (redis, superset-init, superset,
+#   superset-worker, superset-beat) -- superset-init is expected to exit after it finishes.
 #
 # The containers initialize the database when they start.
 # However, they need to run in the correct order.
@@ -194,7 +196,14 @@ services:
       ELICIT_DB_PASSWORD: SAOWNERPW
       ELICIT_OWNER_DB_PASSWORD: SURVEYPW
       OIDC_CLIENT_SECRET: secret
-      
+      # Analytics (UC-020): the Analytics menu item and embedded Superset dashboard.
+      # SUPERSET_URL must be browser-reachable; the dashboard id is the embedded uuid
+      # superset/bootstrap.py pins for the survey-operations dashboard; the secret must
+      # equal the superset services' SUPERSET_GUEST_TOKEN_SECRET.
+      SUPERSET_URL: http://localhost:8088
+      SUPERSET_DASHBOARD_ID: 2c8d5a4e-3f6b-4c1d-8e9a-1b2c3d4e5f60
+      SUPERSET_GUEST_TOKEN_SECRET: elicit-local-guest-token-secret-change-me
+
       # DATABASE sources roles from survey.user_roles (managed via the Edit User
       # screen) instead of relying solely on OIDC/Keycloak. Default is OIDC.
       # elicit.authorization.mode: DATABASE
@@ -310,6 +319,82 @@ services:
     volumes:
       - ./keycloak:/opt/keycloak/data/import
       - ./keycloak/db:/h2  
+# Analytics (Apache Superset) -- see superset/README.md and Admin/docs/research/Superset.md.
+# superset-init runs once (db upgrade, roles, reporting connection, dashboard import) and
+# exits 0; the other three stay up. Keycloak single sign-on uses the elicit-superset client.
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+  superset-init:
+    image: elicitsoftware/superset:latest
+    command: ["/app/elicit/init.sh"]
+    environment: &superset-env
+      TZ: America/Detroit
+      SUPERSET_SECRET_KEY: elicit-local-superset-secret-change-me
+      SUPERSET_DB_URI: postgresql+psycopg2://superset:SUPERSETPW@db:5432/superset
+      SUPERSET_REDIS_URL: redis://redis:6379/0
+      SUPERSET_PUBLIC_URL: http://localhost:8088
+      SUPERSET_INTERNAL_URL: http://superset:8088/
+      # Origins allowed to embed dashboards (the Admin console).
+      SUPERSET_FRAME_ANCESTORS: http://localhost:8081
+      # Shared with the admin service, which signs guest tokens for the embedded view.
+      SUPERSET_GUEST_TOKEN_SECRET: elicit-local-guest-token-secret-change-me
+      # Read-only reporting connection; surveyreport_user's password is set by the
+      # elicitsoftware/elicit_db image (V0.0.1__CREATE_USERS.sql).
+      SUPERSET_REPORTING_DB_URI: postgresql+psycopg2://surveyreport_user:SRUSERPW@db:5432/survey
+      # Same host.docker.internal rule as the Author and Admin OIDC URLs (see author above).
+      OIDC_SERVER_URL: http://host.docker.internal:8180/realms/elicit
+      OIDC_CLIENT_ID: elicit-superset
+      OIDC_CLIENT_SECRET: secret
+      SUPERSET_SMTP_HOST: mailpit
+      SUPERSET_SMTP_PORT: 1025
+      # init only: creates the superset metadata database and role, and the local admin user
+      ELICIT_OWNER_DB_PASSWORD: SURVEYPW
+      SUPERSET_ADMIN_PASSWORD: admin
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      survey:
+        condition: service_healthy
+  superset:
+    image: elicitsoftware/superset:latest
+    ports:
+      - 8088:8088
+    environment:
+      <<: *superset-env
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8088/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 60s
+    depends_on:
+      superset-init:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+  superset-worker:
+    image: elicitsoftware/superset:latest
+    command: ["celery", "--app=superset.tasks.celery_app:app", "worker", "--pool=prefork", "-O", "fair", "-c", "2"]
+    environment:
+      <<: *superset-env
+    depends_on:
+      superset:
+        condition: service_healthy
+  superset-beat:
+    image: elicitsoftware/superset:latest
+    command: ["celery", "--app=superset.tasks.celery_app:app", "beat", "--pidfile=/tmp/celerybeat.pid", "--schedule=/tmp/celerybeat-schedule"]
+    environment:
+      <<: *superset-env
+    depends_on:
+      superset:
+        condition: service_healthy
 # SMTP Server
 # This is a Mailpit server that is used for testing the email integration.    
 # visit http://localhost:8025/ to view the emails sent by the application.
