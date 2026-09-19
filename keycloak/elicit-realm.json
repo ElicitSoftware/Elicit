@@ -723,7 +723,25 @@
     "fullScopeAllowed" : true,
     "nodeReRegistrationTimeout" : -1,
     "defaultClientScopes" : [ "web-origins", "service_account", "acr", "roles", "profile", "basic", "email" ],
-    "optionalClientScopes" : [ "address", "phone", "organization", "offline_access", "microprofile-jwt" ]
+    "optionalClientScopes" : [ "address", "phone", "organization", "offline_access", "microprofile-jwt" ],
+    "protocolMappers" : [ {
+      "id" : "ea2300ef-9c04-4406-9bd4-ffa5cde84770",
+      "name" : "elicit-superset roles for admin",
+      "protocol" : "openid-connect",
+      "protocolMapper" : "oidc-usermodel-client-role-mapper",
+      "consentRequired" : false,
+      "config" : {
+        "introspection.token.claim" : "true",
+        "multivalued" : "true",
+        "userinfo.token.claim" : "true",
+        "id.token.claim" : "true",
+        "lightweight.claim" : "false",
+        "access.token.claim" : "true",
+        "claim.name" : "resource_access.elicit-superset.roles",
+        "jsonType.label" : "String",
+        "usermodel.clientRoleMapping.clientId" : "elicit-superset"
+      }
+    } ]
   }, {
     "id" : "3d6e8765-ae1b-4a28-836a-27edf5e1924d",
     "clientId" : "import-service",
