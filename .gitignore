@@ -19,3 +19,4 @@ TEMP.sql
 .idea/
 .DS_Store
 .vscode
+/build-logs/

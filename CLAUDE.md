@@ -134,10 +134,14 @@ to start cleanly on 2026-09-20.
 ## Scripts
 
 - `cloneAllProjects.sh` — clone the five module repos.
-- `buildDockerImages.sh` — build the module images in dependency order:
-  Survey → FHHS → Pedigree → Admin → Author. The PREMM5 step is commented out
-  (that module is not cloned and is commented out of compose), and there is no
-  `postgresql/` build step — `elicitsoftware/elicit_db` is pulled, not built.
+- `buildDockerImages.sh [Module ...]` — build the module images in parallel
+  (all five by default, or just the named ones), one log per module under
+  `build-logs/`, with a summary and a non-zero exit if any build failed. There
+  is no build-time dependency between the images; each module's tests use a
+  distinct Quarkus test port (Survey 8089, Admin 8090, FHHS 8091, Author 8092).
+  PREMM5 is not built (that module is not cloned and is commented out of
+  compose), and there is no `postgresql/` build step — `elicitsoftware/elicit_db`
+  is pulled, not built.
 - `deploy.sh` — bring up an initialized stack.
 - `resetDatabase.sh V2|V3` — reset `postgresql/PGDATA` to the V2 copy (brownfield)
   or delete it (greenfield); stops the stack first.
