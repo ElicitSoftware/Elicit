@@ -115,8 +115,13 @@ the schema, then FHHS (which waits for Survey to be healthy) seeds the Family
 History Survey. FHHS's greenfield migrations use literal ids and fixed keys and no
 longer build anything over the ETL-generated reporting views, so no restart is
 needed and a failed attempt can simply be retried. `deploy.sh` is the short form
-for an already-initialized stack (`up -d`, then restart Survey). To reset the
-database, stop the stack and delete `postgresql/PGDATA`.
+for an already-initialized stack (`up -d`, then restart Survey).
+
+`resetDatabase.sh V3` stops the stack and deletes `postgresql/PGDATA` for a
+greenfield run. `resetDatabase.sh V2` replaces it with a copy of `PGDATA_v2`, the
+pre-Kimball V2 database, for a brownfield (upgrade) run. `PGDATA_v2` is tracked in
+git, which drops the empty directories PostgreSQL needs (`pg_notify`, `pg_tblspc`
+and eleven more), so the V2 mode recreates them in the copy; never copy it by hand.
 
 ## Scripts
 
@@ -126,6 +131,8 @@ database, stop the stack and delete `postgresql/PGDATA`.
   (that module is not cloned and is commented out of compose), and there is no
   `postgresql/` build step — `elicitsoftware/elicit_db` is pulled, not built.
 - `deploy.sh` — bring up an initialized stack.
+- `resetDatabase.sh V2|V3` — reset `postgresql/PGDATA` to the V2 copy (brownfield)
+  or delete it (greenfield); stops the stack first.
 - `status.sh` — container status plus an HTTP probe of each service.
 
 ## Branding
