@@ -141,7 +141,12 @@ to start cleanly on 2026-09-20.
   distinct Quarkus test port (Survey 8089, Admin 8090, FHHS 8091, Author 8092).
   PREMM5 is not built (that module is not cloned and is commented out of
   compose), and there is no `postgresql/` build step — `elicitsoftware/elicit_db`
-  is pulled, not built.
+  is pulled, not built. Ctrl-C stops the module builds too (Bash would otherwise leave them
+  running as orphans that hold `target/` and the test ports while the lock is released),
+  and the script warns about listeners on ports 8080-8084 and 8089-8092 before it starts:
+  a dev-mode Survey on 8080 hangs the Survey test suite, because the test data points
+  post-survey-action and report URLs at `localhost:8080`, dev mode parks requests while
+  it restarts, and neither Survey HTTP client sets a timeout.
 - `deploy.sh` — bring up an initialized stack.
 - `resetDatabase.sh V2|V3` — reset `postgresql/PGDATA` to the V2 copy (brownfield)
   or delete it (greenfield); stops the stack first.
