@@ -25,10 +25,11 @@ To insure the database populates please start the modules in this order.
 ### Translations directory
 
 Survey, Admin and Author read their user-interface texts from translation files. Each image
-ships English, Latin American Spanish (`es-419`) and Arabic (`ar`); a deployment can add
-languages or override texts without rebuilding by pointing `i18n.file.system.path` (default
-`/i18n`; `/opt/i18n` in the compose file) at a directory with one sub-directory per
-application:
+ships English only; the header shows a language selector once more than one language is
+available. A deployment adds languages (this repository provides Latin American Spanish,
+`es-419`, and Arabic, `ar`, under `elicit-i18n/`) or overrides texts without rebuilding by
+pointing `i18n.file.system.path` (default `/i18n`; `/opt/i18n` in the compose file) at a
+directory with one sub-directory per application:
 
 ```
 /opt/i18n/

@@ -17,8 +17,10 @@ elicit-i18n/
 └── author/                 # Elicit Author
 ```
 
-The files here are copies of the bundles each application ships inside its jar, so mounting
-this directory changes nothing until you edit it. How the mount is used:
+Each application ships English only and shows no language selector until a second language is
+mounted. `translations.properties` here is a copy of the English file inside the application
+(the module tests keep the two identical); the Spanish and Arabic files exist only here, so
+mounting this directory is what makes those languages available. How the mount is used:
 
 - **Add a language:** drop `translations_<tag>.properties` into the app's sub-directory and
   restart the container. The language appears in the on-page language selector; a language

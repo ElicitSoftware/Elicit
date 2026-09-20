@@ -22,12 +22,23 @@ keeps working alongside hand-written extraction:
 
 ```
 src/main/resources/vaadin-i18n/
-  translations.properties               # English — default and fallback
-  translations_es_419.properties        # Latin American Spanish
-  translations_ar.properties            # Arabic
+  translations.properties               # English — the only language the application ships
   translations.context.properties       # translator context per key (not read by Vaadin)
 i18n/TRANSLATION_REQUEST.md             # generated handoff document
 ```
+
+Every other language lives outside the application, in the deployment translations directory
+(`elicit-i18n/<app>/` in this repository, see below): the release is English only, and a
+deployment adds languages by mounting files. The language selector in the header appears
+only when more than one language is available, so an English-only deployment never shows it.
+In the test and dev profiles each module reads `../elicit-i18n`, so the module tests that
+exercise Spanish and Arabic need the umbrella checkout (the module CI fetches that directory).
+
+Adding a language today is a server-side step (drop the file into the mount and restart, see
+`DeploymentScript.md`). Managing languages from the Admin console (for the console and the
+survey application, `elicit_admin` role) and from the Author tool (`elicit_author` role) is
+specified but not built: Admin `UC-021` / `FR-026` and Author `UC-035` / `FR-048`, which need
+the mount to be writable (Admin `C-014`, Author `C-022`).
 
 Keys are `<view>.<element>[.<qualifier>]` (`mainView.btnLogin`, `searchView.grid.firstName`)
 with shared keys under `common.*`. Values are Java `MessageFormat` patterns only when
@@ -46,7 +57,7 @@ tiers per **key**, later tiers winning:
 
 then falls back from the exact locale to the language-only locale, then to English. A key
 missing everywhere renders as `!key!` and is logged once, never blank. The provided locales are
-the union of `i18n.bundled.locales` and every `translations_*.properties` found in tiers 2–3,
+the union of `i18n.bundled.locales` (`en`) and every `translations_*.properties` found in tiers 2–3,
 so a language that exists only on the mount is offered too. `<app>` is `i18n.app.name`
 (`survey`, `admin`, `author`; `author-survey` uses `survey`) and is rejected if it contains
 path separators. In the `%test` profile the pseudo-locale `zxx` renders every key as `⟦key⟧`.

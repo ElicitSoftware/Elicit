@@ -159,7 +159,10 @@ See `docs/BRAND_SYSTEM_IMPLEMENTATION_GUIDE.md`.
 
 `elicit-i18n/` is the default translations mount, mounted read-only at `/opt/i18n`
 (`i18n.file.system.path`) in the Survey, Admin, Author and author-survey containers with
-one sub-directory per app (`survey/`, `admin/`, `author/`). Each app resolves a key
+one sub-directory per app (`survey/`, `admin/`, `author/`). The apps ship English only and hide
+the language selector until a second language is mounted; `elicit-i18n` holds the Spanish
+(`es-419`) and Arabic (`ar`) files, and the module test and dev profiles read it as `../elicit-i18n`,
+so the module language tests need this umbrella checkout. Each app resolves a key
 through classpath `vaadin-i18n/translations[_tag].properties` → local `i18n/<app>/` →
 the mount, per key, falling back to English; a language that exists only on the mount
 is offered too. `test-partial-i18n/` exercises the override and mount-only paths.
