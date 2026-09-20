@@ -123,6 +123,14 @@ pre-Kimball V2 database, for a brownfield (upgrade) run. `PGDATA_v2` is tracked 
 git, which drops the empty directories PostgreSQL needs (`pg_notify`, `pg_tblspc`
 and eleven more), so the V2 mode recreates them in the copy; never copy it by hand.
 
+If the db container's first start after a reset fails with `data directory
+"/var/lib/postgresql/data/pgdata" has wrong ownership`, that is a Docker Desktop
+for Mac VirtioFS glitch (docker/for-mac#7415), not a broken copy: bind mounts show
+every file as root-owned inside the container and PostgreSQL's owner check can
+fail on initial startup. Run `resetDatabase.sh` again and restart; if it recurs,
+switch Docker Desktop's file sharing to gRPC FUSE. Both reset paths were verified
+to start cleanly on 2026-09-20.
+
 ## Scripts
 
 - `cloneAllProjects.sh` — clone the five module repos.

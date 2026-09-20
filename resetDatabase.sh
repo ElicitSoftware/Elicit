@@ -13,6 +13,14 @@
 # directory pg_notify"). Placeholder files are not an option because PostgreSQL reads
 # every entry of pg_tblspc and pg_replslot as data, so the V2 mode recreates the
 # directories in the copy instead.
+#
+# If the first start after a reset dies with
+#   FATAL:  data directory "/var/lib/postgresql/data/pgdata" has wrong ownership
+# that is a Docker Desktop for Mac VirtioFS glitch, not a problem with the copy: bind
+# mounts report every file as root-owned inside the container and PostgreSQL's owner
+# check occasionally fails on initial startup (docker/for-mac#7415). Run this script
+# again and restart the stack; if it keeps happening, switch Docker Desktop's file
+# sharing implementation to gRPC FUSE.
 
 set -euo pipefail
 cd "$(dirname "$0")"
