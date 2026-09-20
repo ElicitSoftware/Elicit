@@ -48,6 +48,7 @@ services:
       # Remove this for production, the default is false.
       accessCode.autoRegister: true
       brand.file.system.path: /opt/brand
+      i18n.file.system.path: /opt/i18n
       # OpenTelemetry configuration
       quarkus.application.name: survey
       quarkus.otel.enabled: true
@@ -69,6 +70,9 @@ services:
     volumes:
       # - ./elicit-brand/:/opt/brand:ro
       - ../Elicit_Campsites/um-brand/:/opt/brand:ro
+      # Translations (UC-007): one host directory, one sub-directory per app (survey/, admin/, author/)
+      - ./elicit-i18n/:/opt/i18n:ro
+      # - ./test-partial-i18n/:/opt/i18n:ro
       # - ../Kindred/kindred-brand/:/opt/brand:ro
       # - ./test-partial-brand/:/opt/brand:ro
     depends_on:
@@ -197,6 +201,7 @@ services:
       quarkus.mailer.port: 1025
       quarkus.mailer.tls: false
       brand.file.system.path: /opt/brand
+      i18n.file.system.path: /opt/i18n
       ELICIT_DB_PASSWORD: SAOWNERPW
       ELICIT_OWNER_DB_PASSWORD: SURVEYPW
       OIDC_CLIENT_SECRET: secret
@@ -223,6 +228,9 @@ services:
     volumes:
       # - ./elicit-brand/:/opt/brand:ro
       - ../Elicit_Campsites/um-brand/:/opt/brand:ro
+      # Translations (UC-007): one host directory, one sub-directory per app (survey/, admin/, author/)
+      - ./elicit-i18n/:/opt/i18n:ro
+      # - ./test-partial-i18n/:/opt/i18n:ro
       # - ../Kindred/kindred-brand/:/opt/brand:ro
       # - ./test-partial-brand/:/brand:ro                
     depends_on:
@@ -263,6 +271,7 @@ services:
       # on preview answers.
       elicit.etl.enabled: "false"
       brand.file.system.path: /opt/brand
+      i18n.file.system.path: /opt/i18n
       # Both of Survey's datasources move from the `survey` database to `author`.
       quarkus.datasource.jdbc.url: jdbc:postgresql://db:5432/author?connectTimeout=30&socketTimeout=600&tcpKeepAlive=true&tcpKeepAlivesIdle=60
       quarkus.datasource.owner.jdbc.url: jdbc:postgresql://db:5432/author?connectTimeout=30&socketTimeout=600&tcpKeepAlive=true&tcpKeepAlivesIdle=60
@@ -287,6 +296,9 @@ services:
     volumes:
       # - ./elicit-brand/:/opt/brand:ro
       - ../Elicit_Campsites/um-brand/:/opt/brand:ro
+      # Translations (UC-007): one host directory, one sub-directory per app (survey/, admin/, author/)
+      - ./elicit-i18n/:/opt/i18n:ro
+      # - ./test-partial-i18n/:/opt/i18n:ro
     depends_on:
       db:
         condition: service_healthy
@@ -303,6 +315,7 @@ services:
     environment:
       TZ: America/Detroit
       brand.file.system.path: /opt/brand
+      i18n.file.system.path: /opt/i18n
       # Author connects as survey_user (Survey's grants cover every definition table)
       # to the `author` database; the schema there is created by author-survey.
       quarkus.datasource.jdbc.url: jdbc:postgresql://db:5432/author?connectTimeout=30&socketTimeout=600&tcpKeepAlive=true&tcpKeepAlivesIdle=60
@@ -330,6 +343,9 @@ services:
     volumes:
       # - ./elicit-brand/:/opt/brand:ro
       - ../Elicit_Campsites/um-brand/:/opt/brand:ro
+      # Translations (UC-007): one host directory, one sub-directory per app (survey/, admin/, author/)
+      - ./elicit-i18n/:/opt/i18n:ro
+      # - ./test-partial-i18n/:/opt/i18n:ro
     depends_on:
       db:
         condition: service_healthy

@@ -22,6 +22,29 @@ To insure the database populates please start the modules in this order.
 4) Start Pedigree
    This is the module for generating a visual pedigree.
 
+### Translations directory
+
+Survey, Admin and Author read their user-interface texts from translation files. Each image
+ships English, Latin American Spanish (`es-419`) and Arabic (`ar`); a deployment can add
+languages or override texts without rebuilding by pointing `i18n.file.system.path` (default
+`/i18n`; `/opt/i18n` in the compose file) at a directory with one sub-directory per
+application:
+
+```
+/opt/i18n/
+  i18n-config.json                  # optional, text direction per language tag
+  survey/translations_<tag>.properties
+  admin/translations_<tag>.properties
+  author/translations_<tag>.properties
+```
+
+A mounted file only needs the keys it changes; missing keys fall back to the shipped text and
+then to English. Restart the module after editing. The umbrella repository's `elicit-i18n/`
+directory is a complete starting point, and each module's `i18n/TRANSLATION_REQUEST.md` is
+the document to hand to a translator or an AI agent for a new language. The organization
+name shown in the header is translated in the brand directory instead (`localized` block in
+`brand-config.json`, see `elicit-brand/README.md`).
+
 ### Upgrading an existing deployment to Kimball Type 2 SCD (V3.0.0)
 
 Survey's V3.0.0 release (see `Survey/research/Kimball_type_2.md`) versions every structural

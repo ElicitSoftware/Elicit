@@ -5,6 +5,14 @@
     "description": "Healthcare organization brand with professional magenta color scheme",
     "primaryColor": "#A6216B",
     "organization": "Healthcare Test Organization",
-    "lastUpdated": "2025-10-27"
+    "lastUpdated": "2025-10-27",
+    "localized": {
+      "es-419": {
+        "description": "Marca de una organización de salud con un esquema de color magenta profesional"
+      },
+      "ar": {
+        "description": "علامة مؤسسة رعاية صحية بنظام ألوان أرجواني احترافي"
+      }
+    }
   }
 }

@@ -155,11 +155,25 @@ Admin containers via `brand.file.system.path`. `test-brand/` and
 `test-partial-brand/` exercise fallback behavior when a brand omits assets.
 See `docs/BRAND_SYSTEM_IMPLEMENTATION_GUIDE.md`.
 
+## Translations (i18n)
+
+`elicit-i18n/` is the default translations mount, mounted read-only at `/opt/i18n`
+(`i18n.file.system.path`) in the Survey, Admin, Author and author-survey containers with
+one sub-directory per app (`survey/`, `admin/`, `author/`). Each app resolves a key
+through classpath `vaadin-i18n/translations[_tag].properties` → local `i18n/<app>/` →
+the mount, per key, falling back to English; a language that exists only on the mount
+is offered too. `test-partial-i18n/` exercises the override and mount-only paths.
+Direction (RTL/LTR) follows the language, with `i18n-config.json` as an optional
+override. Brand names are translated in the brand's own `localized` block, never in the
+app bundles. Survey content in the database is not translated by this mechanism. See
+`docs/I18N_IMPLEMENTATION_GUIDE.md`.
+
 ## Umbrella Docs
 
 - `DeploymentScript.md` — non-Docker deployment, plus the procedure for
   upgrading an existing deployment to Kimball Type 2 SCD (V3.0.0).
 - `docs/BRAND_SYSTEM_IMPLEMENTATION_GUIDE.md`
+- `docs/I18N_IMPLEMENTATION_GUIDE.md`
 - `docs/metrics/OBSERVABILITY_IMPLEMENTATION_GUIDE.md`,
   `docs/metrics/PROMETHEUS_QUERIES.md`
 
