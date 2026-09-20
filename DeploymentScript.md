@@ -16,14 +16,10 @@ To insure the database populates please start the modules in this order.
 1) Start Survey
    This will install most of the tables needed for a survey but no survey
 2) Start FHHS
-   This will install the survey but fail Migrating schema "survey" to version "0.0.3 - CREATE FHHS FACT VIEW" 
-3) Restart Survey
-   Now that there is a survey in place the reporting schema will be populated including the surveyreport.fact_sections_view which the FHHS FACT VIEW is built on. 
-4) Restart FHHS
-   This will complete the database migrations.
-5) Start Admin 
-   This will install all the tables needed for the Admin app. It will also create a "Test Department". This test department can be used to test the new installation or upgrades. It is recommended that you keep this test department for future testing. 
-6) Strat Pedigree
+   This will install the Family History Survey. FHHS's migrations use literal ids and fixed keys, so if a start fails it can simply be started again once the cause is fixed; no restart of Survey is needed.
+3) Start Admin 
+   This will install all the tables needed for the Admin app. It will also create a "Test Department". This test department can be used to test the new installation or upgrades. It is recommended that
+4) Start Pedigree
    This is the module for generating a visual pedigree.
 
 ### Upgrading an existing deployment to Kimball Type 2 SCD (V3.0.0)
@@ -62,8 +58,8 @@ silently corrupt anything.
 - **Non-docker (manual) deployments**: add "Survey's Kimball Type 2 SCD migration has
   completed" as an explicit precondition before starting/restarting Admin or FHHS on a
   V3.0.0-or-later Survey database — there is no automatic health-check gating here, so this
-  is on the operator to sequence correctly, same as the existing Survey → FHHS → restart
-  Survey → restart FHHS ordering above.
+  is on the operator to sequence correctly, same as the existing Survey → FHHS ordering
+  above.
 - **Rollback**: none of the three apps ships a Flyway down-migration for their Kimball
   work (see each repo's own research doc) — recovery from a bad rollout is an operational
   pre-upgrade database backup/restore, not a code-level rollback.

@@ -108,22 +108,15 @@ set. The Monitor tab in the Jaeger UI is therefore inert.
 The scrape config also still targets `premm5:8080` and assumes
 `postgres-exporter` and `cadvisor`, none of which exist in this compose file.
 
-### Startup Ordering Is Not Idempotent
+### First Run Is a Single Pass
 
-First-run initialization requires **three passes**. Survey creates the schema;
-FHHS then inserts survey data and tries to build reporting views over
-dimensional tables that do not exist yet, so it fails; restarting Survey
-creates those tables; restarting FHHS finally builds the views:
-
-```
-docker compose up -d && sleep 25 && docker compose restart && sleep 25 \
-  && docker compose restart && sleep 25
-```
-
-An FHHS container that exits on the first pass is expected, not a bug.
-`deploy.sh` is the short form for an already-initialized stack (`up -d`, then
-restart Survey). To reset the database, stop the stack and delete
-`postgresql/PGDATA`.
+`docker compose up -d` initializes a fresh database in one pass: Survey creates
+the schema, then FHHS (which waits for Survey to be healthy) seeds the Family
+History Survey. FHHS's greenfield migrations use literal ids and fixed keys and no
+longer build anything over the ETL-generated reporting views, so no restart is
+needed and a failed attempt can simply be retried. `deploy.sh` is the short form
+for an already-initialized stack (`up -d`, then restart Survey). To reset the
+database, stop the stack and delete `postgresql/PGDATA`.
 
 ## Scripts
 
