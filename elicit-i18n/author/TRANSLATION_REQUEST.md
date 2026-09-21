@@ -147,7 +147,7 @@ Every row is one key in `translations.properties`. Return a file `translations_<
 | `importDefinitionView.importFailed` | Import failed: {0} | Import page · error paragraph | 80 | params: {0} = reason |
 | `guideView.pageTitle` | How a survey is put together | Guide page · browser tab title | 40 |  |
 | `guideView.title` | How a survey is put together | Guide page · heading | 40 |  |
-| `guideView.diagram.alt` | A survey drawn as the designer draws it: two step lanes holding section cards and question rows, a Show rule from the question 'Do you have children?' to the section 'Children', and a Repeat rule from 'How many children?' to the section 'Child' in the next step. | Guide page · alternative text of the diagram | 300 |  |
+| `guideView.diagram.alt` | The designer board for a small survey called Family history: two step cards, About you and Each child, each holding section cards (You and Children, then Child) with question rows inside them, and a Show rule drawn from the question 'Has children' to the question 'Child count'. | Guide page · alternative text of the designer screenshot; Family history, About you, Each child, You, Children, Child, Has children and Child count are the names shown in the picture and stay in English | 400 |  |
 | `guideView.surveysLink` | Go to the Surveys list | Guide page · link at the end of the page | 30 |  |
 | `guideView.intro.p1` | An Elicit survey is a decision tree the respondent walks through. This page shows the pieces a survey is made of and how the designer draws them, using the same names and glyphs you will see on the board and in the structure tree. | Guide page · introduction paragraph | 300 |  |
 | `guideView.tree.h` | Elicit is a decision tree | Guide page · section heading | 40 |  |
@@ -623,6 +623,152 @@ Every row is one key in `translations.properties`. Return a file `translations_<
 | `mainLayout.resizer.aria` | Resize drawer | Drawer resize handle · accessible name | 30 |  |
 | `mainLayout.smallScreen.heading` | A bigger screen is needed | Full-screen notice on narrow screens · heading | 40 |  |
 | `mainLayout.smallScreen.text` | Elicit Author is built for designing surveys on a tablet or larger screen. Please switch to a wider device. | Full-screen notice on narrow screens · paragraph | 160 |  |
+| `common.none` | none | System screens · value shown when nothing is set | 15 |  |
+| `common.unknown` | unknown | System screens · value shown when a brand field is missing | 15 |  |
+| `mainLayout.nav.system` | System | Navigation drawer · section heading for setup and diagnostics pages | 20 |  |
+| `mainLayout.nav.systemOverview` | Overview | Navigation drawer · menu item | 25 |  |
+| `mainLayout.nav.systemDatabase` | Database | Navigation drawer · menu item | 25 |  |
+| `mainLayout.nav.systemBranding` | Branding | Navigation drawer · menu item | 25 |  |
+| `mainLayout.nav.systemConnections` | Connections | Navigation drawer · menu item | 25 |  |
+| `mainLayout.nav.systemOidc` | OIDC | Navigation drawer · menu item (the sign-in diagnostics page; OIDC is a protocol name) | 25 | identical |
+| `system.grid.item` | Item | System pages · grid column header (the name of a row) | 20 |  |
+| `system.grid.value` | Value | System pages · grid column header | 20 |  |
+| `system.grid.state` | State | System pages · grid column header (a status badge) | 20 |  |
+| `system.grid.detail` | Detail | System pages · grid column header | 20 |  |
+| `system.badge.ok` | OK | System pages · status badge for a passed check | 12 | identical |
+| `system.badge.failed` | Failed | System pages · status badge for a failed check | 12 |  |
+| `system.badge.notChecked` | Not checked | System pages · status badge for a check not yet run | 15 |  |
+| `system.badge.present` | Present | System pages · status badge for a setting that is set | 12 |  |
+| `system.badge.absent` | Absent | System pages · status badge for a setting that is missing | 12 |  |
+| `system.milliseconds` | {0} ms | System pages · duration in milliseconds | 12 | params: {0} = number; identical where "ms" is the usual abbreviation |
+| `systemOverviewView.pageTitle` | System Overview | System overview · browser tab title | 40 |  |
+| `systemOverviewView.title` | System Overview | System overview · page heading | 40 |  |
+| `systemOverviewView.intro` | What this deployment is running, whether it is healthy, and whether every required setting is present. Settings are shown as present or absent, never by value; they are startup configuration and cannot be changed here. | System overview · introductory paragraph | 300 |  |
+| `systemOverviewView.running` | Running | System overview · section heading (what is running) | 30 |  |
+| `systemOverviewView.row.application` | Application | System overview · row label (application name) | 25 |  |
+| `systemOverviewView.row.version` | Version | System overview · row label | 25 |  |
+| `systemOverviewView.row.built` | Built | System overview · row label (build time) | 25 |  |
+| `systemOverviewView.row.profile` | Profile | System overview · row label (runtime profile) | 25 |  |
+| `systemOverviewView.row.started` | Started | System overview · row label (start time) | 25 |  |
+| `systemOverviewView.row.uptime` | Uptime | System overview · row label | 25 |  |
+| `systemOverviewView.uptime.days` | {0} d {1} h {2} min | System overview · uptime value | 30 | params: {0} = days, {1} = hours, {2} = minutes; identical where the abbreviations are the same |
+| `systemOverviewView.uptime.hours` | {0} h {1} min | System overview · uptime value | 30 | params: {0} = hours, {1} = minutes; identical where the abbreviations are the same |
+| `systemOverviewView.uptime.minutes` | {0} min {1} s | System overview · uptime value | 30 | params: {0} = minutes, {1} = seconds; identical where the abbreviations are the same |
+| `systemOverviewView.health` | Health | System overview · section heading | 30 |  |
+| `systemOverviewView.area.database` | Database connection | System overview · health row, link to the Database page | 40 |  |
+| `systemOverviewView.area.surveySchema` | Survey schema | System overview · health row, link to the Database page | 40 |  |
+| `systemOverviewView.area.surveySchema.notChecked` | not checked: the connection failed | System overview · health detail when the database connection failed | 60 |  |
+| `systemOverviewView.area.branding` | Branding | System overview · health row, link to the Branding page | 40 |  |
+| `systemOverviewView.area.connections` | Connections | System overview · health row, link to the Connections page | 40 |  |
+| `systemOverviewView.connectionsSummary.one` | {0} outbound target configured; open Connections to check it | System overview · health detail when exactly one outbound target is configured | 80 | params: {0} = the number 1 |
+| `systemOverviewView.connectionsSummary.many` | {0} outbound targets configured; open Connections to check them | System overview · health detail for several (or zero) outbound targets | 80 | params: {0} = count |
+| `systemOverviewView.grid.area` | Area | System overview · grid column header | 20 |  |
+| `systemOverviewView.requiredSettings` | Required settings | System overview · section heading | 30 |  |
+| `systemOverviewView.grid.setting` | Setting | System overview · grid column header (property name) | 20 |  |
+| `systemOverviewView.grid.suppliedBy` | Supplied by | System overview · grid column header (environment variable) | 20 |  |
+| `systemOverviewView.grid.purpose` | Purpose | System overview · grid column header | 20 |  |
+| `systemOverviewView.setting.datasourcePassword` | password of the database user Author connects as | System overview · purpose of a required setting | 60 |  |
+| `systemOverviewView.setting.oidcSecret` | client secret registered with the identity provider | System overview · purpose of a required setting | 60 |  |
+| `systemDatabaseView.pageTitle` | System Database | System database · browser tab title | 40 |  |
+| `systemDatabaseView.title` | Database | System database · page heading | 30 |  |
+| `systemDatabaseView.intro` | Author owns no migrations. The survey schema in its database is created by the Survey preview instance that shares the database, so a missing schema means that instance has not started against this database yet. | System database · introductory paragraph | 300 |  |
+| `systemDatabaseView.connection` | Connection | System database · section heading | 30 |  |
+| `systemDatabaseView.row.state` | State | System database · row label | 25 |  |
+| `systemDatabaseView.row.configuredUser` | Configured user | System database · row label (database user from configuration) | 25 |  |
+| `systemDatabaseView.row.connectedAs` | Connected as | System database · row label (database user reported by the server) | 25 |  |
+| `systemDatabaseView.row.database` | Database | System database · row label (database name) | 25 |  |
+| `systemDatabaseView.row.server` | Server | System database · row label (server version) | 25 |  |
+| `systemDatabaseView.row.roundTrip` | Round trip | System database · row label (probe duration) | 25 |  |
+| `systemDatabaseView.surveySchema` | Survey schema | System database · section heading | 30 |  |
+| `systemDatabaseView.row.schemaPresent` | Schema present | System database · row label | 40 |  |
+| `systemDatabaseView.row.surveyMigration` | Survey migration (survey.flyway_history) | System database · row label; keep the table name in parentheses | 50 |  |
+| `systemDatabaseView.migration.notInstalled` | not installed | System database · migration value when the history table is missing | 20 |  |
+| `systemDatabaseView.migration.empty` | empty | System database · migration value when the history table has no rows | 20 |  |
+| `systemDatabaseView.migration.applied` | {0} applied {1} | System database · migration value | 60 | params: {0} = version, {1} = date applied |
+| `systemDatabaseView.migration.failed` | {0} FAILED {1} | System database · migration value for a failed migration | 60 | params: {0} = version, {1} = date attempted |
+| `systemDatabaseView.migration.unreadable` | present, but not readable by {0}: {1} | System database · migration value when the table cannot be read | 120 | params: {0} = database user, {1} = technical error text |
+| `systemDatabaseView.row.durableSequences` | Kimball durable-key sequences | System database · row label; Kimball is a data-warehouse design name | 40 |  |
+| `systemDatabaseView.row.surveysAuthored` | Surveys authored | System database · row label | 40 |  |
+| `systemDatabaseView.schema.exists` | survey.surveys exists | System database · detail of a passed check; keep the table name | 40 |  |
+| `systemDatabaseView.schema.missing` | survey.surveys does not exist: the Survey preview instance has not created the schema in this database yet | System database · detail of a failed check; keep the table name | 160 |  |
+| `systemDatabaseView.durableSequences.exists` | survey.{0} exists | System database · detail of a passed check | 60 | params: {0} = sequence name; keep the survey. prefix |
+| `systemDatabaseView.durableSequences.missing` | survey.{0} is missing: the schema in this database predates the V3 migrations | System database · detail of a failed check | 120 | params: {0} = sequence name; keep the survey. prefix |
+| `systemBrandingView.pageTitle` | System Branding | System branding · browser tab title | 40 |  |
+| `systemBrandingView.title` | Branding | System branding · page heading | 30 |  |
+| `systemBrandingView.intro` | The brand resolves from the mounted directory first, then the local directory, then the default packaged with the application. Each asset is listed on its own, because a partial mount renders with the wrong fonts and no error. | System branding · introductory paragraph | 300 |  |
+| `systemBrandingView.reload` | Reload brand | System branding · button | 20 |  |
+| `systemBrandingView.reloaded` | Brand cache discarded; the result below is freshly resolved. | System branding · notification after reloading | 80 |  |
+| `systemBrandingView.resolution` | Resolution | System branding · section heading (how the brand was found) | 30 |  |
+| `systemBrandingView.row.configuredPath` | Configured path (brand.file.system.path) | System branding · row label; keep the property name in parentheses | 50 |  |
+| `systemBrandingView.row.localPath` | Local path (brand.local.path) | System branding · row label; keep the property name in parentheses | 50 |  |
+| `systemBrandingView.path.exists` | {0} (exists) | System branding · path value | 100 | params: {0} = directory path |
+| `systemBrandingView.path.notFound` | {0} (not found) | System branding · path value | 100 | params: {0} = directory path |
+| `systemBrandingView.row.metadataFile` | Metadata file | System branding · row label | 30 |  |
+| `systemBrandingView.row.brandName` | Brand name | System branding · row label | 30 |  |
+| `systemBrandingView.row.organization` | Organization | System branding · row label | 30 |  |
+| `systemBrandingView.row.brandVersion` | Brand version | System branding · row label | 30 |  |
+| `systemBrandingView.row.inUse` | In use (cached) | System branding · row label (the brand currently applied) | 30 |  |
+| `systemBrandingView.inUse` | {0} [{1}] | System branding · value | 60 | params: {0} = brand display name, {1} = brand key; identical (punctuation only) |
+| `systemBrandingView.row.summary` | Summary | System branding · row label | 30 |  |
+| `systemBrandingView.summary.mounted` | Mounted brand at {0} | System branding · summary line | 80 | params: {0} = directory path |
+| `systemBrandingView.summary.mountedNamed` | Mounted brand: {0} at {1} | System branding · summary line | 80 | params: {0} = brand name, {1} = directory path |
+| `systemBrandingView.summary.local` | Local brand directory {0} | System branding · summary line | 80 | params: {0} = directory path |
+| `systemBrandingView.summary.embedded` | Embedded default theme; no brand directory at {0} | System branding · summary line | 80 | params: {0} = directory path |
+| `systemBrandingView.assets` | Assets | System branding · section heading | 30 |  |
+| `systemBrandingView.grid.asset` | Asset | System branding · grid column header | 20 |  |
+| `systemBrandingView.grid.path` | Path | System branding · grid column header | 20 |  |
+| `systemBrandingView.grid.source` | Source | System branding · grid column header (where the asset came from) | 20 |  |
+| `systemBrandingView.grid.location` | Location | System branding · grid column header | 20 |  |
+| `systemBrandingView.source.mounted` | Mounted | System branding · source badge (from the mounted directory) | 15 |  |
+| `systemBrandingView.source.local` | Local | System branding · source badge (from the local directory) | 15 | identical in Romance languages |
+| `systemBrandingView.source.embedded` | Embedded default | System branding · source badge (packaged default) | 20 |  |
+| `systemBrandingView.source.absent` | Absent | System branding · source badge | 15 |  |
+| `systemBrandingView.source.unreadable` | Unreadable | System branding · source badge | 15 |  |
+| `systemBrandingView.asset.colourStylesheet` | colour stylesheet | System branding · what an asset is for | 30 |  |
+| `systemBrandingView.asset.typographyStylesheet` | typography stylesheet | System branding · what an asset is for | 30 |  |
+| `systemBrandingView.asset.themeStylesheet` | theme stylesheet | System branding · what an asset is for | 30 |  |
+| `systemBrandingView.asset.horizontalLogo` | horizontal logo | System branding · what an asset is for | 30 |  |
+| `systemBrandingView.asset.headerIcon` | header icon | System branding · what an asset is for | 30 |  |
+| `systemBrandingView.asset.favicon` | favicon | System branding · what an asset is for (the browser tab icon) | 30 | identical |
+| `systemBrandingView.asset.notFound` | not found in any location | System branding · asset location when nothing was found | 40 |  |
+| `systemBrandingView.asset.unreadable` | {0} exists but cannot be read | System branding · asset location when the file cannot be read | 80 | params: {0} = file path |
+| `systemBrandingView.logoPreview` | Logo preview | System branding · section heading | 30 |  |
+| `systemBrandingView.logoAlt` | Brand logo | System branding · logo image alternative text | 30 |  |
+| `systemConnectionsView.pageTitle` | System Connections | System connections · browser tab title | 40 |  |
+| `systemConnectionsView.title` | Connections | System connections · page heading | 30 |  |
+| `systemConnectionsView.intro` | Each outbound dependency Author will call, read from the same settings the runtime uses. A check sends one read-only request and gives up after {0} seconds. Author''s only other dependency is the database, checked on its own page. | System connections · introductory paragraph | 300 | params: {0} = timeout in seconds; double any apostrophe |
+| `systemConnectionsView.empty` | No outbound targets are configured. | System connections · text when there is nothing to check | 60 |  |
+| `systemConnectionsView.checkAll` | Check all | System connections · button | 15 |  |
+| `systemConnectionsView.check` | Check | System connections · button in a grid row | 12 |  |
+| `systemConnectionsView.grid.dependency` | Dependency | System connections · grid column header (kind of dependency) | 20 |  |
+| `systemConnectionsView.grid.source` | Source | System connections · grid column header (where the address comes from) | 20 |  |
+| `systemConnectionsView.grid.address` | Address | System connections · grid column header | 20 |  |
+| `systemConnectionsView.grid.time` | Time | System connections · grid column header (probe duration) | 20 |  |
+| `systemConnectionsView.group.identityProvider` | Identity provider | System connections · kind of dependency | 25 |  |
+| `systemConnectionsView.group.telemetryCollector` | Telemetry collector | System connections · kind of dependency | 25 |  |
+| `systemConnectionsView.result.timedOut` | timed out after {0} s | System connections · check detail | 40 | params: {0} = seconds |
+| `systemConnectionsView.result.interrupted` | interrupted | System connections · check detail | 20 |  |
+| `systemConnectionsView.result.discoveryServed` | discovery document served at {0} | System connections · check detail | 80 | params: {0} = address |
+| `systemConnectionsView.result.notDiscovery` | HTTP {0} from {1} is not an OIDC discovery document; check the realm address | System connections · check detail; OIDC is a protocol name | 120 | params: {0} = HTTP status code, {1} = address |
+| `systemConnectionsView.result.reachable` | reachable, HTTP {0} | System connections · check detail | 40 | params: {0} = HTTP status code |
+| `systemConnectionsView.result.noHostPort` | address {0} has no host and port | System connections · check detail | 60 | params: {0} = address |
+| `systemConnectionsView.result.connected` | connected to {0}:{1} | System connections · check detail | 40 | params: {0} = host, {1} = port |
+| `oidcDiagnosticsView.pageTitle` | OIDC Diagnostics | OIDC diagnostics page · browser tab title | 40 |  |
+| `oidcDiagnosticsView.title` | OIDC | OIDC diagnostics page · page heading; OIDC is a protocol name | 20 | identical |
+| `oidcDiagnosticsView.intro` | The identity the provider handed this session: who signed in, which roles arrived, and whether the authoring role is among them. Tokens are masked. | OIDC diagnostics page · introductory paragraph | 200 |  |
+| `oidcDiagnosticsView.user` | User: {0} | OIDC diagnostics page · label in a monospace block | 40 | params: {0} = user name |
+| `oidcDiagnosticsView.isAnonymous` | Is Anonymous: {0} | OIDC diagnostics page · label in a monospace block | 40 | params: {0} = true or false |
+| `oidcDiagnosticsView.roles` | Roles: {0} | OIDC diagnostics page · label in a monospace block | 40 | params: {0} = list of role names; identical in Romance languages |
+| `oidcDiagnosticsView.roleSource` | Role Source: {0} | OIDC diagnostics page · label in a monospace block (where the roles were read from) | 40 | params: {0} = source name |
+| `oidcDiagnosticsView.hasRole` | Has {0}: {1} | OIDC diagnostics page · label in a monospace block | 40 | params: {0} = role name, {1} = true or false |
+| `oidcDiagnosticsView.issuer` | Issuer: {0} | OIDC diagnostics page · label in a monospace block | 40 | params: {0} = issuer address |
+| `oidcDiagnosticsView.email` | Email: {0} | OIDC diagnostics page · label in a monospace block | 40 | params: {0} = email address |
+| `oidcDiagnosticsView.idToken` | ID Token: {0} | OIDC diagnostics page · label in a monospace block | 40 | params: {0} = masked token |
+| `oidcDiagnosticsView.idTokenUnavailable` | ID Token: Not available or resolvable | OIDC diagnostics page · label in a monospace block | 60 |  |
+| `oidcDiagnosticsView.idTokenError` | ID Token Error: {0} | OIDC diagnostics page · label in a monospace block | 60 | params: {0} = technical error text |
+| `oidcDiagnosticsView.accessToken` | Access Token: {0} | OIDC diagnostics page · label in a monospace block | 40 | params: {0} = masked token |
+| `oidcDiagnosticsView.accessTokenUnavailable` | Access Token: Not available or resolvable | OIDC diagnostics page · label in a monospace block | 60 |  |
+| `oidcDiagnosticsView.accessTokenError` | Access Token Error: {0} | OIDC diagnostics page · label in a monospace block | 60 | params: {0} = technical error text |
 
 ## English source file
 
@@ -708,7 +854,7 @@ importDefinitionView.openInEditor=Open in editor
 importDefinitionView.importFailed=Import failed: {0}
 guideView.pageTitle=How a survey is put together
 guideView.title=How a survey is put together
-guideView.diagram.alt=A survey drawn as the designer draws it: two step lanes holding section cards and question rows, a Show rule from the question 'Do you have children?' to the section 'Children', and a Repeat rule from 'How many children?' to the section 'Child' in the next step.
+guideView.diagram.alt=The designer board for a small survey called Family history: two step cards, About you and Each child, each holding section cards (You and Children, then Child) with question rows inside them, and a Show rule drawn from the question 'Has children' to the question 'Child count'.
 guideView.surveysLink=Go to the Surveys list
 guideView.intro.p1=An Elicit survey is a decision tree the respondent walks through. This page shows the pieces a survey is made of and how the designer draws them, using the same names and glyphs you will see on the board and in the structure tree.
 guideView.tree.h=Elicit is a decision tree
@@ -1184,4 +1330,150 @@ mainLayout.resizer.title=Drag to resize the drawer
 mainLayout.resizer.aria=Resize drawer
 mainLayout.smallScreen.heading=A bigger screen is needed
 mainLayout.smallScreen.text=Elicit Author is built for designing surveys on a tablet or larger screen. Please switch to a wider device.
+common.none=none
+common.unknown=unknown
+mainLayout.nav.system=System
+mainLayout.nav.systemOverview=Overview
+mainLayout.nav.systemDatabase=Database
+mainLayout.nav.systemBranding=Branding
+mainLayout.nav.systemConnections=Connections
+mainLayout.nav.systemOidc=OIDC
+system.grid.item=Item
+system.grid.value=Value
+system.grid.state=State
+system.grid.detail=Detail
+system.badge.ok=OK
+system.badge.failed=Failed
+system.badge.notChecked=Not checked
+system.badge.present=Present
+system.badge.absent=Absent
+system.milliseconds={0} ms
+systemOverviewView.pageTitle=System Overview
+systemOverviewView.title=System Overview
+systemOverviewView.intro=What this deployment is running, whether it is healthy, and whether every required setting is present. Settings are shown as present or absent, never by value; they are startup configuration and cannot be changed here.
+systemOverviewView.running=Running
+systemOverviewView.row.application=Application
+systemOverviewView.row.version=Version
+systemOverviewView.row.built=Built
+systemOverviewView.row.profile=Profile
+systemOverviewView.row.started=Started
+systemOverviewView.row.uptime=Uptime
+systemOverviewView.uptime.days={0} d {1} h {2} min
+systemOverviewView.uptime.hours={0} h {1} min
+systemOverviewView.uptime.minutes={0} min {1} s
+systemOverviewView.health=Health
+systemOverviewView.area.database=Database connection
+systemOverviewView.area.surveySchema=Survey schema
+systemOverviewView.area.surveySchema.notChecked=not checked: the connection failed
+systemOverviewView.area.branding=Branding
+systemOverviewView.area.connections=Connections
+systemOverviewView.connectionsSummary.one={0} outbound target configured; open Connections to check it
+systemOverviewView.connectionsSummary.many={0} outbound targets configured; open Connections to check them
+systemOverviewView.grid.area=Area
+systemOverviewView.requiredSettings=Required settings
+systemOverviewView.grid.setting=Setting
+systemOverviewView.grid.suppliedBy=Supplied by
+systemOverviewView.grid.purpose=Purpose
+systemOverviewView.setting.datasourcePassword=password of the database user Author connects as
+systemOverviewView.setting.oidcSecret=client secret registered with the identity provider
+systemDatabaseView.pageTitle=System Database
+systemDatabaseView.title=Database
+systemDatabaseView.intro=Author owns no migrations. The survey schema in its database is created by the Survey preview instance that shares the database, so a missing schema means that instance has not started against this database yet.
+systemDatabaseView.connection=Connection
+systemDatabaseView.row.state=State
+systemDatabaseView.row.configuredUser=Configured user
+systemDatabaseView.row.connectedAs=Connected as
+systemDatabaseView.row.database=Database
+systemDatabaseView.row.server=Server
+systemDatabaseView.row.roundTrip=Round trip
+systemDatabaseView.surveySchema=Survey schema
+systemDatabaseView.row.schemaPresent=Schema present
+systemDatabaseView.row.surveyMigration=Survey migration (survey.flyway_history)
+systemDatabaseView.migration.notInstalled=not installed
+systemDatabaseView.migration.empty=empty
+systemDatabaseView.migration.applied={0} applied {1}
+systemDatabaseView.migration.failed={0} FAILED {1}
+systemDatabaseView.migration.unreadable=present, but not readable by {0}: {1}
+systemDatabaseView.row.durableSequences=Kimball durable-key sequences
+systemDatabaseView.row.surveysAuthored=Surveys authored
+systemDatabaseView.schema.exists=survey.surveys exists
+systemDatabaseView.schema.missing=survey.surveys does not exist: the Survey preview instance has not created the schema in this database yet
+systemDatabaseView.durableSequences.exists=survey.{0} exists
+systemDatabaseView.durableSequences.missing=survey.{0} is missing: the schema in this database predates the V3 migrations
+systemBrandingView.pageTitle=System Branding
+systemBrandingView.title=Branding
+systemBrandingView.intro=The brand resolves from the mounted directory first, then the local directory, then the default packaged with the application. Each asset is listed on its own, because a partial mount renders with the wrong fonts and no error.
+systemBrandingView.reload=Reload brand
+systemBrandingView.reloaded=Brand cache discarded; the result below is freshly resolved.
+systemBrandingView.resolution=Resolution
+systemBrandingView.row.configuredPath=Configured path (brand.file.system.path)
+systemBrandingView.row.localPath=Local path (brand.local.path)
+systemBrandingView.path.exists={0} (exists)
+systemBrandingView.path.notFound={0} (not found)
+systemBrandingView.row.metadataFile=Metadata file
+systemBrandingView.row.brandName=Brand name
+systemBrandingView.row.organization=Organization
+systemBrandingView.row.brandVersion=Brand version
+systemBrandingView.row.inUse=In use (cached)
+systemBrandingView.inUse={0} [{1}]
+systemBrandingView.row.summary=Summary
+systemBrandingView.summary.mounted=Mounted brand at {0}
+systemBrandingView.summary.mountedNamed=Mounted brand: {0} at {1}
+systemBrandingView.summary.local=Local brand directory {0}
+systemBrandingView.summary.embedded=Embedded default theme; no brand directory at {0}
+systemBrandingView.assets=Assets
+systemBrandingView.grid.asset=Asset
+systemBrandingView.grid.path=Path
+systemBrandingView.grid.source=Source
+systemBrandingView.grid.location=Location
+systemBrandingView.source.mounted=Mounted
+systemBrandingView.source.local=Local
+systemBrandingView.source.embedded=Embedded default
+systemBrandingView.source.absent=Absent
+systemBrandingView.source.unreadable=Unreadable
+systemBrandingView.asset.colourStylesheet=colour stylesheet
+systemBrandingView.asset.typographyStylesheet=typography stylesheet
+systemBrandingView.asset.themeStylesheet=theme stylesheet
+systemBrandingView.asset.horizontalLogo=horizontal logo
+systemBrandingView.asset.headerIcon=header icon
+systemBrandingView.asset.favicon=favicon
+systemBrandingView.asset.notFound=not found in any location
+systemBrandingView.asset.unreadable={0} exists but cannot be read
+systemBrandingView.logoPreview=Logo preview
+systemBrandingView.logoAlt=Brand logo
+systemConnectionsView.pageTitle=System Connections
+systemConnectionsView.title=Connections
+systemConnectionsView.intro=Each outbound dependency Author will call, read from the same settings the runtime uses. A check sends one read-only request and gives up after {0} seconds. Author''s only other dependency is the database, checked on its own page.
+systemConnectionsView.empty=No outbound targets are configured.
+systemConnectionsView.checkAll=Check all
+systemConnectionsView.check=Check
+systemConnectionsView.grid.dependency=Dependency
+systemConnectionsView.grid.source=Source
+systemConnectionsView.grid.address=Address
+systemConnectionsView.grid.time=Time
+systemConnectionsView.group.identityProvider=Identity provider
+systemConnectionsView.group.telemetryCollector=Telemetry collector
+systemConnectionsView.result.timedOut=timed out after {0} s
+systemConnectionsView.result.interrupted=interrupted
+systemConnectionsView.result.discoveryServed=discovery document served at {0}
+systemConnectionsView.result.notDiscovery=HTTP {0} from {1} is not an OIDC discovery document; check the realm address
+systemConnectionsView.result.reachable=reachable, HTTP {0}
+systemConnectionsView.result.noHostPort=address {0} has no host and port
+systemConnectionsView.result.connected=connected to {0}:{1}
+oidcDiagnosticsView.pageTitle=OIDC Diagnostics
+oidcDiagnosticsView.title=OIDC
+oidcDiagnosticsView.intro=The identity the provider handed this session: who signed in, which roles arrived, and whether the authoring role is among them. Tokens are masked.
+oidcDiagnosticsView.user=User: {0}
+oidcDiagnosticsView.isAnonymous=Is Anonymous: {0}
+oidcDiagnosticsView.roles=Roles: {0}
+oidcDiagnosticsView.roleSource=Role Source: {0}
+oidcDiagnosticsView.hasRole=Has {0}: {1}
+oidcDiagnosticsView.issuer=Issuer: {0}
+oidcDiagnosticsView.email=Email: {0}
+oidcDiagnosticsView.idToken=ID Token: {0}
+oidcDiagnosticsView.idTokenUnavailable=ID Token: Not available or resolvable
+oidcDiagnosticsView.idTokenError=ID Token Error: {0}
+oidcDiagnosticsView.accessToken=Access Token: {0}
+oidcDiagnosticsView.accessTokenUnavailable=Access Token: Not available or resolvable
+oidcDiagnosticsView.accessTokenError=Access Token Error: {0}
 ```
