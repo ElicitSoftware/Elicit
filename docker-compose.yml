@@ -68,9 +68,9 @@ services:
         retries: 20
         start_period: 60s
     volumes:
-      # - ./elicit-brand/:/opt/brand:ro
-      - ../Elicit_Campsites/um-brand/:/opt/brand:ro
-      # Translations (UC-007): one host directory, one sub-directory per app (survey/, admin/, author/)
+      - ./elicit-brand/:/opt/brand:ro
+      # - ../Elicit_Campsites/um-brand/:/opt/brand:ro
+      # Translations (UC-008): one host directory, one sub-directory per app (survey/, admin/, author/)
       - ./elicit-i18n/:/opt/i18n:ro
       # - ./test-partial-i18n/:/opt/i18n:ro
       # - ../Kindred/kindred-brand/:/opt/brand:ro
@@ -226,9 +226,9 @@ services:
       OTEL_SERVICE_NAME: admin
       OTEL_RESOURCE_ATTRIBUTES: service.name=admin,service.version=1.0,deployment.environment=local
     volumes:
-      # - ./elicit-brand/:/opt/brand:ro
-      - ../Elicit_Campsites/um-brand/:/opt/brand:ro
-      # Translations (UC-007): one host directory, one sub-directory per app (survey/, admin/, author/)
+      - ./elicit-brand/:/opt/brand:ro
+      # - ../Elicit_Campsites/um-brand/:/opt/brand:ro
+      # Translations (UC-008): one host directory, one sub-directory per app (survey/, admin/, author/)
       - ./elicit-i18n/:/opt/i18n:ro
       # - ./test-partial-i18n/:/opt/i18n:ro
       # - ../Kindred/kindred-brand/:/opt/brand:ro
@@ -294,9 +294,9 @@ services:
         retries: 20
         start_period: 60s
     volumes:
-      # - ./elicit-brand/:/opt/brand:ro
-      - ../Elicit_Campsites/um-brand/:/opt/brand:ro
-      # Translations (UC-007): one host directory, one sub-directory per app (survey/, admin/, author/)
+      - ./elicit-brand/:/opt/brand:ro
+      # - ../Elicit_Campsites/um-brand/:/opt/brand:ro
+      # Translations (UC-008): one host directory, one sub-directory per app (survey/, admin/, author/)
       - ./elicit-i18n/:/opt/i18n:ro
       # - ./test-partial-i18n/:/opt/i18n:ro
     depends_on:
@@ -341,9 +341,9 @@ services:
       OTEL_SERVICE_NAME: author
       OTEL_RESOURCE_ATTRIBUTES: service.name=author,service.version=3.0.0,deployment.environment=local
     volumes:
-      # - ./elicit-brand/:/opt/brand:ro
-      - ../Elicit_Campsites/um-brand/:/opt/brand:ro
-      # Translations (UC-007): one host directory, one sub-directory per app (survey/, admin/, author/)
+      - ./elicit-brand/:/opt/brand:ro
+      # - ../Elicit_Campsites/um-brand/:/opt/brand:ro
+      # Translations (UC-008): one host directory, one sub-directory per app (survey/, admin/, author/)
       - ./elicit-i18n/:/opt/i18n:ro
       # - ./test-partial-i18n/:/opt/i18n:ro
     depends_on:

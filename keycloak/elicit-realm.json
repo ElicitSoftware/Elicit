@@ -314,6 +314,14 @@
         "clientRole" : true,
         "containerId" : "5a3af96a-0f56-41aa-846e-f7f119d9639c",
         "attributes" : { }
+      }, {
+        "id" : "0906ff43-b84a-4996-a02d-475cf559d893",
+        "name" : "elicit_admin",
+        "description" : "Platform administrator: System setup and diagnostics in Author; grants no authoring",
+        "composite" : false,
+        "clientRole" : true,
+        "containerId" : "5a3af96a-0f56-41aa-846e-f7f119d9639c",
+        "attributes" : { }
       } ]
     }
   },
@@ -380,7 +388,8 @@
     "requiredActions" : [ ],
     "realmRoles" : [ "default-roles-elicit" ],
     "clientRoles" : {
-      "elicit-admin" : [ "elicit_admin" ]
+      "elicit-admin" : [ "elicit_admin" ],
+      "elicit-author" : [ "elicit_admin", "elicit_author" ]
     },
     "notBefore" : 0,
     "groups" : [ ]
