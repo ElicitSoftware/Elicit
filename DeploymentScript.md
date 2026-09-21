@@ -118,7 +118,8 @@ pages show what the service is running, whether both database connections and ea
 migrations are in place, which brand directory resolved and where each brand asset came from,
 the effective mail settings with a "Send test email" button, and a bounded reachability check
 of every outbound dependency (identity provider, report services, post-survey actions, mail
-relay, telemetry collector). Secrets are shown as present or absent only. The **Overview** page
+relay, telemetry collector), plus an OIDC page with the current sign-in's roles and masked tokens.
+Secrets are shown as present or absent only. The **Overview** page
 lists the setup work still outstanding, including the seeded accounts below.
 
 ### Modify template data
