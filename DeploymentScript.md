@@ -122,6 +122,11 @@ relay, telemetry collector), plus an OIDC page with the current sign-in's roles 
 Secrets are shown as present or absent only. The **Overview** page
 lists the setup work still outstanding, including the seeded accounts below.
 
+Author has the same **System** section (Overview, Database, Branding, Connections, OIDC) for
+users holding `elicit_admin` on the `elicit-author` client; that role grants no authoring. Its
+Database page tells you whether the Survey preview instance has created the survey schema in
+Author's database yet.
+
 ### Modify template data
 After starting a new Elicit system you will need to alter some of the template data. 
 1) Update test users to real users. 
