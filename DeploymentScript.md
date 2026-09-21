@@ -112,9 +112,22 @@ spans Survey, Admin and FHHS, so upgrade all three from the same release.
   `--brand-token-bg`/`--brand-token-text` are now `--brand-access-code-bg`/`--brand-access-code-text`.
   Rename them in any custom brand that overrides them.
 
+### Check the deployment from the Admin console
+Once Admin is up, sign in as an administrator and open **System** in the navigation. Its
+pages show what the service is running, whether both database connections and each module's
+migrations are in place, which brand directory resolved and where each brand asset came from,
+the effective mail settings with a "Send test email" button, and a bounded reachability check
+of every outbound dependency (identity provider, report services, post-survey actions, mail
+relay, telemetry collector). Secrets are shown as present or absent only. The **Overview** page
+lists the setup work still outstanding, including the seeded accounts below.
+
 ### Modify template data
 After starting a new Elicit system you will need to alter some of the template data. 
 1) Update test users to real users. 
+   The migrations seed two accounts, `admin` and `user`. Admin logs a warning at every start
+   and shows a banner on every console screen until both are renamed; under
+   `elicit.authorization.mode=DATABASE` rename the matching identity-provider accounts to the
+   same usernames. Rename them under Admin | Users or with this SQL:
    UPDATE survey.users set username = '< username >', first_name = '< first_name >', last_name = '< last_name >' where id = 1; 
    UPDATE survey.users set username = '< username >', first_name = '< first_name >', last_name = '< last_name >' where id = 2; 
 
