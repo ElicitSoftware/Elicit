@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.elicitsoftware</groupId>
+    <artifactId>e2e-multisite</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <name>Elicit multi-site E2E test</name>
+    <description>
+        Playwright journey across two running Elicit stacks (see README.md): site 1 authors a
+        survey and applies it, site 2 imports the same definition later, respondents on both
+        sites take the survey across a revision, and site 2's respondents are exported and
+        imported into site 1. Reuses the page objects of ../e2e-tests by source (build-helper
+        add-test-source); only tests under com.elicitsoftware.e2e.multisite run here. Opt-in:
+        mvn -DskipTests=false test, against stacks started with ./up.sh.
+    </description>
+
+    <properties>
+        <maven.compiler.release>21</maven.compiler.release>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <playwright.version>1.59.0</playwright.version>
+        <junit.version>6.1.1</junit.version>
+        <surefire-plugin.version>3.5.2</surefire-plugin.version>
+        <build-helper-plugin.version>3.6.0</build-helper-plugin.version>
+        <!-- Opt-in module: needs two live stacks. Run with -DskipTests=false. -->
+        <skipTests>true</skipTests>
+
+        <!-- Defaults match site1/docker-compose.yml and site2/docker-compose.yml. -->
+        <site1.survey.baseUrl>http://localhost:8080</site1.survey.baseUrl>
+        <site1.admin.baseUrl>http://localhost:8081</site1.admin.baseUrl>
+        <site1.author.baseUrl>http://localhost:8084</site1.author.baseUrl>
+        <site2.survey.baseUrl>http://localhost:8030</site2.survey.baseUrl>
+        <site2.admin.baseUrl>http://localhost:8031</site2.admin.baseUrl>
+        <admin.username>admin</admin.username>
+        <admin.password>admin</admin.password>
+        <author.username>author</author.username>
+        <author.password>author</author.password>
+        <!-- -De2e.headless=false to watch the browser. -->
+        <e2e.headless>true</e2e.headless>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.junit</groupId>
+                <artifactId>junit-bom</artifactId>
+                <version>${junit.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.microsoft.playwright</groupId>
+            <artifactId>playwright</artifactId>
+            <version>${playwright.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>${build-helper-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>add-e2e-page-objects</id>
+                        <phase>generate-test-sources</phase>
+                        <goals>
+                            <goal>add-test-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>${project.basedir}/../e2e-tests/src/test/java</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${surefire-plugin.version}</version>
+                <configuration>
+                    <skipTests>${skipTests}</skipTests>
+                    <includes>
+                        <include>**/multisite/*E2ETest.java</include>
+                    </includes>
+                    <systemPropertyVariables>
+                        <site1.survey.baseUrl>${site1.survey.baseUrl}</site1.survey.baseUrl>
+                        <site1.admin.baseUrl>${site1.admin.baseUrl}</site1.admin.baseUrl>
+                        <site1.author.baseUrl>${site1.author.baseUrl}</site1.author.baseUrl>
+                        <site2.survey.baseUrl>${site2.survey.baseUrl}</site2.survey.baseUrl>
+                        <site2.admin.baseUrl>${site2.admin.baseUrl}</site2.admin.baseUrl>
+                        <admin.username>${admin.username}</admin.username>
+                        <admin.password>${admin.password}</admin.password>
+                        <author.username>${author.username}</author.username>
+                        <author.password>${author.password}</author.password>
+                        <e2e.headless>${e2e.headless}</e2e.headless>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>
