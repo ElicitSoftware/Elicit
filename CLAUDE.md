@@ -116,48 +116,42 @@ set. The Monitor tab in the Jaeger UI is therefore inert.
 The scrape config also still targets `premm5:8080` and assumes
 `postgres-exporter` and `cadvisor`, none of which exist in this compose file.
 
-### First Run Needs a Survey Restart
+### First Run: Nothing Is Seeded, the Import Provides It
 
-`docker compose up -d` gets the database and the survey content right in one pass:
-Survey creates the schema, then FHHS (which waits for Survey to be healthy) seeds
-the Family History Survey. FHHS's greenfield migrations use literal ids and fixed
-keys and no longer build anything over the ETL-generated reporting views, so a
-failed attempt can simply be retried.
+`docker compose up -d` creates the schema in one pass: Survey creates it, Admin adds its
+tables, and FHHS runs its own migrations (grants, indexes on the star schema, sequence
+hygiene). **No survey and no department are seeded.** The two accounts `admin` and
+`user` are, so the console can be signed into.
 
-That pass does **not** build the reporting star schema. Survey's
-`ETLService.init()` is a `@Startup` method gated on
-`surveyCount > 0 && dimSectionRows == 0`, and on a greenfield run Survey starts a
-few seconds before FHHS seeds the survey. The ETL finds `survey.surveys` empty,
-skips, and logs a WARN:
+The first sign-in as `admin` is blocked by a modal dialog until a department exists
+(Admin UC-028): follow its link to Departments and create one, which is assigned to the
+creator. A `user` with no department can only log out. Existing databases keep their
+seeded "Testing Department"; the dialog is only seen on a database created after this
+change.
 
-> No survey is defined in the database (survey.surveys is empty). Reporting schema
-> generation skipped. Import a survey definition through the Admin application,
-> then restart this application to build it.
-
-`surveyreport` is then left with only the six skeleton tables its Flyway
-migrations create (`dim_date`, `dim_section`, `dim_status`, `dim_step`,
-`fact_respondents`, `fact_sections`), with `dim_step` and `dim_section` empty.
-Restarting Survey after FHHS has seeded runs the build and grows `surveyreport`
-to 22 objects: 18 dimension tables (the four above plus the FHHS-derived
-`dim_cancer`, `dim_gender`, `dim_race`, `dim_relationship`, `dim_vital_status`
-and the rest, built from `survey.dimensions`), the two fact tables, and the
-`fact_respondents_view` / `fact_sections_view` views. The `dimSectionRows == 0`
-half of the gate makes the restart idempotent — a second one is a no-op.
-
-The fact tables stay empty until respondents exist; they fill through the
-`fact_respondent_insert` and `fact_update` triggers on `survey.respondents`.
-
-`deploy.sh` is that sequence (`up -d`, sleep 20, restart Survey), but its fixed
-sleep is not a real synchronization point on a cold start — restart Survey only
-once `elicit-fhhs-1` is healthy. Confirm the build with:
+The Family History Survey arrives by import: Admin > Apply Survey Definition with
+`FHHS/family-history-survey.elicit`. The apply asks Survey to rebuild the reporting star
+schema (`POST /api/etl/build`), so **no Survey restart is needed** and `surveyreport`
+grows from its six skeleton tables to the full set (18 dimension tables, two fact tables,
+`fact_respondents_view` / `fact_sections_view`) as part of the apply. Confirm with:
 
 ```sh
 docker exec elicit-db-1 psql -U survey -d survey \
   -c "select count(*) from surveyreport.dim_step;"
 ```
 
-which must be non-zero (15 for the Family History Survey). Verified on a
-greenfield run on 2026-09-22.
+which must be non-zero (15 for the Family History Survey).
+
+FHHS is specific to that survey (FHHS UC-005). Until it is imported, FHHS starts, logs one
+WARN naming the survey key and the import to perform, reports **not-ready** on
+`/q/health/ready`, and answers report requests with 503 carrying the same message. It goes
+healthy by itself on the next probe after the import; nothing needs restarting. Admin
+depends on FHHS with `service_started`, not `service_healthy`, so Admin comes up either
+way and the import is always reachable. `deploy.sh` (`up -d`, then restart Survey) is only
+needed on a stack whose survey was seeded before this change.
+
+The fact tables stay empty until respondents exist; they fill through the
+`fact_respondent_insert` and `fact_update` triggers on `survey.respondents`.
 
 `resetDatabase.sh V3` stops the stack and deletes `postgresql/PGDATA` for a
 greenfield run. `resetDatabase.sh V2` replaces it with a copy of `PGDATA_v2`, the

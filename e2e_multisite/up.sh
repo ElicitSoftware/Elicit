@@ -6,10 +6,9 @@
 #   ./up.sh site1      site 1 only
 #   ./up.sh site2      site 2 only (site 1 must already be up: site 2 uses its Keycloak and Mailpit)
 #
-# Waits until each site's Survey, FHHS and Admin answer their readiness probes, and on site 2
-# applies site2/post-init.sql once FHHS has seeded its rows. A first start initialises the
-# database in one pass (Survey creates the schema, FHHS seeds the Family History Survey); that
-# takes two to three minutes per site.
+# Waits until each site's Survey and Admin answer their readiness probes. A first start
+# initialises the database in one pass (Survey creates the schema; nothing seeds a survey --
+# the journey authors and applies its own), which takes a minute or two per site.
 
 set -euo pipefail
 cd "$(dirname "$0")"
@@ -23,11 +22,11 @@ case "$SITES" in
     *) usage ;;
 esac
 
-# host ports per site: survey fhhs admin
+# host ports per site: survey admin
 ports_for() {
     case "$1" in
-        site1) echo "8080 8082 8081" ;;
-        site2) echo "8030 8032 8031" ;;
+        site1) echo "8080 8081" ;;
+        site2) echo "8030 8031" ;;
     esac
 }
 
@@ -79,13 +78,8 @@ for site in $SITES; do
         rm -rf "data/$site/PGDATA"
         docker compose -f "$site/docker-compose.yml" up -d
     fi
-    read -r survey_port fhhs_port admin_port <<<"$(ports_for "$site")"
+    read -r survey_port admin_port <<<"$(ports_for "$site")"
     wait_ready "$site" "$survey_port" "$site survey"
-    wait_ready "$site" "$fhhs_port" "$site fhhs"
     wait_ready "$site" "$admin_port" "$site admin"
-    if [ "$site" = site2 ]; then
-        echo "== site2: pointing report and post-survey-action URLs at site 2's FHHS"
-        docker compose -f site2/docker-compose.yml exec -T db psql -v ON_ERROR_STOP=1 -U survey -d survey < site2/post-init.sql
-    fi
 done
 echo "Done. ./status.sh shows every URL."

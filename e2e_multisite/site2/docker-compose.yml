@@ -1,6 +1,6 @@
 # Site 2 - the secondary site of the multi-site e2e test (see ../README.md).
 #
-# The site stack only (survey, admin, fhhs, pedigree, db, sftpServer, jaeger) on host ports
+# The site stack only (survey, admin, pedigree, db, jaeger) on host ports
 # 50 below site 1's, with its own project name and data directories under ../data/site2.
 # It has no Author and no Keycloak or Mailpit of its own:
 #   - Admin authenticates against site 1's Keycloak through the image default
@@ -13,8 +13,9 @@
 #     Admin is pointed at those.
 # Site 1 must therefore be up before this stack starts (../up.sh enforces that).
 #
-# FHHS seeds report and post-survey-action URLs that point at host port 8082 (site 1's FHHS);
-# ../up.sh rewrites them to 8032 with ./post-init.sql after the first start.
+# FHHS is not part of these stacks: it serves only the Family History Survey, and this journey
+# runs the Household Survey, so it would never become ready here (FHHS UC-005). The SFTP server
+# went with it -- nothing else used it.
 name: elicit-site2
 
 networks:
@@ -60,39 +61,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-  fhhs:
-    image: elicitsoftware/fhhs:latest
-    ports:
-      - 8032:8080
-    healthcheck:
-      test: ["CMD", "curl", "--head", "-fsS", "http://localhost:8080/q/health/ready"]
-      interval: 15s
-      timeout: 5s
-      retries: 20
-      start_period: 90s
-    environment:
-      TZ: America/Detroit
-      pedigree.url: http://pedigree:8080/svg
-      family.history.sftp.enabled: false
-      APP_BASE_URL: http://localhost:8030
-      quarkus.application.name: fhhs
-      quarkus.otel.enabled: true
-      quarkus.otel.exporter.otlp.endpoint: http://jaeger:4317
-      quarkus.otel.exporter.otlp.traces.endpoint: http://jaeger:4317
-      quarkus.otel.traces.enabled: true
-      quarkus.otel.metrics.enabled: true
-      quarkus.otel.logs.enabled: true
-      quarkus.datasource.jdbc.telemetry: true
-      quarkus.otel.instrument.jdbc: true
-      OTEL_SERVICE_NAME: fhhs
-      OTEL_RESOURCE_ATTRIBUTES: service.name=fhhs,service.version=1.0,deployment.environment=site2
-    depends_on:
-      db:
-        condition: service_healthy
-      survey:
-        condition: service_healthy
-      sftpServer:
-        condition: service_started
   pedigree:
     image: elicitsoftware/pedigree:latest
     ports:
@@ -143,8 +111,6 @@ services:
         condition: service_healthy
       survey:
         condition: service_healthy
-      fhhs:
-        condition: service_started
       pedigree:
         condition: service_started
   db:
@@ -168,14 +134,6 @@ services:
       timeout: 5s
       retries: 30
       start_period: 60s
-  sftpServer:
-    image: atmoz/sftp:alpine-3.7
-    environment:
-      TZ: "America/Detroit"
-      SFTP_USERS: fhhs_user:pass:::upload/reports
-    volumes:
-      - ../data/site2/sftp/upload/reports:/home/fhhs_user/upload/reports
-      - ../../sftp_ssh/fhhs_user.pub:/home/fhhs_user/.ssh/authorized_keys:ro
   jaeger:
     image: jaegertracing/all-in-one:1.53
     networks:

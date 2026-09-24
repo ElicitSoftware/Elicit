@@ -7,7 +7,9 @@ import com.microsoft.playwright.Page;
 /**
  * EditUserView at {@code /edit-user/{id}} (Admin user management): the only place a department
  * is assigned to a user, and RegisterView only offers the signed-in user's departments. The
- * seeded {@code admin} user is id 1 on a stock database. The "Departments" multi-select combo
+ * seeded {@code admin} user is id 1 on a stock database; no department is seeded (Admin UC-028),
+ * and creating one assigns it to its creator, so this page is needed only to share a department
+ * with another user. The "Departments" multi-select combo
  * box has no id, so it is located by label; picking an overlay item and pressing Escape leaves
  * the selection in place, as {@code SectionPage.selectFirstMultiSelectOption} documents.
  */

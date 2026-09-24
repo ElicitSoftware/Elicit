@@ -16,11 +16,13 @@ To insure the database populates please start the modules in this order.
 1) Start Survey
    This will install most of the tables needed for a survey but no survey
 2) Start FHHS
-   This will install the Family History Survey. FHHS's migrations use literal ids and fixed keys, so if a start fails it can simply be started again once the cause is fixed; no restart of Survey is needed.
-3) Start Admin 
-   This will install all the tables needed for the Admin app. It will also create a "Test Department". This test department can be used to test the new installation or upgrades. It is recommended that
+   This installs FHHS's own tables, grants and indexes. It no longer installs the Family History Survey: FHHS starts, reports not-ready on `/q/health/ready` and refuses report requests until the survey has been imported (step 5). A failed start can simply be started again once the cause is fixed.
+3) Start Admin
+   This will install all the tables needed for the Admin app. No department is created: the first administrator to sign in is asked to create one (it is assigned to them), and a user with no department can only log out.
 4) Start Pedigree
    This is the module for generating a visual pedigree.
+5) Import the Family History Survey
+   Sign in to Admin as an administrator, create a department if asked, then open Apply Survey Definition and upload `FHHS/family-history-survey.elicit`. The apply rebuilds Survey's reporting schema, and FHHS becomes ready on its next health probe; nothing needs restarting. Do the same on every site that runs the Family History Survey.
 
 ### Translations directory
 
