@@ -46,7 +46,7 @@ class SearchFiltersE2ETest extends E2ETestBase {
         openAdmin("/");
         searchPage.clearTextFilters();
         assertTrue(searchPage.rowCount() >= 2,
-                "expected clearing the text filters (department stays \"All Departments\") to show both subjects");
+                "expected clearing the text filters (department stays \"All departments\") to show both subjects");
 
         openAdmin("/logout");
     }

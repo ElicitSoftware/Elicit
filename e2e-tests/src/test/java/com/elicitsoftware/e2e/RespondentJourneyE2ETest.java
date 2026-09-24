@@ -75,7 +75,7 @@ class RespondentJourneyE2ETest extends E2ETestBase {
         assertEquals("Finished", searchPage.statusAt(0));
 
         // 10. Admin UC-005: generate the report from the search grid -- also served to a new tab.
-        PdfDownload report = openPdfPopup(() -> searchPage.runRowAction(accessCode, "Print Reports"));
+        PdfDownload report = openPdfPopup(() -> searchPage.runRowAction(accessCode, "Print reports"));
         assertEquals("application/pdf", report.contentType(), "unexpected response from " + report.url());
         assertTrue(report.size() > 0, "expected a non-empty report PDF from " + report.url());
 

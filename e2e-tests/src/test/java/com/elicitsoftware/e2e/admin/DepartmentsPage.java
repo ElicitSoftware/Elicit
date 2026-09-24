@@ -8,7 +8,7 @@ import com.microsoft.playwright.Page;
  * EditDepartmentView (Admin departments management) at {@code /edit-department/{id}} -- the
  * route the Departments view's "New Department" button navigates to with id {@code 0}. The
  * form's fields carry no ids, so they are located by label, and the save button reads "Create
- * Department". A successful save navigates back to {@code /departments}; a duplicate name or
+ * department". A successful save navigates back to {@code /departments}; a duplicate name or
  * code stays on the form with a notification.
  */
 public class DepartmentsPage extends PageObject {
@@ -19,16 +19,16 @@ public class DepartmentsPage extends PageObject {
 
     /** Fills the new-department form (already open at {@code /edit-department/0}) and saves. */
     public void createDepartment(String name, String code, String fromEmail) {
-        fillAndCommit(fieldByLabel("Department Name"), name);
-        fillAndCommit(fieldByLabel("Department Code"), code);
-        Locator defaultMessage = fieldByLabel("Default Message ID");
+        fillAndCommit(fieldByLabel("Department name"), name);
+        fillAndCommit(fieldByLabel("Department code"), code);
+        Locator defaultMessage = fieldByLabel("Default message ID");
         if (defaultMessage.inputValue().isBlank()) {
             fillAndCommit(defaultMessage, "1");
         }
-        fillAndCommit(fieldByLabel("From Email"), fromEmail);
-        // The save button is captioned "Create Department" for a new one ("Update Department"
+        fillAndCommit(fieldByLabel("From email"), fromEmail);
+        // The save button is captioned "Create department" for a new one ("Update department"
         // when editing) and stays disabled until the binder is valid.
-        Locator save = page.locator("vaadin-button").filter(new Locator.FilterOptions().setHasText("Create Department")).first();
+        Locator save = page.locator("vaadin-button").filter(new Locator.FilterOptions().setHasText("Create department")).first();
         save.waitFor();
         clickAfterFill(save);
         page.waitForURL(url -> url.endsWith("/departments"));

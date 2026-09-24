@@ -65,7 +65,7 @@ public class SearchPage extends PageObject {
 
     /**
      * Clears the access-code/name/email/phone text filters (leaves the department filter at its
-     * default "All Departments"). UC-002 alt-flow A2 (clearing the department filter itself)
+     * default "All departments"). UC-002 alt-flow A2 (clearing the department filter itself)
      * is not covered here.
      */
     public void clearTextFilters() {
@@ -183,8 +183,8 @@ public class SearchPage extends PageObject {
     }
 
     /**
-     * Selects the given action ("Send Email" / "Print Reports") on the row for {@code accessCode} and
-     * clicks Submit. For "Print Reports" (Admin UC-005) this opens the generated PDF in a new
+     * Selects the given action ("Send email" / "Print reports") on the row for {@code accessCode} and
+     * clicks Submit. For "Print reports" (Admin UC-005) this opens the generated PDF in a new
      * browser tab -- wrap the call in {@link com.elicitsoftware.e2e.E2ETestBase#waitForPopup}.
      */
     public void runRowAction(String accessCode, String action) {
