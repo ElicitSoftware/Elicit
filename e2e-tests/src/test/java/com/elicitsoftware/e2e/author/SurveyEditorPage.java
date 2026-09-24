@@ -32,12 +32,11 @@ public class SurveyEditorPage extends AuthorPageObject {
     /** Edit details: sets the "Initial display key" the Survey runtime enters the survey at. */
     public void setInitialDisplayKey(String displayKey) {
         buttonByText("Edit details").click();
-        Locator dialog = topDialog();
+        Locator dialog = dialog("Edit survey");
         fieldByLabel(dialog, "Initial display key").fill(displayKey);
         submitDialog(dialog, "Save");
         page.locator("vaadin-notification-card")
-                .filter(new Locator.FilterOptions().setHasText("Survey updated"))
-                .waitFor();
+                .filter(new Locator.FilterOptions().setHasText("Survey updated")).first().waitFor();
     }
 
     /** True once the validation panel reports nothing blocking or noteworthy. */
@@ -56,7 +55,7 @@ public class SurveyEditorPage extends AuthorPageObject {
      */
     public Path export(String releaseNote, Path targetDir) {
         buttonByText("Export").click(); // the caption is "Export…" (U+2026)
-        Locator dialog = topDialog();
+        Locator dialog = dialogTitledLike("Export ");
         fieldByLabel(dialog, "Release note").fill(releaseNote);
         Locator exportButton = buttonByText(dialog, "Export");
         clickAfterFill(exportButton);

@@ -29,7 +29,7 @@ abstract class AuthorPageObject extends PageObject {
     }
 
     protected Locator buttonByText(Locator scope, String text) {
-        return scope.locator("vaadin-button").filter(new Locator.FilterOptions().setHasText(text)).first();
+        return scope.locator("vaadin-button:visible").filter(new Locator.FilterOptions().setHasText(text)).first();
     }
 
     protected Locator buttonByText(String text) {
@@ -37,11 +37,22 @@ abstract class AuthorPageObject extends PageObject {
     }
 
     /**
-     * The most recently opened dialog. The host renders with {@code display: contents}, so it
-     * never counts as "visible" to Playwright -- wait for it to be attached instead.
+     * The open dialog titled {@code title} (Vaadin labels a dialog with its header title), waited
+     * for until attached. Dialogs are addressed by title rather than as "the last opened one":
+     * a dialog opened from inside another (the question dialog's "New list…") is attached
+     * inside its parent's light DOM a moment after the click, so a "last opened" lookup taken
+     * right after the click resolves to the parent, and everything scoped to it -- fields,
+     * Save -- silently targets the wrong dialog (confirmed live).
      */
-    protected Locator topDialog() {
-        Locator dialog = page.locator("vaadin-dialog[opened]").last();
+    protected Locator dialog(String title) {
+        Locator dialog = page.locator("vaadin-dialog[opened][aria-label=\"" + title + "\"]").last();
+        dialog.waitFor(new Locator.WaitForOptions().setState(WaitForSelectorState.ATTACHED));
+        return dialog;
+    }
+
+    /** The open dialog whose title starts with {@code prefix} (e.g. "Export " + survey title). */
+    protected Locator dialogTitledLike(String prefix) {
+        Locator dialog = page.locator("vaadin-dialog[opened][aria-label^=\"" + prefix + "\"]").last();
         dialog.waitFor(new Locator.WaitForOptions().setState(WaitForSelectorState.ATTACHED));
         return dialog;
     }
@@ -49,6 +60,20 @@ abstract class AuthorPageObject extends PageObject {
     /** Clicks {@code buttonText} in {@code dialog} (after the value-sync wait) and waits for it to close. */
     protected void submitDialog(Locator dialog, String buttonText) {
         clickAfterFill(buttonByText(dialog, buttonText));
-        dialog.waitFor(new Locator.WaitForOptions().setState(WaitForSelectorState.DETACHED));
+        try {
+            dialog.waitFor(new Locator.WaitForOptions().setState(WaitForSelectorState.DETACHED).setTimeout(10_000));
+        } catch (com.microsoft.playwright.TimeoutError e) {
+            // A dialog that stays open has refused the input: say what it shows instead of just timing out.
+            String shown = dialog.count() > 0 ? dialog.innerText() : "(dialog gone)";
+            String invalid = String.valueOf(page.locator("vaadin-dialog[opened] [invalid]").evaluateAll(
+                    "els => els.map(e => e.tagName + '[' + (e.querySelector('label')?.textContent || '') + ']: '"
+                            + " + (e.querySelector('[slot=error-message]')?.textContent || ''))"));
+            String buttons = String.valueOf(dialog.locator("vaadin-button").evaluateAll(
+                    "els => els.map(e => e.textContent.trim() + (e.offsetParent === null ? '(hidden)' : '') + (e.disabled ? '(disabled)' : ''))"));
+            java.nio.file.Path shot = java.nio.file.Path.of("target", "dialog-" + System.currentTimeMillis() + ".png");
+            page.screenshot(new Page.ScreenshotOptions().setPath(shot).setFullPage(true));
+            throw new IllegalStateException("Dialog still open after '" + buttonText + "' (screenshot " + shot + "); invalid fields "
+                    + invalid + "; buttons " + buttons + ":\n" + shown, e);
+        }
     }
 }

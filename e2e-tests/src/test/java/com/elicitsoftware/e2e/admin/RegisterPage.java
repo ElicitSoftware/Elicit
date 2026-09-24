@@ -34,8 +34,27 @@ public class RegisterPage extends PageObject {
         input("register-email").fill(email);
         clickAfterFill(byId("register-save-button"));
         page.locator("vaadin-notification-card")
-                .filter(new Locator.FilterOptions().setHasText("Subject saved"))
-                .waitFor();
+                .filter(new Locator.FilterOptions().setHasText("Subject saved")).first().waitFor();
+    }
+
+    /**
+     * UC-003 main flow with an explicit department: needed once the signed-in user belongs to
+     * more than one department, because RegisterView then leaves the department combo box
+     * ({@code register-department}) empty and required.
+     */
+    public void registerSubject(String surveyName, String departmentName, String firstName, String lastName, String email) {
+        selectSurvey(surveyName);
+        input("register-department").click();
+        Locator dept = page.locator("vaadin-combo-box-item")
+                .filter(new Locator.FilterOptions().setHasText(departmentName)).first();
+        dept.waitFor();
+        dept.click();
+        input("register-first-name").fill(firstName);
+        input("register-last-name").fill(lastName);
+        input("register-email").fill(email);
+        clickAfterFill(byId("register-save-button"));
+        page.locator("vaadin-notification-card")
+                .filter(new Locator.FilterOptions().setHasText("Subject saved")).first().waitFor();
     }
 
     private void selectSurvey(String surveyName) {

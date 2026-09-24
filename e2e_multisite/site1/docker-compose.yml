@@ -1,0 +1,254 @@
+# Site 1 - the master site of the multi-site e2e test (see ../README.md).
+#
+# A self-contained copy of ../../docker-compose.yml on the stock host ports, with its own
+# compose project name and its own data directories under ../data/site1 so the test never
+# touches the developer's postgresql/PGDATA. It cannot run at the same time as the umbrella
+# stack (same ports). Differences from the umbrella file:
+#   - no published ports for SMTP (1025), SFTP (22) or the Jaeger collector (4317/4318/14250/14268):
+#     the apps reach mailpit, sftpServer and jaeger by service name
+#   - no fixed container_name on mailpit and jaeger (two stacks must be able to coexist)
+# Keycloak and Mailpit here are shared with site 2 (see ../site2/docker-compose.yml).
+name: elicit-site1
+
+services:
+  survey:
+    image: elicitsoftware/survey:latest
+    ports:
+      - 8080:8080
+    environment:
+      TZ: America/Detroit
+      accessCode.autoRegister: true
+      # INFO so a test run's rule evaluation and save errors show in `docker compose logs survey`.
+      LOG_LEVEL: INFO
+      brand.file.system.path: /opt/brand
+      quarkus.application.name: survey
+      quarkus.otel.enabled: true
+      quarkus.otel.exporter.otlp.endpoint: http://jaeger:4317
+      quarkus.otel.exporter.otlp.traces.endpoint: http://jaeger:4317
+      quarkus.otel.traces.enabled: true
+      quarkus.otel.metrics.enabled: true
+      quarkus.otel.logs.enabled: true
+      quarkus.datasource.jdbc.telemetry: true
+      quarkus.otel.instrument.jdbc: true
+      OTEL_SERVICE_NAME: survey
+      OTEL_RESOURCE_ATTRIBUTES: service.name=survey,service.version=1.0,deployment.environment=site1
+    healthcheck:
+      test: ["CMD", "curl", "--head", "-fsS", "http://localhost:8080/q/health/ready"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 60s
+    volumes:
+      - ../../elicit-brand/:/opt/brand:ro
+    depends_on:
+      db:
+        condition: service_healthy
+  fhhs:
+    image: elicitsoftware/fhhs:latest
+    ports:
+      - 8082:8080
+    healthcheck:
+      test: ["CMD", "curl", "--head", "-fsS", "http://localhost:8080/q/health/ready"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 90s
+    environment:
+      TZ: America/Detroit
+      pedigree.url: http://pedigree:8080/svg
+      family.history.sftp.enabled: false
+      quarkus.application.name: fhhs
+      quarkus.otel.enabled: true
+      quarkus.otel.exporter.otlp.endpoint: http://jaeger:4317
+      quarkus.otel.exporter.otlp.traces.endpoint: http://jaeger:4317
+      quarkus.otel.traces.enabled: true
+      quarkus.otel.metrics.enabled: true
+      quarkus.otel.logs.enabled: true
+      quarkus.datasource.jdbc.telemetry: true
+      quarkus.otel.instrument.jdbc: true
+      OTEL_SERVICE_NAME: fhhs
+      OTEL_RESOURCE_ATTRIBUTES: service.name=fhhs,service.version=1.0,deployment.environment=site1
+    depends_on:
+      db:
+        condition: service_healthy
+      survey:
+        condition: service_healthy
+      sftpServer:
+        condition: service_started
+  pedigree:
+    image: elicitsoftware/pedigree:latest
+    ports:
+      - 8083:8080
+  admin:
+    image: elicitsoftware/admin:latest
+    ports:
+      - 8081:8080
+    healthcheck:
+      test: ["CMD", "curl", "--head", "-fsS", "http://localhost:8080/q/health/ready"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 60s
+    environment:
+      TZ: America/Detroit
+      quarkus.mailer.from: elicit@localhost
+      quarkus.mailer.host: mailpit
+      quarkus.mailer.port: 1025
+      quarkus.mailer.tls: false
+      brand.file.system.path: /opt/brand
+      ELICIT_DB_PASSWORD: SAOWNERPW
+      ELICIT_OWNER_DB_PASSWORD: SURVEYPW
+      OIDC_CLIENT_SECRET: secret
+      quarkus.application.name: admin
+      quarkus.otel.enabled: true
+      quarkus.otel.exporter.otlp.endpoint: http://jaeger:4317
+      quarkus.otel.exporter.otlp.traces.endpoint: http://jaeger:4317
+      quarkus.otel.traces.enabled: true
+      quarkus.otel.metrics.enabled: true
+      quarkus.otel.logs.enabled: true
+      quarkus.datasource.jdbc.telemetry: true
+      quarkus.otel.instrument.jdbc: true
+      OTEL_SERVICE_NAME: admin
+      OTEL_RESOURCE_ATTRIBUTES: service.name=admin,service.version=1.0,deployment.environment=site1
+    volumes:
+      - ../../elicit-brand/:/opt/brand:ro
+    depends_on:
+      db:
+        condition: service_healthy
+      survey:
+        condition: service_healthy
+      fhhs:
+        condition: service_started
+      pedigree:
+        condition: service_started
+  # Author stack: the `author` database is created by ../../db-init/V0.0.4__CREATE_AUTHOR_DATABASE.sql
+  # on first initialisation; author-survey creates the schema there and serves the preview.
+  author-survey:
+    image: elicitsoftware/survey:latest
+    ports:
+      - 8085:8080
+    environment:
+      TZ: America/Detroit
+      accessCode.autoRegister: true
+      elicit.etl.enabled: "false"
+      brand.file.system.path: /opt/brand
+      quarkus.datasource.jdbc.url: jdbc:postgresql://db:5432/author?connectTimeout=30&socketTimeout=600&tcpKeepAlive=true&tcpKeepAlivesIdle=60
+      quarkus.datasource.owner.jdbc.url: jdbc:postgresql://db:5432/author?connectTimeout=30&socketTimeout=600&tcpKeepAlive=true&tcpKeepAlivesIdle=60
+      quarkus.application.name: author-survey
+      quarkus.otel.enabled: true
+      quarkus.otel.exporter.otlp.endpoint: http://jaeger:4317
+      quarkus.otel.exporter.otlp.traces.endpoint: http://jaeger:4317
+      quarkus.otel.traces.enabled: true
+      quarkus.otel.metrics.enabled: true
+      quarkus.otel.logs.enabled: true
+      quarkus.datasource.jdbc.telemetry: true
+      quarkus.otel.instrument.jdbc: true
+      OTEL_SERVICE_NAME: author-survey
+      OTEL_RESOURCE_ATTRIBUTES: service.name=author-survey,service.version=1.0,deployment.environment=site1
+    healthcheck:
+      test: ["CMD", "curl", "--head", "-fsS", "http://localhost:8080/q/health/ready"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 60s
+    volumes:
+      - ../../elicit-brand/:/opt/brand:ro
+    depends_on:
+      db:
+        condition: service_healthy
+  author:
+    image: elicitsoftware/author:latest
+    ports:
+      - 8084:8080
+    healthcheck:
+      test: ["CMD", "curl", "--head", "-fsS", "http://localhost:8080/q/health/ready"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 60s
+    environment:
+      TZ: America/Detroit
+      brand.file.system.path: /opt/brand
+      quarkus.datasource.jdbc.url: jdbc:postgresql://db:5432/author?connectTimeout=30&socketTimeout=600&tcpKeepAlive=true&tcpKeepAlivesIdle=60
+      ELICIT_DB_PASSWORD: SURVEYPW
+      OIDC_CLIENT_SECRET: secret
+      # OIDC stays at the image default http://host.docker.internal:8180/realms/elicit/ (see the
+      # note in ../../docker-compose.yml on why host.docker.internal is the right name).
+      quarkus.application.name: author
+      quarkus.otel.enabled: true
+      quarkus.otel.exporter.otlp.endpoint: http://jaeger:4317
+      quarkus.otel.exporter.otlp.traces.endpoint: http://jaeger:4317
+      quarkus.otel.traces.enabled: true
+      quarkus.otel.metrics.enabled: true
+      quarkus.otel.logs.enabled: true
+      quarkus.datasource.jdbc.telemetry: true
+      quarkus.otel.instrument.jdbc: true
+      OTEL_SERVICE_NAME: author
+      OTEL_RESOURCE_ATTRIBUTES: service.name=author,service.version=3.0.0,deployment.environment=site1
+    volumes:
+      - ../../elicit-brand/:/opt/brand:ro
+    depends_on:
+      db:
+        condition: service_healthy
+      author-survey:
+        condition: service_healthy
+  db:
+    image: elicitsoftware/elicit_db:latest
+    volumes:
+      - ../data/site1/PGDATA:/var/lib/postgresql/data
+      - ../../db-init/V0.0.4__CREATE_AUTHOR_DATABASE.sql:/docker-entrypoint-initdb.d/V0.0.4__CREATE_AUTHOR_DATABASE.sql:ro
+    ports:
+      - 5452:5432
+    environment:
+      TZ: "America/Detroit"
+      POSTGRES_USER: "survey"
+      POSTGRES_PASSWORD: "admin"
+      PGDATA: "/var/lib/postgresql/data/pgdata"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U survey && psql -U survey -d survey -c 'SELECT 1;'"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 60s
+  # Shared by both sites: site 2's Admin authenticates against this realm (its redirect URI
+  # http://localhost:8031/* is listed in ../../keycloak/elicit-realm.json).
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.2.3
+    command: start-dev --import-realm --verbose -Dkeycloak.features=scripts
+    ports:
+      - "8180:8080"
+    environment:
+      TZ: "America/Detroit"
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    volumes:
+      - ../../keycloak:/opt/keycloak/data/import
+      - ../data/site1/keycloak-h2:/h2
+  # Shared by both sites: site 2's Admin joins this project's network and sends to `mailpit`.
+  mailpit:
+    image: axllent/mailpit
+    volumes:
+      - ../data/site1/mailpit:/data
+    ports:
+      - 8025:8025
+    environment:
+      TZ: "America/Detroit"
+      MP_MAX_MESSAGES: 5000
+      MP_DATABASE: /data/mailpit.db
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+  sftpServer:
+    image: atmoz/sftp:alpine-3.7
+    environment:
+      TZ: "America/Detroit"
+      SFTP_USERS: fhhs_user:pass:::upload/reports
+    volumes:
+      - ../data/site1/sftp/upload/reports:/home/fhhs_user/upload/reports
+      - ../../sftp_ssh/fhhs_user.pub:/home/fhhs_user/.ssh/authorized_keys:ro
+  jaeger:
+    image: jaegertracing/all-in-one:1.53
+    ports:
+      - "16686:16686"
+    environment:
+      TZ: "America/Detroit"
+      COLLECTOR_OTLP_ENABLED: "true"

@@ -204,4 +204,143 @@ public class SectionPage extends PageObject {
             return Navigation.REVIEW_BLOCKED;
         }
     }
+
+    /** The page this object drives, for chaining into the review page object. */
+    public Page page() {
+        return page;
+    }
+
+    /**
+     * The document title. SectionView sets it to the section's display text on navigation only
+     * (Next rebuilds in place), so it names the section the respondent <em>entered</em> on, not
+     * necessarily the one shown; the review page lists every section's title instead.
+     */
+    public String title() {
+        return page.title();
+    }
+
+    /** The visible labels of every question component on the section, in DOM order. */
+    public List<String> labels() {
+        Object result = page.locator(".elicit-input-field").evaluateAll(
+                "els => els.map(e => (e.querySelector('label')?.textContent || e.textContent || '').trim())");
+        return ((List<?>) result).stream().map(Object::toString).toList();
+    }
+
+    /** The label of the question component whose id is {@code displayKey} ("" if absent). */
+    public String labelOf(String displayKey) {
+        Locator field = byId(displayKey);
+        if (field.count() == 0) {
+            return "";
+        }
+        return (String) field.evaluate("e => (e.querySelector('label')?.textContent || '').trim()");
+    }
+
+    /**
+     * Fills the question with id {@code displayKey} (a Survey display key such as
+     * {@code 0001-0001-0000-0001-0000-0001-0000}) by its component type and gives the
+     * save-and-rebuild round trip a moment: answering can add or remove fields (Survey UC-002
+     * A3 repeats, SHOW rules), and the next locator must see the rebuilt section.
+     */
+    public void fillById(String displayKey, String value) {
+        Locator field = byId(displayKey);
+        field.waitFor();
+        String tag = (String) field.evaluate("el => el.tagName.toLowerCase()");
+        switch (tag) {
+            case "vaadin-text-field", "vaadin-email-field", "vaadin-password-field", "vaadin-text-area",
+                 "vaadin-integer-field", "vaadin-number-field" -> {
+                input(displayKey).fill(value);
+                input(displayKey).press("Tab");
+            }
+            case "vaadin-combo-box" -> {
+                input(displayKey).click();
+                Locator item = page.locator("vaadin-combo-box-item")
+                        .filter(new Locator.FilterOptions().setHasText(value)).first();
+                item.waitFor();
+                item.click();
+            }
+            case "vaadin-radio-group" -> field.locator("vaadin-radio-button")
+                    .filter(new Locator.FilterOptions().setHasText(value)).first().locator("input").check();
+            default -> throw new IllegalStateException("fillById does not handle " + tag + " for " + displayKey);
+        }
+        page.waitForTimeout(600);
+    }
+
+    /**
+     * The full display key of the question whose id ends with {@code keySuffix} -- the key
+     * without its leading survey-id group, so callers need not know which survey id the site
+     * assigned. Waits for the field to appear (answers can create it via a rule).
+     */
+    public String keyEndingWith(String keySuffix) {
+        Locator field = page.locator(".elicit-input-field[id$=\"" + keySuffix + "\"]").first();
+        field.waitFor();
+        return field.getAttribute("id");
+    }
+
+    /** True if a question whose id ends with {@code keySuffix} is currently on the section. */
+    public boolean hasKeyEndingWith(String keySuffix) {
+        return page.locator(".elicit-input-field[id$=\"" + keySuffix + "\"]").count() > 0;
+    }
+
+    /** The current value of the question with id {@code displayKey} (text-like fields and combo boxes). */
+    public String valueOf(String displayKey) {
+        return input(displayKey).inputValue();
+    }
+
+    /**
+     * Clicks Next (an in-place rebuild, no URL change -- the document title does not change
+     * either, Vaadin only refreshes it on navigation) and waits until the section's fields have
+     * been replaced. A save round trip that is still finishing (the last answer typed can create
+     * whole new steps) rebuilds the section including its buttons, so a click that lands on the
+     * outgoing button is lost (confirmed live); if the fields have not changed after a few
+     * seconds the click is repeated once.
+     */
+    public void next() {
+        List<String> before = fieldIds();
+        clickNextButton();
+        if (!waitForFieldsChange(before, 4_000)) {
+            clickNextButton();
+            if (!waitForFieldsChange(before, 10_000)) {
+                throw new IllegalStateException("Next did not leave the section with fields " + before + " on " + page.url());
+            }
+        }
+    }
+
+    /** The ids (display keys) of the question components currently on the section. */
+    public List<String> fieldIds() {
+        Object ids = page.locator(".elicit-input-field").evaluateAll("els => els.map(e => e.id)");
+        return ((List<?>) ids).stream().map(Object::toString).toList();
+    }
+
+    private void clickNextButton() {
+        Locator navButton = byId("section-next-button");
+        navButton.waitFor();
+        page.waitForTimeout(300);
+        navButton = byId("section-next-button");
+        navButton.waitFor();
+        if (!"Next".equals(navButton.innerText().trim())) {
+            throw new IllegalStateException("Expected a Next button but the section shows '" + navButton.innerText().trim() + "'");
+        }
+        navButton.click();
+    }
+
+    private boolean waitForFieldsChange(List<String> before, int timeoutMs) {
+        long deadline = System.currentTimeMillis() + timeoutMs;
+        while (System.currentTimeMillis() < deadline) {
+            List<String> now = fieldIds();
+            if (!now.isEmpty() && !now.equals(before)) {
+                page.waitForTimeout(300); // let the new section finish attaching
+                return true;
+            }
+            page.waitForTimeout(200);
+        }
+        return false;
+    }
+
+    /** Clicks Review on the last section and waits for the review page. */
+    public void review() {
+        Locator navButton = byId("section-next-button");
+        navButton.waitFor();
+        clickAfterFill(navButton);
+        page.waitForURL(url -> url.contains("/review"));
+    }
 }

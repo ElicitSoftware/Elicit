@@ -67,10 +67,10 @@ OIDC/Bearer token. Never call the respondent credential a token.
 
 ## Local Stack (`docker-compose.yml`)
 
-Applications: `survey`, `admin`, `fhhs`, `pedigree`, `author`. Supporting services:
-`db` (PostgreSQL), `keycloak` (OIDC), `mailpit` (SMTP), `sftpServer`, and
-`jaeger` (OpenTelemetry). All app images are built locally as
-`elicitsoftware/<name>:latest`.
+Applications: `survey`, `admin`, `fhhs`, `pedigree`, `author`, and
+`author-survey`. Supporting services: `db` (PostgreSQL), `keycloak` (OIDC),
+`mailpit` (SMTP), `sftpServer`, and `jaeger` (OpenTelemetry). All app images
+are built locally as `elicitsoftware/<name>:latest`.
 
 | Port    | Service                                    |
 | ------- | ------------------------------------------ |
@@ -79,6 +79,7 @@ Applications: `survey`, `admin`, `fhhs`, `pedigree`, `author`. Supporting servic
 | `8082`  | FHHS                                       |
 | `8083`  | Pedigree                                   |
 | `8084`  | Author                                     |
+| `8085`  | Author preview (`author-survey`)           |
 | `8180`  | Keycloak (admin/admin)                     |
 | `8025`  | Mailpit web UI                             |
 | `16686` | Jaeger UI                                  |
@@ -86,6 +87,13 @@ Applications: `survey`, `admin`, `fhhs`, `pedigree`, `author`. Supporting servic
 
 Healthchecks target the **container-internal** port `8080`, not the published
 host port. Every service exports OTLP traces/metrics/logs to `jaeger:4317`.
+
+`author-survey` is a second `elicitsoftware/survey:latest` container serving
+Author's preview: both its datasources point at the `author` database rather than
+`survey`, `accessCode.autoRegister` lets an author type any access code to walk a
+draft, and `elicit.etl.enabled=false` keeps it from touching the reporting schema
+(Author's database holds many surveys whose step names would collide in
+`surveyreport.dim_step`).
 
 `PREMM5` is commented out in the compose file and is not cloned by
 `cloneAllProjects.sh`.
@@ -108,14 +116,48 @@ set. The Monitor tab in the Jaeger UI is therefore inert.
 The scrape config also still targets `premm5:8080` and assumes
 `postgres-exporter` and `cadvisor`, none of which exist in this compose file.
 
-### First Run Is a Single Pass
+### First Run Needs a Survey Restart
 
-`docker compose up -d` initializes a fresh database in one pass: Survey creates
-the schema, then FHHS (which waits for Survey to be healthy) seeds the Family
-History Survey. FHHS's greenfield migrations use literal ids and fixed keys and no
-longer build anything over the ETL-generated reporting views, so no restart is
-needed and a failed attempt can simply be retried. `deploy.sh` is the short form
-for an already-initialized stack (`up -d`, then restart Survey).
+`docker compose up -d` gets the database and the survey content right in one pass:
+Survey creates the schema, then FHHS (which waits for Survey to be healthy) seeds
+the Family History Survey. FHHS's greenfield migrations use literal ids and fixed
+keys and no longer build anything over the ETL-generated reporting views, so a
+failed attempt can simply be retried.
+
+That pass does **not** build the reporting star schema. Survey's
+`ETLService.init()` is a `@Startup` method gated on
+`surveyCount > 0 && dimSectionRows == 0`, and on a greenfield run Survey starts a
+few seconds before FHHS seeds the survey. The ETL finds `survey.surveys` empty,
+skips, and logs a WARN:
+
+> No survey is defined in the database (survey.surveys is empty). Reporting schema
+> generation skipped. Import a survey definition through the Admin application,
+> then restart this application to build it.
+
+`surveyreport` is then left with only the six skeleton tables its Flyway
+migrations create (`dim_date`, `dim_section`, `dim_status`, `dim_step`,
+`fact_respondents`, `fact_sections`), with `dim_step` and `dim_section` empty.
+Restarting Survey after FHHS has seeded runs the build and grows `surveyreport`
+to 22 objects: 18 dimension tables (the four above plus the FHHS-derived
+`dim_cancer`, `dim_gender`, `dim_race`, `dim_relationship`, `dim_vital_status`
+and the rest, built from `survey.dimensions`), the two fact tables, and the
+`fact_respondents_view` / `fact_sections_view` views. The `dimSectionRows == 0`
+half of the gate makes the restart idempotent — a second one is a no-op.
+
+The fact tables stay empty until respondents exist; they fill through the
+`fact_respondent_insert` and `fact_update` triggers on `survey.respondents`.
+
+`deploy.sh` is that sequence (`up -d`, sleep 20, restart Survey), but its fixed
+sleep is not a real synchronization point on a cold start — restart Survey only
+once `elicit-fhhs-1` is healthy. Confirm the build with:
+
+```sh
+docker exec elicit-db-1 psql -U survey -d survey \
+  -c "select count(*) from surveyreport.dim_step;"
+```
+
+which must be non-zero (15 for the Family History Survey). Verified on a
+greenfield run on 2026-09-22.
 
 `resetDatabase.sh V3` stops the stack and deletes `postgresql/PGDATA` for a
 greenfield run. `resetDatabase.sh V2` replaces it with a copy of `PGDATA_v2`, the
