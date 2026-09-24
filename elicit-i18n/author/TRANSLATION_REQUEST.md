@@ -79,6 +79,9 @@ Every row is one key in `translations.properties`. Return a file `translations_<
 | `common.ok` | OK | Dialogs · button | 10 | identical |
 | `mainLayout.nav.surveys` | Surveys | Navigation drawer · menu item | 20 |  |
 | `mainLayout.nav.guide` | How surveys work | Navigation drawer · menu item linking to the survey-model guide | 25 |  |
+| `mainLayout.nav.manual` | Manual (PDF) | Navigation drawer · menu item opening the author's manual PDF in a new tab; PDF stays | 25 | identical |
+| `mainLayout.header.manual` | Manual | Header · link opening the author's manual PDF in a new tab | 15 | identical |
+| `mainLayout.header.manualTitle` | Open the author's manual (PDF) in a new tab | Header · tooltip of the manual link; PDF stays | 60 |  |
 | `mainLayout.nav.importDefinition` | Import definition | Navigation drawer · menu item | 25 |  |
 | `mainLayout.nav.logout` | Logout | Navigation drawer · menu item | 20 |  |
 | `loginView.redirecting` | Redirecting to sign-in… | Sign-in redirect page (rarely visible) · paragraph | 40 |  |
@@ -576,17 +579,17 @@ Every row is one key in `translations.properties`. Return a file `translations_<
 | `relationshipDialog.defaultUpstreamValue` | Default upstream value | Rule dialog · field label | 30 |  |
 | `relationshipDialog.overrideUpstreamValue` | Override upstream value | Rule dialog · field label | 30 |  |
 | `relationshipDialog.removeRule` | Remove rule | Rule dialog · button | 20 |  |
-| `relationshipDialog.token.helper` | Fills {TOKEN\|default} — or a phrase holding it, {Has TOKEN been\|Were you} — in the target's text and in every text inside it | Rule dialog · field helper text; {TOKEN | default} and {Has TOKEN been | Were you} are literal examples, keep them |
+| `relationshipDialog.token.helper` | Optional for Show and Repeat, required for Text. Fills {TOKEN\|default} — or a phrase holding it, {Has TOKEN been\|Were you} — in the target's text and in every text inside it | Rule dialog · field helper text; {TOKEN | default} and {Has TOKEN been | Were you} are literal examples, keep them |
 | `relationshipDialog.targetKind.step` | Step | Rule dialog · radio option | 15 |  |
 | `relationshipDialog.targetKind.section` | Section | Rule dialog · radio option | 15 |  |
 | `relationshipDialog.targetKind.question` | Question | Rule dialog · radio option | 15 |  |
 | `relationshipDialog.help.upstream` | The question whose answer this rule checks. | Rule dialog · field tooltip | 80 |  |
 | `relationshipDialog.help.operator` | How the answer is compared to the value — equals, greater than, contains, or just whether an answer exists. | Rule dialog · field tooltip | 140 |  |
 | `relationshipDialog.help.value` | The value the answer is compared against. Leave empty for operators that only test whether an answer exists. | Rule dialog · field tooltip | 140 |  |
-| `relationshipDialog.help.action` | What the rule does when it matches: SHOW reveals the target, REPEAT instantiates it once per the answer, TEXT substitutes the answer into the target's text. | Rule dialog · field tooltip; SHOW, REPEAT and TEXT are action names, keep them | 200 |  |
-| `relationshipDialog.help.targetKind` | Whether the rule acts on a whole step, a section, or a single question. A Text rule on a step fills its token in every section and question of that step; on a section, in every question of it. | Rule dialog · field tooltip | 220 |  |
+| `relationshipDialog.help.action` | What the rule does when it matches: SHOW reveals the target, REPEAT instantiates it once per the answer, TEXT substitutes the answer into the target's text. A SHOW or REPEAT rule may also carry a token naming the slot the upstream answer fills in the target's texts; a TEXT rule must. | Rule dialog · field tooltip; SHOW, REPEAT and TEXT are action names, keep them | 200 |  |
+| `relationshipDialog.help.targetKind` | Whether the rule acts on a whole step, a section, or a single question. A rule with a token on a step fills it in every section and question of that step; on a section, in every question of it. | Rule dialog · field tooltip | 220 |  |
 | `relationshipDialog.help.target` | The element the action applies to. | Rule dialog · field tooltip | 60 |  |
-| `relationshipDialog.help.token` | For a TEXT rule: the placeholder written as {TOKEN} in the target's text that the answer replaces. Pick one the survey already uses or type a new name (up to 10 characters). The same token may be filled by several rules, one per place it is used. The preview shows the upstream question's sample answer in its place. | Rule dialog · field tooltip; TEXT is an action name and {TOKEN} a literal example, keep them | 320 |  |
+| `relationshipDialog.help.token` | The slot written as {TOKEN} in the target's texts that the upstream answer fills. Any rule may carry one — a SHOW or REPEAT rule that also names a token fills it, as the runtime does — and a TEXT rule must. Pick one the survey already uses or type a new name (up to 10 characters). The same token may be filled by several rules, one per place it is used. The preview shows the upstream question's sample answer in its place. | Rule dialog · field tooltip; TEXT is an action name and {TOKEN} a literal example, keep them | 320 |  |
 | `relationshipDialog.help.description` | An optional note for authors. It is not shown to respondents. | Rule dialog · field tooltip | 80 |  |
 | `relationshipDialog.help.defaultUpstreamValue` | The value to assume for the upstream answer when the respondent has not answered it yet. | Rule dialog · field tooltip | 120 |  |
 | `relationshipDialog.help.overrideUpstreamValue` | A fixed value to use for the upstream answer instead of the respondent's actual answer. | Rule dialog · field tooltip | 120 |  |
@@ -786,6 +789,9 @@ common.restore=Restore
 common.ok=OK
 mainLayout.nav.surveys=Surveys
 mainLayout.nav.guide=How surveys work
+mainLayout.nav.manual=Manual (PDF)
+mainLayout.header.manual=Manual
+mainLayout.header.manualTitle=Open the author's manual (PDF) in a new tab
 mainLayout.nav.importDefinition=Import definition
 mainLayout.nav.logout=Logout
 loginView.redirecting=Redirecting to sign-in…
@@ -1283,17 +1289,17 @@ relationshipDialog.description=Description
 relationshipDialog.defaultUpstreamValue=Default upstream value
 relationshipDialog.overrideUpstreamValue=Override upstream value
 relationshipDialog.removeRule=Remove rule
-relationshipDialog.token.helper=Fills {TOKEN|default} — or a phrase holding it, {Has TOKEN been|Were you} — in the target's text and in every text inside it
+relationshipDialog.token.helper=Optional for Show and Repeat, required for Text. Fills {TOKEN|default} — or a phrase holding it, {Has TOKEN been|Were you} — in the target's text and in every text inside it
 relationshipDialog.targetKind.step=Step
 relationshipDialog.targetKind.section=Section
 relationshipDialog.targetKind.question=Question
 relationshipDialog.help.upstream=The question whose answer this rule checks.
 relationshipDialog.help.operator=How the answer is compared to the value — equals, greater than, contains, or just whether an answer exists.
 relationshipDialog.help.value=The value the answer is compared against. Leave empty for operators that only test whether an answer exists.
-relationshipDialog.help.action=What the rule does when it matches: SHOW reveals the target, REPEAT instantiates it once per the answer, TEXT substitutes the answer into the target's text.
-relationshipDialog.help.targetKind=Whether the rule acts on a whole step, a section, or a single question. A Text rule on a step fills its token in every section and question of that step; on a section, in every question of it.
+relationshipDialog.help.action=What the rule does when it matches: SHOW reveals the target, REPEAT instantiates it once per the answer, TEXT substitutes the answer into the target's text. A SHOW or REPEAT rule may also carry a token naming the slot the upstream answer fills in the target's texts; a TEXT rule must.
+relationshipDialog.help.targetKind=Whether the rule acts on a whole step, a section, or a single question. A rule with a token on a step fills it in every section and question of that step; on a section, in every question of it.
 relationshipDialog.help.target=The element the action applies to.
-relationshipDialog.help.token=For a TEXT rule: the placeholder written as {TOKEN} in the target's text that the answer replaces. Pick one the survey already uses or type a new name (up to 10 characters). The same token may be filled by several rules, one per place it is used. The preview shows the upstream question's sample answer in its place.
+relationshipDialog.help.token=The slot written as {TOKEN} in the target's texts that the upstream answer fills. Any rule may carry one — a SHOW or REPEAT rule that also names a token fills it, as the runtime does — and a TEXT rule must. Pick one the survey already uses or type a new name (up to 10 characters). The same token may be filled by several rules, one per place it is used. The preview shows the upstream question's sample answer in its place.
 relationshipDialog.help.description=An optional note for authors. It is not shown to respondents.
 relationshipDialog.help.defaultUpstreamValue=The value to assume for the upstream answer when the respondent has not answered it yet.
 relationshipDialog.help.overrideUpstreamValue=A fixed value to use for the upstream answer instead of the respondent's actual answer.
