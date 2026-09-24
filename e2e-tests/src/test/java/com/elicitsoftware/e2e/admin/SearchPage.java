@@ -10,7 +10,8 @@ import java.util.List;
 /**
  * SearchView (Admin UC-002). Text filters and the Search button use the {@code .setId(...)}
  * calls added to {@code SearchView.java}. The department filter is left at its default "All
- * Departments" selection -- that already covers the seeded "Testing Department".
+ * departments" selection -- that already covers whichever department the suite created (none is
+ * seeded any more, Admin UC-028).
  *
  * <p>The grid itself has no per-row static ids (rendered by component-column renderers), so row
  * access reads Vaadin Grid's cell content elements ({@code <vaadin-grid-cell-content>}), which
@@ -65,7 +66,8 @@ public class SearchPage extends PageObject {
 
     /**
      * Clears the access-code/name/email/phone text filters (leaves the department filter at its
-     * default "All departments"). UC-002 alt-flow A2 (clearing the department filter itself)
+     * default "All departments", which covers the department the suite creates -- nothing seeds
+     * one any more, Admin UC-028). UC-002 alt-flow A2 (clearing the department filter itself)
      * is not covered here.
      */
     public void clearTextFilters() {

@@ -4,8 +4,10 @@
 # compose project name and its own data directories under ../data/site1 so the test never
 # touches the developer's postgresql/PGDATA. It cannot run at the same time as the umbrella
 # stack (same ports). Differences from the umbrella file:
-#   - no published ports for SMTP (1025), SFTP (22) or the Jaeger collector (4317/4318/14250/14268):
-#     the apps reach mailpit, sftpServer and jaeger by service name
+#   - no published ports for SMTP (1025) or the Jaeger collector (4317/4318/14250/14268):
+#     the apps reach mailpit and jaeger by service name
+#   - no fhhs and no sftpServer: FHHS serves only the Family History Survey and this journey runs
+#     the Household Survey, so it would never become ready (FHHS UC-005); nothing else used SFTP
 #   - no fixed container_name on mailpit and jaeger (two stacks must be able to coexist)
 # Keycloak and Mailpit here are shared with site 2 (see ../site2/docker-compose.yml).
 name: elicit-site1
@@ -43,38 +45,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-  fhhs:
-    image: elicitsoftware/fhhs:latest
-    ports:
-      - 8082:8080
-    healthcheck:
-      test: ["CMD", "curl", "--head", "-fsS", "http://localhost:8080/q/health/ready"]
-      interval: 15s
-      timeout: 5s
-      retries: 20
-      start_period: 90s
-    environment:
-      TZ: America/Detroit
-      pedigree.url: http://pedigree:8080/svg
-      family.history.sftp.enabled: false
-      quarkus.application.name: fhhs
-      quarkus.otel.enabled: true
-      quarkus.otel.exporter.otlp.endpoint: http://jaeger:4317
-      quarkus.otel.exporter.otlp.traces.endpoint: http://jaeger:4317
-      quarkus.otel.traces.enabled: true
-      quarkus.otel.metrics.enabled: true
-      quarkus.otel.logs.enabled: true
-      quarkus.datasource.jdbc.telemetry: true
-      quarkus.otel.instrument.jdbc: true
-      OTEL_SERVICE_NAME: fhhs
-      OTEL_RESOURCE_ATTRIBUTES: service.name=fhhs,service.version=1.0,deployment.environment=site1
-    depends_on:
-      db:
-        condition: service_healthy
-      survey:
-        condition: service_healthy
-      sftpServer:
-        condition: service_started
   pedigree:
     image: elicitsoftware/pedigree:latest
     ports:
@@ -117,8 +87,6 @@ services:
         condition: service_healthy
       survey:
         condition: service_healthy
-      fhhs:
-        condition: service_started
       pedigree:
         condition: service_started
   # Author stack: the `author` database is created by ../../db-init/V0.0.4__CREATE_AUTHOR_DATABASE.sql
@@ -237,14 +205,6 @@ services:
       MP_DATABASE: /data/mailpit.db
       MP_SMTP_AUTH_ACCEPT_ANY: 1
       MP_SMTP_AUTH_ALLOW_INSECURE: 1
-  sftpServer:
-    image: atmoz/sftp:alpine-3.7
-    environment:
-      TZ: "America/Detroit"
-      SFTP_USERS: fhhs_user:pass:::upload/reports
-    volumes:
-      - ../data/site1/sftp/upload/reports:/home/fhhs_user/upload/reports
-      - ../../sftp_ssh/fhhs_user.pub:/home/fhhs_user/.ssh/authorized_keys:ro
   jaeger:
     image: jaegertracing/all-in-one:1.53
     ports:

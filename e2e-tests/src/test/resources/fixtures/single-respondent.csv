@@ -1,2 +1,4 @@
+# departmentId 1 is the department this suite creates (Admin UC-028: none is seeded any more).
+# departments_seq still restarts at 1, so the first department created on a reset stack gets id 1.
 #departmentId,firstName,lastName,middleName,dob,email,phone,xid
 1,Csv,E2eTest,,1990-01-15,csv.e2e.test@example.org,123-456-7890,

@@ -1,7 +1,6 @@
 package com.elicitsoftware.e2e.multisite;
 
 import com.elicitsoftware.e2e.admin.DepartmentsPage;
-import com.elicitsoftware.e2e.admin.EditUserPage;
 import com.elicitsoftware.e2e.admin.KeycloakLoginHelper;
 import com.elicitsoftware.e2e.admin.RegisterPage;
 import com.elicitsoftware.e2e.admin.RespondentImportPage;
@@ -13,6 +12,7 @@ import com.elicitsoftware.e2e.author.SurveysPage;
 import com.elicitsoftware.e2e.survey.LoginPage;
 import com.elicitsoftware.e2e.survey.ReviewPage;
 import com.elicitsoftware.e2e.survey.SectionPage;
+import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -56,9 +56,14 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
  * between runs (./reset.sh all, or ./run.sh which resets, starts and tests); phase 1 refuses
  * to start otherwise.</p>
  *
+ * <p>Each site starts with no department (Admin UC-028), so each one's first admin visit
+ * creates its own through the blocking dialog's remedy; creating it assigns it to the
+ * administrator, which is also how site 1 comes to hold a department with site 2's code for the
+ * import in phase 12.</p>
+ *
  * <p>Traceability: Author UC-001, UC-003, UC-004, UC-006, UC-007, UC-008, UC-011, UC-014,
- * UC-015, UC-016, UC-019. Admin UC-001, UC-002, UC-003, UC-011, UC-012, UC-017, UC-018, the
- * departments and users views. Survey UC-001 to UC-006 (answering with REPEAT and SHOW rules,
+ * UC-015, UC-016, UC-019. Admin UC-001, UC-002, UC-003, UC-011, UC-012, UC-017, UC-018, UC-028,
+ * the departments view. Survey UC-001 to UC-006 (answering with REPEAT and SHOW rules,
  * resuming, finishing).</p>
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -68,7 +73,8 @@ class HouseholdSurveyMultisiteE2ETest extends MultisiteTestBase {
     private static final Pattern SURVEY_KEY_LINE = Pattern.compile("(?m)^# survey_key: (\\S+)$");
     private static final String SITE2_DEPARTMENT = "Site 2 Clinic";
     private static final String SITE2_DEPARTMENT_CODE = "SITE2";
-    private static final String SITE1_DEPARTMENT = "Testing Department";
+    private static final String SITE1_DEPARTMENT = "Site 1 Clinic";
+    private static final String SITE1_DEPARTMENT_CODE = "SITE1";
 
     /** Distinguishes this run's respondents; the survey itself is always the one Household Survey. */
     private final String runId = String.valueOf(System.nanoTime());
@@ -118,6 +124,16 @@ class HouseholdSurveyMultisiteE2ETest extends MultisiteTestBase {
         page.navigate(site.adminBaseUrl() + "/");
         new KeycloakLoginHelper(page).login(ADMIN_USERNAME, ADMIN_PASSWORD);
         page.waitForURL(url -> url.startsWith(site.adminBaseUrl()));
+    }
+
+    /**
+     * Fails with a clear message rather than a mystery timeout when the console is blocked for
+     * want of a department (Admin UC-028). Every phase after the site's department is created
+     * expects to sign in and get straight to work.
+     */
+    private static void assertNoBlockingDialog(Page page, Site site) {
+        assertTrue(!isBlockingDepartmentDialogOpen(page),
+                site + ": the console is blocked for want of a department; an earlier phase should have created one");
     }
 
     private static void authorLogin(Page page, Site site) {
@@ -174,9 +190,10 @@ class HouseholdSurveyMultisiteE2ETest extends MultisiteTestBase {
 
     @Test
     @Order(2)
-    void phase02_site1AppliesRevision1() {
-        phase("2 site 1 apply v1", () -> visit(page -> {
+    void phase02_site1CreatesItsDepartmentAndAppliesRevision1() {
+        phase("2 site 1 department + apply v1", () -> visit(page -> {
             adminLogin(page, SITE1);
+            ensureDepartment(page, SITE1, SITE1_DEPARTMENT, SITE1_DEPARTMENT_CODE, "site1@example.org");
             openAdmin(page, SITE1, "/survey-apply");
             String result = new SurveyApplyPage(page).apply(v1File);
             assertTrue(result.contains("New Survey Installed"), "unexpected apply outcome on site 1:\n" + result);
@@ -190,9 +207,10 @@ class HouseholdSurveyMultisiteE2ETest extends MultisiteTestBase {
     void phase03_site2CreatesItsDepartmentAndAppliesRevision1() {
         phase("3 site 2 department + apply v1", () -> visit(page -> {
             adminLogin(page, SITE2);
-            ensureDepartment(page, SITE2);
-            openAdmin(page, SITE2, "/edit-user/1");
-            new EditUserPage(page).addDepartment(SITE2_DEPARTMENT);
+            assertNoBlockingDialog(page, SITE2);
+            // Creating the department assigns it to this administrator (Admin UC-028 BR-113),
+            // so no separate Users step is needed.
+            ensureDepartment(page, SITE2, SITE2_DEPARTMENT, SITE2_DEPARTMENT_CODE, "site2@example.org");
             openAdmin(page, SITE2, "/survey-apply");
             String result = new SurveyApplyPage(page).apply(v1File);
             assertTrue(result.contains("New Survey Installed"), "unexpected apply outcome on site 2:\n" + result);
@@ -243,6 +261,7 @@ class HouseholdSurveyMultisiteE2ETest extends MultisiteTestBase {
             });
             visit(page -> {
                 adminLogin(page, SITE1);
+                assertNoBlockingDialog(page, SITE1);
                 openAdmin(page, SITE1, "/survey-apply");
                 String result = new SurveyApplyPage(page).apply(v2File);
                 assertTrue(result.contains("Survey Updated"), "unexpected apply outcome for v2 on site 1:\n" + result);
@@ -276,6 +295,7 @@ class HouseholdSurveyMultisiteE2ETest extends MultisiteTestBase {
     void phase09_site2AppliesRevision2() {
         phase("9 site 2 apply v2", () -> visit(page -> {
             adminLogin(page, SITE2);
+            assertNoBlockingDialog(page, SITE2);
             openAdmin(page, SITE2, "/survey-apply");
             String result = new SurveyApplyPage(page).apply(v2File);
             assertTrue(result.contains("Survey Updated"), "unexpected apply outcome for v2 on site 2:\n" + result);
@@ -298,6 +318,7 @@ class HouseholdSurveyMultisiteE2ETest extends MultisiteTestBase {
     void phase11_site2ExportsItsRespondents() {
         phase("11 site 2 export", () -> visit(page -> {
             adminLogin(page, SITE2);
+            assertNoBlockingDialog(page, SITE2);
             openAdmin(page, SITE2, "/");
             SearchPage search = new SearchPage(page);
             for (String label : List.of("r2a", "r2b", "r2c", "r2d")) {
@@ -317,11 +338,11 @@ class HouseholdSurveyMultisiteE2ETest extends MultisiteTestBase {
     void phase12_site1ImportsSite2Respondents() {
         phase("12 site 1 import", () -> visit(page -> {
             adminLogin(page, SITE1);
-            ensureDepartment(page, SITE1);
-            // Search only lists the signed-in user's departments, so the master site's admin must
-            // belong to the site 2 department to see (and later report on) the imported respondents.
-            openAdmin(page, SITE1, "/edit-user/1");
-            new EditUserPage(page).addDepartment(SITE2_DEPARTMENT);
+            assertNoBlockingDialog(page, SITE1);
+            // Site 1 needs a local department with site 2's code for the import to resolve, and
+            // Search only lists the signed-in user's departments -- creating it here does both,
+            // because Admin assigns a new department to its creator (UC-028 BR-113).
+            ensureDepartment(page, SITE1, SITE2_DEPARTMENT, SITE2_DEPARTMENT_CODE, "site2@example.org");
             RespondentImportPage importer = new RespondentImportPage(page);
             for (Map.Entry<String, Path> e : site2Exports.entrySet()) {
                 // A fresh view per file: the upload component accepts a single file per instance.
@@ -337,6 +358,7 @@ class HouseholdSurveyMultisiteE2ETest extends MultisiteTestBase {
     void phase13_site1HoldsEveryRespondent() {
         phase("13 site 1 consolidated", () -> visit(page -> {
             adminLogin(page, SITE1);
+            assertNoBlockingDialog(page, SITE1);
             openAdmin(page, SITE1, "/");
             SearchPage search = new SearchPage(page);
             Map<String, String> expectedStatus = Map.of(
@@ -376,6 +398,7 @@ class HouseholdSurveyMultisiteE2ETest extends MultisiteTestBase {
     private void register(Site site, String department, String... labels) {
         visit(page -> {
             adminLogin(page, site);
+            assertNoBlockingDialog(page, site);
             for (String label : labels) {
                 openAdmin(page, site, "/register");
                 String first = "Multi";
@@ -464,6 +487,7 @@ class HouseholdSurveyMultisiteE2ETest extends MultisiteTestBase {
     private void assertStatus(Site site, Map<String, String> expected) {
         visit(page -> {
             adminLogin(page, site);
+            assertNoBlockingDialog(page, site);
             openAdmin(page, site, "/");
             SearchPage search = new SearchPage(page);
             List<String> problems = new ArrayList<>();
@@ -480,17 +504,29 @@ class HouseholdSurveyMultisiteE2ETest extends MultisiteTestBase {
         });
     }
 
-    private void ensureDepartment(Page page, Site site) {
-        openAdmin(page, site, "/departments");
-        // The grid renders after the view's fixed "New Department" button; give it a moment
-        // before deciding the department is missing (a rerun on a live stack finds it here).
-        page.locator("vaadin-button").filter(new com.microsoft.playwright.Locator.FilterOptions().setHasText("New Department")).first().waitFor();
-        page.waitForTimeout(1000);
-        if (page.getByText(SITE2_DEPARTMENT, new Page.GetByTextOptions().setExact(true)).count() > 0) {
+    /**
+     * Gives the site's administrator the named department, creating it if it is missing
+     * (Admin UC-028). Nothing seeds a department, so on a freshly reset site the console blocks
+     * every screen with a modal dialog until one exists; this follows the dialog's own remedy,
+     * and Admin assigns the new department to its creator. On a site that already has it, the
+     * dialog is absent and this is a cheap no-op.
+     */
+    private void ensureDepartment(Page page, Site site, String name, String code, String email) {
+        if (isBlockingDepartmentDialogOpen(page)) {
+            page.locator("#missing-department-add").click();
+            page.waitForURL(url -> url.endsWith("/departments"));
+        } else {
+            openAdmin(page, site, "/departments");
+            // The grid renders after the view's fixed "New Department" button; give it a moment
+            // before deciding the department is missing (a rerun on a live stack finds it here).
+            page.locator("vaadin-button").filter(new Locator.FilterOptions().setHasText("New Department")).first().waitFor();
+            page.waitForTimeout(1000);
+        }
+        if (page.getByText(name, new Page.GetByTextOptions().setExact(true)).count() > 0) {
             return;
         }
         openAdmin(page, site, "/edit-department/0");
-        new DepartmentsPage(page).createDepartment(SITE2_DEPARTMENT, SITE2_DEPARTMENT_CODE, "site2@example.org");
+        new DepartmentsPage(page).createDepartment(name, code, email);
     }
 
     /** Admin UC-018 BR-107: a successful apply asks Survey to rebuild the reporting star schema. */

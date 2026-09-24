@@ -3,6 +3,7 @@ package com.elicitsoftware.e2e.multisite;
 import com.microsoft.playwright.Browser;
 import com.microsoft.playwright.BrowserContext;
 import com.microsoft.playwright.BrowserType;
+import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Playwright;
 import org.junit.jupiter.api.AfterAll;
@@ -53,6 +54,16 @@ public abstract class MultisiteTestBase {
         if (playwright != null) {
             playwright.close();
         }
+    }
+
+    /**
+     * Whether the no-department dialog (Admin UC-028) is on screen, detected by a button in its
+     * footer: Vaadin renders a Dialog's contents into an overlay element, so the id set on the
+     * Dialog itself is not what the page shows.
+     */
+    protected static boolean isBlockingDepartmentDialogOpen(Page page) {
+        Locator logout = page.locator("#missing-department-logout");
+        return logout.count() > 0 && logout.first().isVisible();
     }
 
     /** A fresh, cookie-less context; callers close it when the persona's visit is over. */

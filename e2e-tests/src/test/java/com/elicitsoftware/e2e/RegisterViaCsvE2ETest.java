@@ -26,6 +26,8 @@ class RegisterViaCsvE2ETest extends E2ETestBase {
     void csvUploadRegistersSubject() throws URISyntaxException {
         openAdmin("/");
         new KeycloakLoginHelper(page).login(ADMIN_USERNAME, ADMIN_PASSWORD);
+        // Admin UC-028: a fresh database seeds no department, and the console blocks until one exists.
+        bootstrapDepartment();
 
         openAdmin("/register");
         Path csvFile = fixture("fixtures/single-respondent.csv");

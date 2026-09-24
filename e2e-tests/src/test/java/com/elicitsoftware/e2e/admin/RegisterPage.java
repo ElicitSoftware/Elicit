@@ -7,9 +7,12 @@ import com.microsoft.playwright.Page;
 import java.nio.file.Path;
 
 /**
- * RegisterView (Admin UC-003 main flow + alt-flow A6 CSV upload). Department is left untouched
- * -- RegisterView pre-selects it automatically when the signed-in user has exactly one
- * department, which is the case for the seeded {@code user} account / "Testing Department".
+ * RegisterView (Admin UC-003 main flow + alt-flow A6 CSV upload). RegisterView pre-selects the
+ * department automatically when the signed-in user has exactly one, so the four-argument
+ * {@link #registerSubject(String, String, String, String)} relies on that; nothing seeds a
+ * department any more (Admin UC-028), so the one in play is whichever the suite created, and an
+ * administrator who has created several has no prefill. Prefer the five-argument form, which
+ * names the department and works either way.
  *
  * <p>The survey selector ({@code register-survey}) is pre-selected the same way when exactly
  * one survey is installed; with several installed it is required, so

@@ -95,6 +95,8 @@ class AuthorToRespondentE2ETest extends E2ETestBase {
         // 6. Admin UC-001: sign in as the administrator.
         openAdmin("/");
         new KeycloakLoginHelper(page).login(ADMIN_USERNAME, ADMIN_PASSWORD);
+        // Admin UC-028: a fresh database seeds no department, and the console blocks until one exists.
+        bootstrapDepartment();
 
         // 7. Admin UC-018: apply the exported definition -- it must install as a *new* survey.
         openAdmin("/survey-apply");
@@ -107,7 +109,7 @@ class AuthorToRespondentE2ETest extends E2ETestBase {
         String lastName = "Authored" + uniqueSuffix;
         String email = "e2e.authored." + uniqueSuffix + "@example.org";
         openAdmin("/register");
-        new RegisterPage(page).registerSubject(surveyName, firstName, lastName, email);
+        new RegisterPage(page).registerSubject(surveyName, ADMIN_DEPARTMENT, firstName, lastName, email);
 
         // 9. Admin UC-002: find them and capture the generated access code.
         openAdmin("/");

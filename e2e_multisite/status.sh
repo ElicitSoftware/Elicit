@@ -8,10 +8,10 @@ done
 echo
 echo "== HTTP probes"
 services=(
-    "8080:Site 1 Survey" "8081:Site 1 Admin" "8082:Site 1 FHHS" "8083:Site 1 Pedigree"
+    "8080:Site 1 Survey" "8081:Site 1 Admin" "8083:Site 1 Pedigree"
     "8084:Site 1 Author" "8085:Site 1 Author preview" "8180:Keycloak (shared)"
     "8025:Mailpit (shared)" "16686:Site 1 Jaeger"
-    "8030:Site 2 Survey" "8031:Site 2 Admin" "8032:Site 2 FHHS" "8033:Site 2 Pedigree"
+    "8030:Site 2 Survey" "8031:Site 2 Admin" "8033:Site 2 Pedigree"
     "16636:Site 2 Jaeger"
 )
 for service in "${services[@]}"; do

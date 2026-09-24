@@ -18,6 +18,8 @@ class SearchFiltersE2ETest extends E2ETestBase {
     void textFiltersNarrowToExpectedSubject() {
         openAdmin("/");
         new KeycloakLoginHelper(page).login(ADMIN_USERNAME, ADMIN_PASSWORD);
+        // Admin UC-028: a fresh database seeds no department, and the console blocks until one exists.
+        bootstrapDepartment();
 
         String uniqueSuffix = String.valueOf(System.nanoTime());
         String firstName = "Filter";
@@ -28,9 +30,9 @@ class SearchFiltersE2ETest extends E2ETestBase {
 
         openAdmin("/register");
         RegisterPage registerPage = new RegisterPage(page);
-        registerPage.registerSubject(SEEDED_SURVEY_NAME, firstName, lastNameA, emailA);
+        registerPage.registerSubject(SEEDED_SURVEY_NAME, ADMIN_DEPARTMENT, firstName, lastNameA, emailA);
         openAdmin("/register");
-        registerPage.registerSubject(SEEDED_SURVEY_NAME, firstName, lastNameB, emailB);
+        registerPage.registerSubject(SEEDED_SURVEY_NAME, ADMIN_DEPARTMENT, firstName, lastNameB, emailB);
 
         SearchPage searchPage = new SearchPage(page); // stateless wrapper around `page`; reused below
 

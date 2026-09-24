@@ -30,6 +30,8 @@ class RespondentJourneyE2ETest extends E2ETestBase {
         // 1. Admin UC-001: authenticate through the real Keycloak OIDC redirect.
         openAdmin("/");
         new KeycloakLoginHelper(page).login(ADMIN_USERNAME, ADMIN_PASSWORD);
+        // Admin UC-028: a fresh database seeds no department, and the console blocks until one exists.
+        bootstrapDepartment();
 
         // 2. Admin UC-003 (+ UC-015 implicitly): register a new subject.
         String uniqueSuffix = String.valueOf(System.nanoTime());
@@ -38,7 +40,7 @@ class RespondentJourneyE2ETest extends E2ETestBase {
         String email = "e2e." + uniqueSuffix + "@example.org";
 
         openAdmin("/register");
-        new RegisterPage(page).registerSubject(SEEDED_SURVEY_NAME, firstName, lastName, email);
+        new RegisterPage(page).registerSubject(SEEDED_SURVEY_NAME, ADMIN_DEPARTMENT, firstName, lastName, email);
 
         // 3. Admin UC-002: find the new subject and capture its generated access code.
         openAdmin("/");
