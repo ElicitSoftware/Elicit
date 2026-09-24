@@ -34,6 +34,7 @@ public class SearchPage extends PageObject {
     /** 9 data columns + Edit + Action, matching SearchView.getSubjectGrid(...). */
     private static final int TOTAL_COLUMNS = 11;
     private static final int COL_ACCESS_CODE = 0;
+    private static final int COL_DEPARTMENT = 1;
     private static final int COL_STATUS = 8;
     private static final int COL_ACTION = 10;
 
@@ -116,6 +117,60 @@ public class SearchPage extends PageObject {
     public String statusAt(int row) {
         int block = realRowBlocks().get(row);
         return gridCellContents().nth(block * TOTAL_COLUMNS + COL_STATUS).innerText().trim();
+    }
+
+    public String departmentAt(int row) {
+        int block = realRowBlocks().get(row);
+        return gridCellContents().nth(block * TOTAL_COLUMNS + COL_DEPARTMENT).innerText().trim();
+    }
+
+    /**
+     * Admin UC-011: runs the "Export" row action for {@code accessCode} and saves the respondent
+     * export it produces into {@code targetDir}. The action opens
+     * {@code /api/secured/respondent/export?id=...} in a new window; like the PDF flows, the
+     * popup's request is intercepted at context level, the real response fetched and written
+     * to a file, and the popup fulfilled with a trivial page -- headless Chromium otherwise turns
+     * the {@code application/octet-stream} answer into a download the popup never reports.
+     */
+    public java.nio.file.Path exportRespondent(String accessCode, java.nio.file.Path targetDir) {
+        String pattern = "**/api/secured/respondent/export*";
+        java.util.concurrent.atomic.AtomicReference<byte[]> body = new java.util.concurrent.atomic.AtomicReference<>();
+        java.util.concurrent.atomic.AtomicReference<String> disposition = new java.util.concurrent.atomic.AtomicReference<>();
+        com.microsoft.playwright.BrowserContext context = page.context();
+        context.route(pattern, route -> {
+            com.microsoft.playwright.APIResponse real = route.fetch();
+            body.set(real.body());
+            disposition.set(real.headers().get("content-disposition"));
+            route.fulfill(new com.microsoft.playwright.Route.FulfillOptions()
+                    .setStatus(200)
+                    .setContentType("text/html")
+                    .setBody("<html><body>Export captured by the e2e suite</body></html>"));
+        });
+        try {
+            Page popup = page.waitForPopup(() -> runRowAction(accessCode, "Export"));
+            popup.waitForLoadState();
+            popup.close();
+        } finally {
+            context.unroute(pattern);
+        }
+        if (body.get() == null) {
+            throw new IllegalStateException("The Export action never requested /api/secured/respondent/export");
+        }
+        String filename = "respondent_" + accessCode + "_export.elicit";
+        String cd = disposition.get();
+        if (cd != null) {
+            java.util.regex.Matcher m = java.util.regex.Pattern.compile("filename=\"?([^\";]+)").matcher(cd);
+            if (m.find()) {
+                filename = m.group(1);
+            }
+        }
+        java.nio.file.Path saved = targetDir.resolve(filename);
+        try {
+            java.nio.file.Files.write(saved, body.get());
+        } catch (java.io.IOException e) {
+            throw new java.io.UncheckedIOException(e);
+        }
+        return saved;
     }
 
     private int findRowBlockByAccessCode(String accessCode) {

@@ -37,13 +37,24 @@ public class SurveysPage extends AuthorPageObject {
     /** UC-003: opens the "New survey" dialog, fills the required Name and Title, saves. */
     public void createSurvey(String name, String title) {
         buttonByText("New survey").click();
-        Locator dialog = topDialog();
+        Locator dialog = dialog("New survey");
         fieldByLabel(dialog, "Name").fill(name);
         fieldByLabel(dialog, "Title").fill(title);
         submitDialog(dialog, "Save");
         page.locator("vaadin-notification-card")
-                .filter(new Locator.FilterOptions().setHasText("Survey created"))
-                .waitFor();
+                .filter(new Locator.FilterOptions().setHasText("Survey created")).first().waitFor();
+    }
+
+    /** True if a survey named {@code name} is listed (scrolling the virtual grid to the end to be sure). */
+    public boolean hasSurvey(String name) {
+        for (int attempt = 0; attempt < 3; attempt++) {
+            if (findRowBlockByName(name) != null) {
+                return true;
+            }
+            page.locator("vaadin-grid").first().evaluate("g => g.scrollToIndex(Number.MAX_SAFE_INTEGER)");
+            page.waitForTimeout(500);
+        }
+        return false;
     }
 
     /** UC-006: clicks Open on the row named {@code name} and returns the survey's id from the URL. */

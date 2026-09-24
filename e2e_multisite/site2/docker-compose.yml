@@ -1,0 +1,189 @@
+# Site 2 - the secondary site of the multi-site e2e test (see ../README.md).
+#
+# The site stack only (survey, admin, fhhs, pedigree, db, sftpServer, jaeger) on host ports
+# 50 below site 1's, with its own project name and data directories under ../data/site2.
+# It has no Author and no Keycloak or Mailpit of its own:
+#   - Admin authenticates against site 1's Keycloak through the image default
+#     http://host.docker.internal:8180/realms/elicit/ (same admin/admin user)
+#   - Admin sends mail to site 1's Mailpit: the admin service also joins site 1's compose
+#     network, so the service name `mailpit` resolves there and SMTP stays unpublished.
+#     Being on both networks makes the shared service names `survey`, `db` and `jaeger`
+#     ambiguous for Admin (Docker DNS answered with site 1's database - confirmed), so site 2's
+#     survey, db and jaeger carry the aliases `site2-survey` / `site2-db` / `site2-jaeger` and
+#     Admin is pointed at those.
+# Site 1 must therefore be up before this stack starts (../up.sh enforces that).
+#
+# FHHS seeds report and post-survey-action URLs that point at host port 8082 (site 1's FHHS);
+# ../up.sh rewrites them to 8032 with ./post-init.sql after the first start.
+name: elicit-site2
+
+networks:
+  site1:
+    external: true
+    name: elicit-site1_default
+
+services:
+  survey:
+    image: elicitsoftware/survey:latest
+    networks:
+      default:
+        aliases:
+          - site2-survey
+    ports:
+      - 8030:8080
+    environment:
+      TZ: America/Detroit
+      accessCode.autoRegister: true
+      # INFO so a test run's rule evaluation and save errors show in `docker compose logs survey`.
+      LOG_LEVEL: INFO
+      brand.file.system.path: /opt/brand
+      CORS_ORIGINS: http://localhost:8030
+      quarkus.application.name: survey
+      quarkus.otel.enabled: true
+      quarkus.otel.exporter.otlp.endpoint: http://jaeger:4317
+      quarkus.otel.exporter.otlp.traces.endpoint: http://jaeger:4317
+      quarkus.otel.traces.enabled: true
+      quarkus.otel.metrics.enabled: true
+      quarkus.otel.logs.enabled: true
+      quarkus.datasource.jdbc.telemetry: true
+      quarkus.otel.instrument.jdbc: true
+      OTEL_SERVICE_NAME: survey
+      OTEL_RESOURCE_ATTRIBUTES: service.name=survey,service.version=1.0,deployment.environment=site2
+    healthcheck:
+      test: ["CMD", "curl", "--head", "-fsS", "http://localhost:8080/q/health/ready"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 60s
+    volumes:
+      - ../../elicit-brand/:/opt/brand:ro
+    depends_on:
+      db:
+        condition: service_healthy
+  fhhs:
+    image: elicitsoftware/fhhs:latest
+    ports:
+      - 8032:8080
+    healthcheck:
+      test: ["CMD", "curl", "--head", "-fsS", "http://localhost:8080/q/health/ready"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 90s
+    environment:
+      TZ: America/Detroit
+      pedigree.url: http://pedigree:8080/svg
+      family.history.sftp.enabled: false
+      APP_BASE_URL: http://localhost:8030
+      quarkus.application.name: fhhs
+      quarkus.otel.enabled: true
+      quarkus.otel.exporter.otlp.endpoint: http://jaeger:4317
+      quarkus.otel.exporter.otlp.traces.endpoint: http://jaeger:4317
+      quarkus.otel.traces.enabled: true
+      quarkus.otel.metrics.enabled: true
+      quarkus.otel.logs.enabled: true
+      quarkus.datasource.jdbc.telemetry: true
+      quarkus.otel.instrument.jdbc: true
+      OTEL_SERVICE_NAME: fhhs
+      OTEL_RESOURCE_ATTRIBUTES: service.name=fhhs,service.version=1.0,deployment.environment=site2
+    depends_on:
+      db:
+        condition: service_healthy
+      survey:
+        condition: service_healthy
+      sftpServer:
+        condition: service_started
+  pedigree:
+    image: elicitsoftware/pedigree:latest
+    ports:
+      - 8033:8080
+  admin:
+    image: elicitsoftware/admin:latest
+    ports:
+      - 8031:8080
+    networks:
+      - default
+      - site1
+    healthcheck:
+      test: ["CMD", "curl", "--head", "-fsS", "http://localhost:8080/q/health/ready"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 60s
+    environment:
+      TZ: America/Detroit
+      quarkus.mailer.from: elicit-site2@localhost
+      quarkus.mailer.host: mailpit
+      quarkus.mailer.port: 1025
+      quarkus.mailer.tls: false
+      brand.file.system.path: /opt/brand
+      # Site 2's own Survey (reporting schema rebuild after an apply) and database, by their
+      # unambiguous aliases (see the note at the top).
+      ELICIT_SURVEY_URL: http://site2-survey:8080
+      quarkus.datasource.jdbc.url: jdbc:postgresql://site2-db:5432/survey?connectTimeout=30&socketTimeout=600&tcpKeepAlive=true&tcpKeepAlivesIdle=60
+      quarkus.datasource.owner.jdbc.url: jdbc:postgresql://site2-db:5432/survey?connectTimeout=30&socketTimeout=600&tcpKeepAlive=true&tcpKeepAlivesIdle=60
+      ELICIT_DB_PASSWORD: SAOWNERPW
+      ELICIT_OWNER_DB_PASSWORD: SURVEYPW
+      OIDC_CLIENT_SECRET: secret
+      quarkus.application.name: admin
+      quarkus.otel.enabled: true
+      quarkus.otel.exporter.otlp.endpoint: http://site2-jaeger:4317
+      quarkus.otel.exporter.otlp.traces.endpoint: http://site2-jaeger:4317
+      quarkus.otel.traces.enabled: true
+      quarkus.otel.metrics.enabled: true
+      quarkus.otel.logs.enabled: true
+      quarkus.datasource.jdbc.telemetry: true
+      quarkus.otel.instrument.jdbc: true
+      OTEL_SERVICE_NAME: admin
+      OTEL_RESOURCE_ATTRIBUTES: service.name=admin,service.version=1.0,deployment.environment=site2
+    volumes:
+      - ../../elicit-brand/:/opt/brand:ro
+    depends_on:
+      db:
+        condition: service_healthy
+      survey:
+        condition: service_healthy
+      fhhs:
+        condition: service_started
+      pedigree:
+        condition: service_started
+  db:
+    image: elicitsoftware/elicit_db:latest
+    networks:
+      default:
+        aliases:
+          - site2-db
+    volumes:
+      - ../data/site2/PGDATA:/var/lib/postgresql/data
+    ports:
+      - 5402:5432
+    environment:
+      TZ: "America/Detroit"
+      POSTGRES_USER: "survey"
+      POSTGRES_PASSWORD: "admin"
+      PGDATA: "/var/lib/postgresql/data/pgdata"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U survey && psql -U survey -d survey -c 'SELECT 1;'"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 60s
+  sftpServer:
+    image: atmoz/sftp:alpine-3.7
+    environment:
+      TZ: "America/Detroit"
+      SFTP_USERS: fhhs_user:pass:::upload/reports
+    volumes:
+      - ../data/site2/sftp/upload/reports:/home/fhhs_user/upload/reports
+      - ../../sftp_ssh/fhhs_user.pub:/home/fhhs_user/.ssh/authorized_keys:ro
+  jaeger:
+    image: jaegertracing/all-in-one:1.53
+    networks:
+      default:
+        aliases:
+          - site2-jaeger
+    ports:
+      - "16636:16686"
+    environment:
+      TZ: "America/Detroit"
+      COLLECTOR_OTLP_ENABLED: "true"

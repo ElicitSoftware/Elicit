@@ -10,6 +10,12 @@ public class ReviewPage extends PageObject {
         super(page);
     }
 
+    /** The section titles the review lists (one {@code h4} per section card, e.g. "About Alice:"). */
+    public java.util.List<String> sectionTitles() {
+        page.locator("h4").first().waitFor();
+        return page.locator("h4").allInnerTexts().stream().map(String::trim).toList();
+    }
+
     public void finish() {
         byId("review-finish-button").click();
         page.waitForURL(url -> url.contains("/report"));

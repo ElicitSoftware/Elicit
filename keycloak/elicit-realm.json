@@ -647,7 +647,7 @@
     "alwaysDisplayInConsole" : false,
     "clientAuthenticatorType" : "client-secret",
     "secret" : "secret",
-    "redirectUris" : [ "http://localhost:8081/*" ],
+    "redirectUris" : [ "http://localhost:8081/*", "http://localhost:8031/*" ],
     "webOrigins" : [ "/*" ],
     "notBefore" : 0,
     "bearerOnly" : false,
