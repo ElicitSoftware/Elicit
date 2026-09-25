@@ -39,9 +39,11 @@
         <admin.password>admin</admin.password>
         <author.username>author</author.username>
         <author.password>author</author.password>
-        <!-- Name of the survey the fhhs service seeds; the pre-existing journey tests register
-             against and log in to this one. -->
+        <!-- The survey the journey tests register against and log in to. Nothing seeds it, so
+             the suite installs it itself before the first test (E2ETestBase) from the definition
+             FHHS ships; the path is relative to this module. -->
         <seeded.survey.name>Family History Survey</seeded.survey.name>
+        <seeded.survey.file>../FHHS/family-history-survey.elicit</seeded.survey.file>
         <!-- Override with -De2e.headless=false to watch the browser locally. -->
         <e2e.headless>true</e2e.headless>
     </properties>
@@ -92,6 +94,7 @@
                         <author.username>${author.username}</author.username>
                         <author.password>${author.password}</author.password>
                         <seeded.survey.name>${seeded.survey.name}</seeded.survey.name>
+                        <seeded.survey.file>${seeded.survey.file}</seeded.survey.file>
                         <e2e.headless>${e2e.headless}</e2e.headless>
                     </systemPropertyVariables>
                 </configuration>

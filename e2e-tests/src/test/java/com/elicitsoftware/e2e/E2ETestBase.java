@@ -14,7 +14,12 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 
 import com.elicitsoftware.e2e.admin.DepartmentsPage;
+import com.elicitsoftware.e2e.admin.KeycloakLoginHelper;
+import com.elicitsoftware.e2e.admin.SurveyApplyPage;
+import com.microsoft.playwright.TimeoutError;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -38,6 +43,13 @@ public abstract class E2ETestBase {
     /** The survey imported into the stack under test (Family History Survey, survey id 1). */
     protected static final String SEEDED_SURVEY_NAME = System.getProperty("seeded.survey.name", "Family History Survey");
     /**
+     * The definition {@link #ensureSeededSurveyInstalled()} applies when that survey is not on the
+     * stack yet. Relative paths resolve against this module's directory (surefire's working
+     * directory), so the default reaches the copy FHHS ships in the umbrella checkout.
+     */
+    protected static final String SEEDED_SURVEY_FILE =
+            System.getProperty("seeded.survey.file", "../FHHS/family-history-survey.elicit");
+    /**
      * The department this suite works in. Nothing seeds one any more (Admin UC-028 C-016), so
      * the suite creates it on the first login that finds the blocking dialog. The name is the
      * one the migration used to seed, which keeps the search filter's "All departments" wording
@@ -50,6 +62,8 @@ public abstract class E2ETestBase {
 
     private static Playwright playwright;
     private static Browser browser;
+    /** Guards {@link #ensureSeededSurveyInstalled()}: once per JVM, not once per test class. */
+    private static boolean seededSurveyChecked;
 
     protected BrowserContext context;
     protected Page page;
@@ -61,6 +75,7 @@ public abstract class E2ETestBase {
         browser = playwright.chromium().launch(new BrowserType.LaunchOptions()
                 .setHeadless(headless)
                 .setArgs(List.of("--window-size=1440,1024")));
+        ensureSeededSurveyInstalled();
     }
 
     @AfterAll
@@ -115,6 +130,11 @@ public abstract class E2ETestBase {
      * appears and this returns at once.
      */
     protected void bootstrapDepartment() {
+        bootstrapDepartment(page);
+    }
+
+    /** {@link #bootstrapDepartment()} on an arbitrary page -- used by the static bootstrap below. */
+    protected static void bootstrapDepartment(Page page) {
         // The dialog is detected by a button in its footer: Vaadin renders a Dialog's contents
         // into an overlay element, so the id set on the Dialog itself is not what the page shows.
         if (!isBlockingDepartmentDialogOpen(page)) {
@@ -125,7 +145,7 @@ public abstract class E2ETestBase {
         if (page.getByText(ADMIN_DEPARTMENT, new Page.GetByTextOptions().setExact(true)).count() > 0) {
             return; // another test class created it while this one was signing in
         }
-        openAdmin("/edit-department/0");
+        page.navigate(ADMIN_BASE_URL + "/edit-department/0");
         new DepartmentsPage(page).createDepartment(ADMIN_DEPARTMENT, ADMIN_DEPARTMENT_CODE, ADMIN_DEPARTMENT_EMAIL);
     }
 
@@ -135,6 +155,90 @@ public abstract class E2ETestBase {
 
     protected void openAuthor(String path) {
         page.navigate(AUTHOR_BASE_URL + path);
+    }
+
+    /**
+     * Installs {@link #SEEDED_SURVEY_NAME} on the stack under test if it is not there already
+     * (Admin UC-018), once per JVM, before any test runs.
+     *
+     * <p>Nothing seeds a survey any more, but {@link RespondentJourneyE2ETest},
+     * {@link SearchFiltersE2ETest} and {@link RegisterViaCsvE2ETest} all register against this
+     * one -- so on a greenfield stack ({@code ../resetDatabase.sh V3}) the suite used to need a
+     * manual "Apply Survey Definition" in the console first. This does that step itself, from the
+     * definition FHHS ships ({@link #SEEDED_SURVEY_FILE}), which is also what the operator is told
+     * to upload (DeploymentScript.md). {@link AuthorToRespondentE2ETest} authors and applies its
+     * own survey and does not depend on this.</p>
+     *
+     * <p>It is a no-op when the survey is already installed, so a brownfield stack (V2 upgrade) and
+     * a second run against the same stack are left exactly as they were -- the apply is skipped
+     * rather than re-run as an update. Work happens in its own browser context so it cannot leak an
+     * Admin SSO session into the test that triggered it.</p>
+     */
+    private static void ensureSeededSurveyInstalled() {
+        if (seededSurveyChecked) {
+            return;
+        }
+        seededSurveyChecked = true;
+        Path definition = Path.of(SEEDED_SURVEY_FILE).toAbsolutePath().normalize();
+        BrowserContext bootstrapContext = browser.newContext(new Browser.NewContextOptions().setViewportSize(1440, 1024));
+        try (bootstrapContext) {
+            Page bootstrapPage = bootstrapContext.newPage();
+            // Admin restores the requested path after the OIDC redirect
+            // (quarkus.oidc.authentication.restore-path-after-redirect), so one navigation and one
+            // login land on /register -- no waiting on intermediate callback URLs.
+            bootstrapPage.navigate(ADMIN_BASE_URL + "/register");
+            new KeycloakLoginHelper(bootstrapPage).login(ADMIN_USERNAME, ADMIN_PASSWORD);
+            waitForRegisterView(bootstrapPage);
+            if (isBlockingDepartmentDialogOpen(bootstrapPage)) {
+                // Admin UC-028: the modal makes every other component inert -- a Vaadin Upload
+                // under it answers 403 -- so the department has to exist before the apply.
+                bootstrapDepartment(bootstrapPage);
+                bootstrapPage.navigate(ADMIN_BASE_URL + "/register");
+                waitForRegisterView(bootstrapPage);
+            }
+            if (isSeededSurveyInstalled(bootstrapPage)) {
+                return;
+            }
+            if (!Files.isReadable(definition)) {
+                throw new IllegalStateException(SEEDED_SURVEY_NAME + " is not installed on "
+                        + ADMIN_BASE_URL + " and its definition is not readable at " + definition
+                        + " -- set -Dseeded.survey.file=... or apply it in the console first.");
+            }
+            bootstrapPage.navigate(ADMIN_BASE_URL + "/survey-apply");
+            String outcome = new SurveyApplyPage(bootstrapPage).apply(definition);
+            if (!outcome.contains("New Survey Installed") && !outcome.contains("Survey Updated")) {
+                throw new IllegalStateException("Could not install " + SEEDED_SURVEY_NAME
+                        + " from " + definition + "; Admin answered:\n" + outcome);
+            }
+        }
+    }
+
+    /**
+     * Waits for RegisterView to be usable, or for the no-department dialog that covers it. The
+     * Save button is unconditional; the survey selector is not (it has nothing to offer on a stack
+     * with no survey), so it is the wrong thing to wait on here.
+     */
+    private static void waitForRegisterView(Page page) {
+        page.locator("[id=\"register-save-button\"], #missing-department-logout").first().waitFor();
+    }
+
+    /** Whether RegisterView's survey selector offers {@link #SEEDED_SURVEY_NAME}. */
+    private static boolean isSeededSurveyInstalled(Page page) {
+        Locator selector = page.locator("[id=\"register-survey\"] input");
+        if (selector.count() == 0) {
+            return false;
+        }
+        selector.click();
+        try {
+            page.locator("vaadin-combo-box-item")
+                    .filter(new Locator.FilterOptions().setHasText(SEEDED_SURVEY_NAME)).first()
+                    .waitFor(new Locator.WaitForOptions().setTimeout(3000));
+            return true;
+        } catch (TimeoutError notInstalled) {
+            return false;
+        } finally {
+            page.keyboard().press("Escape");
+        }
     }
 
     /** Whether the no-department dialog (Admin UC-028) is on screen, by its Logout button. */
