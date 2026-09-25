@@ -134,16 +134,25 @@ documented = {
     and not d.startswith("foo.")          # the name-mangling example in the text
 }
 
-# Documented default: the first \val{...} in the same row of a settings table as the
-# \opt{...}. Only the reference tables count — an \opt{} in running prose is a mention, not
-# a declaration, and the \val{} nearest it is usually about something else.
+# Documented default: the \val{...} in the default cell — the second cell of the row whose
+# first cell names the setting. Only the reference tables count: an \opt{} in running prose
+# is a mention, not a declaration, and the \val{} nearest it is usually about something else.
+# The cell matters as much as the row. A description that lists a setting's allowed values
+# ("reads \val{survey}, \val{admin} or \val{author}") would otherwise hand the first of
+# them to a key whose default cell deliberately says "per app". A default cell with no
+# \val{} claims no value, so there is nothing to compare and the row is skipped.
 row_default = {}
 for table in re.findall(r"\\begin\{settings\}.*?\\end\{settings\}", tex, re.S):
     for row in re.split(r"\\\\", table):
         keys = re.findall(r'\\opt\{([^}]*)\}', row)
-        vals = re.findall(r'\\val\{([^}]*)\}', row)
-        if keys and vals:
-            # \& is how a literal ampersand survives a tabular cell.
+        if not keys:
+            continue
+        # Cells are separated by an unescaped &; \& is a literal ampersand within one.
+        cells = re.split(r'(?<!\\)&', row)
+        if len(cells) < 2:
+            continue
+        vals = re.findall(r'\\val\{([^}]*)\}', cells[1])
+        if vals:
             row_default.setdefault(keys[0], vals[0].replace("\\&", "&"))
 
 # ---------------------------------------------------------------- compare

@@ -1,9 +1,10 @@
 #!/bin/bash
 #
-# Build every Elicit module image in parallel.
+# Build every Elicit module image -- and the installation manual -- in parallel.
 #
-#   ./buildDockerImages.sh            build all modules
-#   ./buildDockerImages.sh Admin FHHS build only the named modules
+#   ./buildDockerImages.sh            build all modules and the manual
+#   ./buildDockerImages.sh Admin FHHS build only the named targets
+#   ./buildDockerImages.sh Manual     check and build only the installation manual
 #
 # Each module's buildDockerImage.sh runs in the background with its output in
 # build-logs/<Module>.log. The script waits for all of them, prints a summary, and
@@ -25,6 +26,21 @@
 # while it restarts, and the Survey clients set no timeouts). The port check below
 # warns about both cases before anything starts.
 #
+# Manual is not a module and produces no image: it is the installation manual
+# (umbrella UC-002), typeset from docs/manual/ by a TeX Live container into
+# docs/manual/elicit-installation-manual.pdf. Unlike the administrator's and
+# author's manuals -- which their own buildDockerImage.sh typesets into the image
+# it is about to build -- this PDF is a release artifact of the umbrella repo, read
+# before there is an Elicit site to serve it from. It belongs in this run anyway:
+# it stamps the version Survey, Admin and Author agree on, so it is only truthful
+# when built from the same tree as the images. It contends with nothing the module
+# builds use (no Maven, no target/, no test port), and finishes in well under a
+# minute. It is gated: docs/manual/check-properties.sh checks the manual's configuration
+# reference against the modules' @ConfigProperty declarations and application.properties
+# first, and a drifted reference fails the target without typesetting anything.
+# SKIP_MANUAL=1 skips the manual; so does naming targets without it. SKIP_PROPERTY_CHECK=1
+# typesets without the gate.
+#
 # PREMM5 is not cloned by cloneAllProjects.sh and is commented out of
 # docker-compose.yml; add it to MODULES if you restore that module. The
 # postgresql/ directory holds only the local PGDATA volume -- there is no build
@@ -33,21 +49,40 @@
 set -u
 cd "$(dirname "$0")"
 
-ALL_MODULES=(Survey FHHS Pedigree Admin Author)
+ALL_MODULES=(Survey FHHS Pedigree Admin Author Manual)
 if [ $# -gt 0 ]; then MODULES=("$@"); else MODULES=("${ALL_MODULES[@]}"); fi
 LOG_DIR=build-logs
 
+# Where each target builds, and the scripts it runs there in order -- the first one that
+# fails fails the target. Manual runs check-properties.sh before build-manual.sh: a manual
+# whose configuration reference has drifted from the code is worse than no manual, and the
+# check is the gate for that (NFR-004, NFR-005). SKIP_PROPERTY_CHECK=1 typesets anyway.
+build_dir() { case "$1" in Manual) echo docs/manual ;; *) echo "$1" ;; esac; }
+build_scripts() {
+    case "$1" in
+        Manual)
+            [ "${SKIP_PROPERTY_CHECK:-0}" = 1 ] || echo check-properties.sh
+            echo build-manual.sh ;;
+        *)  echo buildDockerImage.sh ;;
+    esac
+}
+
 for m in "${MODULES[@]}"; do
-    if [ ! -x "$m/buildDockerImage.sh" ]; then
-        echo "No executable $m/buildDockerImage.sh" >&2
-        exit 2
-    fi
+    for script in $(build_scripts "$m"); do
+        if [ ! -x "$(build_dir "$m")/$script" ]; then
+            echo "No executable $(build_dir "$m")/$script" >&2
+            exit 2
+        fi
+    done
 done
 
 # Anything listening on a module's dev-mode port (8080-8084) or Quarkus test port
 # (8089-8092) is almost always a dev-mode instance, and the tests will either hang
 # on it or fail to bind. Warn, naming the process, but leave the decision to the user.
-if command -v lsof >/dev/null 2>&1; then
+# A run that builds only the manual runs no tests and binds nothing, so it says nothing.
+building_a_module=
+for m in "${MODULES[@]}"; do [ "$m" = Manual ] || building_a_module=1; done
+if [ -n "$building_a_module" ] && command -v lsof >/dev/null 2>&1; then
     for port in 8080 8081 8082 8083 8084 8089 8090 8091 8092; do
         pids=$(lsof -nP -iTCP:"$port" -sTCP:LISTEN -t 2>/dev/null | sort -u | tr '\n' ' ')
         [ -n "$pids" ] || continue
@@ -111,7 +146,7 @@ START=$(date +%s)
 for m in "${MODULES[@]}"; do
     (
         t0=$(date +%s)
-        (cd "$m" && ./buildDockerImage.sh)
+        (cd "$(build_dir "$m")" && for script in $(build_scripts "$m"); do "./$script" || exit $?; done)
         rc=$?
         echo "$rc $(( $(date +%s) - t0 ))" > "$LOG_DIR/$m.status"
     ) > "$LOG_DIR/$m.log" 2>&1 &
@@ -154,7 +189,7 @@ done
 
 echo
 if [ ${#failed[@]} -eq 0 ]; then
-    printf 'All %d images built in %dm%02ds\n' "${#MODULES[@]}" $((TOTAL / 60)) $((TOTAL % 60))
+    printf 'All %d builds finished in %dm%02ds\n' "${#MODULES[@]}" $((TOTAL / 60)) $((TOTAL % 60))
     exit 0
 fi
 
@@ -162,7 +197,7 @@ printf 'FAILED: %s (%dm%02ds)\n' "${failed[*]}" $((TOTAL / 60)) $((TOTAL % 60))
 for m in "${failed[@]}"; do
     echo
     echo "--- $LOG_DIR/$m.log (errors and last lines) ---"
-    grep -n 'ERROR\|FAILURE\|<<< FAIL\|Tests run:.*Failures: [1-9]\|Tests run:.*Errors: [1-9]' "$LOG_DIR/$m.log" | head -20
+    grep -n 'ERROR\|FAILURE\|<<< FAIL\|Tests run:.*Failures: [1-9]\|Tests run:.*Errors: [1-9]\|LaTeX Error\|^[0-9]*:! ' "$LOG_DIR/$m.log" | head -20
     tail -n 15 "$LOG_DIR/$m.log"
 done
 exit 1

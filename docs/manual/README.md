@@ -37,7 +37,14 @@ repository and nothing more. Publish the PDF with the release.
 ```bash
 docs/manual/build-manual.sh                       # version from the modules' pom, date is now
 docs/manual/build-manual.sh 3.0.0 "2026-09-24"    # explicit stamp
+./buildDockerImages.sh Manual                     # check-properties.sh, then the same build
 ```
+
+`buildDockerImages.sh` builds the manual alongside the module images by default,
+so a full build stamps the PDF from the same tree the images come from. That
+target runs `check-properties.sh` first and typesets nothing if it fails;
+`SKIP_PROPERTY_CHECK=1` builds without the check.
+
 
 There is no TeX installation to maintain: the script typesets inside a TeX Live
 container (`TEXLIVE_IMAGE`, default `texlive/texlive:latest`), which is where IBM

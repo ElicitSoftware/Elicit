@@ -16,7 +16,7 @@
 
 ## Main Success Scenario
 
-1. The release engineer runs `docs/manual/build-manual.sh`, optionally giving the platform version and the build date.
+1. The release engineer runs `docs/manual/build-manual.sh`, optionally giving the platform version and the build date, or runs `./buildDockerImages.sh` (target `Manual`), which checks the configuration reference (A4) and then runs the same script.
 2. The system determines the version: the argument if given, otherwise the repository's current release tag, otherwise "unknown".
 3. The system determines the build date: the argument if given, otherwise the current UTC time.
 4. The system writes the stamp to a generated file that the brand package reads, so the same sources build by hand and in a release.
@@ -53,13 +53,14 @@
 
 ### A4: The configuration reference has drifted from the code
 
-**Trigger:** The release engineer runs `docs/manual/check-properties.sh` (step 1)  
+**Trigger:** `docs/manual/check-properties.sh` runs — as the first half of the `Manual` target of `./buildDockerImages.sh`, or run directly by the release engineer (step 1)  
 **Flow:**
 
-1. The system compares every configuration key read by Survey, Admin and Author against the keys documented in the manual, and every documented default against the value in the module's sources.
-2. The system lists each key that is read but not documented, each key documented but no longer read, and each default that disagrees.
-3. The release engineer corrects the manual or accepts the difference.
-4. Use case continues at step 1.
+1. The system compares every configuration key read by Survey, Admin and Author against the keys documented in the manual, and every documented default against the value in the module's sources. A default cell that states no value ("per app") claims nothing and is not compared.
+2. The system lists each key that is read but not documented, each key documented but no longer read, and each default that disagrees, and exits non-zero.
+3. Within a build, the target fails there: nothing is typeset, and a manual that documents keys the code no longer reads is never produced. `SKIP_PROPERTY_CHECK=1` typesets without the check.
+4. The release engineer corrects the manual or accepts the difference.
+5. Use case continues at step 1.
 
 ### A5: The TeX Live image is not yet pulled
 

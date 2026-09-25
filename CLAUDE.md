@@ -170,9 +170,15 @@ to start cleanly on 2026-09-20.
 ## Scripts
 
 - `cloneAllProjects.sh` — clone the five module repos.
-- `buildDockerImages.sh [Module ...]` — build the module images in parallel
-  (all five by default, or just the named ones), one log per module under
-  `build-logs/`, with a summary and a non-zero exit if any build failed. There
+- `buildDockerImages.sh [Target ...]` — build the module images in parallel
+  (all five by default, or just the named ones), one log per target under
+  `build-logs/`, with a summary and a non-zero exit if any build failed. The
+  sixth default target, `Manual`, is not a module and builds no image: it runs
+  `docs/manual/check-properties.sh` and then `docs/manual/build-manual.sh`, so
+  the installation manual is gated against the code and stamped from the same
+  tree as the images (`SKIP_MANUAL=1`, or naming targets without it, skips the
+  target; `SKIP_PROPERTY_CHECK=1` typesets without the gate; a `Manual`-only run
+  prints no port warnings). There
   is no build-time dependency between the images; each module's tests use a
   distinct Quarkus test port (Survey 8089, Admin 8090, FHHS 8091, Author 8092).
   PREMM5 is not built (that module is not cloned and is commented out of
@@ -225,11 +231,13 @@ use-case IDs are unrelated to these.
   schemas, the OIDC clients and roles, both installation paths, the first
   sign-in, the configuration reference, branding, translations and verification.
   Built by `docs/manual/build-manual.sh` through a TeX Live container, stamped
-  with the version the three modules agree on. Unlike the author's manual it is
+  with the version the three modules agree on, and built alongside the images by
+  `buildDockerImages.sh` (target `Manual`). Unlike the author's manual it is
   **not** packaged into any image — an operator reads it before any Elicit
   service exists. `docs/manual/check-properties.sh` gates the configuration
   reference against the modules' `@ConfigProperty` declarations and
-  `application.properties`, and must pass before a release.
+  `application.properties`; `buildDockerImages.sh` runs it before typesetting, so
+  a drifted reference fails the build rather than reaching a release.
 - `DeploymentScript.md` — non-Docker deployment, plus the procedure for
   upgrading an existing deployment to Kimball Type 2 SCD (V3.0.0). Upgrade
   procedures stay here and are deliberately **not** in the installation manual,
