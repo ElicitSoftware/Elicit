@@ -727,6 +727,14 @@ instance that merely renders surveys, such as Author's preview. \\
 diagnostics report is written to the log. \\
 \opt{elicit.diagnostics.startup.delay} & \val{10s} & \chgmay & How long after startup that
 report is written. \\
+\opt{elicit.content.translations-ttl} & \val{PT5M} & \chgmay & How long a survey's content
+translations are held in memory before being reloaded, as an ISO-8601 duration. A translation
+published through \emph{Apply Survey Definition} reaches respondents within this window without
+a restart. See Chapter~\ref{sec:i18n}. \\
+\opt{elicit.content.serve-stale-translations} & \val{false} & \chgmay & Whether to show a
+translation whose base text has been edited since it was made. Left \val{false}, such a string
+falls back to the survey's base language, so every language asks the same question; set
+\val{true} only where continuity matters more than that. \\
 \end{settings}
 
 \subsection{Admin}
