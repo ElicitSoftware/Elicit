@@ -141,7 +141,9 @@ Every row is one key in `translations.properties`. Return a file `translations_<
 | `importDefinitionView.pageTitle` | Import definition | Import page · browser tab title | 25 |  |
 | `importDefinitionView.title` | Import definition | Import page · heading | 25 |  |
 | `importDefinitionView.intro` | Upload an ELICIT_SURVEY_EXPORT_V1 (.elicit) file to open it in Author as a working copy. Every survey and element key in the file is kept exactly as it is, so a later export updates the same rows at every site that already applied it. A survey whose key is already open here is refused. | Import page · paragraph; ELICIT_SURVEY_EXPORT_V1 and .elicit are technical names | 400 |  |
+| `importDefinitionView.introDraft` | An ELICIT_SURVEY_DRAFT_V1 file is accepted too -- a definition drafted outside Author, which leaves its keys blank for Author to mint. Only Author reads that marker, so a draft cannot be installed at a site until it passes validation here and is exported. | Import page · second intro paragraph; ELICIT_SURVEY_DRAFT_V1 is a technical name | 300 |  |
 | `importDefinitionView.imported` | Imported {0} | Import page · heading after import | 40 | params: {0} = survey name |
+| `importDefinitionView.draftNotice` | This came from an {0} draft, so its keys were minted here. Review it, fix anything validation reports, then export it to get a file a site can apply. | Import page · paragraph shown only when the imported file was a draft | 220 | params: {0} = the draft format marker |
 | `importDefinitionView.surveyKey` | Survey key {0} | Import page · first part of the result sentence | 40 | params: {0} = survey key |
 | `importDefinitionView.fileRevision` | , file revision {0} | Import page · optional clause appended to the result sentence (keep the leading comma) | 30 | params: {0} = revision number |
 | `importDefinitionView.recordsImported` | {0} records imported from {1} | Import page · second sentence of the result | 60 | params: {0} = count, {1} = file name |
@@ -855,7 +857,9 @@ exportDialog.revisionSummary=Revision {0}: {1}
 importDefinitionView.pageTitle=Import definition
 importDefinitionView.title=Import definition
 importDefinitionView.intro=Upload an ELICIT_SURVEY_EXPORT_V1 (.elicit) file to open it in Author as a working copy. Every survey and element key in the file is kept exactly as it is, so a later export updates the same rows at every site that already applied it. A survey whose key is already open here is refused.
+importDefinitionView.introDraft=An ELICIT_SURVEY_DRAFT_V1 file is accepted too -- a definition drafted outside Author, which leaves its keys blank for Author to mint. Only Author reads that marker, so a draft cannot be installed at a site until it passes validation here and is exported.
 importDefinitionView.imported=Imported {0}
+importDefinitionView.draftNotice=This came from an {0} draft, so its keys were minted here. Review it, fix anything validation reports, then export it to get a file a site can apply.
 importDefinitionView.surveyKey=Survey key {0}
 importDefinitionView.fileRevision=, file revision {0}
 importDefinitionView.recordsImported={0} records imported from {1}
