@@ -3,6 +3,7 @@ package com.elicitsoftware.e2e.admin;
 import com.elicitsoftware.e2e.PageObject;
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
+import com.microsoft.playwright.options.WaitForSelectorState;
 
 import java.nio.file.Path;
 
@@ -69,12 +70,30 @@ public class RegisterPage extends PageObject {
     }
 
     /**
-     * UC-003 alt-flow A6: uploads a CSV fixture through the CSV upload control. Vaadin's Upload
-     * component visually hides its native {@code <input type=file>} behind a styled button;
-     * Playwright's {@code setInputFiles} works on it directly regardless of visibility. The CSV
-     * import always registers against survey id 1 (CsvImportService), so no survey is chosen.
+     * UC-003 alt-flow A6: uploads a CSV fixture through the CSV upload control and returns what
+     * RegisterView reported. Vaadin's Upload component visually hides its native
+     * {@code <input type=file>} behind a styled button; Playwright's {@code setInputFiles} works
+     * on it directly regardless of visibility. The CSV import always registers against survey
+     * id 1 (CsvImportService), so no survey is chosen.
+     *
+     * <p>The outcome is a modal dialog -- "CSV import succeeded" listing the subjects, or the
+     * error title -- with no notification and no navigation, so this returns the dialog's full
+     * text (title included) for the caller to assert on, then closes it. Waiting for that dialog
+     * is what makes the upload synchronous: {@code setInputFiles} returns as soon as the file is
+     * handed over, and a caller that navigated away immediately used to race the import.</p>
      */
-    public void uploadCsv(Path csvFile) {
+    public String uploadCsv(Path csvFile) {
         page.locator("#register-csv-upload input[type=file]").setInputFiles(csvFile);
+        Locator dialog = page.locator("vaadin-dialog[opened]");
+        // The host renders with display: contents (never "visible" to Playwright): wait for
+        // attachment. That only means the dialog exists, though -- Vaadin teleports its contents
+        // into the overlay a moment later, so read the text only once the Close button is there,
+        // or innerText answers with the header title alone (seen failing live).
+        dialog.waitFor(new Locator.WaitForOptions().setState(WaitForSelectorState.ATTACHED));
+        Locator close = dialog.locator("vaadin-button").filter(new Locator.FilterOptions().setHasText("Close"));
+        close.waitFor();
+        String text = dialog.innerText();
+        close.click();
+        return text;
     }
 }
