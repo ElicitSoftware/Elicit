@@ -21,13 +21,18 @@ rather than colliding with it.
 
 | | Covered |
 | --- | --- |
-| Question types | 16/16 — every row in `survey.question_types` |
+| Question types | 15/16 — every row in `survey.question_types` except `PASSWORD` |
 | Operators | 6/6 — `BOOLEAN`, `GREATER THAN`, `EQUAL`, `NOT_EQUAL`, `FIELD_EXIST`, `CONTAINS` |
 | Actions | 3/3 — `SHOW`, `REPEAT`, `TEXT` |
 | Rule targets | step, section (`downstream_ss_id`), and question (`downstream_sq_id`) |
 
-`LESS THAN` is deliberately absent: it is implemented in `Relationship.evaluateOperator`
-but no migration seeds the row, so no definition can reference it.
+Two deliberate omissions:
+
+- **`PASSWORD`** — a census household survey has no honest use for a password field, and the
+  one candidate (a PIN to resume later) is not a real feature of the platform. Exercising the
+  type was not worth inventing a question nobody would ask.
+- **`LESS THAN`** — implemented in `Relationship.evaluateOperator` but seeded by no migration,
+  so no definition can reference it.
 
 ### Structure
 
@@ -38,7 +43,7 @@ but no migration seeds the row, so no definition can reference it.
 | 3 Your Home | Housing; Rent details; Vehicles; Vehicle | `DATE_PICKER`, `DOUBLE`. Tenure `EQUAL 'RENT'` shows the **Rent details section**; tenure `NOT_EQUAL 'OWN'` shows a question. Vehicle count `REPEAT`s the **Vehicle section**. |
 | 4 Household Members | Household members | Household size `REPEAT`s the person-name **question** in its own section. |
 | 5 `{name\|this person}` | `{name\|this person}` | Shown once per person name via `FIELD_EXIST`; a `TEXT` rule fills the `name` token across the step, its section and its questions. |
-| 6 Finishing Up | Contact; Anything else | `EMAIL`, `TIME_PICKER`, `DATE_TIME_PICKER`, `PASSWORD`, `TEXTAREA`, and a `MODAL` thank-you. |
+| 6 Finishing Up | Contact; Anything else | `EMAIL`, `TIME_PICKER`, `DATE_TIME_PICKER`, `TEXTAREA`, and a `MODAL` thank-you. |
 
 ### Requirements
 

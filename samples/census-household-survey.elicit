@@ -8,16 +8,16 @@
 # steps: 6
 # sections: 11
 # steps_sections: 11
-# questions: 26
-# sections_questions: 26
+# questions: 25
+# sections_questions: 25
 # relationships: 12
 # reports: 0
 # post_survey_actions: 0
 # dimensions: 0
 # ontology: 0
 # metadata: 0
-# generated: 2026-09-25T12:30:00Z
-# survey_revision: 2026-09-25T12:30:00Z
+# generated: 2026-09-25T12:45:00Z
+# survey_revision: 2026-09-25T12:45:00Z
 
 surveys: 1|eaa5c9d0-f4b1-596e-add5-18571ca79227|Census Household Survey|2|Census Household Survey|A demonstration survey about census household data. It uses every question type and every rule the Elicit engine supports, exactly once where practical.|0001-0001-0000-0001-0000-0000-0000|||
 select_groups: 1|8514a507-5906-5add-9b0e-956a124c8474|Gender|Gender choices|Text|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
@@ -106,9 +106,8 @@ questions: 20|02290ac5-30d8-5d41-a6ac-51733c82b9ca|3|What is {name's\|this perso
 questions: 21|59d35f3c-a9c5-5781-a0e6-a28f2e975b85|13|What email address should we use to confirm your response?|Email||false|||Please enter a valid email address.|||you@example.com|||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
 questions: 22|e4893abe-6574-5d70-88c9-d7b24bdc418e|15|What time do you usually leave home for work?|Departure time||false|||||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
 questions: 23|a97b315e-f619-5c14-a6d9-909685b858e8|12|If we need to follow up, what date and time works best?|Follow-up||false|||||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
-questions: 24|442de28e-75c6-5056-aec6-a52f5c2c7f5c|14|Create a PIN so you can return to this survey later.|Resume PIN||false|4|8|Please choose a PIN of 4 to 8 characters.||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
-questions: 25|872cce3f-b9f9-5519-a8f3-6054192612c6|9|Is there anything else about your household you would like to tell us?|Comments||false||2000|||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
-questions: 26|a8484aac-7d27-5128-af0a-c5da0d0fee98|16|<p>Thank you for completing the Census Household Survey.</p><p>Your answers have been saved. You may close this window.</p>|Thank you||false|||||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 24|872cce3f-b9f9-5519-a8f3-6054192612c6|9|Is there anything else about your household you would like to tell us?|Comments||false||2000|||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 25|a8484aac-7d27-5128-af0a-c5da0d0fee98|16|<p>Thank you for completing the Census Household Survey.</p><p>Your answers have been saved. You may close this window.</p>|Thank you||false|||||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
 sections_questions: 1|df00e950-557f-50d1-8923-fd4551f5375b|1|1|1|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
 sections_questions: 2|13ac2077-4855-5702-81cc-5f1bf3a43e3d|2|1|2|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
 sections_questions: 3|1ebd31ce-cd21-5b92-bd67-814876211e18|3|2|1|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
@@ -132,9 +131,8 @@ sections_questions: 20|2213fdcf-b3b9-5f74-b447-0b9cda407e3b|20|9|3|0|1970-01-01T
 sections_questions: 21|b73eabfc-6373-5821-8582-3a44785ced15|21|10|1|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
 sections_questions: 22|f0ba61f8-ec9b-5d6c-8a80-519aac4c3a27|22|10|2|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
 sections_questions: 23|48ef7e26-09cb-5cc8-9286-7587b108a242|23|10|3|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
-sections_questions: 24|d4d3395f-18bf-5407-a554-71ad3d80dff8|24|10|4|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
-sections_questions: 25|1ca4a0b7-1036-58a6-9bf9-9ee42b2b8bfa|25|11|1|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
-sections_questions: 26|21766c35-50b2-5056-af93-9ede17e547ad|26|11|2|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 24|1ca4a0b7-1036-58a6-9bf9-9ee42b2b8bfa|24|11|1|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 25|21766c35-50b2-5056-af93-9ede17e547ad|25|11|2|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
 relationships: 1|d50ef748-7058-559e-96a6-d4454be7ec90|1|2|2|||1|1|Show About You once consent is given|||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
 relationships: 2|8a925942-3c87-57b8-918b-99c92a39bd6d||7|||8|6|1|Ask which other race||OTHER|||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
 relationships: 3|5023323a-f324-5290-9deb-cda178d8b218|3|10|3|5||3|1|Show rent details when renting||RENT|||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||

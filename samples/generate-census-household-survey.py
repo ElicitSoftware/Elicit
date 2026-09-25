@@ -119,8 +119,6 @@ Q = [
    False,None,None,None,None,None,None),
  ("followup", DATE_TIME_PICKER, "If we need to follow up, what date and time works best?", "Follow-up",
    False,None,None,None,None,None,None),
- ("pin",      PASSWORD, "Create a PIN so you can return to this survey later.", "Resume PIN",
-   False,4,8,"Please choose a PIN of 4 to 8 characters.",None,None,None),
  ("comments", TEXTAREA, "Is there anything else about your household you would like to tell us?", "Comments",
    False,None,2000,None,None,None,None),
  ("thanks",   MODAL, "<p>Thank you for completing the Census Household Survey.</p>"
@@ -144,7 +142,7 @@ ASSIGN = [
  (7, ["vehicle"]),
  (8, ["hhsize","person"]),
  (9, ["personage","persongen","personrel"]),
- (10,["email","leave","followup","pin"]),
+ (10,["email","leave","followup"]),
  (11,["comments","thanks"]),
 ]
 sq = {}   # label -> sections_questions source_id
@@ -192,7 +190,7 @@ for t in ORDER:
     for r in rows[t]:
         assert len(r) == EXPECTED[t], f"{t}: {len(r)} fields, expected {EXPECTED[t]}: {r}"
 
-now = "2026-09-25T12:30:00Z"
+now = "2026-09-25T12:45:00Z"
 out = ["# ELICIT_SURVEY_EXPORT_V1", "# survey_id: 1", f"# survey_key: {key('survey')}",
        "# survey_name: Census Household Survey"]
 for t in ORDER + ["reports","post_survey_actions","dimensions","ontology","metadata"]:
