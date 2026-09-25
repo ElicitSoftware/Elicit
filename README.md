@@ -108,6 +108,20 @@ Here's a blank template to get started. To avoid retyping too much info, do a se
 ## Getting Started
 The easiest way to see Elicit Software in action is to check out the <a href="https://github.com/ElicitSoftware/FHHS/">Family Health History Survey</a>.
 
+### Installing it
+
+The **installation manual** takes a deployment operator from an empty machine to a
+running, verified Elicit site, and is the single reference for every setting that
+site is configured with. It covers the Survey, Admin and Author applications, both
+installation paths, external branding and translations.
+
+```bash
+docs/manual/build-manual.sh   # writes docs/manual/elicit-installation-manual.pdf
+```
+
+See [`docs/manual/README.md`](docs/manual/README.md). Release-specific *upgrade*
+procedures stay in [`DeploymentScript.md`](DeploymentScript.md).
+
 <!-- USAGE EXAMPLES -->
 ## Usage
 To use the Elicit System:

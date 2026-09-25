@@ -214,8 +214,26 @@ app bundles. Survey content in the database is not translated by this mechanism.
 
 ## Umbrella Docs
 
+The umbrella now carries its own AIUP artifacts — the first ones it has had —
+scoped to the platform as one deployable whole: `docs/vision.md`,
+`docs/requirements.md` (FR-001..035, NFR-001..010, C-001..014),
+`docs/use_cases.puml` and `docs/use_cases/UC-001..019`. Module requirement and
+use-case IDs are unrelated to these.
+
+- `docs/manual/` — the **installation manual** (UC-001), a LaTeX/PDF that covers
+  Survey, Admin and Author: topology, prerequisites, the database roles and
+  schemas, the OIDC clients and roles, both installation paths, the first
+  sign-in, the configuration reference, branding, translations and verification.
+  Built by `docs/manual/build-manual.sh` through a TeX Live container, stamped
+  with the version the three modules agree on. Unlike the author's manual it is
+  **not** packaged into any image — an operator reads it before any Elicit
+  service exists. `docs/manual/check-properties.sh` gates the configuration
+  reference against the modules' `@ConfigProperty` declarations and
+  `application.properties`, and must pass before a release.
 - `DeploymentScript.md` — non-Docker deployment, plus the procedure for
-  upgrading an existing deployment to Kimball Type 2 SCD (V3.0.0).
+  upgrading an existing deployment to Kimball Type 2 SCD (V3.0.0). Upgrade
+  procedures stay here and are deliberately **not** in the installation manual,
+  which is stamped with one version and outlives it.
 - `docs/BRAND_SYSTEM_IMPLEMENTATION_GUIDE.md`
 - `docs/I18N_IMPLEMENTATION_GUIDE.md`
 - `docs/metrics/OBSERVABILITY_IMPLEMENTATION_GUIDE.md`,

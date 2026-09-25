@@ -1,0 +1,133 @@
+@startuml Use Cases Overview
+' Elicit Platform — umbrella use cases.
+' Source: docs/requirements.md, docs/vision.md.
+'
+' Scope is provisioning a deployment (C-004). Operating the console and building
+' a survey are each module's own use cases and appear here only as the actors
+' this manual hands off to.
+left to right direction
+
+actor "Deployment Operator" as op
+actor "Release Engineer" as rel
+actor "Survey Administrator" as sa
+actor "Survey Author" as au
+
+actor "PostgreSQL Cluster" as db
+actor "Identity Provider\n(OIDC)" as idp
+actor "SMTP Relay" as smtp
+actor "Translator\n(person or AI agent)" as tr
+
+rectangle "Elicit Platform — Installation" {
+
+    ' The manual as a deliverable (FR-001..FR-003, NFR-001..NFR-003)
+    usecase "UC-001\nConsult the Installation Manual" as UC001
+    usecase "UC-002\nBuild the Installation Manual" as UC002
+
+    ' Orientation and prerequisites (FR-004..FR-007)
+    usecase "UC-003\nUnderstand the Platform Topology" as UC003
+    usecase "UC-004\nCheck Prerequisites" as UC004
+
+    ' Shared resources (FR-008..FR-011)
+    usecase "UC-005\nPrepare the Database Cluster" as UC005
+    usecase "UC-006\nConfigure the Identity Provider" as UC006
+
+    ' Installing (FR-012..FR-015)
+    usecase "UC-007\nInstall with Docker Compose" as UC007
+    usecase "UC-008\nInstall without Docker" as UC008
+    usecase "UC-009\nComplete the First Sign-In" as UC009
+    usecase "UC-010\nInstall a Survey Definition" as UC010
+
+    ' Configuration (FR-016..FR-021)
+    usecase "UC-011\nConfigure an Application" as UC011
+    usecase "UC-012\nLook Up a Setting" as UC012
+    usecase "UC-013\nReplace the Development Secrets" as UC013
+
+    ' Branding (FR-022..FR-025)
+    usecase "UC-014\nMount an External Brand" as UC014
+
+    ' Translations (FR-026..FR-031)
+    usecase "UC-015\nMount the Translations Directory" as UC015
+    usecase "UC-016\nAdd, Replace or Remove a Language" as UC016
+    usecase "UC-017\nCommission a Translation" as UC017
+
+    ' Verification (FR-032..FR-035)
+    usecase "UC-018\nVerify the Installation" as UC018
+    usecase "UC-019\nDiagnose a Failed Installation" as UC019
+}
+
+' ---------------------------------------------------------------- actors
+rel  --> UC002
+
+op --> UC001
+op --> UC003
+op --> UC004
+op --> UC005
+op --> UC006
+op --> UC007
+op --> UC008
+op --> UC009
+op --> UC010
+op --> UC011
+op --> UC013
+op --> UC014
+op --> UC015
+op --> UC016
+op --> UC017
+op --> UC018
+op --> UC019
+
+UC005 --> db
+UC006 --> idp
+UC009 --> idp
+UC011 --> smtp
+UC017 --> tr
+
+' ---------------------------------------------------------------- relationships
+UC002 .> UC001 : <<produces>>
+
+UC003 .> UC004 : <<include>>
+
+UC007 ..> UC005 : <<include>>
+UC007 ..> UC006 : <<include>>
+UC007 ..> UC011 : <<include>>
+UC008 ..> UC005 : <<include>>
+UC008 ..> UC006 : <<include>>
+UC008 ..> UC011 : <<include>>
+
+UC009 ..> UC007 : <<extend>>
+UC009 ..> UC008 : <<extend>>
+UC010 ..> UC009 : <<extend>>
+
+UC012 .> UC011 : <<include>>
+UC013 .> UC011 : <<extend>>
+
+UC014 ..> UC011 : <<extend>>
+UC015 ..> UC011 : <<extend>>
+UC016 ..> UC015 : <<include>>
+UC017 ..> UC016 : <<extend>>
+
+UC018 ..> UC010 : <<extend>>
+UC019 ..> UC018 : <<extend>>
+
+' ---------------------------------------------------------------- hand-off
+note right of UC010
+  Where this manual stops.
+  Running the console is the
+  administrator's manual
+  (Admin UC-029); building a
+  survey is the author's manual
+  (Author UC-039).
+end note
+
+UC010 --> sa
+UC010 --> au
+
+note bottom of UC016
+  Server-side today (C-012).
+  The in-application Languages
+  screens are specified and not
+  implemented: Admin UC-027,
+  Author UC-041.
+end note
+
+@enduml

@@ -1,0 +1,321 @@
+%% elicit-brand.sty — the Elicit default brand, as LaTeX.
+%%
+%% Umbrella copy. It is the same design as Author/docs/manual/elicit-brand.sty (umbrella
+%% C-003: the two manuals read as one set) with three additions the installation manual
+%% needs and the author's manual does not:
+%%
+%%   * \elicitProduct — the product name in the page footer, so one package serves both
+%%     documents instead of hard-coding "Elicit Author".
+%%   * the settings table (\begin{settings} … \end{settings}) and its \opt/\val/\chg… marks,
+%%     for the configuration reference (umbrella FR-016, FR-017, FR-019).
+%%   * the elicitcmd / elicitsql verbatim environments, which introduce no ligatures and no
+%%     smart quotes, so a command copied out of the PDF runs as printed (umbrella NFR-007).
+%%
+%% UC-002 BR-004: the manual is typeset in the Elicit default brand regardless of which brand
+%% a deployment mounts, so one document serves every site. The colours below are the same
+%% values as elicit-brand/colors/brand-colors.css; the typefaces are the same IBM Plex
+%% families brand-typography.css asks for.
+
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{elicit-brand}[2026/09/24 Elicit default brand]
+
+\RequirePackage{xcolor}
+\RequirePackage{fontspec}
+\RequirePackage{graphicx}
+\RequirePackage{fancyhdr}
+\RequirePackage{titlesec}
+\RequirePackage{tcolorbox}
+\tcbuselibrary{skins, breakable}
+\RequirePackage{enumitem}
+\RequirePackage{caption}
+\RequirePackage{float}
+\RequirePackage{longtable}
+\RequirePackage{booktabs}
+\RequirePackage{array}
+\RequirePackage{fancyvrb}
+\RequirePackage{url}
+
+%% ---------------------------------------------------------------- product
+%% The document sets this before \begin{document}; the footer reads it.
+\providecommand{\elicitProduct}{Elicit}
+
+%% ---------------------------------------------------------------- colours
+\definecolor{elicitInk}{HTML}{1B629C}
+\definecolor{elicitInkDark}{HTML}{154C79}
+\definecolor{elicitInkDarkest}{HTML}{0A3D62}
+\definecolor{elicitVerdigris}{HTML}{22775D}
+\definecolor{elicitVerdigrisPale}{HTML}{E3F3EE}
+\definecolor{elicitPaper}{HTML}{FDFCFA}
+\definecolor{elicitLedger}{HTML}{E8E4DC}
+\definecolor{elicitLedgerLight}{HTML}{F0EDE6}
+\definecolor{elicitSlate}{HTML}{4A5A6A}
+\definecolor{elicitCharcoal}{HTML}{1A2229}
+\definecolor{elicitAmberText}{HTML}{8C6A1D}
+\definecolor{elicitBrickText}{HTML}{9B3B2E}
+
+\pagecolor{elicitPaper}
+\color{elicitCharcoal}
+
+%% ---------------------------------------------------------------- typefaces
+%% IBM Plex ships with TeX Live as plex-otf. A TeX installation without it still builds;
+%% it just falls back to the default families rather than failing the whole manual.
+%%
+%% The monospaced family is loaded with Ligatures=NoCommon so that a setting name or a
+%% command keeps every character it was written with (NFR-007).
+\IfFontExistsTF{IBMPlexSans}{%
+  \setmainfont{IBMPlexSans}[
+    UprightFont = *-Regular,
+    ItalicFont = *-Italic,
+    BoldFont = *-SemiBold,
+    BoldItalicFont = *-SemiBoldItalic,
+  ]%
+  \setsansfont{IBMPlexSans}[UprightFont = *-Regular, BoldFont = *-SemiBold]%
+}{}
+\IfFontExistsTF{IBMPlexMono}{%
+  \setmonofont{IBMPlexMono}[
+    UprightFont = *-Regular,
+    BoldFont = *-SemiBold,
+    Scale = 0.92,
+    Ligatures = NoCommon,
+  ]%
+}{}
+
+%% ---------------------------------------------------------------- build stamp
+%% UC-002 BR-002/BR-003: the version and build date appear on the title page and in every
+%% footer. A build that supplies neither leaves both as "unknown" rather than omitting them.
+\IfFileExists{build-info.tex}{\input{build-info.tex}}{}
+\providecommand{\elicitVersion}{unknown}
+\providecommand{\elicitBuildDate}{unknown}
+
+%% ---------------------------------------------------------------- page furniture
+\setlength{\headheight}{16pt}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0.4pt}
+\newcommand{\footrulecolor}{elicitLedger}
+
+\fancypagestyle{elicit}{%
+  \fancyhf{}%
+  \fancyhead[L]{\footnotesize\color{elicitSlate}\leftmark}%
+  \fancyfoot[L]{\footnotesize\color{elicitSlate}\elicitProduct\ \elicitVersion\ \textperiodcentered\ built \elicitBuildDate}%
+  \fancyfoot[R]{\footnotesize\color{elicitSlate}\thepage}%
+}
+\pagestyle{elicit}
+
+\fancypagestyle{plain}{%
+  \fancyhf{}%
+  \fancyfoot[L]{\footnotesize\color{elicitSlate}\elicitProduct\ \elicitVersion\ \textperiodcentered\ built \elicitBuildDate}%
+  \fancyfoot[R]{\footnotesize\color{elicitSlate}\thepage}%
+  \renewcommand{\headrulewidth}{0pt}%
+}
+
+%% ---------------------------------------------------------------- headings
+\titleformat{\section}
+  {\normalfont\Large\bfseries\color{elicitInkDarkest}}{\thesection}{0.6em}{}
+\titleformat{\subsection}
+  {\normalfont\large\bfseries\color{elicitInkDark}}{\thesubsection}{0.6em}{}
+\titleformat{\subsubsection}
+  {\normalfont\normalsize\bfseries\color{elicitSlate}}{}{0em}{}
+\titlespacing*{\section}{0pt}{1.6\baselineskip}{0.7\baselineskip}
+\titlespacing*{\subsection}{0pt}{1.2\baselineskip}{0.5\baselineskip}
+
+%% ---------------------------------------------------------------- figures
+\captionsetup{
+  font = {small, color = elicitSlate},
+  labelfont = {bf, color = elicitInkDark},
+  labelsep = period,
+  skip = 8pt,
+}
+
+%% \screenshot{file}{caption} — a captured screen, ruled so it reads as a screen rather
+%% than as part of the page. Kept for parity with the author's manual.
+\newcommand{\screenshot}[2]{%
+  \begin{figure}[H]
+    \centering
+    \setlength{\fboxsep}{0pt}%
+    \setlength{\fboxrule}{0.6pt}%
+    %% The rule sits outside the image, so the image has to be narrower than the text block
+    %% by exactly the two rules, or every figure overruns the margin by \fboxrule twice.
+    \textcolor{elicitLedger}{%
+      \fbox{\includegraphics[width=\dimexpr\linewidth-2\fboxrule\relax]{images/#1}}}%
+    %% The empty optional argument is what makes a caption safe: without it LaTeX moves the
+    %% caption text into the list of figures, and \opt/\val/\file cannot survive that.
+    \caption[]{#2}
+  \end{figure}%
+}
+
+%% ---------------------------------------------------------------- call-outs
+\newtcolorbox{elicitnote}[1][Note]{%
+  enhanced, breakable,
+  colback = elicitLedgerLight, colframe = elicitInk,
+  boxrule = 0pt, leftrule = 3pt,
+  arc = 0pt, outer arc = 0pt,
+  left = 10pt, right = 10pt, top = 8pt, bottom = 8pt,
+  fonttitle = \bfseries\footnotesize,
+  coltitle = elicitInkDarkest,
+  title = {#1}, attach title to upper = {\par\medskip},
+}
+
+\newtcolorbox{elicitcaution}[1][Careful]{%
+  enhanced, breakable,
+  colback = elicitLedgerLight, colframe = elicitAmberText,
+  boxrule = 0pt, leftrule = 3pt,
+  arc = 0pt, outer arc = 0pt,
+  left = 10pt, right = 10pt, top = 8pt, bottom = 8pt,
+  fonttitle = \bfseries\footnotesize,
+  coltitle = elicitAmberText,
+  title = {#1}, attach title to upper = {\par\medskip},
+}
+
+%% A security call-out: a documented development credential, an accepted risk, anything a
+%% site must decide about deliberately rather than inherit (FR-021).
+\newtcolorbox{elicitsecurity}[1][Before this reaches a real site]{%
+  enhanced, breakable,
+  colback = elicitLedgerLight, colframe = elicitBrickText,
+  boxrule = 0pt, leftrule = 3pt,
+  arc = 0pt, outer arc = 0pt,
+  left = 10pt, right = 10pt, top = 8pt, bottom = 8pt,
+  fonttitle = \bfseries\footnotesize,
+  coltitle = elicitBrickText,
+  title = {#1}, attach title to upper = {\par\medskip},
+}
+
+%% ---------------------------------------------------------------- vocabulary
+%% \term{word} — a piece of the platform vocabulary, the first time it is used.
+\newcommand{\term}[1]{\textcolor{elicitVerdigris}{\textbf{#1}}}
+
+%% \ui{Label} — something the reader clicks or reads on screen.
+\newcommand{\ui}[1]{\textcolor{elicitInkDark}{\textsf{#1}}}
+
+%% ---------------------------------------------------------------- code and settings
+%% Setting names, file paths and values break after a dot, a hyphen, a slash or an
+%% underscore, so a long key wraps inside a narrow table column instead of overflowing it.
+\def\UrlBreaks{\do\.\do\-\do\_\do\/\do\:\do\=\do\?\do\&}
+\def\UrlBigBreaks{\do\/\do\:}
+
+\DeclareUrlCommand\rawopt{\urlstyle{tt}\small\color{elicitInkDark}}
+\DeclareUrlCommand\rawval{\urlstyle{tt}\small\color{elicitCharcoal}}
+\DeclareUrlCommand\rawfile{\urlstyle{tt}\small\color{elicitVerdigris}}
+
+%% \opt{quarkus.datasource.jdbc.url} — a configuration setting name.
+\newcommand{\opt}[1]{\rawopt{#1}}
+%% \val{true} — a configuration value, a role name, a schema name.
+\newcommand{\val}[1]{\rawval{#1}}
+%% \file{docker-compose.yml} — a path, a file, a directory.
+\newcommand{\file}[1]{\rawfile{#1}}
+
+%% \optlit{...} — a setting name written with ordinary LaTeX escapes. \opt takes a verbatim
+%% argument, which is what lets a long dotted key break across a column, but it also means a
+%% backslash in the argument is printed rather than read as an escape. Use \optlit for the
+%% few names carrying a character that has to be escaped, such as a profile prefix.
+\newcommand{\optlit}[1]{\textcolor{elicitInkDark}{\small\texttt{#1}}}
+
+%% The "Change" column of a settings table. Three values, and nothing else:
+%%   \chgset   — the site must set this; the shipped value is a development value or a
+%%               placeholder and is wrong everywhere else.
+%%   \chgmay   — the site may set this; the shipped value is a working default.
+%%   \chgkeep  — leave it alone; it is an internal default that happens to live in the
+%%               same file, and changing it is a change to how the application works.
+\newcommand{\chgset}{\textcolor{elicitBrickText}{\footnotesize\bfseries set}}
+\newcommand{\chgmay}{\textcolor{elicitInkDark}{\footnotesize\bfseries may}}
+\newcommand{\chgkeep}{\textcolor{elicitSlate}{\footnotesize keep}}
+
+%% \begin{settings}{caption}{label} … \end{settings}
+%% A four-column reference table that breaks across pages and repeats its heading.
+\newenvironment{settings}[2]{%
+  \small
+  \setlength{\LTpre}{0.8\baselineskip}%
+  \setlength{\LTpost}{0.8\baselineskip}%
+  \begin{longtable}{@{}>{\raggedright\arraybackslash}p{0.285\linewidth}%
+                      >{\raggedright\arraybackslash}p{0.195\linewidth}%
+                      >{\centering\arraybackslash}p{0.080\linewidth}%
+                      >{\raggedright\arraybackslash}p{0.310\linewidth}@{}}
+    \caption{#2}\label{#1}\\
+    \toprule
+    \textbf{\color{elicitInkDark}Setting} &
+    \textbf{\color{elicitInkDark}Default} &
+    \textbf{\color{elicitInkDark}Change} &
+    \textbf{\color{elicitInkDark}What it does} \\
+    \midrule
+    \endfirsthead
+    \multicolumn{4}{@{}l}{\footnotesize\color{elicitSlate}\tablename~\thetable\ (continued)}\\
+    \toprule
+    \textbf{\color{elicitInkDark}Setting} &
+    \textbf{\color{elicitInkDark}Default} &
+    \textbf{\color{elicitInkDark}Change} &
+    \textbf{\color{elicitInkDark}What it does} \\
+    \midrule
+    \endhead
+    \midrule
+    \multicolumn{4}{@{}r}{\footnotesize\color{elicitSlate}continued overleaf}\\
+    \endfoot
+    \bottomrule
+    \endlastfoot
+}{%
+  \end{longtable}%
+}
+
+%% \begin{plaintable}{label}{caption}{colspec}{header} … \end{plaintable}
+%% The general page-breaking table used for ports, roles, modules and the failure list.
+\newenvironment{plaintable}[4]{%
+  \small
+  \setlength{\LTpre}{0.8\baselineskip}%
+  \setlength{\LTpost}{0.8\baselineskip}%
+  \begin{longtable}{#3}
+    \caption{#2}\label{#1}\\
+    \toprule #4 \\ \midrule \endfirsthead
+    \multicolumn{1}{@{}l}{\footnotesize\color{elicitSlate}\tablename~\thetable\ (continued)}\\
+    \toprule #4 \\ \midrule \endhead
+    \bottomrule \endlastfoot
+}{%
+  \end{longtable}%
+}
+
+\newcommand{\thead}[1]{\textbf{\color{elicitInkDark}#1}}
+
+%% Commands the reader types, and SQL the reader runs. fancyvrb rather than a tcolorbox,
+%% because verbatim content must reach the PDF with its own characters and no ligature
+%% substitution, so that text copied out of the document runs as printed (NFR-007).
+\DefineVerbatimEnvironment{elicitcmd}{Verbatim}{%
+  fontsize = \small,
+  xleftmargin = 12pt,
+  framesep = 8pt,
+  frame = leftline,
+  framerule = 2pt,
+  rulecolor = \color{elicitVerdigris},
+  formatcom = \color{elicitCharcoal},
+  samepage = false,
+}
+
+\DefineVerbatimEnvironment{elicitsql}{Verbatim}{%
+  fontsize = \small,
+  xleftmargin = 12pt,
+  framesep = 8pt,
+  frame = leftline,
+  framerule = 2pt,
+  rulecolor = \color{elicitInk},
+  formatcom = \color{elicitCharcoal},
+  samepage = false,
+}
+
+\DefineVerbatimEnvironment{elicitfile}{Verbatim}{%
+  fontsize = \small,
+  xleftmargin = 12pt,
+  framesep = 8pt,
+  frame = leftline,
+  framerule = 2pt,
+  rulecolor = \color{elicitLedger},
+  formatcom = \color{elicitSlate},
+  samepage = false,
+}
+
+%% This document is full of inline monospaced identifiers — setting names, role names,
+%% paths — which \opt, \val and \file typeset as unbreakable atoms. One of them landing at
+%% the end of a line has nowhere to go, and TeX would rather overrun the margin than break
+%% it. Giving the paragraph builder some emergency stretch lets it loosen the line instead.
+\setlength{\emergencystretch}{3em}
+
+\setlist[itemize]{leftmargin = 1.2em, itemsep = 2pt, topsep = 4pt}
+\setlist[enumerate]{leftmargin = 1.4em, itemsep = 4pt, topsep = 4pt}
+\setlist[description]{leftmargin = 1.2em, itemsep = 3pt, topsep = 4pt, font = \normalfont\bfseries\color{elicitInkDark}}
+
+\endinput
