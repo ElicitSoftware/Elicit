@@ -536,6 +536,8 @@ Every row is one key in `translations.properties`. Return a file `translations_<
 | `questionDialog.required` | Required | Question dialog · checkbox label | 20 |  |
 | `questionDialog.minimum` | Minimum | Question dialog · field label | 20 |  |
 | `questionDialog.maximum` | Maximum | Question dialog · field label | 20 |  |
+| `questionDialog.minimumLength` | Minimum length | Question dialog · field label, shown instead of Minimum for text types where the bound counts characters | 20 |  |
+| `questionDialog.maximumLength` | Maximum length | Question dialog · field label, shown instead of Maximum for text types where the bound counts characters | 20 |  |
 | `questionDialog.validationText` | Validation message | Question dialog · field label | 25 |  |
 | `questionDialog.selectGroup` | List of options | Question dialog · field label | 25 |  |
 | `questionDialog.newList` | New list… | Question dialog · small button next to the list picker | 15 |  |
@@ -554,8 +556,10 @@ Every row is one key in `translations.properties`. Return a file `translations_<
 | `questionDialog.help.required` | The respondent must answer this before continuing. | Question dialog · field tooltip | 80 |  |
 | `questionDialog.help.minimum` | The smallest number the respondent may enter. | Question dialog · field tooltip | 80 |  |
 | `questionDialog.help.maximum` | The largest number the respondent may enter. | Question dialog · field tooltip | 80 |  |
+| `questionDialog.help.minimumLength` | The fewest characters the respondent may type. Set a maximum too: the length is checked only when both are given. | Question dialog · field tooltip | 120 |  |
+| `questionDialog.help.maximumLength` | The most characters the respondent may type. Set a minimum too: the length is checked only when both are given. | Question dialog · field tooltip | 120 |  |
 | `questionDialog.help.selectGroup` | The list of choices the respondent picks from. | Question dialog · field tooltip | 80 |  |
-| `questionDialog.help.mask` | A pattern that constrains what the respondent can type. | Question dialog · field tooltip | 80 |  |
+| `questionDialog.help.mask` | A regular expression matched against every character the respondent types; anything that does not match cannot be entered. It limits which characters are allowed, not the shape of the answer. Digits only: [0-9]. Phone number: [0-9 ()+-]. Letters and spaces: [A-Za-z ]. | Question dialog · field tooltip; the bracketed patterns are literal regular expressions, keep them as they are | 320 |  |
 | `questionDialog.help.placeholder` | Faint example text shown in the empty field. | Question dialog · field tooltip | 80 |  |
 | `questionDialog.help.defaultValue` | The value the field starts with. | Question dialog · field tooltip | 60 |  |
 | `questionDialog.help.sample` | An example answer, used only in previews. Wherever a Text rule writes this question's answer into another text, the preview shows this instead: sample "Bob" previews "Hello {PName}" as "Hello Bob". Respondents never see it. | Question dialog · field tooltip; "Bob", "Hello {PName}" and "Hello Bob" are literal examples | 300 |  |
@@ -1246,6 +1250,8 @@ questionDialog.toolTip=Tooltip
 questionDialog.required=Required
 questionDialog.minimum=Minimum
 questionDialog.maximum=Maximum
+questionDialog.minimumLength=Minimum length
+questionDialog.maximumLength=Maximum length
 questionDialog.validationText=Validation message
 questionDialog.selectGroup=List of options
 questionDialog.newList=New list…
@@ -1264,8 +1270,10 @@ questionDialog.help.toolTip=Help text shown to the respondent when they hover th
 questionDialog.help.required=The respondent must answer this before continuing.
 questionDialog.help.minimum=The smallest number the respondent may enter.
 questionDialog.help.maximum=The largest number the respondent may enter.
+questionDialog.help.minimumLength=The fewest characters the respondent may type. Set a maximum too: the length is checked only when both are given.
+questionDialog.help.maximumLength=The most characters the respondent may type. Set a minimum too: the length is checked only when both are given.
 questionDialog.help.selectGroup=The list of choices the respondent picks from.
-questionDialog.help.mask=A pattern that constrains what the respondent can type.
+questionDialog.help.mask=A regular expression matched against every character the respondent types; anything that does not match cannot be entered. It limits which characters are allowed, not the shape of the answer. Digits only: [0-9]. Phone number: [0-9 ()+-]. Letters and spaces: [A-Za-z ].
 questionDialog.help.placeholder=Faint example text shown in the empty field.
 questionDialog.help.defaultValue=The value the field starts with.
 questionDialog.help.sample=An example answer, used only in previews. Wherever a Text rule writes this question's answer into another text, the preview shows this instead: sample "Bob" previews "Hello {PName}" as "Hello Bob". Respondents never see it.
