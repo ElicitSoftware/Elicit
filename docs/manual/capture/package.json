@@ -1,0 +1,13 @@
+{
+  "name": "elicit-installation-manual-capture",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Regenerates the installation manual's screenshots (umbrella UC-001 BR-007) from a freshly installed umbrella stack. Kept in its own package.json so Playwright stays out of any module's dependencies.",
+  "type": "module",
+  "scripts": {
+    "capture": "playwright install --with-deps chromium && node capture-screenshots.mjs"
+  },
+  "devDependencies": {
+    "playwright": "1.63.0"
+  }
+}

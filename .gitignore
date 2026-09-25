@@ -20,3 +20,12 @@ TEMP.sql
 .DS_Store
 .vscode
 /build-logs/
+
+# The installation manual's generated files (docs/manual/README.md).
+# The .tex sources and elicit-brand.sty are committed; the stamp, LaTeX's working
+# directory and the PDF are not — build-manual.sh regenerates all three.
+/docs/manual/build-info.tex
+/docs/manual/build/
+/docs/manual/*.pdf
+/docs/manual/capture/node_modules/
+/docs/manual/images/FAILED.png

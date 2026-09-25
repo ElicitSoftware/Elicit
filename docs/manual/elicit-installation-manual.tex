@@ -1,0 +1,1297 @@
+%% The Elicit installation manual — umbrella UC-001, "Consult the Installation Manual".
+%%
+%% Build it with docs/manual/build-manual.sh, which renders it through a TeX Live container
+%% and stamps it with the platform version and build date (UC-002 BR-002). See README.md.
+%%
+%% Scope is provisioning a deployment (umbrella C-004). Operating the console is the
+%% administrator's manual (Admin UC-029); building a survey is the author's manual
+%% (Author UC-039). This document points at them and stops.
+
+\documentclass[11pt, a4paper]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[a4paper, margin = 25mm, bottom = 28mm]{geometry}
+
+\newcommand{\elicitProduct}{Elicit Platform}
+\usepackage{elicit-brand}
+\usepackage[hidelinks]{hyperref}
+
+\hypersetup{
+  pdftitle = {Elicit — Installing the Platform},
+  pdfauthor = {Elicit Software},
+  pdfsubject = {Installing and configuring the Elicit Survey, Admin and Author applications},
+  colorlinks = true,
+  linkcolor = elicitInkDark,
+  urlcolor = elicitInkDark,
+}
+
+\graphicspath{{./}}
+
+\begin{document}
+
+%% ------------------------------------------------------------------ title page
+\begin{titlepage}
+\thispagestyle{empty}
+\centering
+\vspace*{3.5cm}
+
+\includegraphics[width = 34mm]{images/elicit-logo.png}
+
+\vspace{1.4cm}
+
+{\color{elicitInkDarkest}\Huge\bfseries Installing the Platform\par}
+
+\vspace{0.5cm}
+
+{\color{elicitSlate}\Large The Elicit installation manual\par}
+
+\vspace{0.4cm}
+
+{\color{elicitSlate}\large Survey \textperiodcentered\ Admin \textperiodcentered\ Author\par}
+
+\vspace{2.2cm}
+
+{\color{elicitSlate}\large
+Version \textbf{\elicitVersion}\\[0.35em]
+Built \textbf{\elicitBuildDate}\par}
+
+\vfill
+
+{\color{elicitSlate}\small
+This manual describes the platform version named above. It is a release artifact of the\\
+Elicit umbrella repository and is read before any Elicit service is running.\\[0.6em]
+Elicit Software \textperiodcentered\ PolyForm Noncommercial License 1.0.0\par}
+
+\vspace{1cm}
+\end{titlepage}
+
+%% ------------------------------------------------------------------ contents
+\pagenumbering{roman}
+\setcounter{page}{1}
+{\color{elicitInkDarkest}\section*{Contents}}
+\vspace{-0.6em}
+\begingroup
+\hypersetup{linkcolor = elicitCharcoal}
+\makeatletter\@starttoc{toc}\makeatother
+\endgroup
+
+\vfill
+
+\begin{elicitnote}[Who this manual is for]
+Someone comfortable with PostgreSQL, a container runtime or a JVM service manager, and an
+OIDC provider, who has not seen Elicit before. It covers \emph{provisioning} a deployment.
+Running the console day to day is the administrator's manual; building a survey is the
+author's manual. This one stops where those begin.
+\end{elicitnote}
+
+\clearpage
+\pagenumbering{arabic}
+\setcounter{page}{1}
+
+%% ================================================================== 1
+\section{What Elicit is made of}
+\markboth{What Elicit is made of}{}
+
+Elicit is a modular survey platform: separate applications that share one database, one
+identity provider, one brand directory and one translations directory. A \term{site} is one
+such installation. This chapter names the pieces so that you can decide which of them your
+site runs before you install anything.
+
+\subsection{The modules}
+
+\begin{plaintable}{tab:modules}{The modules, what each one is, and what it needs}{@{}>{\raggedright\arraybackslash}p{0.16\linewidth} >{\raggedright\arraybackslash}p{0.40\linewidth} >{\raggedright\arraybackslash}p{0.38\linewidth}@{}}{\thead{Module} & \thead{What it is} & \thead{What it needs}}
+\ui{Survey} & The subject-facing application. A respondent enters an \term{access code} and
+answers the survey. It owns the shared \val{survey} schema and creates it. &
+The database. Required. \\
+\addlinespace
+\ui{Admin} & The administration console: departments, users, subjects, access codes,
+message templates, reports, and applying survey definitions. &
+The database, the identity provider, an SMTP relay. \\
+\addlinespace
+\ui{Author} & The survey authoring tool. Produces a \file{.elicit} definition file that
+Admin applies at a site. &
+Its own database, an instance of Survey to create the schema in it, the identity
+provider. \\
+\addlinespace
+\ui{FHHS} & A headless report service specific to the Family Health History Survey.
+Optional. &
+The database, Survey, Pedigree. \\
+\addlinespace
+\ui{Pedigree} & Draws family-tree diagrams for FHHS. Optional. & Nothing. \\
+\end{plaintable}
+
+\begin{elicitnote}[Optional means optional]
+A site that does not run the Family Health History Survey runs neither \ui{FHHS} nor
+\ui{Pedigree}, and nothing in this manual requires them. FHHS carries its own deployment
+documentation; this manual covers it only where Survey or Admin must be configured to
+reach it.
+\end{elicitnote}
+
+\subsection{What they share}
+
+\begin{itemize}
+  \item \textbf{One PostgreSQL cluster.} A site's survey database carries two schemas,
+        \val{survey} and \val{surveyreport}. Survey, Admin and FHHS all connect
+        to it.
+  \item \textbf{One identity provider.} Admin and Author each authenticate against their own
+        OIDC client. Survey authenticates no one — a respondent enters an access code, which
+        is not a credential in the identity provider.
+  \item \textbf{One brand directory,} mounted read-only into Survey, Admin and Author.
+  \item \textbf{One translations directory,} mounted the same way, with one sub-directory
+        per application.
+\end{itemize}
+
+Author is the exception: it works in a \emph{separate} database, so that drafts never reach a
+site's survey data. Its respondent preview is a second instance of Survey pointed at that
+same authoring database.
+
+\subsection{The order of the first start}
+
+Survey creates and migrates the shared \val{survey} schema. Admin adds its own tables to
+that schema, and FHHS adds its grants and indexes on top. So on a \emph{new} database:
+
+\begin{enumerate}
+  \item \ui{Survey} starts and becomes ready. Readiness is what tells you its migrations
+        have finished.
+  \item \ui{Admin} starts. Its migrations run against the schema Survey created.
+  \item \ui{FHHS} and \ui{Pedigree} start, in any order.
+  \item \ui{Author}'s preview instance of Survey starts against the authoring database,
+        creating the schema there; then \ui{Author} itself.
+\end{enumerate}
+
+\begin{elicitnote}[The order constrains the first start only]
+It exists because of schema creation. Once the schema is migrated the modules may be started
+in any order and may restart independently. In the container path the compose file enforces
+this for you; without containers it is yours to sequence (Chapter~\ref{sec:nodocker}).
+\end{elicitnote}
+
+\subsection{Ports}
+
+Every application listens on port \val{8080} \emph{inside} its container. The host ports
+below are what the shipped compose file publishes.
+
+\begin{plaintable}{tab:ports}{Published host ports in the shipped compose file}{@{}>{\raggedright\arraybackslash}p{0.13\linewidth} >{\raggedright\arraybackslash}p{0.28\linewidth} >{\raggedright\arraybackslash}p{0.49\linewidth}@{}}{\thead{Host port} & \thead{Service} & \thead{Reached by}}
+\val{8080} & Survey & Respondents, in a browser. \\
+\val{8081} & Admin & Administrators, in a browser. \\
+\val{8082} & FHHS & Survey, for reports. Published for local testing only. \\
+\val{8083} & Pedigree & FHHS. Published for local testing only. \\
+\val{8084} & Author & Authors, in a browser. \\
+\val{8085} & Author's Survey preview & Authors, in a browser. \\
+\val{5452} & PostgreSQL (\val{5432} inside) & The applications, and you. \\
+\val{8180} & Keycloak (bundled) & Browsers \emph{and} the application containers. \\
+\val{8025} & Mailpit web interface (bundled) & You. \\
+\val{1025} & Mailpit SMTP (bundled) & Admin. \\
+\val{16686} & Jaeger user interface (bundled) & You. \\
+\val{4317} & Jaeger OTLP/gRPC collector (bundled) & Every application. \\
+\end{plaintable}
+
+\begin{elicitcaution}[Health checks address the container, not the host]
+Each service's health check targets \val{http://localhost:8080/q/health/ready} \emph{inside}
+the container. That is the same address for every application regardless of which host port
+it is published on. A health check pointed at the published host port is the most common
+self-inflicted installation failure.
+\end{elicitcaution}
+
+\subsection{Metrics and traces}
+
+Every application exposes Prometheus-format metrics at \opt{/q/metrics} and health at
+\opt{/q/health/live} and \opt{/q/health/ready}, and exports OpenTelemetry traces to a
+collector.
+
+\begin{elicitnote}[There is no metrics stack in this repository]
+Nothing in the shipped compose file scrapes \opt{/q/metrics}, and no Prometheus service runs.
+The endpoint is there for your site's own scraper to collect. The bundled Jaeger is
+traces-only, so its \ui{Monitor} tab, which would read metrics, is inert.
+\end{elicitnote}
+
+%% ================================================================== 2
+\section{Before you start}
+\markboth{Before you start}{}
+
+Check each of these for the modules your site will run. A missing prerequisite is much
+cheaper to find now.
+
+\begin{description}
+  \item[A PostgreSQL 17 cluster] in which you can create roles, databases and schemas.
+  \item[A container runtime and compose,] for the container path (Chapter~\ref{sec:compose});
+        \emph{or} a Java 25 runtime and a service manager, for the module-by-module path
+        (Chapter~\ref{sec:nodocker}).
+  \item[An OIDC provider] in which you can create two confidential clients and four roles,
+        reachable at \emph{one} address from both the browser and the application containers.
+  \item[An SMTP relay] for Admin's invitations and reminders. Admin is the only module that
+        sends mail.
+  \item[A directory for the brand] and \textbf{a directory for the translations,} each
+        readable by every module that mounts them.
+  \item[Free host ports] for the modules you will run (Table~\ref{tab:ports}).
+\end{description}
+
+\begin{elicitcaution}[One address for the identity provider]
+The issuer address you configure must resolve to the same provider \emph{from the browser}
+and \emph{from inside the container}. When it does not, sign-in fails in a way that looks
+like an application fault: the browser is redirected somewhere it cannot reach, or — on a
+host that maps the provider's name to itself — lands on whichever service is listening on
+that port. The bundled example uses \val{host.docker.internal}, which Docker Desktop
+resolves to the host from inside a container and to the loopback address on the host, so one
+address works from both.
+\end{elicitcaution}
+
+The repository bundles a database, an identity provider, a mail catcher, an SFTP server and a
+trace collector so that an evaluation site works in one command. Each ships with a documented
+password; see Section~\ref{sec:secrets} before any of them reaches a real site.
+
+%% ================================================================== 3
+\section{The database}
+\label{sec:database}
+\markboth{The database}{}
+
+Elicit creates no database roles. Every role exists before any module starts. It creates no
+tables either: you create two empty schemas, and everything inside them comes from the
+modules' migrations on first start.
+
+\subsection{The roles}
+
+\begin{plaintable}{tab:roles}{The database roles Elicit expects}{@{}>{\raggedright\arraybackslash}p{0.24\linewidth} >{\raggedright\arraybackslash}p{0.14\linewidth} >{\raggedright\arraybackslash}p{0.56\linewidth}@{}}{\thead{Role} & \thead{Kind} & \thead{Used by}}
+\val{dbowner} & group & Holds the create privileges the schema owner inherits. \\
+\val{dbuser} & group & Holds the connect and usage privileges every application role
+inherits. \\
+\addlinespace
+\val{elicit_owner} & login & The \emph{schema owner}. Every module's Flyway migrations run as
+this role. \\
+\val{survey_user} & login & Survey's application connection, and Author's. \\
+\val{surveyadmin_user} & login & Admin's application connection. \\
+\val{surveyreport_user} & login & Reads the \val{surveyreport} schema. \\
+\end{plaintable}
+
+Run this once for the cluster, substituting a password of your own for each placeholder.
+
+\begin{elicitsql}
+CREATE ROLE dbowner WITH NOLOGIN SUPERUSER INHERIT
+  NOCREATEDB NOCREATEROLE NOREPLICATION;
+
+CREATE ROLE dbuser WITH NOLOGIN NOSUPERUSER INHERIT
+  NOCREATEDB NOCREATEROLE NOREPLICATION;
+
+CREATE ROLE elicit_owner WITH LOGIN SUPERUSER INHERIT
+  NOCREATEDB NOCREATEROLE NOREPLICATION
+  ENCRYPTED PASSWORD '<owner password>';
+
+CREATE ROLE survey_user WITH LOGIN NOSUPERUSER INHERIT
+  NOCREATEDB NOCREATEROLE NOREPLICATION
+  ENCRYPTED PASSWORD '<survey password>';
+GRANT dbuser TO survey_user;
+
+CREATE ROLE surveyadmin_user WITH LOGIN NOSUPERUSER INHERIT
+  NOCREATEDB NOCREATEROLE NOREPLICATION
+  ENCRYPTED PASSWORD '<admin password>';
+GRANT dbuser TO surveyadmin_user;
+
+CREATE ROLE surveyreport_user WITH LOGIN NOSUPERUSER INHERIT
+  NOCREATEDB NOCREATEROLE NOREPLICATION
+  ENCRYPTED PASSWORD '<report password>';
+GRANT dbuser TO surveyreport_user;
+\end{elicitsql}
+
+\begin{elicitcaution}[The schema owner is a superuser here]
+The role script creates \val{elicit_owner} as a superuser because that is the role the
+modules' migrations are tested against. A site whose policy forbids a superuser login role
+can narrow it — the migrations need to create and alter objects in the two schemas, and
+nothing outside them — but a narrowed role is yours to verify against your release.
+\end{elicitcaution}
+
+\subsection{The site's survey database}
+
+Create the database, then run this inside it.
+
+\begin{elicitsql}
+GRANT CONNECT, CREATE ON DATABASE survey TO dbowner;
+GRANT CONNECT ON DATABASE survey TO dbuser;
+
+GRANT USAGE, CREATE ON SCHEMA public TO dbowner;
+GRANT USAGE ON SCHEMA public TO dbuser;
+
+CREATE SCHEMA survey AUTHORIZATION elicit_owner;
+GRANT USAGE ON SCHEMA survey TO survey_user;
+GRANT USAGE ON SCHEMA survey TO surveyadmin_user;
+GRANT USAGE ON SCHEMA survey TO surveyreport_user;
+
+CREATE SCHEMA surveyreport AUTHORIZATION elicit_owner;
+GRANT USAGE ON SCHEMA surveyreport TO survey_user;
+GRANT USAGE ON SCHEMA surveyreport TO surveyadmin_user;
+GRANT USAGE ON SCHEMA surveyreport TO surveyreport_user;
+
+GRANT USAGE, CREATE ON SCHEMA surveyreport TO dbowner;
+ALTER DEFAULT PRIVILEGES IN SCHEMA surveyreport
+  GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO dbowner;
+ALTER DEFAULT PRIVILEGES IN SCHEMA surveyreport
+  GRANT USAGE ON SEQUENCES TO dbowner;
+\end{elicitsql}
+
+Both schemas are now empty. That is correct: every table, sequence, index and grant inside
+them is created by a module's migrations the first time it starts.
+
+\subsection{The authoring database}
+
+If your site runs Author, create a second database — conventionally \val{author} — and run
+exactly the same schema script in it. The \val{survey} schema there is created by Author's
+Survey preview instance, not by Author, which owns no migrations of its own.
+
+\begin{elicitnote}[The bundled database image does all of this for you]
+\file{elicitsoftware/elicit_db} runs the role script and the schema script when its data
+directory is first initialised, and the compose file mounts
+\file{db-init/V0.0.4__CREATE_AUTHOR_DATABASE.sql} to add the authoring database at the same
+time. An initialisation script runs \emph{only} against an empty data directory; to add the
+authoring database to a cluster that already exists, run it by hand:
+
+\begin{elicitcmd}
+docker compose exec db psql -U survey -d survey \
+  -f /docker-entrypoint-initdb.d/V0.0.4__CREATE_AUTHOR_DATABASE.sql
+\end{elicitcmd}
+
+The image's scripts carry the documented development passwords listed in
+Section~\ref{sec:secrets}.
+\end{elicitnote}
+
+%% ================================================================== 4
+\section{The identity provider}
+\label{sec:oidc}
+\markboth{The identity provider}{}
+
+Admin and Author each authenticate against their own confidential OIDC client, so that a role
+granted for one does not reach the other. Survey has no client: a respondent enters an access
+code, which is issued by Admin and is not a credential in your identity provider.
+
+\subsection{The clients}
+
+\begin{plaintable}{tab:clients}{The OIDC clients}{@{}>{\raggedright\arraybackslash}p{0.22\linewidth} >{\raggedright\arraybackslash}p{0.20\linewidth} >{\raggedright\arraybackslash}p{0.52\linewidth}@{}}{\thead{Client} & \thead{Type} & \thead{Redirect}}
+\val{elicit-admin} & confidential & The console's address, for example
+\val{http://localhost:8081/*}. \\
+\val{elicit-author} & confidential & Author's address, for example
+\val{http://localhost:8084/*}. \\
+\end{plaintable}
+
+Each client needs a secret, which reaches the application as \opt{OIDC_CLIENT_SECRET}.
+Both applications accept browser sign-ins and bearer tokens on the same client.
+
+\screenshot{01-keycloak-clients}{The two clients in the bundled realm. A site creates the same
+two in its own provider, under whatever names it configures the applications with.}
+
+\screenshot{02-keycloak-client}{The console's client. The redirect URI must cover the address
+a browser reaches the console at, which is not necessarily the address the container knows.}
+
+\subsection{The roles}
+
+\begin{plaintable}{tab:roles-oidc}{The roles the applications check}{@{}>{\raggedright\arraybackslash}p{0.20\linewidth} >{\raggedright\arraybackslash}p{0.18\linewidth} >{\raggedright\arraybackslash}p{0.56\linewidth}@{}}{\thead{Role} & \thead{On client} & \thead{What it permits}}
+\val{elicit_admin} & both & The console's administrative screens, and Author's
+\ui{System} section. On \val{elicit-author} it grants \emph{no} authoring. \\
+\addlinespace
+\val{elicit_user} & \val{elicit-admin} & The console's day-to-day screens, without the
+administrative ones. \\
+\addlinespace
+\val{elicit_author} & \val{elicit-author} & Authoring surveys. \\
+\addlinespace
+\val{elicit_importer} & \val{elicit-admin} & The subject-import endpoints of the
+integration API, for a machine client presenting a bearer token. \\
+\end{plaintable}
+
+\begin{elicitcaution}[The authoring role is never implied]
+\val{elicit_author} is granted explicitly and is \emph{not} implied by \val{elicit_admin}.
+An administrator who has not been given it can open Author's \ui{System} pages but not a
+survey. If someone signs in to Author and the surveys are not there, that is the first thing
+to check.
+\end{elicitcaution}
+
+At least one account must hold \val{elicit_admin} before the first sign-in
+(Chapter~\ref{sec:firstsignin}), or nobody can create the first department.
+
+\screenshot{03-keycloak-roles}{The roles on the console's client. \val{elicit_author} is not
+here: it belongs to Author's own client, which is what keeps the two apart.}
+
+\subsection{The bundled example}
+
+The repository ships a Keycloak realm at \file{keycloak/elicit-realm.json} carrying both
+clients, all four roles and three accounts. It is a worked example and an evaluation
+provider, not a production one: its client secret is the literal string \val{secret} and its
+administrator account is \val{admin}/\val{admin}.
+
+\subsection{Sourcing roles from the database instead}
+
+A site that cannot manage Elicit's roles in its identity provider can set
+\opt{elicit.authorization.mode} to \val{DATABASE} on Admin. That makes the console consult
+its own \val{survey.user_roles} table as a fallback and shows the role-assignment section of
+the user editor. It does \emph{not} disable OIDC — sign-in is unchanged, and roles the
+provider supplies are still honoured. Under this mode the identity provider's account names
+must match the console's user records.
+
+%% ================================================================== 5
+\section{Installing with Docker Compose}
+\label{sec:compose}
+\markboth{Installing with Docker Compose}{}
+
+The umbrella repository carries \file{docker-compose.yml}, the default brand and the default
+translations. Together they are a working site and a worked example.
+
+\subsection{What the file defines}
+
+Six application services — \val{survey}, \val{admin}, \val{fhhs}, \val{pedigree},
+\val{author} and \val{author-survey} — and five supporting services bundled for evaluation:
+\val{db}, \val{keycloak}, \val{mailpit}, \val{sftpServer} and \val{jaeger}. Every application
+image is \file{elicitsoftware/<name>:latest}.
+
+\subsection{Before bringing it up}
+
+\begin{enumerate}
+  \item Replace the development secrets (Section~\ref{sec:secrets}).
+  \item Set \opt{accessCode.autoRegister} to \val{false} on \val{survey}. The file ships it
+        \val{true} so that an evaluator can type any access code; on a site that delivers
+        real surveys that would let anyone in.
+  \item Point the brand and translations volumes at your own directories, if you have them
+        (Chapters~\ref{sec:brand} and~\ref{sec:i18n}).
+  \item Remove any bundled service your site replaces with its own, and point the
+        applications at yours using the settings in Chapter~\ref{sec:config}.
+  \item Remove \val{fhhs} and \val{pedigree}, and Admin's dependency on them, if your site
+        does not run the Family Health History Survey.
+\end{enumerate}
+
+\subsection{Bringing it up}
+
+\begin{elicitcmd}
+docker compose up -d
+./status.sh
+\end{elicitcmd}
+
+That is the whole procedure. The database starts and becomes healthy, Survey creates and
+migrates the shared schema, and the remaining services start as their dependencies become
+healthy.
+
+\begin{elicitnote}[No restart sequence is required]
+Older instructions described bringing the stack up and then restarting it twice. That no
+longer applies. Survey creates the schema, a survey definition is applied through the console
+afterwards (Chapter~\ref{sec:definition}), and FHHS becomes ready by itself on its next
+health probe. Admin depends on FHHS having \emph{started}, not on it being healthy, precisely
+so that the console comes up on a new database and the definition can be applied through it.
+\end{elicitnote}
+
+If a published host port is taken, change it — and change the matching redirect URI in your
+identity provider (Section~\ref{sec:oidc}).
+
+\subsection{Resetting}
+
+\begin{elicitcmd}
+./resetDatabase.sh V3
+\end{elicitcmd}
+
+stops the stack and deletes the database's data directory for a clean greenfield attempt.
+
+%% ================================================================== 6
+\section{Installing without Docker}
+\label{sec:nodocker}
+\markboth{Installing without Docker}{}
+
+One procedure, repeated per module, against your own database
+(Chapter~\ref{sec:database}) and your own identity provider (Chapter~\ref{sec:oidc}).
+
+\begin{enumerate}
+  \item Obtain the module's runnable artifact for the release you are installing.
+  \item Write its configuration — datasource, identity, mail, brand and translations paths,
+        and anything else your site changes — by the rules in Chapter~\ref{sec:config}.
+  \item Install it as a service under your service manager, with a Java 25 runtime.
+  \item Start \ui{Survey} first and wait for \opt{/q/health/ready} to report healthy. That is
+        what confirms its migrations have completed.
+  \item Start \ui{Admin} and wait for its readiness endpoint.
+  \item Start the remaining modules, in any order.
+\end{enumerate}
+
+\begin{elicitcaution}[Nothing sequences this for you]
+There is no dependency ordering here as there is in the container path. A module started
+before Survey has migrated a \emph{new} database fails its own migration on an object that
+does not exist yet, and does not start. Nothing is corrupted: let Survey finish and start the
+module again.
+\end{elicitcaution}
+
+\subsection{The Author stack}
+
+Author needs two services: an instance of Survey pointed at the authoring database, which
+creates the schema there and serves the respondent preview, and Author itself. The preview
+instance differs from a site's Survey in exactly two settings:
+
+\begin{itemize}
+  \item \opt{accessCode.autoRegister} is \val{true}, so an author can type any access code
+        to walk a draft.
+  \item \opt{elicit.etl.enabled} is \val{false}, so it never builds or updates the reporting
+        schema. The authoring database holds many surveys, whose step names would collide in
+        \val{surveyreport.dim_step}, and nothing reports on preview answers.
+\end{itemize}
+
+\subsection{Running more than one instance}
+
+Instances of the same module must agree on their datasource and on their brand and
+translations paths. The proxy-forwarding settings must be on, or sign-in redirects are built
+with the container's address instead of the site's.
+
+%% ================================================================== 7
+\section{The first sign-in}
+\label{sec:firstsignin}
+\markboth{The first sign-in}{}
+
+A new installation seeds no survey and no department. It does seed two accounts, \val{admin}
+and \val{user}, so that the console can be signed into at all.
+
+\screenshot{04-sign-in}{Signing in. The console never asks for a password itself — it sends
+you to the identity provider and takes the answer back.}
+
+\screenshot{05-first-sign-in}{What a new installation looks like on the first sign-in: the
+blocking dialog, the notice that no survey is installed, and the warning about the two seeded
+accounts. All three clear during this chapter and the next.}
+
+\begin{enumerate}
+  \item Sign in to Admin with an account holding \val{elicit_admin}.
+  \item A dialog blocks the console until a department exists. Follow its link to
+        \ui{Departments} and create one; it is assigned to you as its creator.
+  \item Rename the two seeded accounts to real people. Until both are renamed, Admin logs a
+        warning at every start and shows a banner on every console screen. Under
+        \opt{elicit.authorization.mode}\val{=DATABASE}, rename the matching identity-provider
+        accounts to the same usernames.
+  \item Write at least one message template, using \val{<ACCESS_CODE>} wherever a subject's
+        access code belongs — for example in the login link
+        \val{https://<your survey host>/#/login/<ACCESS_CODE>}.
+\end{enumerate}
+
+\screenshot{06-departments-empty}{Departments, before there are any. The dialog's link brings
+you here.}
+
+\screenshot{07-new-department}{The first department. \ui{Default message ID} is prefilled with
+\val{1}, which on a new installation is a template that does not exist yet — write the template
+first, or correct this field once you have.}
+
+\screenshot{08-console-ready}{The console with a department. The dialog is gone; the two
+banners stay until a survey is applied and the seeded accounts are renamed.}
+
+\begin{elicitnote}[An account with no department can only log out]
+That is deliberate. A user holding \val{elicit_user} but belonging to no department has
+nothing to do in the console until an administrator assigns them one.
+\end{elicitnote}
+
+\begin{elicitcaution}[A department created in SQL is assigned to nobody]
+Creating a department with a direct \val{INSERT} skips the assignment the console makes.
+Assign it to its users separately, or create it through \ui{Departments}.
+\end{elicitcaution}
+
+%% ================================================================== 8
+\section{Installing a survey definition}
+\label{sec:definition}
+\markboth{Installing a survey definition}{}
+
+Surveys arrive by import. There is no seeded survey to find.
+
+\begin{enumerate}
+  \item In Admin, open \ui{Apply Survey Definition}.
+  \item Upload a \file{.elicit} file. For the Family Health History Survey that is
+        \file{FHHS/family-history-survey.elicit}.
+  \item The console installs the survey the first time and updates it in place afterwards,
+        matching elements by their keys.
+  \item As part of the apply, the console asks Survey to rebuild the reporting star schema.
+        The \val{surveyreport} schema grows from its six skeleton tables to the full set of
+        dimension tables, fact tables and views.
+\end{enumerate}
+
+\begin{elicitnote}[No Survey restart is needed]
+The rebuild happens during the apply, over HTTP. Admin's \opt{elicit.survey.url} says where
+Survey is, and \opt{elicit.survey.etl-build.enabled} whether to make the call at all. The
+outcome is reported in the apply result and never fails the apply — a site that restarts
+Survey after every apply, or runs it with \opt{elicit.etl.enabled}\val{=false}, can turn the
+call off.
+\end{elicitnote}
+
+Confirm the rebuild:
+
+\screenshot{09-apply-definition}{Apply Survey Definition. The file identifies itself, so the
+same screen installs a survey and updates one.}
+
+\screenshot{10-apply-result}{The result. It reports what was installed and, on the last line,
+that the reporting schema was rebuilt — which is why no Survey restart is needed.}
+
+
+\begin{elicitcmd}
+docker exec elicit-db-1 psql -U survey -d survey \
+  -c "select count(*) from surveyreport.dim_step;"
+\end{elicitcmd}
+
+The count must be non-zero. The fact tables stay empty until respondents exist; they fill
+through triggers on \val{survey.respondents} as respondents progress.
+
+If your site runs FHHS, it has been reporting not-ready and answering report requests with
+\val{503} until now, naming the survey it is waiting for. It goes healthy by itself on its
+next probe. Nothing needs restarting.
+
+%% ================================================================== 9
+\section{Configuration}
+\label{sec:config}
+\markboth{Configuration}{}
+
+\subsection{How configuration reaches an application}
+
+Every module is a Quarkus application, so every setting can be given as a property or as an
+environment variable, whichever your deployment makes easier. Sources are consulted by
+ordinal, highest first:
+
+\begin{plaintable}{tab:sources}{Where a setting can come from}{@{}>{\raggedright\arraybackslash}p{0.62\linewidth} >{\raggedleft\arraybackslash}p{0.12\linewidth}@{}}{\thead{Source} & \thead{Ordinal}}
+System properties, passed on the command line & 400 \\
+Environment variables & 300 \\
+Environment variables from a \file{.env} file in the working directory & 295 \\
+\file{application.properties} in a \file{config} directory, relative to the working directory
+of the runnable artifact & 260 \\
+The \file{application.properties} inside the artifact — the defaults this chapter lists & 250 \\
+\end{plaintable}
+
+Note that a \file{.env} file is an environment-variable source that sits \emph{below} real
+environment variables, not a tier above them.
+
+\subsubsection*{From a property name to an environment variable}
+
+Upper-case the name and replace every character that is neither a letter, a digit nor an
+underscore with an underscore. So \opt{quarkus.datasource.jdbc.url} becomes
+\opt{QUARKUS_DATASOURCE_JDBC_URL}, and a quoted segment produces a doubled underscore on each
+side: \opt{quarkus.log.category."io.agroal".level} becomes
+\opt{QUARKUS_LOG_CATEGORY__IO_AGROAL__LEVEL}.
+
+\begin{elicitcaution}[The mapping is lossy]
+Names that differ only in punctuation collide: \opt{foo.bar-baz} and \opt{foo.bar.baz} both
+become \opt{FOO_BAR_BAZ}. Where that matters, give the setting as a property instead. In a
+container you can also give the dotted name directly as an environment entry, which avoids
+the question entirely and is what the shipped compose file does.
+\end{elicitcaution}
+
+\subsubsection*{Profiles}
+
+A name prefixed with a profile, such as \optlit{\%dev.quarkus.http.port}, applies only under that
+profile. Three prefixes appear in the modules' files, and none of them configures a
+deployment:
+
+\begin{itemize}
+  \item \optlit{\%dev.} — values for \val{quarkus:dev} on a developer's machine.
+  \item \optlit{\%test.} — values for the module's own test run.
+  \item \optlit{\%docker.} — a build-time profile that does one thing: switch the container-image
+        build on. It sets nothing a running deployment reads.
+\end{itemize}
+
+There are no \optlit{\%prod.} entries. Everything a deployment runs with is either an unprefixed
+default from the tables below or a value your site supplies.
+
+\subsection{Reading the tables}
+
+The \textbf{Change} column says what the setting is to you:
+
+\begin{description}
+  \item[\chgset] Your site must set it. The shipped value is a development value or a
+        placeholder and is wrong anywhere else.
+  \item[\chgmay] Your site may set it. The shipped value is a working default.
+  \item[\chgkeep] Leave it alone. It is an internal default that happens to live in the same
+        file, and changing it changes how the application works.
+\end{description}
+
+\subsection{Settings common to Survey, Admin and Author}
+
+\begin{settings}{tab:common}{Settings every application reads}
+\opt{brand.file.system.path} & \val{/brand} & \chgmay & The mounted brand directory. The
+compose file sets \val{/opt/brand}. See Chapter~\ref{sec:brand}. \\
+\opt{brand.local.path} & \val{brand} & \chgkeep & A brand directory beside the running
+application, searched between the mount and the embedded default. \\
+\opt{i18n.file.system.path} & \val{/i18n} & \chgmay & The mounted translations directory. The
+compose file sets \val{/opt/i18n}. See Chapter~\ref{sec:i18n}. \\
+\opt{i18n.local.path} & \val{i18n} & \chgkeep & A translations directory beside the running
+application. \\
+\opt{i18n.app.name} & per app & \chgkeep & Which sub-directory of the translations mount this
+instance reads: \val{survey}, \val{admin} or \val{author}. Rejected if it contains a path
+separator. \\
+\opt{i18n.bundled.locales} & \val{en} & \chgkeep & The languages the image itself ships.
+Mounted languages are offered in addition. \\
+\opt{i18n.pseudo-locale.enabled} & \val{false} & \chgkeep & Renders every text as a marker.
+A test aid; never enable it on a site. \\
+\opt{quarkus.application.name} & per app & \chgkeep & The name this instance reports in
+metrics and traces. \\
+\opt{build.timestamp} & build & \chgkeep & Stamped by the build and shown on the
+\ui{System} overview. \\
+\end{settings}
+
+\subsection{Survey}
+
+\begin{settings}{tab:survey}{Survey — Elicit settings}
+\opt{accessCode.autoRegister} & \val{false} & \chgset & Accept \emph{any} access code rather
+than only one the console issued. The compose file sets \val{true} for evaluation. A site
+delivering real surveys must leave it \val{false}. Author's preview instance keeps it
+\val{true} deliberately. \\
+\opt{elicit.etl.enabled} & \val{true} & \chgmay & Whether this instance builds the reporting
+star schema at startup and updates it when a respondent finalizes. Set \val{false} only on an
+instance that merely renders surveys, such as Author's preview. \\
+\opt{elicit.diagnostics.startup.enabled} & \val{true} & \chgmay & Whether the startup
+diagnostics report is written to the log. \\
+\opt{elicit.diagnostics.startup.delay} & \val{10s} & \chgmay & How long after startup that
+report is written. \\
+\end{settings}
+
+\subsection{Admin}
+
+\begin{settings}{tab:admin}{Admin — Elicit settings}
+\opt{elicit.authorization.mode} & \val{OIDC} & \chgmay & \val{DATABASE} also consults
+\val{survey.user_roles} and shows the role-assignment section of the user editor. It does not
+disable OIDC. Environment: \opt{ELICIT_AUTHORIZATION}. \\
+\opt{elicit.survey.url} & \val{http://survey:8080} & \chgset & Where Survey is, for the
+reporting-schema rebuild after a definition is applied. The default is the compose service
+name. Environment: \opt{ELICIT_SURVEY_URL}. \\
+\opt{elicit.survey.etl-build.enabled} & \val{true} & \chgmay & Whether to make that call at
+all. Environment: \opt{ELICIT_SURVEY_ETL_BUILD_ENABLED}. \\
+\opt{elicit.mailer.send-timeout-seconds} & \val{30} & \chgmay & How long a single message
+send may take before it is abandoned. \\
+\opt{elicit.debug.reveal-tokens} & \val{false} & \chgkeep & Shows OIDC and bearer tokens
+unmasked on the diagnostics screen. A development aid. This concerns identity tokens, not
+respondent access codes. \\
+\opt{admin.manual.resource} & \val{manual/elicit-admin-manual.pdf} & \chgkeep & Where the
+administrator's manual sits on the classpath. A build carrying no manual simply does not
+offer it. \\
+\opt{quarkus.mailer.mock} & --- & \chgkeep & When true, messages are logged instead of sent.
+Set by Quarkus itself in the development and test profiles; never set it on a site. \\
+\end{settings}
+
+\subsection{Author}
+
+\begin{settings}{tab:author}{Author — Elicit settings}
+\opt{elicit.debug.reveal-tokens} & \val{false} & \chgkeep & As Admin's, on Author's OIDC
+diagnostics page. \\
+\opt{author.manual.resource} & \val{manual/elicit-author-manual.pdf} & \chgkeep & Where the
+author's manual sits on the classpath. Overridable so that a test can exercise a build
+carrying no manual. \\
+\end{settings}
+
+\subsection{The Quarkus settings the images set}
+
+These are not Elicit settings, but the images set them, so your site is overriding a value
+rather than a blank when it changes one.
+
+\begin{settings}{tab:quarkus-db}{Datasources — all three applications}
+\opt{quarkus.datasource.db-kind} & \val{postgresql} & \chgkeep & Elicit runs on PostgreSQL
+only. \\
+\opt{quarkus.datasource.db-version} & \val{17} & \chgkeep & The version the schema and the
+migrations are written against. \\
+\opt{quarkus.datasource.jdbc.url} & \val{jdbc:postgresql://db:5432/survey} plus the
+parameters below & \chgset & The application connection. The host names the compose service;
+Author's points at the \val{author} database. \\
+\opt{quarkus.datasource.username} & per app & \chgset & \val{survey_user} for Survey and
+Author, \val{surveyadmin_user} for Admin. \\
+\opt{quarkus.datasource.password} & per app & \chgset & See Section~\ref{sec:secrets}. \\
+\opt{quarkus.datasource.jdbc.min-size} & \val{5} & \chgmay & \\
+\opt{quarkus.datasource.jdbc.max-size} & \val{20} & \chgmay & \\
+\opt{quarkus.datasource.jdbc.leak-detection-interval} & \val{10m} & \chgmay & \\
+\opt{quarkus.datasource.owner.jdbc.url} & as above & \chgset & The migrating connection.
+Survey and Admin only; Author owns no migrations. \\
+\opt{quarkus.datasource.owner.username} & \val{elicit_owner} & \chgkeep & The schema owner. \\
+\opt{quarkus.datasource.owner.password} & per app & \chgset & See
+Section~\ref{sec:secrets}. \\
+\opt{quarkus.hibernate-orm.schema-management.strategy} & \val{none} & \chgkeep & Author only.
+It never creates or alters the schema. \\
+\end{settings}
+
+The shipped connection URLs carry four parameters that the host and database name above
+leave out. Keep them when you point a module at your own server — they are what stops a
+dropped connection hanging a request indefinitely:
+
+\begin{elicitfile}[fontsize=\footnotesize]
+?connectTimeout=30&socketTimeout=600&tcpKeepAlive=true&tcpKeepAlivesIdle=60
+\end{elicitfile}
+
+\begin{settings}{tab:quarkus-oidc}{Identity — Admin and Author}
+\opt{quarkus.oidc.auth-server-url} & \val{http://host.docker.internal:8180/realms/elicit/} &
+\chgset & Your provider's issuer address. It must resolve to the same provider from the
+browser and from inside the container. \\
+\opt{quarkus.oidc.client-id} & \val{elicit-admin} / \val{elicit-author} & \chgmay & \\
+\opt{quarkus.oidc.credentials.secret} & \opt{OIDC_CLIENT_SECRET} & \chgset & The
+client secret. \\
+\opt{quarkus.oidc.application-type} & \val{hybrid} & \chgkeep & Accepts browser sign-ins and
+bearer tokens on one client. \\
+\opt{quarkus.oidc.authentication.redirect-path} & \val{/callback} & \chgkeep & \\
+\opt{quarkus.oidc.logout.path} & \val{/logout} & \chgkeep & \\
+\opt{quarkus.oidc.token.refresh-expired} & \val{true} & \chgkeep & Author only. Without it a
+short-lived identity token expires mid-edit and the interface silently stops responding. \\
+\opt{quarkus.oidc.authentication.session-age-extension} & \val{30M} & \chgkeep & Author only,
+for the same reason. \\
+\end{settings}
+
+\begin{settings}{tab:quarkus-http}{HTTP, proxying and limits}
+\opt{quarkus.http.port} & \val{8080} & \chgkeep & Inside the container. Publish a different
+host port instead. \\
+\opt{quarkus.http.proxy.proxy-address-forwarding} & \val{true} & \chgkeep & Required behind a
+load balancer so that redirect URIs are built with the external address. \\
+\opt{quarkus.http.proxy.allow-x-forwarded} & \val{true} & \chgkeep & \\
+\opt{quarkus.http.cors.origins} & empty & \chgmay & Admin and Author list allowed origins
+explicitly; Survey defaults to \val{http://localhost:8080}. Each application is served
+same-origin to its own interface, so a site normally needs nothing here. \\
+\opt{quarkus.http.limits.max-body-size} & \val{25M} & \chgmay & Admin only. Bounds a CSV or
+definition-file upload. \\
+\opt{quarkus.tls.trust-all} & \val{true} & \chgset & Survey and Admin. See the caution
+below. \\
+\end{settings}
+
+\begin{elicitsecurity}[Outbound TLS verification is disabled]
+\opt{quarkus.tls.trust-all}\val{=true} turns off certificate verification for \emph{all}
+outbound TLS from Survey and Admin. Admin's configuration file records this as a deliberate,
+signed-off decision from a 2026-09 audit rather than an oversight. It is nevertheless an
+accepted risk that each site should re-confirm for itself, and it is the one entry in these
+tables whose shipped value is a security decision rather than a convenience.
+\end{elicitsecurity}
+
+\begin{settings}{tab:quarkus-flyway}{Migrations — Survey and Admin}
+\opt{quarkus.flyway.owner.schemas} & \val{survey} & \chgkeep & \\
+\opt{quarkus.flyway.owner.migrate-at-start} & per app & \chgkeep & \val{true} on Admin.
+\val{false} on Survey, which runs its migrations itself so that it can choose between the
+current schema and the upgrade track. \\
+\opt{quarkus.flyway.owner.baseline-on-migrate} & \val{true} & \chgkeep & \\
+\opt{quarkus.flyway.owner.validate-on-migrate} & \val{true} & \chgkeep & \\
+\opt{quarkus.flyway.owner.repair-at-start} & \val{true} & \chgkeep & Admin only. Rewrites the
+recorded checksums of two migrations that were edited after release, so existing databases
+start without a manual repair. \\
+\opt{quarkus.flyway.owner.table} & per app & \chgkeep & \val{flyway_history} for Survey,
+\val{flyway_admin_history} for Admin: each module keeps its own history in the shared
+schema. \\
+\opt{quarkus.flyway.owner.connect-retries} & \val{10} & \chgmay & How many times to retry a
+database that is not up yet. \\
+\opt{quarkus.flyway.owner.locations} & \val{db/migration} & \chgkeep & Which migration scripts
+to run. Survey reads this itself to choose between the current schema and the upgrade track;
+changing it points a release at scripts it was not built with. \\
+\opt{quarkus.flyway.owner.baseline-version} & \val{0} & \chgkeep & The version recorded when
+an existing database is brought under Flyway's control. \\
+\opt{quarkus.flyway.owner.baseline-description} & \val{Empty Database} & \chgkeep & The
+description recorded alongside it. \\
+\end{settings}
+
+\begin{settings}{tab:quarkus-mail}{Mail — Admin only}
+\opt{quarkus.mailer.host} & \val{localhost} & \chgset & Your SMTP relay. \\
+\opt{quarkus.mailer.port} & \val{25} & \chgset & \\
+\opt{quarkus.mailer.from} & --- & \chgset & The address invitations are sent from. \\
+\opt{quarkus.mailer.tls} & \val{false} & \chgset & \\
+\opt{quarkus.mailer.username} & --- & \chgmay & With
+\opt{quarkus.mailer.password} if your relay authenticates. \\
+\end{settings}
+
+\begin{settings}{tab:quarkus-obs}{Health, metrics and traces}
+\opt{quarkus.smallrye-health.root-path} & \val{/q/health} & \chgkeep & Gives
+\opt{/q/health/ready} and \opt{/q/health/live}. Public on Admin and Author. \\
+\opt{quarkus.micrometer.export.prometheus.path} & \val{/q/metrics} & \chgkeep & Public on
+Admin and Author, for a scraper your site provides. \\
+\opt{quarkus.otel.enabled} & \val{true} & \chgmay & \\
+\opt{quarkus.otel.exporter.otlp.endpoint} & \val{http://localhost:4317} & \chgset & Your
+collector. The compose file sets \val{http://jaeger:4317}. \\
+\opt{quarkus.otel.traces.sampler} & \val{parentbased_always_on} & \chgmay & Samples every
+trace. Consider reducing this on a busy site. \\
+\opt{quarkus.log.level} & \val{WARN} & \chgmay & Environment: \opt{LOG_LEVEL}. \\
+\opt{quarkus.log.category."com.elicitsoftware".level} & \val{INFO} & \chgmay & Admin and
+Author. Environment: \opt{ELICIT_LOG_LEVEL}. \\
+\opt{quarkus.http.access-log.enabled} & \val{true} & \chgmay & \\
+\opt{quarkus.hibernate-orm.statistics} & \val{true} & \chgmay & Useful, and not free. \\
+\end{settings}
+
+\subsection{Everything else}
+
+These tables cover what Elicit defines and what its images set. Every other Quarkus setting
+behaves as Quarkus documents it:
+
+\begin{center}
+\url{https://quarkus.io/guides/all-config}
+\end{center}
+
+\subsection{The secrets that ship with a value}
+\label{sec:secrets}
+
+\begin{elicitsecurity}[Every one of these is published]
+Each value below is in this repository and in this manual. A site that leaves one as shipped
+is running with a credential anyone can read.
+\end{elicitsecurity}
+
+\begin{plaintable}{tab:secrets}{Development credentials that must be replaced}{@{}>{\raggedright\arraybackslash}p{0.29\linewidth} >{\raggedright\arraybackslash}p{0.21\linewidth} >{\raggedright\arraybackslash}p{0.43\linewidth}@{}}{\thead{What} & \thead{Shipped value} & \thead{Where it comes from}}
+Schema owner password & \val{SURVEYPW} & The database image's role script; Survey's
+configuration file; \opt{ELICIT_OWNER_DB_PASSWORD} in the compose file. \\
+\addlinespace
+Survey's connection password & \val{SURVEYPW} & As above; also
+\opt{ELICIT_DB_PASSWORD} for Author. \\
+\addlinespace
+Admin's connection password & \val{SAOWNERPW} & The database image's role script;
+\opt{ELICIT_DB_PASSWORD} in the compose file. \\
+\addlinespace
+Reporting password & \val{SRUSERPW} & The database image's role script. No module in this
+repository presents it — the role is created and left unused. \\
+\addlinespace
+OIDC client secret, both applications & \val{secret} & \opt{OIDC_CLIENT_SECRET} in the
+compose file, and the \val{elicit-admin} and \val{elicit-author} clients of the bundled
+Keycloak realm. \\
+\addlinespace
+OIDC client secret, integration client & \val{importer} & The \val{import-service} client of
+the bundled Keycloak realm, used by a machine client presenting a bearer token. \\
+\addlinespace
+Database superuser & \val{survey}/\val{admin} & The bundled database service. \\
+\addlinespace
+Keycloak administrator & \val{admin}/\val{admin} & The bundled identity provider. \\
+\addlinespace
+SFTP account & \val{fhhs_user}/\val{pass} & The bundled SFTP service, for FHHS report
+delivery. \\
+\end{plaintable}
+
+\begin{elicitcaution}[Changing the two compose variables is not enough]
+Only Admin and Author read their database passwords from \opt{ELICIT_DB_PASSWORD} and
+\opt{ELICIT_OWNER_DB_PASSWORD}. Survey and FHHS carry the literal \val{SURVEYPW} in their own
+shipped configuration, so a site that changes only the two compose variables leaves those two
+modules still presenting the published password. Override
+\opt{quarkus.datasource.password} and \opt{quarkus.datasource.owner.password} on them
+directly.
+\end{elicitcaution}
+
+\begin{elicitnote}[The two Admin variables read backwards, and are correct]
+The compose file sets \opt{ELICIT_DB_PASSWORD}\val{=SAOWNERPW} and
+\opt{ELICIT_OWNER_DB_PASSWORD}\val{=SURVEYPW}. That is right: Admin's application connection
+is \val{surveyadmin_user}, whose password is \val{SAOWNERPW}, and its migrating connection is
+\val{elicit_owner}, whose password is \val{SURVEYPW}. The names simply do not read that way.
+Do not swap them.
+\end{elicitnote}
+
+Two more things a new installation ships with, which are not secrets but are just as public:
+the seeded accounts \val{admin} and \val{user}, which Admin warns about on every screen until
+they are renamed (Chapter~\ref{sec:firstsignin}).
+
+%% ================================================================== 10
+\section{External branding}
+\label{sec:brand}
+\markboth{External branding}{}
+
+Each application embeds a copy of the Elicit default brand. Mounting a directory at
+\opt{brand.file.system.path} overrides it without rebuilding anything.
+
+\subsection{The layout}
+
+\begin{elicitfile}
+<brand>/
+  brand-config.json          name, organization, logos, favicon
+  brand-info.json            description shown in a meta tag
+  colors/brand-colors.css    the --brand-* custom properties
+  typography/brand-typography.css
+  typography/typography.json
+  images/HorizontalLogo.png  the header logo
+  images/icon-white.png
+  images/favicon.ico
+  theme.css                  imports colors and typography
+\end{elicitfile}
+
+\subsection{A brand may be partial}
+
+Resolution is per \emph{file}: anything the mount does not provide falls back to the embedded
+default. A brand that only changes colors needs only \file{colors/brand-colors.css} and a
+\file{theme.css} that imports it.
+
+A brand supplies \val{--brand-*} custom properties only. Each application's own stylesheet
+maps the Vaadin \val{--lumo-*} tokens onto them, so a brand never sets a \val{--lumo-*} value
+directly.
+
+\subsection{Mounting one}
+
+\begin{elicitcmd}
+volumes:
+  - ./my-brand/:/opt/brand:ro
+environment:
+  brand.file.system.path: /opt/brand
+\end{elicitcmd}
+
+Read-only is correct: no application writes to the brand directory.
+
+\screenshot{17-branded-header}{A branded application. The header logo, the colours and the
+typefaces all come from the mounted directory.}
+
+\subsection{Translated brand text}
+
+The organization name in the header, and the brand description, are translated \emph{in the
+brand} — not in the applications' translation files. Add a \val{localized} block keyed by
+language tag:
+
+\begin{elicitfile}
+{
+  "name": "Elicit Default Brand",
+  "organization": "Elicit Software",
+  "localized": {
+    "es-419": { "organization": "Elicit Software" },
+    "ar":     { "organization": "Elicit Software" }
+  }
+}
+\end{elicitfile}
+
+It resolves exact tag, then language, then the base value. The base \val{name} also derives
+the technical brand key, so leave it as it is.
+
+\subsection{Checking that it took}
+
+Admin's and Author's \ui{System} sections have a \ui{Branding} page reporting which brand
+directory resolved and, for each asset, whether it came from the mount or from the embedded
+default. That is the fastest way to find a mount that is one directory level off.
+
+\screenshot{13-system-branding}{The Branding page. It names the directory that resolved and,
+per asset, whether it came from the mount or from the embedded default.}
+
+%% ================================================================== 11
+\section{Translations}
+\label{sec:i18n}
+\markboth{Translations}{}
+
+Survey, Admin and Author ship English only. A deployment adds languages by mounting files;
+the language selector appears in the header only once more than one language is available, so
+an English-only site never shows it.
+
+\begin{elicitcaution}[Survey content is not translated by this]
+This mechanism translates the applications' own chrome — buttons, labels, page titles,
+notifications, validation messages, PDF headers. Survey content stored in the database —
+question text, answer options, section and step names, report bodies, message templates —
+appears in the language it was authored in and is not affected by the language selector.
+\end{elicitcaution}
+
+\subsection{The layout}
+
+One directory, one sub-directory per application:
+
+\begin{elicitfile}
+<translations>/
+  i18n-config.json                     optional; text direction per tag
+  survey/translations_es_419.properties
+  survey/translations_ar.properties
+  admin/translations_es_419.properties
+  author/translations_es_419.properties
+\end{elicitfile}
+
+The repository's \file{elicit-i18n/} directory is a complete, working starting point carrying
+Latin American Spanish (\val{es-419}) and Arabic (\val{ar}) for all three applications.
+
+\screenshot{18-language-selector}{The header of an application with a second language on the
+mount. The selector is shown only when there is something to select; an English-only site
+never sees it.}
+
+\subsection{How a text is resolved}
+
+Per \emph{key}, later tiers winning:
+
+\begin{enumerate}
+  \item the English bundle inside the image;
+  \item a local \file{i18n/<app>/} directory beside the application;
+  \item the mounted \file{<mount>/<app>/} directory.
+\end{enumerate}
+
+Then the exact locale falls back to the language alone, and then to English. So a mounted file
+needs only the keys it changes. A key missing everywhere renders as \val{!key!} and is logged
+once — never blank.
+
+The languages offered are the built-in English plus every \file{translations_*.properties}
+found in the local and mounted tiers, so a language that exists \emph{only} on the mount is
+offered too.
+
+\subsection{Adding, replacing or removing a language}
+\label{sec:language}
+
+\begin{enumerate}
+  \item Obtain a completed \file{translations_<tag>.properties}
+        (Section~\ref{sec:commission}).
+  \item Check it: UTF-8; every key must exist in the application's English bundle; each
+        text's \val{\{n\}} placeholders must match the English ones; a text that takes
+        parameters must not contain a lone apostrophe.
+  \item Place it in the application's sub-directory of the translations mount, named
+        \file{translations_<tag>.properties}. To \emph{replace} a language, overwrite the
+        file; to \emph{remove} one, delete it.
+  \item If the language is right-to-left and not one of the defaults, record its direction in
+        \file{i18n-config.json} at the mount root.
+  \item Restart the module.
+\end{enumerate}
+
+A partial file is an override, not an error: the texts it does not carry fall back to English.
+
+\begin{elicitcaution}[The tag is punctuated two ways]
+In the \emph{file name} a language tag takes underscores — Latin American Spanish is
+\file{translations_es_419.properties}. Everywhere else, including
+\file{i18n-config.json} and a \opt{?lang=} parameter, the same tag is written with
+hyphens: \val{es-419}. A file named with hyphens is not found, and the language is
+silently not offered.
+\end{elicitcaution}
+
+A language is added to one application at a time. Giving the console a language does not
+give it to Survey; each has its own sub-directory. Author's preview instance reads Survey's,
+because it \emph{is} Survey.
+
+\begin{elicitnote}[Doing this from inside the applications is specified, not yet built]
+Admin UC-027 and Author UC-041 specify a \ui{Languages} screen that uploads, replaces and
+removes a language through the application, with validation and a summary shown before
+anything is stored. Neither is implemented in this release, so the file procedure above is
+the one to use. When they arrive they will need the translations directory mounted
+\emph{writable}; the shipped compose file mounts it read-only.
+\end{elicitnote}
+
+\subsection{Text direction}
+
+Arabic, Hebrew, Persian, Urdu, Pashto, Sindhi, Uyghur, Yiddish, Dhivehi and Kurdish (Sorani)
+are right-to-left by default. Override or extend that with \file{i18n-config.json} at the
+mount root:
+
+\begin{elicitfile}
+{ "locales": [ { "tag": "ar", "direction": "rtl" } ] }
+\end{elicitfile}
+
+Only right-to-left and left-to-right are supported. The applications' stylesheets use logical
+properties, so a mirrored layout needs no per-language stylesheet.
+
+\subsection{Which language a reader gets}
+
+In order: a \opt{?lang=<tag>} parameter on the address (Survey's invitation links carry one),
+then the language chosen earlier in the browser session, then the browser's own
+\val{Accept-Language} negotiated against the available languages, then English. An unknown tag
+is ignored. The choice lives in the session only — nothing is stored against a respondent or a
+user.
+
+\subsection{Commissioning a translation}
+\label{sec:commission}
+
+Each application generates a translation request document, and a copy of each sits at
+\file{elicit-i18n/<app>/TRANSLATION_REQUEST.md}. It carries the application's purpose and
+audience, a glossary of terms that must stay consistent or untranslated, the placeholder and
+markup rules, and every key with its English text, where it appears, its maximum length and
+any flags — together with the return instructions: one
+\file{translations_<tag>.properties}, the same keys, in the same order.
+
+Hand it to a translator or to an AI agent. Drop the returned file into the mount
+(Section~\ref{sec:language}) to deploy the language.
+
+%% ================================================================== 12
+\section{Verifying the installation}
+\label{sec:verify}
+\markboth{Verifying the installation}{}
+
+In order, because each check depends on the one before it.
+
+\begin{enumerate}
+  \item \textbf{Every service is up.} \file{./status.sh} lists the containers and probes
+        Survey, Admin, FHHS, Author, Author's preview, Keycloak and Mailpit over HTTP,
+        accepting \val{200}, \val{302} or \val{401} as reachable. It is a reachability
+        check, not a health check: it does not probe Pedigree or Jaeger, and a service that
+        answers but is not ready still shows as reachable. Step 2 is the real test.
+  \item \textbf{Every application is ready.} \opt{/q/health/ready} returns healthy. For
+        Survey this is what says its migrations finished.
+  \item \textbf{The schema exists.} The \val{survey} schema carries tables, and both
+        migration histories are present.
+  \item \textbf{The reporting schema is built.} After a definition is applied,
+        \val{surveyreport.dim_step} is non-zero (Chapter~\ref{sec:definition}).
+  \item \textbf{Sign-in works.} Sign in to Admin, and to Author if your site runs it. A
+        redirect that fails here is almost always the identity provider's issuer address
+        (Chapter~\ref{sec:oidc}).
+  \item \textbf{The console agrees.} Admin's \ui{System} section reports on the database,
+        branding, mail — with a \ui{Send test email} button — the reachability of every
+        outbound dependency, and the current sign-in's roles. Author has the same section for
+        holders of \val{elicit_admin}.
+  \item \textbf{A respondent can answer.} Register a subject, issue an access code, and walk
+        the survey.
+\end{enumerate}
+
+\begin{elicitnote}[Survey writes a diagnostics report to its log]
+\screenshot{11-system-overview}{The System overview page. It lists the setup work still
+outstanding, which on a finished installation is the shortest possible verification.}
+
+\screenshot{12-system-database}{The System database page: both connections, and whether each
+module's migrations are in place.}
+
+\screenshot{14-system-email}{The System email page. The effective settings, and a button that
+sends a real message through them.}
+
+\screenshot{15-system-connections}{The System connections page: a bounded reachability check of
+every outbound dependency.}
+
+\screenshot{16-system-oidc}{The System OIDC page: the current sign-in's roles, and its tokens
+masked. Secrets are reported as present or absent, never shown.}
+
+
+A few seconds after startup Survey writes a startup diagnostics report. Anything an operator
+must act on is logged as a warning; the rest is logged at information level, and its category
+is pinned so the report appears even when the overall log level is \val{WARN}. It is the
+first place to look after a start that seemed to work.
+\end{elicitnote}
+
+%% ================================================================== 13
+\section{When it does not work}
+\markboth{When it does not work}{}
+
+\begin{plaintable}{tab:failures}{Failures that are actually seen}{@{}>{\raggedright\arraybackslash}p{0.29\linewidth} >{\raggedright\arraybackslash}p{0.31\linewidth} >{\raggedright\arraybackslash}p{0.33\linewidth}@{}}{\thead{Symptom} & \thead{Cause} & \thead{Fix}}
+A module fails its migration on a missing table or sequence. & It started before Survey
+migrated a new database. & Let Survey become ready, then start the module again. Nothing is
+corrupted. \\
+\addlinespace
+FHHS is not ready and answers report requests with \val{503}, naming a survey. & Its survey
+has not been imported yet. & Apply the definition (Chapter~\ref{sec:definition}). FHHS goes
+healthy on its next probe; nothing needs restarting. \\
+\addlinespace
+Sign-in redirects fail, or land on the wrong service. & The issuer address does not resolve
+to the same provider from the browser and from inside the container. & Use one address that
+works from both (Chapter~\ref{sec:oidc}). \\
+\addlinespace
+A service is reported unhealthy although it responds in a browser. & The health check was
+pointed at the published host port. & Point it at \val{8080} inside the container. \\
+\addlinespace
+The database's first start after a reset fails on wrong ownership of its data directory. & A
+known file-sharing fault of Docker Desktop for Mac (\val{docker/for-mac\#7415}), not a broken
+copy. & Run \file{resetDatabase.sh} again and restart. If it recurs, switch Docker Desktop's
+file sharing to gRPC FUSE. \\
+\addlinespace
+The console shows a banner about default accounts on every screen. & The seeded accounts
+\val{admin} and \val{user} have not been renamed. & Rename both
+(Chapter~\ref{sec:firstsignin}). \\
+\addlinespace
+A dialog blocks the console and will not close. & No department exists. & Follow its link and
+create one (Chapter~\ref{sec:firstsignin}). \\
+\addlinespace
+A signed-in user can only log out. & They belong to no department. & Assign them one in
+\ui{Users}. \\
+\addlinespace
+Author shows the \ui{System} pages but no surveys. & The account holds \val{elicit_admin} but
+not \val{elicit_author}. & Grant \val{elicit_author} (Chapter~\ref{sec:oidc}). \\
+\addlinespace
+A language is mounted but never offered. & The file is in the wrong sub-directory, or the
+module has not been restarted. & Check the layout in Section~\ref{sec:i18n} and restart. \\
+\end{plaintable}
+
+\subsection{Upgrading an existing site}
+
+Upgrade procedures are release-specific, and this manual is stamped with one version and may
+outlive it. They are kept in \file{DeploymentScript.md} in the umbrella repository, which
+covers — among others — the move to Kimball Type 2 slowly-changing dimensions, and the rename
+of the respondent credential to the access code. Read the procedure for the release you are
+moving to, not this manual.
+
+\begin{elicitcaution}[Upgrade the modules that share a schema together]
+Survey, Admin and FHHS share the \val{survey} schema and migrate on top of each other.
+Upgrading one of them independently of the others is the case that breaks. In the container
+path, \opt{depends_on} orders \emph{startup} only; it does not re-validate a dependency that
+is already running.
+\end{elicitcaution}
+
+%% ================================================================== 14
+\section{Where to look next}
+\markboth{Where to look next}{}
+
+\begin{description}
+  \item[The administrator's manual] Running the console: departments, users, subjects, access
+        codes, invitations, reports, and applying survey definitions.
+  \item[The author's manual] Building a survey, from an empty list to an exported
+        \file{.elicit} file. It ships inside Author and is reached from the application
+        header.
+  \item[\file{DeploymentScript.md}] Release-specific upgrade procedures, and the post-install
+        template data for the Family Health History Survey.
+  \item[\file{docs/BRAND_SYSTEM_IMPLEMENTATION_GUIDE.md}] How the brand system is built, for
+        someone extending it rather than mounting one.
+  \item[\file{docs/I18N_IMPLEMENTATION_GUIDE.md}] The same, for translations.
+  \item[\url{https://quarkus.io/guides/all-config}] Every configuration setting this manual
+        does not list.
+\end{description}
+
+\vspace{1em}
+
+\begin{elicitnote}[Which version is this?]
+This manual describes the Elicit platform \textbf{\elicitVersion}, built
+\textbf{\elicitBuildDate}. The same pair is printed at the foot of every page, so a printed
+copy can always be matched back to the release it came from.
+\end{elicitnote}
+
+\end{document}
