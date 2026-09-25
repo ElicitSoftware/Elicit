@@ -1,0 +1,149 @@
+# ELICIT_SURVEY_EXPORT_V1
+# survey_id: 1
+# survey_key: eaa5c9d0-f4b1-596e-add5-18571ca79227
+# survey_name: Census Household Survey
+# surveys: 1
+# select_groups: 6
+# select_items: 29
+# steps: 6
+# sections: 11
+# steps_sections: 11
+# questions: 26
+# sections_questions: 26
+# relationships: 12
+# reports: 0
+# post_survey_actions: 0
+# dimensions: 0
+# ontology: 0
+# metadata: 0
+# generated: 2026-09-25T12:30:00Z
+# survey_revision: 2026-09-25T12:30:00Z
+
+surveys: 1|eaa5c9d0-f4b1-596e-add5-18571ca79227|Census Household Survey|2|Census Household Survey|A demonstration survey about census household data. It uses every question type and every rule the Elicit engine supports, exactly once where practical.|0001-0001-0000-0001-0000-0000-0000|||
+select_groups: 1|8514a507-5906-5add-9b0e-956a124c8474|Gender|Gender choices|Text|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_groups: 2|fdec8ae8-2956-577a-a6b4-371c10970f97|MaritalStatus|MaritalStatus choices|Text|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_groups: 3|3e08f234-4d9f-559e-888d-dbc75a6a8229|Race|Race choices|Text|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_groups: 4|9441eae3-83c9-5c2e-ae63-dd9442ea9a16|Languages|Languages choices|Text|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_groups: 5|35097821-f637-57f5-be60-6edb02b8b847|Tenure|Tenure choices|Text|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_groups: 6|f8b78d6d-2581-5e2f-8859-5ddb2d7e2085|Relationship|Relationship choices|Text|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_items: 1|f1cf40c9-ab33-55bb-8d7e-bc28ee7d52cf|1|Male|1|MALE|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_items: 2|e2325d83-cb49-5509-96ba-302322d746e5|1|Female|2|FEMALE|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_items: 3|4755603f-581a-5cc3-bc5e-8726f785fe1e|1|Another gender|3|OTHER|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_items: 4|d2374e04-f33b-580c-8f8b-5b8d9d6d3a68|1|Prefer not to say|4|NOANS|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_items: 5|0b42783c-6a12-58cb-9d7a-4e85bf93cbfb|2|Single, never married|1|SINGLE|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_items: 6|542741af-cf2a-5719-a3d8-5393beae6519|2|Married|2|MARRIED|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_items: 7|a2e06906-81aa-59b9-9af5-44960a5b7e55|2|Separated|3|SEPARATED|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_items: 8|2c47f7b1-1420-57af-84f1-5ed12b6aaa18|2|Divorced|4|DIVORCED|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_items: 9|e3b07432-7b52-5900-86dd-260a90e8de72|2|Widowed|5|WIDOWED|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_items: 10|97ee3d61-9891-5ff7-9480-31db8ed49d4a|3|White|1|WHITE|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_items: 11|be2755e5-fa4c-5dae-91b2-fc084e943240|3|Black or African American|2|BLACK|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_items: 12|2ffbb768-7704-5662-99d5-c5606198dec9|3|American Indian or Alaska Native|3|AMIND|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_items: 13|e648f002-896a-54d9-9891-49b1b00f094a|3|Asian|4|ASIAN|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_items: 14|7c85c77e-c5ab-54df-9cc6-67bb9d8a0f5d|3|Native Hawaiian or Other Pacific Islander|5|NHPI|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_items: 15|ee90be06-a795-5cc0-83a4-1ab3ce08945c|3|Some other race or origin|6|OTHER|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_items: 16|1251358d-1a47-5ef3-8850-fec6961db92f|4|English|1|ENGLISH|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_items: 17|59e692d0-0c47-5267-b4e2-fbc735ff66fc|4|Spanish|2|SPANISH|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_items: 18|9e9f66e1-732f-540d-bbcb-03615f0db608|4|Arabic|3|ARABIC|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_items: 19|56225334-efca-5a59-82f8-1dd8448282d0|4|Chinese|4|CHINESE|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_items: 20|74fe4eee-3f7d-51c1-b0f0-124ab4e778cc|4|Another language|5|OTHER|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_items: 21|e6c322aa-d2e6-5f2c-b621-e0fe9c370b0a|5|Owned by you or someone in this household|1|OWN|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_items: 22|500efc95-3a40-53ee-88cb-6c06e9be74dc|5|Rented|2|RENT|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_items: 23|6371dd41-bfab-53e7-8dde-55c5d6630586|5|Occupied without payment of rent|3|NOPAY|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_items: 24|1568cf34-56cf-5d3a-a363-7bf3c772dfe2|6|Spouse or partner|1|SPOUSE|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_items: 25|f480c61e-28c5-5ffe-83d0-097b6e7001ea|6|Child|2|CHILD|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_items: 26|2982af77-186c-54bf-b4f7-14bdd59b4e6e|6|Parent|3|PARENT|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_items: 27|6598ddfd-c320-5bfb-abdb-87b36e065ef5|6|Brother or sister|4|SIBLING|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_items: 28|32412ede-3646-555f-bf21-adbea361ef60|6|Roommate or housemate|5|ROOMMATE|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_items: 29|b4d6cd07-896a-5ab3-bb42-8c983b1bc9ea|6|Other relative|6|OTHER|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+steps: 1|e062590f-5452-5b6b-8caa-2a4b08843dfe|1|Welcome||Welcome step|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+steps: 2|75f39b4c-3e3c-54d7-a3c1-10d2a858ee25|2|About You||About You step|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+steps: 3|b842a1e1-2c1a-592d-8e71-3d5164d59803|3|Your Home||Your Home step|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+steps: 4|9dd92bba-1473-5d2e-a67d-546e5f983f66|4|Household Members||Household Members step|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+steps: 5|1041580f-4362-5fe2-95e8-119134bb621a|5|{name\|this person}||{name\|this person} step|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+steps: 6|36cbe350-9b63-52e7-a534-b6f83a1cb4e0|6|Finishing Up||Finishing Up step|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections: 1|eb79355c-1019-59ed-949e-735139f4fbcf|1|Introduction||Introduction section|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections: 2|cb3ed4fe-1434-53e1-8b71-11806db9fac3|2|About you||About you section|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections: 3|3a26aa7f-88c6-58b7-a6fc-340ae3950e2b|3|Race and language||Race and language section|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections: 4|a22daf67-9dc2-56cf-a3c0-f19104986b4c|4|Housing||Housing section|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections: 5|6193cf18-06ab-5900-9ccb-69e37e22ce0a|5|Rent details||Rent details section|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections: 6|375ed3ba-8d7c-5404-8540-bcfb9a1539c7|6|Vehicles||Vehicles section|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections: 7|01262607-8b33-514c-ae46-9d58dc1b0e65|7|Vehicle||Vehicle section|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections: 8|4064adef-e737-5047-86e1-1583215c0c49|8|Household members||Household members section|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections: 9|debe0f17-1c49-5c34-ad02-bcdb6cad126b|9|{name\|this person}||{name\|this person} section|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections: 10|efffd848-f6f5-5a03-ba91-1e2a89d7aacb|10|Contact||Contact section|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections: 11|3ae99aec-0012-5d4c-909f-8bb102aee57e|11|Anything else||Anything else section|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+steps_sections: 1|4e2a29e7-1ec7-57e2-aa6c-a80adfea62c1|1|1|1|1|0001-0001-0000-0001-0000-0000-0000|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+steps_sections: 2|f4e09099-0f26-532b-8cf9-631a21a66359|2|2|2|1|0001-0002-0000-0001-0000-0000-0000|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+steps_sections: 3|4607b9a7-9902-53aa-9016-5f7c9328b632|2|2|3|2|0001-0002-0000-0002-0000-0000-0000|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+steps_sections: 4|1294a87d-d02d-5056-bec1-82e1109d5070|3|3|4|1|0001-0003-0000-0001-0000-0000-0000|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+steps_sections: 5|916c8c65-dad2-583b-8dd5-ccef216c46ba|3|3|5|2|0001-0003-0000-0002-0000-0000-0000|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+steps_sections: 6|b96eaace-7f63-574e-9d27-34c2cd561b2c|3|3|6|3|0001-0003-0000-0003-0000-0000-0000|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+steps_sections: 7|1d58098f-2e03-51c8-97bd-806490cd6ae1|3|3|7|4|0001-0003-0000-0004-0000-0000-0000|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+steps_sections: 8|f838a4f5-2314-5367-8546-063f049b22a1|4|4|8|1|0001-0004-0000-0001-0000-0000-0000|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+steps_sections: 9|99c086ec-1414-5fc8-a8fd-a572593c43d0|5|5|9|1|0001-0005-0000-0001-0000-0000-0000|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+steps_sections: 10|b0ce6aca-8223-51a5-9273-d88c7b59baa0|6|6|10|1|0001-0006-0000-0001-0000-0000-0000|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+steps_sections: 11|bdcdd173-2a1a-5f7b-9b69-263d4033f72a|6|6|11|2|0001-0006-0000-0002-0000-0000-0000|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 1|fb2ada2f-4bf8-516f-a728-44832f122cea|4|<h1>Census Household Survey</h1><p>This short survey asks about the people living in your home, the home itself, and how to reach you. It is a demonstration survey: it exercises every question type and every rule the Elicit engine supports.</p><p>Your answers save as you go, so you can stop and come back at any time.</p>|Welcome||false|||||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 2|f27a9ebb-beb0-5cf9-8f78-f17ac90d178f|1|I have read the above and agree to take part in this survey.|Consent||true|||||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 3|cb8a1391-1279-52eb-9b40-e282fe237a9f|8|What is your full name?|Name||true|1|100|Please enter your name.||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 4|09b814e1-a865-5836-b2a3-09cd19aedba2|5|How old are you?|Age||true|0|120|Please enter an age between 0 and 120.||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 5|a5617b8c-a73b-58fa-8d54-7a00f69995ce|7|What is your gender?|Gender||true|||Please select a value.|1||||vertical|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 6|ab492736-8a26-5ef7-a872-f6160616175a|3|What is your marital status?|Marital status||false||||2||Select one|||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 7|7c5ccc94-2f05-5489-be2c-ed35089fbfac|11|Which of the following describe you? Select all that apply.|Race||false||||3||||vertical|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 8|e4c87356-02d8-5196-9474-4fc13a8bb9e2|8|Which other race or origin?|Other race||false||100|||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 9|ff8df2bf-cd56-5a20-bc91-892d2873cf90|10|Which languages are spoken in this home?|Languages||false||||4||Select all that apply|||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 10|5272c17e-0a6f-5b93-87e1-7bb4838ccb30|7|Is this home owned or rented?|Tenure||true|||Please select a value.|5||||vertical|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 11|29ec4d42-18b1-5a71-9469-f72cc1b2820a|2|About when did you move into this home?|Move-in date||false|||||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 12|4b97896c-e146-5581-b2df-39ca3f598242|1|Is any part of your housing cost subsidized?|Subsidized||false|||||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 13|59d7aef4-9593-593c-98a5-30dbcf19c914|6|About how much is the monthly rent, in US dollars?|Monthly rent||false|0|20000|Please enter an amount between 0 and 20000.|||0.00|||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 14|b461d5b9-8c28-5166-8841-2ad05e67c1f3|5|How many cars, vans or trucks are kept at this home?|Vehicle count||false|0|10|Please enter a number between 0 and 10.||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 15|318dcb53-6a0b-5af5-88f3-3c12a505fb09|8|What is the make and model of this vehicle?|Vehicle||false||100||||For example, Ford F-150|||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 16|776c2ba1-74ce-5669-9b1d-604e52b9b2b6|5|Not counting yourself, how many other people live in this home?|Household size||true|0|20|Please enter a number between 0 and 20.||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 17|320af9e3-31b5-57bc-ba1a-b9ec276990f3|8|What is the name of person {Q#}?|Person name||false||100|||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 18|278a3972-c510-51a0-ab22-7d80cdb53f98|5|How old is {name\|this person}?|Person age||false|0|120|Please enter an age between 0 and 120.||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 19|b3c97067-56e7-585c-a2fe-3899bb2f4404|7|What is {name's\|this person's} gender?|Person gender||false||||1||||vertical|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 20|02290ac5-30d8-5d41-a6ac-51733c82b9ca|3|What is {name's\|this person's} relationship to {proband\|you}?|Relationship||false||||6||Select one|||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 21|59d35f3c-a9c5-5781-a0e6-a28f2e975b85|13|What email address should we use to confirm your response?|Email||false|||Please enter a valid email address.|||you@example.com|||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 22|e4893abe-6574-5d70-88c9-d7b24bdc418e|15|What time do you usually leave home for work?|Departure time||false|||||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 23|a97b315e-f619-5c14-a6d9-909685b858e8|12|If we need to follow up, what date and time works best?|Follow-up||false|||||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 24|442de28e-75c6-5056-aec6-a52f5c2c7f5c|14|Create a PIN so you can return to this survey later.|Resume PIN||false|4|8|Please choose a PIN of 4 to 8 characters.||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 25|872cce3f-b9f9-5519-a8f3-6054192612c6|9|Is there anything else about your household you would like to tell us?|Comments||false||2000|||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 26|a8484aac-7d27-5128-af0a-c5da0d0fee98|16|<p>Thank you for completing the Census Household Survey.</p><p>Your answers have been saved. You may close this window.</p>|Thank you||false|||||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 1|df00e950-557f-50d1-8923-fd4551f5375b|1|1|1|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 2|13ac2077-4855-5702-81cc-5f1bf3a43e3d|2|1|2|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 3|1ebd31ce-cd21-5b92-bd67-814876211e18|3|2|1|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 4|4fe7a3e5-5849-5a9d-81b8-1abc2a5ca056|4|2|2|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 5|f6ca5f2c-897e-5717-b21f-c138bd99eea3|5|2|3|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 6|ab8be653-3b28-56a3-bc1e-7163fcb925ac|6|2|4|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 7|e592c2b5-d70d-512a-b694-7984053e304a|7|3|1|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 8|562d6dd8-db1c-53c5-95cd-6fb2147a425c|8|3|2|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 9|2c28fa46-44bb-53aa-853c-64144e75db24|9|3|3|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 10|baa54f86-e2be-50ca-9265-a804c46ab14f|10|4|1|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 11|256ead34-21d7-50e2-beac-3d8e6fb0d44d|11|4|2|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 12|651ee165-4dab-5fa0-9a1d-70cd4b19133b|12|4|3|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 13|3734a87c-ed00-5dbb-88c9-3b574bae53f9|13|5|1|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 14|45a17197-fd69-5c8d-8e30-0d0be737b0b1|14|6|1|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 15|10014d8b-bdd9-5c25-bee8-d1b1c559a5ca|15|7|1|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 16|c08268c1-6be8-526c-aa08-990c3df556af|16|8|1|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 17|42fd8e8b-9898-595c-9274-161fb49e1c96|17|8|2|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 18|72608d7e-9d53-55a4-b568-031068a84e3b|18|9|1|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 19|6171ea1b-b25c-5a30-978a-bbfea0346836|19|9|2|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 20|2213fdcf-b3b9-5f74-b447-0b9cda407e3b|20|9|3|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 21|b73eabfc-6373-5821-8582-3a44785ced15|21|10|1|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 22|f0ba61f8-ec9b-5d6c-8a80-519aac4c3a27|22|10|2|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 23|48ef7e26-09cb-5cc8-9286-7587b108a242|23|10|3|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 24|d4d3395f-18bf-5407-a554-71ad3d80dff8|24|10|4|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 25|1ca4a0b7-1036-58a6-9bf9-9ee42b2b8bfa|25|11|1|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 26|21766c35-50b2-5056-af93-9ede17e547ad|26|11|2|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 1|d50ef748-7058-559e-96a6-d4454be7ec90|1|2|2|||1|1|Show About You once consent is given|||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 2|8a925942-3c87-57b8-918b-99c92a39bd6d||7|||8|6|1|Ask which other race||OTHER|||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 3|5023323a-f324-5290-9deb-cda178d8b218|3|10|3|5||3|1|Show rent details when renting||RENT|||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 4|7c7ad805-8776-5bbb-b4e7-676a741c65c8||10|||12|4|1|Ask about subsidy unless owned||OWN|||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 5|da4c92a4-6824-5517-a943-63cd3ad8228a|3|14|3|7||2|2|Repeat the vehicle section||0|||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 6|ffb61654-2a75-5e65-ae40-4620806c4d6a||16|||17|2|2|Repeat the person name question||0|||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 7|37b8a550-89a4-5f99-8ded-77e034d37e3b|4|17|5|||5|1|Show a step per household member|||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 8|620d79b2-ea75-5076-b343-3b3f4e242fda|4|17|5|||5|3|Fill {name} for this member|name||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 9|c8d23653-20c9-59c1-9bb2-68c4c1b3c6c1|2|3|5|||5|3|Fill {proband} with your name|proband||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 10|34a953fc-f73e-50d3-8fa0-28753aeda65a|2|5|3|||5|1|Show Your Home|||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 11|42aad0ab-a816-5113-b5b0-3368efae9ad4|3|10|4|||5|1|Show Household Members|||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 12|94ee42a3-e764-5af4-8f37-2a046ed3d122|4|16|6|||5|1|Show Finishing Up|||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
