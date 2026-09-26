@@ -35,6 +35,9 @@ button and menu labels short.
 | export | Producing the definition file for the Admin console | Use "export", never "publish" |
 | retire / restore | Removing an element from the current definition (kept in history) and bringing it back | Translate consistently |
 | ontology, dimension, tag, reporting tag | Reporting metadata attached to questions | Translate consistently |
+| content language | A language a survey's own questions and options are published in, as opposed to the language of the tool itself | Translate consistently; keep it distinct from the tool's language |
+| base language | The language a survey's content is written in, and the one every untranslated string falls back to | Translate consistently |
+| out of date (translation) | A translation whose original wording has changed since it was made, so it is no longer shown | Translate consistently; not "expired" or "invalid" |
 | PDF, CSV, JSON, HTTP, OIDC, ID, URL, `.elicit` | Technical names | Keep as written |
 
 ## Rules for the translation

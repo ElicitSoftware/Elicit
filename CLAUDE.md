@@ -215,7 +215,9 @@ the mount, per key, falling back to English; a language that exists only on the 
 is offered too. `test-partial-i18n/` exercises the override and mount-only paths.
 Direction (RTL/LTR) follows the language, with `i18n-config.json` as an optional
 override. Brand names are translated in the brand's own `localized` block, never in the
-app bundles. Survey content in the database is not translated by this mechanism. See
+app bundles. Survey content in the database is translated by a separate mechanism
+(`survey.translations`, Survey V019): authored in Author, carried in the `.elicit` file, and
+served only where the survey publishes the language *and* this mount has it. See
 `docs/I18N_IMPLEMENTATION_GUIDE.md`.
 
 ## Umbrella Docs

@@ -1047,11 +1047,16 @@ Survey, Admin and Author ship English only. A deployment adds languages by mount
 the language selector appears in the header only once more than one language is available, so
 an English-only site never shows it.
 
-\begin{elicitcaution}[Survey content is not translated by this]
+\begin{elicitcaution}[Survey content is translated separately]
 This mechanism translates the applications' own chrome — buttons, labels, page titles,
 notifications, validation messages, PDF headers. Survey content stored in the database —
-question text, answer options, section and step names, report bodies, message templates —
-appears in the language it was authored in and is not affected by the language selector.
+question text, answer options, step and section names, tooltips, validation messages — is
+translated too, but not from here: those translations are written in Author against a
+particular survey and arrive at a site inside its definition file. A respondent is offered a
+content language only when the survey publishes it \emph{and} this site has that language
+mounted for its own chrome, so the two directories are what tie the two halves together.
+Message templates and the body of an external report service are outside both mechanisms and
+appear in the language they were authored in.
 \end{elicitcaution}
 
 \subsection{The layout}

@@ -9,9 +9,15 @@ per-key fallback from an external mount to a local directory to the embedded def
 
 - **In scope:** application chrome — buttons, labels, page titles, notifications, validation
   messages, PDF headers and footers, and the organization name supplied by the brand.
-- **Out of scope:** survey content stored in the database (question text, answer options,
-  section and step names, report bodies, message templates). It appears in the language it was
-  authored in. Content translation is tracked on a separate branch.
+- **Out of scope:** message templates and the body of an external report service, which appear
+  in the language they were authored in.
+- **Survey content is translated by a second, separate mechanism** (Survey V019): question text,
+  answer options, step and section names, tooltips, validation messages and report titles live in
+  `survey.translations`, are written in Author against a particular survey, and travel to a site
+  inside its definition file rather than on this mount. The two meet at the runtime: a respondent
+  is offered a content language only when the survey publishes it and that language is also
+  mounted here for the chrome, so no one reads translated questions between English buttons. See
+  `Survey/docs/research/i18n_survey.md`.
 - Text direction is right-to-left or left-to-right only; vertical writing modes are not
   supported.
 
