@@ -53,13 +53,13 @@ for n, (name, items) in enumerate(GROUPS.items(), start=1):
 
 # ---------------- steps ----------------
 STEPS = [(1,"Welcome"),(2,"About You"),(3,"Your Home"),(4,"Household Members"),
-         (5,"{name\u007Cthis person}"),(6,"Finishing Up")]
+         (5,"{<NAME>\u007Cthis person}"),(6,"Finishing Up")]
 for n,(order,name) in enumerate(STEPS, start=1):
     add("steps", n, key(f"step/{order}"), order, name, "", f"{name} step", *TAIL)
 
 # ---------------- sections ----------------
 SECTIONS = ["Introduction","About you","Race and language","Housing","Rent details","Vehicles",
-            "Vehicle","Household members","{name\u007Cthis person}","Contact","Anything else"]
+            "Vehicle","Household members","{<NAME>\u007Cthis person}","Contact","Anything else"]
 for n,name in enumerate(SECTIONS, start=1):
     add("sections", n, key(f"section/{n}"), n, name, "", f"{name} section", *TAIL)
 
@@ -107,11 +107,11 @@ Q = [
  ("hhsize",   INTEGER, "Not counting yourself, how many other people live in this home?", "Household size",
    True,0,20,"Please enter a number between 0 and 20.",None,None,None),
  ("person",   TEXT, "What is the name of person {Q#}?", "Person name", False,None,100,None,None,None,None),
- ("personage",INTEGER, "How old is {name\u007Cthis person}?", "Person age", False,0,120,
+ ("personage",INTEGER, "How old is {<NAME>\u007Cthis person}?", "Person age", False,0,120,
    "Please enter an age between 0 and 120.",None,None,None),
- ("persongen",RADIO, "What is {name's\u007Cthis person's} gender?", "Person gender",
+ ("persongen",RADIO, "What is {<NAME>'s\u007Cthis person's} gender?", "Person gender",
    False,None,None,None,"Gender",None,"vertical"),
- ("personrel",COMBOBOX, "What is {name's\u007Cthis person's} relationship to {proband\u007Cyou}?", "Relationship",
+ ("personrel",COMBOBOX, "What is {<NAME>'s\u007Cthis person's} relationship to {<PROBAND>\u007Cyou}?", "Relationship",
    False,None,None,None,"Relationship","Select one",None),
  ("email",    EMAIL, "What email address should we use to confirm your response?", "Email",
    False,None,None,"Please enter a valid email address.",None,"you@example.com",None),
@@ -164,8 +164,8 @@ RULES = [
  (3, sq["vehcount"], 3, ss[(3,7)], None,         GREATER_THAN, REPEAT,      "Repeat the vehicle section",        "", "0", ""),
  (None, sq["hhsize"],None, None, sq["person"],   GREATER_THAN, REPEAT,      "Repeat the person name question",   "", "0", ""),
  (4, sq["person"],   5, None, None,              FIELD_EXIST,  SHOW,        "Show a step per household member",  "", "", ""),
- (4, sq["person"],   5, None, None,              FIELD_EXIST,  TEXT_ACTION, "Fill {name} for this member",   "name", "", ""),
- (2, sq["name"],     5, None, None,              FIELD_EXIST,  TEXT_ACTION, "Fill {proband} with your name","proband", "", ""),
+ (4, sq["person"],   5, None, None,              FIELD_EXIST,  TEXT_ACTION, "Fill <NAME> for this member",   "NAME", "", ""),
+ (2, sq["name"],     5, None, None,              FIELD_EXIST,  TEXT_ACTION, "Fill <PROBAND> with your name","PROBAND", "", ""),
  # Gate the remaining steps on consent too. Without a rule they would be ungated and appear in
  # navigation from the first page; gated on the consent CHECKBOX they appear together with About
  # You, once consent is given. They are deliberately NOT chained one to the next on FIELD_EXIST:

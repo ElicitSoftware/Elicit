@@ -59,7 +59,7 @@ steps: 1|e062590f-5452-5b6b-8caa-2a4b08843dfe|1|Welcome||Welcome step|0|1970-01-
 steps: 2|75f39b4c-3e3c-54d7-a3c1-10d2a858ee25|2|About You||About You step|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
 steps: 3|b842a1e1-2c1a-592d-8e71-3d5164d59803|3|Your Home||Your Home step|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
 steps: 4|9dd92bba-1473-5d2e-a67d-546e5f983f66|4|Household Members||Household Members step|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
-steps: 5|1041580f-4362-5fe2-95e8-119134bb621a|5|{name\|this person}||{name\|this person} step|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+steps: 5|1041580f-4362-5fe2-95e8-119134bb621a|5|{<NAME>\|this person}||{<NAME>\|this person} step|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
 steps: 6|36cbe350-9b63-52e7-a534-b6f83a1cb4e0|6|Finishing Up||Finishing Up step|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
 sections: 1|eb79355c-1019-59ed-949e-735139f4fbcf|1|Introduction||Introduction section|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
 sections: 2|cb3ed4fe-1434-53e1-8b71-11806db9fac3|2|About you||About you section|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
@@ -69,7 +69,7 @@ sections: 5|6193cf18-06ab-5900-9ccb-69e37e22ce0a|5|Rent details||Rent details se
 sections: 6|375ed3ba-8d7c-5404-8540-bcfb9a1539c7|6|Vehicles||Vehicles section|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
 sections: 7|01262607-8b33-514c-ae46-9d58dc1b0e65|7|Vehicle||Vehicle section|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
 sections: 8|4064adef-e737-5047-86e1-1583215c0c49|8|Household members||Household members section|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
-sections: 9|debe0f17-1c49-5c34-ad02-bcdb6cad126b|9|{name\|this person}||{name\|this person} section|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections: 9|debe0f17-1c49-5c34-ad02-bcdb6cad126b|9|{<NAME>\|this person}||{<NAME>\|this person} section|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
 sections: 10|efffd848-f6f5-5a03-ba91-1e2a89d7aacb|10|Contact||Contact section|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
 sections: 11|3ae99aec-0012-5d4c-909f-8bb102aee57e|11|Anything else||Anything else section|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
 steps_sections: 1|4e2a29e7-1ec7-57e2-aa6c-a80adfea62c1|1|1|1|1|0001-0001-0000-0001-0000-0000-0000|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
@@ -100,9 +100,9 @@ questions: 14|b461d5b9-8c28-5166-8841-2ad05e67c1f3|5|How many cars, vans or truc
 questions: 15|318dcb53-6a0b-5af5-88f3-3c12a505fb09|8|What is the make and model of this vehicle?|Vehicle||false||100||||For example, Ford F-150|||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
 questions: 16|776c2ba1-74ce-5669-9b1d-604e52b9b2b6|5|Not counting yourself, how many other people live in this home?|Household size||true|0|20|Please enter a number between 0 and 20.||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
 questions: 17|320af9e3-31b5-57bc-ba1a-b9ec276990f3|8|What is the name of person {Q#}?|Person name||false||100|||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
-questions: 18|278a3972-c510-51a0-ab22-7d80cdb53f98|5|How old is {name\|this person}?|Person age||false|0|120|Please enter an age between 0 and 120.||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
-questions: 19|b3c97067-56e7-585c-a2fe-3899bb2f4404|7|What is {name's\|this person's} gender?|Person gender||false||||1||||vertical|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
-questions: 20|02290ac5-30d8-5d41-a6ac-51733c82b9ca|3|What is {name's\|this person's} relationship to {proband\|you}?|Relationship||false||||6||Select one|||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 18|278a3972-c510-51a0-ab22-7d80cdb53f98|5|How old is {<NAME>\|this person}?|Person age||false|0|120|Please enter an age between 0 and 120.||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 19|b3c97067-56e7-585c-a2fe-3899bb2f4404|7|What is {<NAME>'s\|this person's} gender?|Person gender||false||||1||||vertical|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 20|02290ac5-30d8-5d41-a6ac-51733c82b9ca|3|What is {<NAME>'s\|this person's} relationship to {<PROBAND>\|you}?|Relationship||false||||6||Select one|||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
 questions: 21|59d35f3c-a9c5-5781-a0e6-a28f2e975b85|13|What email address should we use to confirm your response?|Email||false|||Please enter a valid email address.|||you@example.com|||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
 questions: 22|e4893abe-6574-5d70-88c9-d7b24bdc418e|15|What time do you usually leave home for work?|Departure time||false|||||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
 questions: 23|a97b315e-f619-5c14-a6d9-909685b858e8|12|If we need to follow up, what date and time works best?|Follow-up||false|||||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
@@ -140,8 +140,8 @@ relationships: 4|7c7ad805-8776-5bbb-b4e7-676a741c65c8||10|||12|4|1|Ask about sub
 relationships: 5|da4c92a4-6824-5517-a943-63cd3ad8228a|3|14|3|7||2|2|Repeat the vehicle section||0|||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
 relationships: 6|ffb61654-2a75-5e65-ae40-4620806c4d6a||16|||17|2|2|Repeat the person name question||0|||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
 relationships: 7|37b8a550-89a4-5f99-8ded-77e034d37e3b|4|17|5|||5|1|Show a step per household member|||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
-relationships: 8|620d79b2-ea75-5076-b343-3b3f4e242fda|4|17|5|||5|3|Fill {name} for this member|name||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
-relationships: 9|c8d23653-20c9-59c1-9bb2-68c4c1b3c6c1|2|3|5|||5|3|Fill {proband} with your name|proband||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 8|620d79b2-ea75-5076-b343-3b3f4e242fda|4|17|5|||5|3|Fill <NAME> for this member|NAME||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 9|c8d23653-20c9-59c1-9bb2-68c4c1b3c6c1|2|3|5|||5|3|Fill <PROBAND> with your name|PROBAND||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
 relationships: 10|34a953fc-f73e-50d3-8fa0-28753aeda65a|1|2|3|||1|1|Show Your Home once consent is given|||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
 relationships: 11|42aad0ab-a816-5113-b5b0-3368efae9ad4|1|2|4|||1|1|Show Household Members once consent is given|||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
 relationships: 12|94ee42a3-e764-5af4-8f37-2a046ed3d122|1|2|6|||1|1|Show Finishing Up once consent is given|||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||

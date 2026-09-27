@@ -46,7 +46,7 @@ GitHub repo, dropped into this directory and excluded from this repo via
 The credential a respondent enters to reach a survey is the **access code**
 (`survey.respondents.access_code`, `accessCode` in Java, `<ACCESS_CODE>` in email
 templates, `{AccessCode}` in the FHHS SFTP XML template). "Token" means only a
-question-text placeholder (`{KEY|default}`, `survey.relationships.token`) or an
+question-text placeholder (`{<KEY>|default}`, `survey.relationships.token`) or an
 OIDC/Bearer token. Never call the respondent credential a token.
 
 ## Module Conventions (shared by Survey, Admin, Author, FHHS)
