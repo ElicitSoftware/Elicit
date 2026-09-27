@@ -45,8 +45,9 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 /**
  * The multilingual multi-site theory, end to end.
  *
- * <p>An English master (USA) imports {@code samples/census-household-survey.elicit} into Author,
- * declares Latin American Spanish and Arabic as the languages the survey is published in,
+ * <p>An English master (USA) imports this directory's {@code census-household-survey.elicit} -- the
+ * sample of the same name with one deliberately broken rule -- into Author, fixes that rule in the
+ * designer, declares Latin American Spanish and Arabic as the languages the survey is published in,
  * translates it through the hand-off file, and exports one definition. That one file is applied at
  * the master and at two remote sites whose translations mounts hold Spanish (Mexico) and Arabic
  * (Arabia); respondents at each site answer the survey in that site's language while the master's
@@ -76,9 +77,13 @@ class CensusMultilingualE2ETest extends MultilingualTestBase {
     private static final Pattern SURVEY_KEY_LINE = Pattern.compile("(?m)^# survey_key: (\\S+)$");
     private static final Pattern TRANSLATIONS_COUNT = Pattern.compile("(?m)^# translations: (\\d+)$");
 
-    /** The definition the master imports. */
+    /**
+     * The definition the master imports: this directory's copy of
+     * {@code samples/census-household-survey.elicit}, which carries one deliberate fault for phase 1
+     * to find and fix (see the note at the top of the file).
+     */
     private static final Path DEFINITION = Path.of(System.getProperty("census.definition",
-            "../samples/census-household-survey.elicit"));
+            "census-household-survey.elicit"));
 
     private static final String SPANISH = "es-419";
     private static final String ARABIC = "ar";
@@ -170,16 +175,24 @@ class CensusMultilingualE2ETest extends MultilingualTestBase {
     // ---- phases -----------------------------------------------------------------------------
 
     /**
-     * Author UC-005 and UC-007: the master imports the definition drafted outside Author and checks
-     * it. A survey that arrives with findings is not fit to publish, so the phase fails with the
-     * validation panel's own text -- which is how a real problem in the sample surfaces here rather
-     * than three phases later as a mystery.
+     * Author UC-005, UC-007, UC-019 and UC-033: the master imports the definition drafted outside
+     * Author, and Author will not call it ready.
+     *
+     * <p>The copy in this directory carries one deliberate fault (see the note at the top of
+     * {@code census-household-survey.elicit}): the SHOW rule that should reveal the Rent details
+     * section points at the About you section of step 2 instead, one the respondent has already
+     * passed. An import is a load, not a review -- it succeeds -- and the editor is where the survey
+     * is judged: validation reports the rule as pointing backwards (UC-033 A3), the designer draws
+     * its arrow red, and the author re-points it at Rent details before anything is translated or
+     * exported.
+     * Every later phase then runs against a survey that validates clean, so an unexpected finding
+     * still fails here rather than three phases on as a mystery.</p>
      */
     @Test
     @Order(1)
-    void phase01_masterImportsAndValidatesTheDefinition() {
-        phase("1 import + validate",
-                "The master imports the survey definition into Author, which validates it", () -> visit(page -> {
+    void phase01_masterImportsFixesAndValidatesTheDefinition() {
+        phase("1 import + fix + validate",
+                "The master imports the definition, and Author refuses it until one rule is fixed", () -> visit(page -> {
             assertTrue(Files.exists(DEFINITION), "the definition to import is missing: " + DEFINITION.toAbsolutePath());
             authorLogin(page, USA);
             SurveysPage surveys = new SurveysPage(page);
@@ -197,10 +210,42 @@ class CensusMultilingualE2ETest extends MultilingualTestBase {
                     "unexpected import outcome:\n" + outcome);
             surveyIdInAuthor = importer.openInEditor();
 
-            Recording.beat(USA, "Author validates it: ready to publish");
+            // UC-007: the editor validates on arrival, and one rule of this copy cannot ever fire.
+            Recording.beat(USA, "the editor validates it: one rule points backwards, so it is not ready");
             SurveyEditorPage editor = new SurveyEditorPage(page);
+            editor.waitForValidation();
+            String findings = editor.validationText();
+            assertTrue(findings.contains("Rule '" + CensusHouseholdSurvey.RULE_RENT_DETAILS + "' points backwards"),
+                    "validation should report the deliberately broken show rule (Author UC-033):\n" + findings);
+            assertTrue(findings.contains(CensusHouseholdSurvey.SECTION_ABOUT_YOU),
+                    "the finding should name the section the rule wrongly points at:\n" + findings);
+            assertTrue(!editor.isReadyToExport(), "a survey with a backwards rule is not ready to export:\n" + findings);
+            Recording.hold(page);
+
+            Recording.beat(USA, "the designer draws that rule red: it reveals a section already passed");
+            editor.openDesigner();
+            DesignerPage designer = new DesignerPage(page);
+            // Opened, so a viewer sees the question the rule reads from and not only its step.
+            designer.expandLane(CensusHouseholdSurvey.STEP_YOUR_HOME);
+            designer.expandCard(CensusHouseholdSurvey.STEP_YOUR_HOME, CensusHouseholdSurvey.SECTION_HOUSING);
+            designer.awaitInvalidRuleCount(1);
+            Locator arrow = designer.invalidRuleArrows().first();
+            String arrowLabel = designer.ruleArrowLabel(arrow);
+            assertTrue(arrowLabel.contains("points backwards"),
+                    "the invalid arrow should say so beside itself, not only in its tooltip: " + arrowLabel);
+            Recording.hold(page);
+
+            Recording.beat(USA, "re-pointed at '" + CensusHouseholdSurvey.SECTION_RENT_DETAILS
+                    + "', the section it was meant to reveal");
+            designer.retargetRule(arrow, "Section", CensusHouseholdSurvey.SECTION_RENT_DETAILS);
+            designer.awaitInvalidRuleCount(0);
+
+            Recording.beat(USA, "and the overview validates clean: ready to publish");
+            designer.openOverview();
+            editor.waitForValidation();
             assertTrue(editor.isReadyToExport(),
-                    "the imported definition does not validate (Author UC-007):\n" + editor.validationText());
+                    "the definition should validate once the rule is fixed (Author UC-007):\n" + editor.validationText());
+            Recording.hold(page);
         }));
     }
 

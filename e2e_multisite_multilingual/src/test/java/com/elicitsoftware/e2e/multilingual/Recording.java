@@ -69,6 +69,8 @@ final class Recording {
 
     private static final boolean ENABLED = Boolean.parseBoolean(System.getProperty("e2e.record", "false"));
     private static final int TITLE_CARD_SECONDS = 3;
+    /** How long {@link #hold} keeps a page on screen that the journey only reads. */
+    private static final int HOLD_DEFAULT = 1800;
 
     private static final ObjectMapper JSON = new ObjectMapper();
 
@@ -267,6 +269,25 @@ final class Recording {
         entry.put("at", System.currentTimeMillis() - wallStart);
         phases.add(entry);
         push();
+    }
+
+    /**
+     * Holds the picture on what is on screen, so a page the journey only has to <em>read</em> is
+     * shown long enough to be read. A validation panel or a clean overview is asserted in
+     * milliseconds and the clip would otherwise cut the moment it appeared.
+     *
+     * <p>Inert without {@code -De2e.record=true}: an ordinary run never waits, and no assertion
+     * depends on this having happened.</p>
+     */
+    static void hold(Page page) {
+        hold(page, HOLD_DEFAULT);
+    }
+
+    /** {@link #hold(Page)} for a given number of milliseconds. */
+    static void hold(Page page, int millis) {
+        if (ENABLED && page != null) {
+            page.waitForTimeout(millis);
+        }
     }
 
     /** A step within the phase, shown on the caption's second line and logged for the subtitles. */

@@ -12,7 +12,7 @@ phase each clip belongs to and what was being proved at every moment of it. This
 Usage:
     ./make-recording.py                       # the newest run under target/recording/
     ./make-recording.py target/recording/20260927-120000
-    ./make-recording.py --speed 1.5           # 16 phases is a long watch at life size
+    ./make-recording.py --speed 1.0           # life size, rather than the default 0.75
     ./make-recording.py --no-cards            # clips only, no title cards and no chapters
 
 Why the cards are rendered rather than drawn by ffmpeg: ``drawtext`` has no bidi and no Arabic
@@ -390,8 +390,10 @@ def main(argv: list) -> None:
         description="Assemble a recorded Elicit journey into one narrated film.")
     parser.add_argument("run", nargs="?", help="a recording directory or its manifest.json "
                                               "(default: the newest under target/recording)")
-    parser.add_argument("--speed", type=float, default=1.0,
-                        help="play the clips faster; title cards keep their length (default 1.0)")
+    parser.add_argument("--speed", type=float, default=0.75,
+                        help="how fast the clips play; title cards keep their length. The default "
+                             "0.75 plays them a quarter slower than they were recorded, which is "
+                             "what makes a Vaadin form legible; 1.0 is life size, 1.5 a skim")
     parser.add_argument("--fps", type=int, default=30)
     parser.add_argument("--crf", type=int, default=23, help="h264 quality, lower is better")
     parser.add_argument("--card-seconds", type=float, default=None,
