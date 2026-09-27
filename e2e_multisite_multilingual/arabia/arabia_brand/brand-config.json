@@ -1,0 +1,20 @@
+{
+  "name": "Elicit Arabia",
+  "version": "1.0.0",
+  "organization": "Elicit Software",
+  "logos": {
+    "horizontal": "HorizontalLogo.png",
+    "icon": "icon-white.png"
+  },
+  "favicon": "favicon.ico",
+  "localized": {
+    "ar": {
+      "name": "إيليسيت العربية",
+      "organization": "Elicit Software"
+    },
+    "es-419": {
+      "name": "Elicit Arabia",
+      "organization": "Elicit Software"
+    }
+  }
+}

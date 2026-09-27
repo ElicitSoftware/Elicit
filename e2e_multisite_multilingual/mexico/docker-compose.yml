@@ -17,6 +17,12 @@
 # That is what makes this a Spanish site: the apps ship English only, so the selector offers
 # English and Spanish here, and the survey's Spanish content is served because es-419 is both in
 # the survey's published set and mounted here (Survey UC-009 BR-009).
+#
+# The brand mount is ./mexico_brand, not the platform default: the flag of Mexico as the header
+# mark and its green/red as the palette. Every site in this suite looks different on purpose --
+# in a recording or a screenshot of three identical consoles, the brand is what says which one
+# this is. See mexico_brand/README.md.
+
 name: elicit-ml-mexico
 
 networks:
@@ -57,7 +63,7 @@ services:
       retries: 20
       start_period: 60s
     volumes:
-      - ../../elicit-brand/:/opt/brand:ro
+      - ./mexico_brand/:/opt/brand:ro
       - ../i18n/mexico/:/opt/i18n:ro
     depends_on:
       db:
@@ -95,7 +101,7 @@ services:
       # quarkus.otel.enabled is a build-time property: the runtime switch is this one.
       quarkus.otel.sdk.disabled: "true"
     volumes:
-      - ../../elicit-brand/:/opt/brand:ro
+      - ./mexico_brand/:/opt/brand:ro
       - ../i18n/mexico/:/opt/i18n:ro
     depends_on:
       db:

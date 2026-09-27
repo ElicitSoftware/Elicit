@@ -16,6 +16,7 @@ Three complete stacks run side by side on this machine:
 | Mailpit | http://localhost:8025 | uses USA's | uses USA's |
 | PostgreSQL | localhost:5452 | localhost:5402 | localhost:5352 |
 | Translations mount | `i18n/usa` — **nothing** | `i18n/mexico` — `es-419` | `i18n/arabia` — `ar` |
+| Brand mount | `../elicit-brand` — the default | `mexico/mexico_brand` | `arabia/arabia_brand` |
 | What a respondent reads | English | Latin American Spanish | Arabic, right to left |
 
 Mexico's host ports are USA's minus 50, Arabia's minus 100. Neither remote site publishes SMTP, and
@@ -31,6 +32,51 @@ Admin is pointed at those. All three Admins sign in as `admin/admin`; each site 
 `survey.users` row and department assignments.
 
 Only USA has Author, and only USA has an `author` database.
+
+## What makes a site look like itself
+
+Each site mounts its own brand at `/opt/brand`, so the three are told apart on
+sight rather than by reading the port in the address bar. That matters for
+screenshots and for the recording of the journey ("Recording the journey"
+below, where each site's badge wears its own mark): three consoles running the
+same application are otherwise identical, and the brand is the only thing on
+screen that says which one this is.
+
+| | USA (master) | Mexico | Arabia |
+|---|---|---|---|
+| Header | Ink navy | Bandera green, red rule | flag green |
+| Mark | the Elicit clipboard | the flag of Mexico | the flag of Arabia |
+| Background | Paper | Paper | Sand |
+| Type | system stack | system stack | Arabic-first stack, looser leading |
+
+The two site brands are complete brand packages, not color overrides: each
+carries every file `BrandDiagnostics` expects (`theme.css`, the two
+stylesheets, `HorizontalLogo.png`, `icon-white.png`, `favicon.ico`) and every
+`--brand-*` token the default brand defines, so nothing falls through to a
+Lumo default and looks half-themed. Admin ▸ System Branding (UC-026) at each
+site lists them and flags anything missing.
+
+Both palettes come from the site's flag, and both were contrast-checked rather
+than eyeballed — Arabia's gold in particular is unusable at its flag value
+both as a fill under white text and as text on Sand, so it is split into a
+Brass fill and a darker Gold text color. Arabia's brand is also the only one
+built for right-to-left: it names Arabic faces ahead of Latin ones, opens the
+line height, and pins the access-code pill to `direction: ltr` so an RTL
+paragraph does not reorder the code. Each brand's own `README.md` has the
+reasoning; `arabia_brand/README.md` also says why "Arabia" flies an invented
+flag rather than a real nation's.
+
+The images are generated, not hand-drawn. `make-brand-images.py` renders every
+PNG and the `.ico` from the one `images/flag.svg` in each brand, through the
+Chromium that Playwright already installed for this suite — which is also what
+shapes the Arabic wordmark correctly. Swap in different flag artwork and
+re-run it; nothing else needs editing:
+
+```sh
+./make-brand-images.py                       # both site brands
+./make-brand-images.py mexico/mexico_brand   # just one
+```
+
 
 ## What makes a site "Spanish" or "Arabic"
 

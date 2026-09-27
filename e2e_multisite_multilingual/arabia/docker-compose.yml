@@ -18,6 +18,12 @@
 # and the survey's Arabic content is served because ar is both in the survey's published set and
 # mounted here (Survey UC-009 BR-009). Arabic is written right to left, so every page here is laid
 # out RTL (UC-009 step 3).
+#
+# The brand mount is ./arabia_brand, not the platform default: the flag of Arabia as the header
+# mark, its green as the palette, and an Arabic-first font stack for the right-to-left screens.
+# Every site in this suite looks different on purpose -- in a recording or a screenshot of three
+# identical consoles, the brand is what says which one this is. See arabia_brand/README.md.
+
 name: elicit-ml-arabia
 
 networks:
@@ -58,7 +64,7 @@ services:
       retries: 20
       start_period: 60s
     volumes:
-      - ../../elicit-brand/:/opt/brand:ro
+      - ./arabia_brand/:/opt/brand:ro
       - ../i18n/arabia/:/opt/i18n:ro
     depends_on:
       db:
@@ -96,7 +102,7 @@ services:
       # quarkus.otel.enabled is a build-time property: the runtime switch is this one.
       quarkus.otel.sdk.disabled: "true"
     volumes:
-      - ../../elicit-brand/:/opt/brand:ro
+      - ./arabia_brand/:/opt/brand:ro
       - ../i18n/arabia/:/opt/i18n:ro
     depends_on:
       db:
