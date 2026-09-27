@@ -23,5 +23,9 @@ for site in $SITES; do
     echo "== $site: docker compose down"
     docker compose -f "$site/docker-compose.yml" down
     echo "== $site: removing data/$site"
-    rm -rf "data/$site"
+    # Twice, because of Finder. macOS drops a .DS_Store into a directory it is looking at, and it
+    # can land between rm emptying the directory and rm removing it -- so the first pass dies with
+    # "Directory not empty" on a directory it had just emptied, and under `set -e` that fails the
+    # whole run. The second pass finds only the .DS_Store and succeeds. Failing after that is real.
+    rm -rf "data/$site" 2>/dev/null || rm -rf "data/$site"
 done
