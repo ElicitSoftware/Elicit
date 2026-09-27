@@ -192,6 +192,8 @@ bundles from `../elicit-i18n`, which is also where the two navigation captions a
 - Playwright's Chromium, installed once:
   `mvn exec:java -e -Dexec.mainClass=com.microsoft.playwright.CLI -Dexec.args="install chromium"`
   (from `../e2e-tests`, or here after a first `mvn test-compile`).
+- To record the journey (see "Recording the journey"), also `ffmpeg` and `ffprobe` on PATH, and
+  python3 with Pillow — the same two things `make-brand-images.py` needs.
 - The umbrella stack **and** `../e2e_multisite` stopped (`docker compose down` in the repo root,
   `../e2e_multisite/down.sh`): USA uses the same ports as both, and Mexico the same as site 2.
 
@@ -228,18 +230,189 @@ Base URLs can be overridden with `-Dusa.survey.baseUrl=…`, `-Dusa.admin.baseUr
 `-Dadmin.username/-Dadmin.password/-Dauthor.username/-Dauthor.password`; the definition to import
 with `-Dcensus.definition=…`.
 
+## Recording the journey
+
+The journey can record itself, and the recording is the only way anyone who is not going to read
+sixteen phases of Java will see the theory demonstrated. It is off unless asked for: an ordinary
+`mvn -DskipTests=false test` records nothing and pays nothing for the harness being there.
+
+Needs the same prerequisites as a plain run, plus `ffmpeg` and `ffprobe` on PATH and python3 with
+Pillow (the two things `make-brand-images.py` already needs).
+
+### Recording one
+
+```bash
+./record.sh                     # reset all three databases, start all three sites, record, assemble
+./record.sh --no-reset          # against stacks that are already up and clean
+./record.sh --speed 1.5         # the same, with the clips played faster in the film
+```
+
+`record.sh` is `./reset.sh all`, `./up.sh all`, the journey with the harness on, then the assembler.
+Anything on its command line other than `--no-reset` is passed straight to `make-recording.py`.
+
+Recording by hand is the same two steps:
+
+```bash
+mvn -DskipTests=false -De2e.record=true test       # writes target/recording/<timestamp>/
+./make-recording.py                                # assembles the newest run
+```
+
+A recorded run takes **about half an hour**, not fifteen minutes: Chromium is deliberately slowed
+down ("slowMo is not a luxury here" below).
+
+### Assembling one
+
+`./make-recording.py` takes the newest run under `target/recording/` unless given a directory, and
+can be re-run as often as you like without re-running the journey — the clips are already on disk.
+
+```bash
+./make-recording.py                                 # the newest run, life size, with cards
+./make-recording.py target/recording/20260927-0113  # a particular run
+./make-recording.py --speed 1.5                     # clips faster; cards keep their length
+./make-recording.py --no-cards                      # clips only, no title cards and no chapters
+./make-recording.py --out short.mp4 --card-seconds 2
+./make-recording.py --help                          # also --fps, --crf, --width/--height, --keep, --verbose
+```
+
+Each `--out` name gets its own `.vtt` and `.png` beside it, so two cuts of one run do not overwrite
+each other.
+
+### What you get
+
+In `target/recording/<timestamp>/` (ignored by git, like the rest of `target/`):
+
+| | |
+|---|---|
+| `journey.mp4` | the film: a title card per phase, then that phase's clips, with chapters |
+| `journey.vtt` | the beats as subtitles |
+| `journey.png` | a still, for wherever the film is embedded |
+| `clips/*.webm` | what Playwright recorded, one per persona visit |
+| `manifest.json` | what happened when: phases, beats and clips, in wall-clock milliseconds |
+
+The chapters are real MP4 chapters: QuickTime, VLC and IINA all list them, so a viewer can jump
+straight to "9. And at Arabia, in Arabic, right to left". MP4 chapter tracks tile the timeline, so
+chapter 1 absorbs the opening card and starts at zero however the metadata was written.
+
+### Changing what it says
+
+Two places, both in `CensusMultilingualE2ETest`:
+
+- **A phase's sentence** is the second argument of `phase(...)`, beside the phase's own short name.
+  It is shown on the phase's title card, in the lower third for the whole phase, and as the chapter
+  title. It is nothing to the test — changing it cannot break an assertion.
+- **A beat** is `Recording.beat(site, "...")`, which sets the caption's second line and becomes a
+  subtitle cue. Put one immediately before the thing it describes. Most of them are in the shared
+  helpers, so one beat narrates every site that helper runs at; a beat about something that happens
+  once goes in that phase.
+
+Both are inert when not recording, so beats can be added freely without slowing the suite down.
+
+### The three pieces
+
+**Video.** Playwright records one webm per browser context, and this suite already opens a fresh
+context per persona visit. So the clips fall out of the journey's own structure without anything
+being arranged for them: one clip is one person's visit to one site, which is exactly the unit a
+viewer can follow. The dead time between visits is in no clip, so the film is tighter than the run.
+
+**A pointer.** Playwright drives the mouse through CDP, which moves no visible cursor and leaves no
+mark where it clicks, so a raw screencast is a page that changes for no reason. `recording/overlay.js`
+draws a cursor and a click ring — and it needs no cooperation from the page objects, because CDP
+input arrives in the page as ordinary `mousemove` and `mousedown` events at real coordinates. It
+listens, in the capture phase, and draws what it sees. A `fill()` sets a value with no keystrokes at
+all, so a field that takes focus is ringed too; otherwise text would simply appear.
+
+The overlay lives in a **closed** shadow root. That is not decoration. Playwright's locators pierce
+*open* shadow roots, so a caption in one could be matched by a `getByText` and make an assertion
+pass or fail on the narration rather than on the page. A closed root cannot be reached by any
+locator while still rendering into the video, and the host is `pointer-events: none`, so it is not a
+hit-test target and never steals a click.
+
+**Beats and captions.** `Recording.phase` and `Recording.beat` push their words into the overlay —
+so they are burned into the picture — and log them with a timestamp, which is what lets
+`make-recording.py` cut a title card, a chapter mark and a subtitle cue at the right places. Most
+beats sit in the shared helpers (`adminLogin`, `register`, `takeWholeSurvey`, `exportRespondents`),
+so a caption like "mex2 resumes — and reads the wording their first visit was anchored to" is
+written once and narrates every site it runs at.
+
+Timings in the manifest are wall-clock. The assembler does not trust them as video positions — a
+screencast drifts from wall time — it places each beat at the same *fraction* of its clip, against
+the duration ffprobe reports.
+
+### slowMo is not a luxury here
+
+A recording run launches Chromium with a slowMo (180 ms; `-De2e.record.slowmo=`). Without it
+Playwright presses the button in the same millisecond it moves the mouse there, and the cursor —
+which is animated, because one that teleports reads as a cut rather than as a hand — is still in
+flight when the page has already changed. The slowMo has to be **longer than the overlay's travel
+time**, not merely non-zero. It also makes a Vaadin application legible: a form that fills instantly
+shows a viewer nothing. Budget half an hour for a recorded run rather than fifteen minutes.
+
+### Why the cards are rendered rather than drawn by ffmpeg
+
+`drawtext` has no bidi and no Arabic shaping, so a card naming a site in its own language would come
+out as disconnected letters in the wrong order. Chromium shapes them properly and is already
+installed — the same reason `make-brand-images.py` renders the brand assets through it. Both go
+through `browser_shot.py`.
+
+Each site's badge wears the mark its own pages wear, which is what the three brands are for (see
+"What makes a site look like itself"): Mexico's and Arabia's primaries are `#006847` and `#006C35`,
+so color alone would not tell them apart, and the flag does.
+
+### Checking the harness without the stacks
+
+`RecordingHarnessSelfTest` exercises every piece — the injected overlay, the pointer's own count of
+the clicks, the caption push, the per-visit clip, the manifest and `make-recording.py` itself —
+against a page fulfilled by a Playwright route at each site's real base URL. No server, no stacks,
+about fifteen seconds, and it leaves a real `journey.mp4` to look at:
+
+```bash
+mvn -DskipTests=false -De2e.record=true -Dtest=RecordingHarnessSelfTest test
+```
+
+Served rather than loaded from `file://` on purpose: the URL is what the overlay resolves the site
+and application badge from, and a `file://` page would have proved nothing about it.
+
+### When it does not work
+
+| | |
+|---|---|
+| `nothing recorded yet` from `make-recording.py` | the run had no `-De2e.record=true`; `record.sh` always passes it |
+| the film exists but has no pointer or caption | the overlay did not attach. Run the self-test below: if it passes, the harness is fine and the page is the problem |
+| `ffmpeg is not on PATH` | `brew install ffmpeg`; the journey still records without it, only the assembly needs it |
+| `no Chromium found` | Playwright's Chromium is not installed (see Prerequisites), or use `--no-cards`, which needs no browser |
+| the clips are there but the film is short | a phase failed, so the journey stopped. `target/failure-*.png` says where, and the film ends there too |
+| phase 1 fails with "already exists in Author" | the databases were not cleared; `./record.sh` without `--no-reset` does it |
+| the pointer teleports instead of gliding | the slowMo was turned down below the pointer's travel time (`-De2e.record.slowmo=`, 180 ms default) |
+
+### Known limits of a recording
+
+- The lower third covers the bottom ~90px of the frame. Playwright centers what it scrolls to, so
+  it rarely hides the element being clicked, but it can sit over a page's own footer.
+- Nothing is narrated aloud, and the captions are English at every site — including while an Arabic
+  page is being recorded. The pictures carry the language; the captions say what is being proved.
+- A phase that fails stops the journey, so the film ends where the story broke. That is the same
+  property the suite has, and it is usually what you want to look at.
+
 ## Layout
 
 - `usa/`, `mexico/`, `arabia/docker-compose.yml` — self-contained, trimmed copies of the umbrella
   compose file (see the comments at the top of each). Data lives under `data/<site>/` (ignored).
 - `i18n/<site>/` — the translations mounts, laid out by `./sync-i18n.sh` from `../elicit-i18n`
   (the copies are ignored; the directories are kept by `.gitkeep`).
+- `mexico/mexico_brand/`, `arabia/arabia_brand/` — each site's brand mount, beside the compose
+  file that mounts it. Source artwork is `images/flag.svg`; the PNGs and the `.ico` beside it are
+  generated by `./make-brand-images.py`. USA mounts `../elicit-brand` unchanged.
 - `pom.xml` — borrows the page objects of `../e2e-tests` by source (build-helper) and runs only
   `**/multilingual/*E2ETest.java`.
 - `src/test/java/com/elicitsoftware/e2e/multilingual/` — `Site`, `MultilingualTestBase`,
   `CensusHouseholdSurvey` (where every question sits and how it is answered), `ContentTranslations`
   (the translator's side of the hand-off) and the journey.
 - `src/test/resources/fixtures/` — the translations and the two tools that make and check them.
+- `src/test/resources/recording/overlay.js` — the pointer and the caption, injected into every
+  recorded page; `Recording.java` is the Java half and `RecordingHarnessSelfTest` checks both.
+- `record.sh`, `make-recording.py` — record a run, and assemble it into `journey.mp4`.
+- `browser_shot.py` — finding Playwright's Chromium and screenshotting HTML with it, shared by
+  `make-brand-images.py` (brand assets) and `make-recording.py` (title cards).
 
 ## Defects this suite needed fixed first
 

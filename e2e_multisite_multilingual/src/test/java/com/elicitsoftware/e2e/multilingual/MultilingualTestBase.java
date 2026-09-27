@@ -25,6 +25,14 @@ import java.util.List;
  */
 public abstract class MultilingualTestBase {
 
+    /**
+     * The one viewport every context uses, and therefore the frame size of a recording
+     * ({@link Recording}). 1440x1024 is wide enough for Author's designer board and tall enough
+     * for a section page without scrolling, and both sides are even, which is what h264 wants.
+     */
+    protected static final int VIEWPORT_WIDTH = 1440;
+    protected static final int VIEWPORT_HEIGHT = 1024;
+
     protected static final Site USA = Site.usa();
     protected static final Site MEXICO = Site.mexico();
     protected static final Site ARABIA = Site.arabia();
@@ -41,15 +49,20 @@ public abstract class MultilingualTestBase {
 
     @BeforeAll
     static void launchBrowser() {
+        Recording.start();
         playwright = Playwright.create();
         boolean headless = !"false".equals(System.getProperty("e2e.headless"));
-        browser = playwright.chromium().launch(new BrowserType.LaunchOptions()
+        BrowserType.LaunchOptions options = new BrowserType.LaunchOptions()
                 .setHeadless(headless)
-                .setArgs(List.of("--window-size=1440,1024")));
+                .setArgs(List.of("--window-size=" + VIEWPORT_WIDTH + "," + VIEWPORT_HEIGHT));
+        // A recording run is slowed down on purpose; see Recording#slowMo.
+        Recording.decorate(options);
+        browser = playwright.chromium().launch(options);
     }
 
     @AfterAll
     static void closeBrowser() {
+        Recording.finish();
         if (browser != null) {
             browser.close();
         }
@@ -74,15 +87,21 @@ public abstract class MultilingualTestBase {
      * browser (UC-009 step 2): the {@code ?lang=} in the link has to be what decides.
      */
     protected static BrowserContext newContext() {
-        return browser.newContext(new Browser.NewContextOptions()
-                .setViewportSize(1440, 1024)
-                .setLocale("en-US"));
+        Browser.NewContextOptions options = new Browser.NewContextOptions()
+                .setViewportSize(VIEWPORT_WIDTH, VIEWPORT_HEIGHT)
+                .setLocale("en-US");
+        // One clip per context, which is one persona visit; inert unless -De2e.record=true.
+        Recording.decorate(options, VIEWPORT_WIDTH, VIEWPORT_HEIGHT);
+        BrowserContext context = browser.newContext(options);
+        Recording.attach(context);
+        return context;
     }
 
     /** Runs {@code visit} with a page in a fresh context, closing the context afterwards. */
     protected static void visit(Visit visit) {
         BrowserContext context = newContext();
         Page page = context.newPage();
+        Recording.opened(page);
         try {
             visit.run(page);
         } catch (Exception | Error e) {
@@ -99,7 +118,8 @@ public abstract class MultilingualTestBase {
             }
             throw new IllegalStateException(e.getMessage() + " " + where, e);
         } finally {
-            context.close();
+            // Ends the clip and closes the context, in that order (Recording#closeContext).
+            Recording.closeContext(context, page);
         }
     }
 

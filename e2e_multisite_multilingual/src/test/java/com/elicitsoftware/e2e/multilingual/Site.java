@@ -68,6 +68,21 @@ public record Site(String name, String surveyBaseUrl, String adminBaseUrl, Strin
         return languageTag != null;
     }
 
+    /**
+     * How this site's language is named in prose -- a recording's captions ({@link Recording}) and
+     * nothing else. The master, which mounts no translations, reads English.
+     */
+    public String languageName() {
+        if (languageTag == null) {
+            return "English";
+        }
+        return switch (languageTag) {
+            case "es-419" -> "Spanish";
+            case "ar" -> "Arabic";
+            default -> languageTag;
+        };
+    }
+
     /** {@code ?lang=<tag>} for this site's language, or "" on the English-only master. */
     public String langParameter() {
         return languageTag == null ? "" : "?lang=" + languageTag;

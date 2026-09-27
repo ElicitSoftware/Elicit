@@ -70,6 +70,9 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class CensusMultilingualE2ETest extends MultilingualTestBase {
 
+    /** The sixteen {@code @Order}ed phases below, as a recording's captions count them. */
+    private static final int PHASES = 16;
+
     private static final Pattern SURVEY_KEY_LINE = Pattern.compile("(?m)^# survey_key: (\\S+)$");
     private static final Pattern TRANSLATIONS_COUNT = Pattern.compile("(?m)^# translations: (\\d+)$");
 
@@ -114,8 +117,18 @@ class CensusMultilingualE2ETest extends MultilingualTestBase {
 
     // ---- phase plumbing ----------------------------------------------------------------------
 
-    private void phase(String name, PhaseBody body) {
+    /**
+     * Runs one phase of the story, unless an earlier one broke it.
+     *
+     * @param name      the journey's own short name for the phase, opening with its number -- what
+     *                  a skipped phase names as the place the story broke
+     * @param narration the sentence a viewer of a recording is shown while this phase runs
+     *                  ({@link Recording}); it is nothing to the test itself
+     */
+    private void phase(String name, String narration, PhaseBody body) {
         assumeTrue(failedPhase == null, "skipped: the story already broke at " + failedPhase);
+        Recording.expectPhases(PHASES);
+        Recording.phase(numberOf(name), name, narration);
         try {
             body.run();
         } catch (Throwable t) {
@@ -128,6 +141,15 @@ class CensusMultilingualE2ETest extends MultilingualTestBase {
             }
             throw new RuntimeException(t);
         }
+    }
+
+    /** The phase number the name opens with, which is also its {@code @Order}. */
+    private static int numberOf(String phaseName) {
+        int end = 0;
+        while (end < phaseName.length() && Character.isDigit(phaseName.charAt(end))) {
+            end++;
+        }
+        return end == 0 ? 0 : Integer.parseInt(phaseName.substring(0, end));
     }
 
     @FunctionalInterface
@@ -154,7 +176,8 @@ class CensusMultilingualE2ETest extends MultilingualTestBase {
     @Test
     @Order(1)
     void phase01_masterImportsAndValidatesTheDefinition() {
-        phase("1 import + validate", () -> visit(page -> {
+        phase("1 import + validate",
+                "The master imports the survey definition into Author, which validates it", () -> visit(page -> {
             assertTrue(Files.exists(DEFINITION), "the definition to import is missing: " + DEFINITION.toAbsolutePath());
             authorLogin(page, USA);
             SurveysPage surveys = new SurveysPage(page);
@@ -163,6 +186,7 @@ class CensusMultilingualE2ETest extends MultilingualTestBase {
                     "'" + CensusHouseholdSurvey.NAME + "' already exists in Author: the databases were not cleared"
                             + " since the last run. Run ./reset.sh all (or ./run.sh) first.");
 
+            Recording.beat(USA, "importing " + DEFINITION.getFileName() + " into Author");
             openAuthor(page, USA, "/import");
             ImportDefinitionPage importer = new ImportDefinitionPage(page);
             String outcome = importer.importFile(DEFINITION);
@@ -171,6 +195,7 @@ class CensusMultilingualE2ETest extends MultilingualTestBase {
                     "unexpected import outcome:\n" + outcome);
             surveyIdInAuthor = importer.openInEditor();
 
+            Recording.beat(USA, "Author validates it: ready to publish");
             SurveyEditorPage editor = new SurveyEditorPage(page);
             assertTrue(editor.isReadyToExport(),
                     "the imported definition does not validate (Author UC-007):\n" + editor.validationText());
@@ -181,13 +206,16 @@ class CensusMultilingualE2ETest extends MultilingualTestBase {
     @Test
     @Order(2)
     void phase02_masterPublishesSpanishAndArabic() {
-        phase("2 publish languages", () -> visit(page -> {
+        phase("2 publish languages",
+                "The author declares the survey published in Spanish and Arabic", () -> visit(page -> {
             authorLogin(page, USA);
             openAuthor(page, USA, "/survey/" + surveyIdInAuthor);
+            Recording.beat(USA, "published in " + SPANISH + " and " + ARABIC + ", base language English");
             SurveyEditorPage editor = new SurveyEditorPage(page);
             editor.setContentLanguages(SPANISH + "," + ARABIC, "en");
             editor.openTranslations();
 
+            Recording.beat(USA, "the Translations page lists every translatable string, none translated");
             TranslationsPage page043 = new TranslationsPage(page);
             page043.waitUntilLoaded();
             assertEquals(PUBLISHED, page043.languages(),
@@ -209,7 +237,8 @@ class CensusMultilingualE2ETest extends MultilingualTestBase {
     @Test
     @Order(3)
     void phase03_masterTranslatesTheSurvey() {
-        phase("3 translate", () -> visit(page -> {
+        phase("3 translate",
+                "The survey is translated: one string by hand, the rest through the hand-off document", () -> visit(page -> {
             authorLogin(page, USA);
             openAuthor(page, USA, "/survey/" + surveyIdInAuthor + "/translations");
             TranslationsPage view = new TranslationsPage(page);
@@ -220,15 +249,19 @@ class CensusMultilingualE2ETest extends MultilingualTestBase {
             String title = CensusHouseholdSurvey.NAME;
             String titleEs = translations.translationOf(SPANISH, "surveys", "title", title);
             assertEquals("Missing", view.statusOf(title), "the survey title should start out untranslated");
+            Recording.beat(USA, "Spanish: the survey title typed straight into the grid");
             view.setTranslation(title, titleEs);
             assertEquals(new TranslationsPage.Counts(1, stringCount - 1, 0), view.counts(),
                     "after one hand-typed translation");
 
+            Recording.beat(USA, "Author writes the hand-off document for the translator");
             Path esRequest = view.requestTranslationFile(exportDir());
             ContentTranslations.Filled esFilled = translations.fill(esRequest, SPANISH);
             assertTrue(esFilled.isComplete(), "the fixture does not cover the whole survey in " + SPANISH
                     + ": " + esFilled.report());
             assertEquals(stringCount, esFilled.items(), "the request should carry every string");
+            Recording.beat(USA, "the filled document comes back: " + (stringCount - 1)
+                    + " imported, the hand-typed one unchanged");
             String esResult = view.importTranslationFile(esFilled.file());
             // The hand-typed title comes back identical, so it is counted as unchanged, not imported.
             assertTrue(esResult.contains((stringCount - 1) + " imported, 1 unchanged, 0 left untranslated, 0 rejected."),
@@ -239,6 +272,7 @@ class CensusMultilingualE2ETest extends MultilingualTestBase {
             view.chooseLanguage(ARABIC);
             assertEquals(new TranslationsPage.Counts(0, stringCount, 0), view.counts(),
                     "Arabic should be untouched by the Spanish import");
+            Recording.beat(USA, "Arabic: the same round trip, with one answer option left empty on purpose");
             Path arRequest = view.requestTranslationFile(exportDir());
             ContentTranslations.Filled arFilled = translations.fillExcept(arRequest, ARABIC, UNTRANSLATED_IN_ARABIC);
             assertTrue(arFilled.isComplete(), "the fixture does not cover the whole survey in " + ARABIC
@@ -249,6 +283,7 @@ class CensusMultilingualE2ETest extends MultilingualTestBase {
             assertEquals(new TranslationsPage.Counts(stringCount - 1, 1, 0), view.counts(), "Arabic after the import");
 
             // UC-043 step 4: the filter shows exactly the string that is still missing.
+            Recording.beat(USA, "\"only what needs work\" shows the one string still missing: " + UNTRANSLATED_IN_ARABIC);
             view.setOnlyOutstanding(true);
             assertEquals(1, view.rowCount(), "only the untranslated option should be listed");
             assertEquals(UNTRANSLATED_IN_ARABIC, view.originals().get(0));
@@ -271,7 +306,8 @@ class CensusMultilingualE2ETest extends MultilingualTestBase {
     @Test
     @Order(4)
     void phase04_masterExportsRevision1() {
-        phase("4 export v1", () -> visit(page -> {
+        phase("4 export v1",
+                "Revision 1 is exported — one file for every site, carrying both languages", () -> visit(page -> {
             authorLogin(page, USA);
             openAuthor(page, USA, "/survey/" + surveyIdInAuthor);
             SurveyEditorPage editor = new SurveyEditorPage(page);
@@ -279,6 +315,7 @@ class CensusMultilingualE2ETest extends MultilingualTestBase {
             assertTrue(findings.contains(ARABIC + " is published but 1 string(s) are not translated"),
                     "validation should warn about the one untranslated Arabic string:\n" + findings);
 
+            Recording.beat(USA, "an incomplete language is a warning, not an error — exporting anyway");
             v1File = editor.export("Census Household Survey, Spanish and Arabic", exportDir());
             String definition = Files.readString(v1File, StandardCharsets.UTF_8);
             assertTrue(definition.startsWith("# ELICIT_SURVEY_EXPORT_V1"), "unexpected export header");
@@ -304,7 +341,8 @@ class CensusMultilingualE2ETest extends MultilingualTestBase {
     @Test
     @Order(5)
     void phase05_masterAppliesRevision1() {
-        phase("5 USA apply v1", () -> applyDefinition(USA, v1File, "New Survey Installed"));
+        phase("5 USA apply v1",
+                "The master creates its department and installs revision 1", () -> applyDefinition(USA, v1File, "New Survey Installed"));
     }
 
     /**
@@ -315,11 +353,13 @@ class CensusMultilingualE2ETest extends MultilingualTestBase {
     @Test
     @Order(6)
     void phase06_remoteSitesApplyRevision1() {
-        phase("6 remote apply v1", () -> {
+        phase("6 remote apply v1",
+                "Mexico and Arabia apply the same file, and each one offers its own language", () -> {
             for (Site site : REMOTE_SITES) {
                 applyDefinition(site, v1File, "New Survey Installed");
             }
             visit(page -> {
+                Recording.beat(USA, "the master mounts no translations: no language selector at all");
                 openSurvey(page, USA, "/");
                 new LoginPage(page).waitUntilLoaded();
                 assertTrue(!isLanguageSwitcherVisible(page),
@@ -328,12 +368,15 @@ class CensusMultilingualE2ETest extends MultilingualTestBase {
             });
             for (Site site : REMOTE_SITES) {
                 visit(page -> {
+                    Recording.beat(site, "its Survey offers " + site.languageTag() + " in the selector");
                     openSurvey(page, site, "/");
                     new LoginPage(page).waitUntilLoaded();
                     assertTrue(isLanguageSwitcherVisible(page),
                             site + " mounts " + site.languageTag() + ", so it should offer a language selector");
                 });
                 visit(page -> {
+                    Recording.beat(site, "and lays the page out "
+                            + (site.rightToLeft() ? "right to left" : "left to right"));
                     openSurvey(page, site, "/" + site.langParameter());
                     new LoginPage(page).waitUntilLoaded();
                     assertEquals(site.rightToLeft() ? "rtl" : "ltr", documentDirection(page),
@@ -342,6 +385,7 @@ class CensusMultilingualE2ETest extends MultilingualTestBase {
                 // The console has the language too, though this suite drives it in English.
                 visit(page -> {
                     adminLogin(page, site);
+                    Recording.beat(site, "the console has the language too, though this journey drives it in English");
                     // The console's own shell, so the switcher is probed against a rendered page.
                     page.locator("vaadin-app-layout").first().waitFor();
                     assertTrue(isLanguageSwitcherVisible(page),
@@ -355,7 +399,8 @@ class CensusMultilingualE2ETest extends MultilingualTestBase {
     @Test
     @Order(7)
     void phase07_masterRespondentsOnRevision1() {
-        phase("7 USA respondents v1", () -> {
+        phase("7 USA respondents v1",
+                "Three subjects at the master read the survey in English", () -> {
             register(USA, "usa1", "usa2", "usa3");
             takeWholeSurvey(USA, "usa1", CensusHouseholdSurvey.Q_RACE_V1);
             startAndPause(USA, "usa2", CensusHouseholdSurvey.Q_RACE_V1);
@@ -367,7 +412,8 @@ class CensusMultilingualE2ETest extends MultilingualTestBase {
     @Test
     @Order(8)
     void phase08_mexicoRespondentsOnRevision1() {
-        phase("8 Mexico respondents v1", () -> {
+        phase("8 Mexico respondents v1",
+                "The same three at Mexico read the same survey in Spanish", () -> {
             register(MEXICO, "mex1", "mex2", "mex3");
             takeWholeSurvey(MEXICO, "mex1", CensusHouseholdSurvey.Q_RACE_V1);
             startAndPause(MEXICO, "mex2", CensusHouseholdSurvey.Q_RACE_V1);
@@ -382,7 +428,8 @@ class CensusMultilingualE2ETest extends MultilingualTestBase {
     @Test
     @Order(9)
     void phase09_arabiaRespondentsOnRevision1() {
-        phase("9 Arabia respondents v1", () -> {
+        phase("9 Arabia respondents v1",
+                "And at Arabia, in Arabic, right to left — with one option still in English", () -> {
             register(ARABIA, "arb1", "arb2", "arb3");
             takeWholeSurvey(ARABIA, "arb1", CensusHouseholdSurvey.Q_RACE_V1);
             startAndPause(ARABIA, "arb2", CensusHouseholdSurvey.Q_RACE_V1);
@@ -398,15 +445,18 @@ class CensusMultilingualE2ETest extends MultilingualTestBase {
     @Test
     @Order(10)
     void phase10_masterRewordsTheRaceQuestionAndRetranslatesIt() {
-        phase("10 reword + retranslate", () -> {
+        phase("10 reword + retranslate",
+                "Rewording the race question puts both translations out of date at once", () -> {
             visit(page -> {
                 authorLogin(page, USA);
                 openAuthor(page, USA, "/survey/" + surveyIdInAuthor + "/design");
+                Recording.beat(USA, "rewording the race question in the designer");
                 DesignerPage designer = new DesignerPage(page);
                 // By the board row's label, which is the question's short text ("Race"), not its
                 // text: the designer labels a question by its short text where it has one.
                 designer.editQuestionTextOfRow("About You", "Race and language",
                         CensusHouseholdSurvey.RACE_ROW, CensusHouseholdSurvey.Q_RACE_V2);
+                Recording.beat(USA, "the designer says at once which languages that invalidated");
                 Locator warning = page.locator("vaadin-notification-card")
                         .filter(new Locator.FilterOptions().setHasText("are now out of date"));
                 warning.first().waitFor();
@@ -420,6 +470,7 @@ class CensusMultilingualE2ETest extends MultilingualTestBase {
                 TranslationsPage view = new TranslationsPage(page);
                 view.waitUntilLoaded();
 
+                Recording.beat(USA, "one row out of date per language; both retranslated by hand");
                 view.chooseLanguage(SPANISH);
                 assertEquals(new TranslationsPage.Counts(stringCount - 1, 0, 1), view.counts(),
                         "Spanish after the reword");
@@ -440,6 +491,7 @@ class CensusMultilingualE2ETest extends MultilingualTestBase {
             visit(page -> {
                 authorLogin(page, USA);
                 openAuthor(page, USA, "/survey/" + surveyIdInAuthor);
+                Recording.beat(USA, "exporting revision 2");
                 v2File = new SurveyEditorPage(page).export("Race question reworded", exportDir());
                 String definition = Files.readString(v2File, StandardCharsets.UTF_8);
                 assertTrue(definition.contains(CensusHouseholdSurvey.Q_RACE_V2),
@@ -456,7 +508,8 @@ class CensusMultilingualE2ETest extends MultilingualTestBase {
     @Test
     @Order(11)
     void phase11_masterAppliesRevision2() {
-        phase("11 USA apply v2", () -> applyDefinition(USA, v2File, "Survey Updated"));
+        phase("11 USA apply v2",
+                "The master installs revision 2", () -> applyDefinition(USA, v2File, "Survey Updated"));
     }
 
     /**
@@ -466,7 +519,8 @@ class CensusMultilingualE2ETest extends MultilingualTestBase {
     @Test
     @Order(12)
     void phase12_masterRespondentsAfterRevision2() {
-        phase("12 USA respondents v2", () -> {
+        phase("12 USA respondents v2",
+                "Part-way through keeps the old wording; a fresh respondent gets the new", () -> {
             resumeAndFinish(USA, "usa2", CensusHouseholdSurvey.Q_RACE_V1);
             takeWholeSurvey(USA, "usa3", CensusHouseholdSurvey.Q_RACE_V2);
             assertStatus(USA, Map.of("usa2", "Finished", "usa3", "Finished"));
@@ -477,7 +531,8 @@ class CensusMultilingualE2ETest extends MultilingualTestBase {
     @Test
     @Order(13)
     void phase13_remoteSitesApplyRevision2() {
-        phase("13 remote apply v2", () -> {
+        phase("13 remote apply v2",
+                "The master shares revision 2; both remote sites apply it", () -> {
             for (Site site : REMOTE_SITES) {
                 applyDefinition(site, v2File, "Survey Updated");
             }
@@ -488,7 +543,8 @@ class CensusMultilingualE2ETest extends MultilingualTestBase {
     @Test
     @Order(14)
     void phase14_remoteRespondentsAfterRevision2() {
-        phase("14 remote respondents v2", () -> {
+        phase("14 remote respondents v2",
+                "The same rule holds at both remote sites, each in its own language", () -> {
             resumeAndFinish(MEXICO, "mex2", CensusHouseholdSurvey.Q_RACE_V1);
             takeWholeSurvey(MEXICO, "mex3", CensusHouseholdSurvey.Q_RACE_V2);
             assertStatus(MEXICO, Map.of("mex2", "Finished", "mex3", "Finished"));
@@ -503,7 +559,8 @@ class CensusMultilingualE2ETest extends MultilingualTestBase {
     @Test
     @Order(15)
     void phase15_remoteSitesExportTheirRespondents() {
-        phase("15 remote export", () -> {
+        phase("15 remote export",
+                "Each remote site exports its three respondents, one file each", () -> {
             exportRespondents(MEXICO, "mex1", "mex2", "mex3");
             exportRespondents(ARABIA, "arb1", "arb2", "arb3");
         });
@@ -517,7 +574,8 @@ class CensusMultilingualE2ETest extends MultilingualTestBase {
     @Test
     @Order(16)
     void phase16_masterImportsEveryRemoteRespondent() {
-        phase("16 USA import", () -> {
+        phase("16 USA import",
+                "The master takes in all six, and re-exports one byte for byte", () -> {
             visit(page -> {
                 adminLogin(page, USA);
                 assertNoBlockingDialog(page, USA);
@@ -527,6 +585,7 @@ class CensusMultilingualE2ETest extends MultilingualTestBase {
                 }
                 RespondentImportPage importer = new RespondentImportPage(page);
                 for (Map.Entry<String, Path> e : remoteExports.entrySet()) {
+                    Recording.beat(USA, "importing " + e.getKey() + "'s answers from " + siteOf(e.getKey()));
                     // A fresh view per file: the upload component accepts a single file per instance.
                     openAdmin(page, USA, "/respondent-import");
                     String result = importer.importFile(e.getValue());
@@ -554,6 +613,7 @@ class CensusMultilingualE2ETest extends MultilingualTestBase {
                 }
                 assertTrue(problems.isEmpty(), "the master after the import:\n" + String.join("\n", problems));
 
+                Recording.beat(USA, "all nine respondents at the master, the imported six in the right department");
                 // Round trip: re-exporting an imported respondent must reproduce the remote site's
                 // answers and dependent lines (the V2 format carries no site-local ids in them).
                 for (String label : List.of("mex1", "arb1")) {
@@ -571,12 +631,14 @@ class CensusMultilingualE2ETest extends MultilingualTestBase {
     // ---- personas ----------------------------------------------------------------------------
 
     private static void adminLogin(Page page, Site site) {
+        Recording.beat(site, "an administrator signs in to the console");
         page.navigate(site.adminBaseUrl() + "/");
         new KeycloakLoginHelper(page).login(ADMIN_USERNAME, ADMIN_PASSWORD);
         page.waitForURL(url -> url.startsWith(site.adminBaseUrl()));
     }
 
     private static void authorLogin(Page page, Site site) {
+        Recording.beat(site, "the author signs in");
         openAuthor(page, site, "/");
         new KeycloakLoginHelper(page).login(AUTHOR_USERNAME, AUTHOR_PASSWORD);
         page.waitForURL(url -> url.startsWith(site.authorBaseUrl()));
@@ -621,6 +683,7 @@ class CensusMultilingualE2ETest extends MultilingualTestBase {
             adminLogin(page, site);
             ensureDepartment(page, site, site.departmentName(), site.departmentCode(),
                     site.name().toLowerCase() + "@example.org");
+            Recording.beat(site, "Apply Survey Definition: " + file.getFileName());
             openAdmin(page, site, "/survey-apply");
             String result = new SurveyApplyPage(page).apply(file);
             assertTrue(result.contains(expectedOutcome),
@@ -651,6 +714,7 @@ class CensusMultilingualE2ETest extends MultilingualTestBase {
         if (page.getByText(name, new Page.GetByTextOptions().setExact(true)).count() > 0) {
             return;
         }
+        Recording.beat(site, "creating the " + name + " department (" + code + ")");
         openAdmin(page, site, "/edit-department/0");
         new DepartmentsPage(page).createDepartment(name, code, email);
     }
@@ -660,6 +724,7 @@ class CensusMultilingualE2ETest extends MultilingualTestBase {
             adminLogin(page, site);
             assertNoBlockingDialog(page, site);
             for (String label : labels) {
+                Recording.beat(site, "registering subject " + label + " and taking their access code");
                 openAdmin(page, site, "/register");
                 String first = "Census";
                 String last = label.toUpperCase() + runId;
@@ -677,6 +742,8 @@ class CensusMultilingualE2ETest extends MultilingualTestBase {
 
     /** Logs a respondent in, in their site's language, and returns a section page that speaks it. */
     private SectionPage respondentLogin(Page page, Site site, String label) {
+        Recording.beat(site, label + " opens their link and signs in with their access code"
+                + (site.servesTranslatedContent() ? " (?lang=" + site.languageTag() + ")" : ""));
         openSurvey(page, site, "/login/" + codes.get(label) + site.langParameter());
         LoginPage login = new LoginPage(page);
         login.loginWithAccessCode(CensusHouseholdSurvey.NAME, codes.get(label));
@@ -722,6 +789,7 @@ class CensusMultilingualE2ETest extends MultilingualTestBase {
     private void takeWholeSurvey(Site site, String label, String expectedRaceWording) {
         visit(page -> {
             SectionPage section = respondentLogin(page, site, label);
+            Recording.beat(site, label + " answers the whole survey in " + site.languageName());
             CensusHouseholdSurvey.Answers answers = new CensusHouseholdSurvey.Answers(label);
             Set<String> done = CensusHouseholdSurvey.startAndReachRaceSection(section, answers);
             assertRaceSectionReads(site, section, expectedRaceWording);
@@ -741,6 +809,7 @@ class CensusMultilingualE2ETest extends MultilingualTestBase {
     private void startAndPause(Site site, String label, String expectedRaceWording) {
         visit(page -> {
             SectionPage section = respondentLogin(page, site, label);
+            Recording.beat(site, label + " gets as far as Race and language, then leaves unfinished");
             CensusHouseholdSurvey.startAndReachRaceSection(section, new CensusHouseholdSurvey.Answers(label));
             assertRaceSectionReads(site, section, expectedRaceWording);
             openSurvey(page, site, "/logout");
@@ -751,6 +820,7 @@ class CensusMultilingualE2ETest extends MultilingualTestBase {
     private void resumeAndFinish(Site site, String label, String expectedRaceWording) {
         visit(page -> {
             SectionPage section = respondentLogin(page, site, label);
+            Recording.beat(site, label + " resumes — and reads the wording their first visit was anchored to");
             CensusHouseholdSurvey.Answers answers = new CensusHouseholdSurvey.Answers(label);
             Set<String> done = CensusHouseholdSurvey.startAndReachRaceSection(section, answers);
             // Survey UC-009 BR-010: still the wording this respondent's first access was anchored to.
@@ -776,6 +846,7 @@ class CensusMultilingualE2ETest extends MultilingualTestBase {
         visit(page -> {
             adminLogin(page, site);
             assertNoBlockingDialog(page, site);
+            Recording.beat(site, "Search: each respondent's status");
             openAdmin(page, site, "/");
             SearchPage search = new SearchPage(page);
             List<String> problems = new ArrayList<>();
@@ -799,6 +870,7 @@ class CensusMultilingualE2ETest extends MultilingualTestBase {
             openAdmin(page, site, "/");
             SearchPage search = new SearchPage(page);
             for (String label : labels) {
+                Recording.beat(site, "exporting " + label + " (ELICIT_EXPORT_V2, one file per respondent)");
                 search.searchByAccessCode(codes.get(label));
                 assertEquals(1, search.rowCount(), "expected one row for " + label);
                 Path file = search.exportRespondent(codes.get(label),
