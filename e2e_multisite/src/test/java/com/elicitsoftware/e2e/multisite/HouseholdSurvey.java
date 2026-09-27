@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Survey runtime cannot repeat a whole step): Step 1 "The house" asks how many people live in
  * the house and repeats "Name of person {Q#}" once per person (REPEAT rule); each name SHOWs
  * Step 2 "Household member" once, carrying the name as token {@code NAME} into the section
- * title "About {NAME|this person}" and the question texts. Revision 2 renames the sex question
+ * title "About {<NAME>|this person}" and the question texts. Revision 2 renames the sex question
  * to gender and its options to Woman/Man.</p>
  *
  * <p>Display keys (Survey {@code DisplayKey}: survey-step-stepInstance-section-sectionInstance-
@@ -30,12 +30,12 @@ final class HouseholdSurvey {
     static final String Q_COUNT = "How many people live in your house?";
     static final String Q_NAME = "Name of person {Q#}";
     static final String STEP2 = "Household member";
-    static final String STEP2_SECTION = "About {NAME|this person}";
-    static final String Q_AGE = "How old is {NAME|this person}?";
-    static final String Q_SEX_V1 = "What is {NAME|this person}'s sex?";
-    static final String Q_SEX_V2 = "What is {NAME|this person}'s gender?";
-    static final String Q_RELATION = "How is {NAME|this person} related to you?";
-    static final String Q_CHILDREN = "How many children does {NAME|this person} have?";
+    static final String STEP2_SECTION = "About {<NAME>|this person}";
+    static final String Q_AGE = "How old is {<NAME>|this person}?";
+    static final String Q_SEX_V1 = "What is {<NAME>|this person}'s sex?";
+    static final String Q_SEX_V2 = "What is {<NAME>|this person}'s gender?";
+    static final String Q_RELATION = "How is {<NAME>|this person} related to you?";
+    static final String Q_CHILDREN = "How many children does {<NAME>|this person} have?";
     static final String SEX_LIST = "Sex";
     static final List<String> SEX_OPTIONS_V1 = List.of("Female", "Male");
     static final List<String> SEX_OPTIONS_V2 = List.of("Woman", "Man");
