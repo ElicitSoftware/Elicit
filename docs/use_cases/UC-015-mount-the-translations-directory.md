@@ -34,7 +34,7 @@
 **Flow:**
 
 1. The manual states that a partial file is an override rather than an error: the keys it carries win, and every key it omits keeps the value from the tier below, ending at English.
-2. The manual states the visible consequence — a page mixing the new language with English — and that this is the intended behaviour, not a sign of a broken mount.
+2. The manual states the visible consequence — a page mixing the new language with English — and that this is the intended behavior, not a sign of a broken mount.
 3. Use case continues at step 7.
 
 ### A2: Only one application is translated

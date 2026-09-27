@@ -21,7 +21,7 @@ public class RespondentImportPage extends PageObject {
 
     /**
      * Uploads {@code exportFile} and returns the result dialog's text. The upload component is
-     * given a moment to initialise after navigation before the file is set (setting it during
+     * given a moment to initialize after navigation before the file is set (setting it during
      * the component's own start-up left the file listed but never produced the dialog, seen
      * live), and the dialog is allowed a full minute since the import runs inside the upload
      * request; on timeout the upload widget's state is reported.

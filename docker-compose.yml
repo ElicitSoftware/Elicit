@@ -246,7 +246,7 @@ services:
 # Author stack
 # The authoring tool works in a database of its own -- `author`, a second database
 # in the same Postgres container, created by ./db-init/V0.0.4__CREATE_AUTHOR_DATABASE.sql
-# when the cluster is first initialised -- so drafts never touch the site's survey data:
+# when the cluster is first initialized -- so drafts never touch the site's survey data:
 #   author-survey - a second Survey container pointed at db/author. Survey owns
 #                   the schema migrations, so this is what creates the survey
 #                   schema there; it also serves as the respondent preview of a
@@ -362,7 +362,7 @@ services:
     # this will cause the database to be recreated.
     volumes:
       - ./postgresql/PGDATA:/var/lib/postgresql/data
-      # Adds the `author` database (Author stack) on first initialisation.
+      # Adds the `author` database (Author stack) on first initialization.
       - ./db-init/V0.0.4__CREATE_AUTHOR_DATABASE.sql:/docker-entrypoint-initdb.d/V0.0.4__CREATE_AUTHOR_DATABASE.sql:ro
     ports:
       - 5452:5432

@@ -7,7 +7,7 @@ Admin and Author.
 
 See [`../use_cases/UC-001-consult-the-installation-manual.md`](../use_cases/UC-001-consult-the-installation-manual.md)
 and [`../use_cases/UC-002-build-the-installation-manual.md`](../use_cases/UC-002-build-the-installation-manual.md)
-for the behaviour this implements, and FR-001/FR-002 with NFR-001–NFR-010 in
+for the behavior this implements, and FR-001/FR-002 with NFR-001–NFR-010 in
 [`../requirements.md`](../requirements.md). Its chapters map one to one onto
 umbrella use cases UC-003 to UC-019.
 
@@ -126,7 +126,7 @@ describes what the figure shows — the caption is part of the instruction.
 ### Figure 18 is captured with the selector closed, on purpose
 
 The language selector's dropdown currently renders the mounted Spanish and
-Arabic rows with **blank labels** (English alone is labelled) in both Survey and
+Arabic rows with **blank labels** (English alone is labeled) in both Survey and
 Admin. The figure shows the closed selector in the header, because what it is
 there to demonstrate is that the selector appears at all — which happens only
 once a second language is on the mount. Open it again for the figure when that

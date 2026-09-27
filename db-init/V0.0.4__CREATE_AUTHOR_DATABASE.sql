@@ -5,7 +5,7 @@
 -- migrations, exactly as the survey container does for the site database.
 --
 -- Mounted into /docker-entrypoint-initdb.d/, so it runs only when the cluster is first
--- initialised (empty ./postgresql/PGDATA). To add the database to an existing cluster:
+-- initialized (empty ./postgresql/PGDATA). To add the database to an existing cluster:
 --   docker compose exec db psql -U survey -d survey -f /docker-entrypoint-initdb.d/V0.0.4__CREATE_AUTHOR_DATABASE.sql
 CREATE DATABASE author;
 GRANT CONNECT ON DATABASE author TO dbowner;

@@ -2,7 +2,7 @@
 #
 # Wipe a site for a greenfield rerun: ./reset.sh [site1|site2|all]  (default all).
 # Stops the site and deletes data/<site> (PostgreSQL PGDATA, Mailpit, SFTP uploads, the
-# Keycloak H2 copy). The next ./up.sh initialises the database from scratch.
+# Keycloak H2 copy). The next ./up.sh initializes the database from scratch.
 #
 # If the first start after a reset dies with
 #   FATAL:  data directory "/var/lib/postgresql/data/pgdata" has wrong ownership

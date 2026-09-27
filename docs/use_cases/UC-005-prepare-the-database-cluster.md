@@ -33,16 +33,16 @@
 **Trigger:** The operator installs with the container path and keeps the bundled database (step 3)  
 **Flow:**
 
-1. The image runs the same role and schema scripts on first initialisation of an empty data directory, so steps 3 to 6 are already done.
+1. The image runs the same role and schema scripts on first initialization of an empty data directory, so steps 3 to 6 are already done.
 2. The manual states that those scripts carry documented development passwords, and that a site keeping the image must change them (UC-013).
 3. Use case continues at step 7.
 
 ### A2: The authoring database is added to an existing cluster
 
-**Trigger:** The cluster is already initialised and the authoring database is added later (step 6)  
+**Trigger:** The cluster is already initialized and the authoring database is added later (step 6)  
 **Flow:**
 
-1. The manual states that an initialisation script runs only against an empty data directory, and gives the command that runs the authoring database script against a running cluster instead.
+1. The manual states that an initialization script runs only against an empty data directory, and gives the command that runs the authoring database script against a running cluster instead.
 2. Use case continues at step 7.
 
 ### A3: The cluster's collation version does not match

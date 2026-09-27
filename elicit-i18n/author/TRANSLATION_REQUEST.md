@@ -138,7 +138,7 @@ Every row is one key in `translations.properties`. Return a file `translations_<
 | `exportDialog.issue.warning` | Warning: {0} | Export dialog · validation list item | 100 | params: {0} = finding text |
 | `exportDialog.errorsBlock` | {0} error(s) block the export; fix them in the editor first. | Export dialog · paragraph | 80 | params: {0} = number of errors |
 | `exportDialog.warningsDoNotBlock` | Warnings do not block the export. | Export dialog · paragraph | 50 |  |
-| `exportDialog.retroactiveReminder` | Reminder: renaming a step or section and changing a question's ontology tag apply retroactively at deployed sites (historical reports and answers are relabelled). | Export dialog · secondary paragraph | 200 |  |
+| `exportDialog.retroactiveReminder` | Reminder: renaming a step or section and changing a question's ontology tag apply retroactively at deployed sites (historical reports and answers are relabeled). | Export dialog · secondary paragraph | 200 |  |
 | `exportDialog.download` | Download {0} | Export dialog · download link | 40 | params: {0} = file name |
 | `exportDialog.revisionSummary` | Revision {0}: {1} | Export dialog · paragraph after export | 80 | params: {0} = revision number, {1} = list of table names with counts |
 | `importDefinitionView.pageTitle` | Import definition | Import page · browser tab title | 25 |  |
@@ -736,7 +736,7 @@ Every row is one key in `translations.properties`. Return a file `translations_<
 | `systemBrandingView.source.embedded` | Embedded default | System branding · source badge (packaged default) | 20 |  |
 | `systemBrandingView.source.absent` | Absent | System branding · source badge | 15 |  |
 | `systemBrandingView.source.unreadable` | Unreadable | System branding · source badge | 15 |  |
-| `systemBrandingView.asset.colourStylesheet` | colour stylesheet | System branding · what an asset is for | 30 |  |
+| `systemBrandingView.asset.colorStylesheet` | color stylesheet | System branding · what an asset is for | 30 |  |
 | `systemBrandingView.asset.typographyStylesheet` | typography stylesheet | System branding · what an asset is for | 30 |  |
 | `systemBrandingView.asset.themeStylesheet` | theme stylesheet | System branding · what an asset is for | 30 |  |
 | `systemBrandingView.asset.horizontalLogo` | horizontal logo | System branding · what an asset is for | 30 |  |
@@ -886,7 +886,7 @@ exportDialog.issue.error=Error: {0}
 exportDialog.issue.warning=Warning: {0}
 exportDialog.errorsBlock={0} error(s) block the export; fix them in the editor first.
 exportDialog.warningsDoNotBlock=Warnings do not block the export.
-exportDialog.retroactiveReminder=Reminder: renaming a step or section and changing a question's ontology tag apply retroactively at deployed sites (historical reports and answers are relabelled).
+exportDialog.retroactiveReminder=Reminder: renaming a step or section and changing a question's ontology tag apply retroactively at deployed sites (historical reports and answers are relabeled).
 exportDialog.download=Download {0}
 exportDialog.revisionSummary=Revision {0}: {1}
 importDefinitionView.pageTitle=Import definition
@@ -1484,7 +1484,7 @@ systemBrandingView.source.local=Local
 systemBrandingView.source.embedded=Embedded default
 systemBrandingView.source.absent=Absent
 systemBrandingView.source.unreadable=Unreadable
-systemBrandingView.asset.colourStylesheet=colour stylesheet
+systemBrandingView.asset.colorStylesheet=color stylesheet
 systemBrandingView.asset.typographyStylesheet=typography stylesheet
 systemBrandingView.asset.themeStylesheet=theme stylesheet
 systemBrandingView.asset.horizontalLogo=horizontal logo

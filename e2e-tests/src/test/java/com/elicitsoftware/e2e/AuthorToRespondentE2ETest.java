@@ -67,7 +67,7 @@ class AuthorToRespondentE2ETest extends E2ETestBase {
         DesignerPage designer = new DesignerPage(page);
         designer.addStep("Welcome");
         designer.addSectionToFirstStep("Basics");
-        designer.addTextQuestionToFirstSection("What is your favourite colour?");
+        designer.addTextQuestionToFirstSection("What is your favorite color?");
 
         // 4. Author UC-004 / UC-007: point the survey at its first section, then expect a clean
         //    validation panel -- Export is disabled while any error remains.

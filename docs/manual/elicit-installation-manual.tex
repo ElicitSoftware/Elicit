@@ -337,9 +337,9 @@ Survey preview instance, not by Author, which owns no migrations of its own.
 
 \begin{elicitnote}[The bundled database image does all of this for you]
 \file{elicitsoftware/elicit_db} runs the role script and the schema script when its data
-directory is first initialised, and the compose file mounts
+directory is first initialized, and the compose file mounts
 \file{db-init/V0.0.4__CREATE_AUTHOR_DATABASE.sql} to add the authoring database at the same
-time. An initialisation script runs \emph{only} against an empty data directory; to add the
+time. An initialization script runs \emph{only} against an empty data directory; to add the
 authoring database to a cluster that already exists, run it by hand:
 
 \begin{elicitcmd}
@@ -419,7 +419,7 @@ A site that cannot manage Elicit's roles in its identity provider can set
 \opt{elicit.authorization.mode} to \val{DATABASE} on Admin. That makes the console consult
 its own \val{survey.user_roles} table as a fallback and shows the role-assignment section of
 the user editor. It does \emph{not} disable OIDC — sign-in is unchanged, and roles the
-provider supplies are still honoured. Under this mode the identity provider's account names
+provider supplies are still honored. Under this mode the identity provider's account names
 must match the console's user records.
 
 %% ================================================================== 5
@@ -1006,7 +1006,7 @@ environment:
 
 Read-only is correct: no application writes to the brand directory.
 
-\screenshot{17-branded-header}{A branded application. The header logo, the colours and the
+\screenshot{17-branded-header}{A branded application. The header logo, the colors and the
 typefaces all come from the mounted directory.}
 
 \subsection{Translated brand text}
