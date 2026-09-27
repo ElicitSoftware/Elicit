@@ -97,6 +97,17 @@ final class ContentTranslations {
         return translationOf(language, "select_items", "display_text", englishText);
     }
 
+    /**
+     * A question's short text in {@code language}.
+     *
+     * <p>Short text is an authoring label almost everywhere, but a MODAL question's short text is
+     * what the respondent reads as the dialog header, so on a translated site it has to arrive
+     * translated like any other content string.</p>
+     */
+    String shortText(String language, String englishShortText) {
+        return translationOf(language, "questions", "short_text", englishShortText);
+    }
+
     /** A section's name in {@code language}. */
     String sectionName(String language, String englishName) {
         return translationOf(language, "sections", "name", englishName);

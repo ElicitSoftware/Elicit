@@ -97,6 +97,8 @@ class CensusMultilingualE2ETest extends MultilingualTestBase {
      * the survey's base language while everything around it is Arabic (Survey UC-009 A5, BR-005).
      */
     private static final String UNTRANSLATED_IN_ARABIC = "Chinese";
+    /** The short text of the survey's closing MODAL question, which is its dialog header. */
+    private static final String THANKS_SHORT_TEXT = "Thank you";
 
     private final ContentTranslations translations = ContentTranslations.load();
 
@@ -754,6 +756,24 @@ class CensusMultilingualE2ETest extends MultilingualTestBase {
         return new SectionPage(page, site.nextCaption(), site.reviewCaption());
     }
 
+    /**
+     * The short text of the survey's closing MODAL, as this site's respondents should read it.
+     *
+     * <p>A modal's header is its question's short text, and short text is translatable. Survey
+     * read it straight off the entity until it was fixed, so a translated site showed an English
+     * title over a translated body -- which sixteen green phases did not notice, because nothing
+     * asserted a modal's header. This is that assertion.</p>
+     */
+    private String thanksHeaderAt(Site site) {
+        if (!site.servesTranslatedContent()) {
+            return THANKS_SHORT_TEXT;
+        }
+        String translated = translations.shortText(site.languageTag(), THANKS_SHORT_TEXT);
+        assertTrue(translated != null,
+                "the fixture has no " + site.languageTag() + " short text for: " + THANKS_SHORT_TEXT);
+        return translated;
+    }
+
     /** What this site's respondents should read for an English source string. */
     private String asRead(Site site, String englishQuestionText) {
         if (!site.servesTranslatedContent()) {
@@ -794,6 +814,7 @@ class CensusMultilingualE2ETest extends MultilingualTestBase {
             Set<String> done = CensusHouseholdSurvey.startAndReachRaceSection(section, answers);
             assertRaceSectionReads(site, section, expectedRaceWording);
             CensusHouseholdSurvey.walkToReview(section, answers, done);
+            assertModalHeadersRead(site, section);
             ReviewPage review = new ReviewPage(section.page());
             List<String> titles = review.sectionTitles();
             // The per-person step's section title carries the name typed for that person, in the
@@ -826,9 +847,18 @@ class CensusMultilingualE2ETest extends MultilingualTestBase {
             // Survey UC-009 BR-010: still the wording this respondent's first access was anchored to.
             assertRaceSectionReads(site, section, expectedRaceWording);
             CensusHouseholdSurvey.walkToReview(section, answers, done);
+            assertModalHeadersRead(site, section);
             new ReviewPage(section.page()).finish();
             openSurvey(page, site, "/logout");
         });
+    }
+
+    /** Survey UC-009: every modal this walk dismissed carried its header in the site's language. */
+    private void assertModalHeadersRead(Site site, SectionPage section) {
+        List<String> headers = section.closedModalHeaders();
+        assertTrue(headers.contains(thanksHeaderAt(site)),
+                site + ": the closing modal's header should read '" + thanksHeaderAt(site)
+                        + "' in " + site.languageName() + ", the headers seen were " + headers);
     }
 
     /** The race question and its options, as this site's respondents should read them. */

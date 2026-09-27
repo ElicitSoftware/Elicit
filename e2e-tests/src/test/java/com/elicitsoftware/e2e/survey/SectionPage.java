@@ -56,6 +56,13 @@ public class SectionPage extends PageObject {
     private static final int MAX_REVIEW_ATTEMPTS = 10;
 
     /**
+     * The header of every MODAL question this page object has closed, in the order it closed them.
+     * A modal is dismissed the moment it is seen (see {@link #closeModalQuestions()}), so a caller
+     * that wants to assert what one said has no other chance to read it.
+     */
+    private final List<String> closedModalHeaders = new ArrayList<>();
+
+    /**
      * Repeatedly fills whatever is visible and advances until the Review page is reached.
      *
      * <p>A Review click that validation blocks (required fields the previous pass could not
@@ -390,6 +397,31 @@ public class SectionPage extends PageObject {
      * button whose id is the question's display key plus {@code -close}; until it is closed it
      * covers the section's own buttons.
      */
+    /**
+     * The headers of the MODAL questions closed so far, in order.
+     *
+     * <p>A question's short text is what {@code ElicitModal} renders as the dialog header, and
+     * short text is translatable, so on a site serving a translated survey this is one of the
+     * strings that has to arrive in the respondent's language.</p>
+     */
+    public List<String> closedModalHeaders() {
+        return List.copyOf(closedModalHeaders);
+    }
+
+    /**
+     * The header of whichever dialog is open, or "" when none is.
+     *
+     * <p>Read off the {@code headerTitle} property of the {@code vaadin-dialog} host rather than
+     * out of the rendered overlay: {@code Dialog.setHeaderTitle} sets that property, and where the
+     * web component then draws it is its own business.</p>
+     */
+    private String openModalHeader() {
+        Object title = page.evaluate("() => {"
+                + " const d = [...document.querySelectorAll('vaadin-dialog')].find(x => x.opened);"
+                + " return d && d.headerTitle ? d.headerTitle : ''; }");
+        return title == null ? "" : String.valueOf(title);
+    }
+
     public void closeModalQuestions() {
         // A MODAL question's close button is the only element in Survey whose id ends in "-close"
         // (ElicitModal.CLOSE_BUTTON_ID_SUFFIX), so this is specific without having to guess where
@@ -398,6 +430,11 @@ public class SectionPage extends PageObject {
         // finds nothing at all.
         Locator closes = page.locator("vaadin-button[id$=\"-close\"]:visible");
         for (int i = 0; i < 5 && closes.count() > 0; i++) {
+            // Read the header before dismissing it; after the click there is nothing left to read.
+            String header = openModalHeader();
+            if (!header.isEmpty()) {
+                closedModalHeaders.add(header);
+            }
             closes.first().click();
             page.waitForTimeout(400);
         }
