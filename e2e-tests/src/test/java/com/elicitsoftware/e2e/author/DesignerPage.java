@@ -144,6 +144,28 @@ public class DesignerPage extends AuthorPageObject {
                 .filter(new Locator.FilterOptions().setHasText("Rule created")).first().waitFor();
     }
 
+    /**
+     * UC-011: rewords the question whose board row reads {@code rowLabel}, expanding its step and
+     * section first.
+     *
+     * <p>Use this rather than {@link #editQuestion} on a survey whose questions have short texts:
+     * the board labels a question row with its short text and falls back to the question text only
+     * when there is none (Author {@code SurveyStructureQuery}). The row therefore keeps the same
+     * label across a rewording, which is also what this waits for afterwards.</p>
+     *
+     * @param rowLabel the row's label on the board -- the question's short text
+     * @param newText  the new question text
+     */
+    public void editQuestionTextOfRow(String stepName, String sectionName, String rowLabel, String newText) {
+        expandLane(stepName);
+        expandCard(stepName, sectionName);
+        openNodeMenu(row(rowLabel), "Edit");
+        Locator dialog = dialog("Edit question");
+        fieldByLabel(dialog, "Question text").fill(newText);
+        submitDialog(dialog, "Save");
+        row(rowLabel).waitFor();
+    }
+
     /** UC-011: changes the text of the question currently named {@code oldText}, expanding its step and section first. */
     public void editQuestion(String stepName, String sectionName, String oldText, String newText) {
         expandLane(stepName);
@@ -243,7 +265,7 @@ public class DesignerPage extends AuthorPageObject {
         return scope.locator("vaadin-integer-field:has(label:text-is(\"" + label + "\")) input");
     }
 
-    /** Picks {@code itemText} in the combo box labelled {@code label} inside {@code scope}. */
+    /** Picks {@code itemText} in the combo box labeled {@code label} inside {@code scope}. */
     private void selectComboItem(Locator scope, String label, String itemText) {
         Locator input = scope.locator("vaadin-combo-box:has(label:text-is(\"" + label + "\")) input");
         input.click();

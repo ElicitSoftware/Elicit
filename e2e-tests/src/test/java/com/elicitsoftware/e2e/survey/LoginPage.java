@@ -16,6 +16,11 @@ public class LoginPage extends PageObject {
         super(page);
     }
 
+    /** Waits until Vaadin has rendered the login form (the access-code field is its fixed anchor). */
+    public void waitUntilLoaded() {
+        input("login-access-code-field").waitFor();
+    }
+
     /** Logs in when only one survey is installed (no survey selector rendered). */
     public void loginWithAccessCode(String accessCode) {
         input("login-access-code-field").fill(accessCode);

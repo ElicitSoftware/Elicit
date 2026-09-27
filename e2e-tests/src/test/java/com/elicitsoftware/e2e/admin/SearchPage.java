@@ -192,10 +192,27 @@ public class SearchPage extends PageObject {
     public void runRowAction(String accessCode, String action) {
         int block = findRowBlockByAccessCode(accessCode);
         Locator actionCell = gridCellContents().nth(block * TOTAL_COLUMNS + COL_ACTION);
-
-        actionCell.locator("vaadin-combo-box input").click();
+        Locator comboInput = actionCell.locator("vaadin-combo-box input");
         Locator item = page.locator("vaadin-combo-box-item").filter(new Locator.FilterOptions().setHasText(action)).first();
-        item.waitFor();
+
+        // A click that lands while the grid is still re-rendering -- after a search, or after a
+        // previous row action's popup was closed -- is swallowed and the overlay never opens, so
+        // the item is waited for briefly and the click retried rather than timing out on the first
+        // attempt (seen live on the second of two consecutive exports).
+        boolean opened = false;
+        for (int attempt = 0; attempt < 3 && !opened; attempt++) {
+            comboInput.click();
+            try {
+                item.waitFor(new Locator.WaitForOptions().setTimeout(5000));
+                opened = true;
+            } catch (com.microsoft.playwright.TimeoutError e) {
+                page.keyboard().press("Escape");
+                page.waitForTimeout(500);
+            }
+        }
+        if (!opened) {
+            throw new IllegalStateException("The '" + action + "' action never appeared for " + accessCode);
+        }
         item.click();
 
         actionCell.locator("vaadin-button").filter(new Locator.FilterOptions().setHasText("Submit")).click();
