@@ -52,6 +52,20 @@ final class CensusHouseholdSurvey {
     static final int VEHICLES = 2;
     static final int PEOPLE = 2;
 
+    // ---- the rule this suite's copy of the definition breaks on purpose ------------------------
+    // See census-household-survey.elicit in this directory: relationship 3, the SHOW rule that
+    // reveals the Rent details section, arrives pointing at the About you section of step 2
+    // instead, so phase 1 has something real to find and fix in the designer (Author UC-033).
+
+    /** Board labels of the step and the section the rent rule reads from. */
+    static final String STEP_YOUR_HOME = "Your Home";
+    static final String SECTION_HOUSING = "Housing";
+    /** The section the rule is meant to reveal, and the one the broken copy points it at. */
+    static final String SECTION_RENT_DETAILS = "Rent details";
+    static final String SECTION_ABOUT_YOU = "About you";
+    /** The rule's description, which is how Author's validation panel names it. */
+    static final String RULE_RENT_DETAILS = "Show rent details when renting";
+
     private CensusHouseholdSurvey() {
     }
 

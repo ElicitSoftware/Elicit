@@ -491,16 +491,42 @@ public class SectionPage extends PageObject {
 
     private void clickNextButton() {
         closeModalQuestions(); // see review(): a rebuilt section re-opens its MODAL over the buttons
-        Locator navButton = byId("section-next-button");
-        navButton.waitFor();
-        page.waitForTimeout(300);
-        navButton = byId("section-next-button");
-        navButton.waitFor();
-        if (!nextCaption.equals(navButton.innerText().trim())) {
+        Locator navButton = navButtonReading(nextCaption);
+        String caption = navButton.innerText().trim();
+        if (!nextCaption.equals(caption)) {
             throw new IllegalStateException("Expected the '" + nextCaption + "' button but the section shows '"
-                    + navButton.innerText().trim() + "'");
+                    + caption + "'");
         }
         navButton.click();
+    }
+
+    /**
+     * The navigation button, once it reads {@code expected} -- or, if it never does, as it is, for
+     * the caller to report.
+     *
+     * <p>The caption is the server's: it reads Review while this is the last page and Next once
+     * there is another. The answer just saved may be the one that decides which, and that rebuild
+     * is an asynchronous round trip -- ticking the census survey's consent box materializes
+     * twenty-six answer rows and turns Review into Next. A caption read once, a moment after the
+     * answer, therefore catches the outgoing button and the walk fails on a page that was about to
+     * be right (confirmed live, phase 7 of the multilingual journey). Waiting for it costs nothing
+     * when it is already right, and a page that really disagrees still fails with the same message
+     * a few seconds later.</p>
+     */
+    private Locator navButtonReading(String expected) {
+        long deadline = System.currentTimeMillis() + 8_000;
+        Locator navButton;
+        do {
+            navButton = byId("section-next-button");
+            navButton.waitFor();
+            page.waitForTimeout(300); // let a rebuild that has just started swap the button in
+            navButton = byId("section-next-button");
+            navButton.waitFor();
+            if (expected.equals(navButton.innerText().trim())) {
+                return navButton;
+            }
+        } while (System.currentTimeMillis() < deadline);
+        return navButton;
     }
 
     private boolean waitForFieldsChange(List<String> before, int timeoutMs) {
@@ -521,9 +547,7 @@ public class SectionPage extends PageObject {
         // A MODAL question re-opens itself every time the section is rebuilt (ElicitModal opens on
         // attach), so one closed a moment ago can be covering this button again.
         closeModalQuestions();
-        Locator navButton = byId("section-next-button");
-        navButton.waitFor();
-        page.waitForTimeout(300);
+        Locator navButton = navButtonReading(reviewCaption);
         String caption = navButton.innerText().trim();
         if (!reviewCaption.equals(caption)) {
             throw new IllegalStateException("Expected the '" + reviewCaption + "' button on the last section but it shows '"

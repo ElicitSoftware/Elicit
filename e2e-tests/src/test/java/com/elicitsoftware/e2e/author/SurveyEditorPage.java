@@ -71,6 +71,22 @@ public class SurveyEditorPage extends AuthorPageObject {
         page.waitForURL(url -> url.endsWith("/translations"));
     }
 
+    /** Navigates to the survey's designer board through the toolbar (caption "Design…"). */
+    public void openDesigner() {
+        buttonByText("Design").click(); // the caption is "Design…" (U+2026)
+        page.waitForURL(url -> url.endsWith("/design"));
+    }
+
+    /**
+     * Waits until the validation panel has finished rendering -- either the "ready" line or at
+     * least one finding. The panel is built during the same server round trip as the rest of the
+     * view, so this only guards against asserting on a half-drawn page.
+     */
+    public void waitForValidation() {
+        page.locator("h3:has-text(\"Validation\")").first().waitFor();
+        page.locator("h3:has-text(\"Validation\") ~ p, h3:has-text(\"Validation\") ~ ul li").first().waitFor();
+    }
+
     /** True once the validation panel reports nothing blocking or noteworthy. */
     public boolean isReadyToExport() {
         return page.getByText("Ready to export: no findings.").count() > 0;

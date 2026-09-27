@@ -2,6 +2,7 @@ package com.elicitsoftware.e2e.author;
 
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
+import com.microsoft.playwright.TimeoutError;
 
 import java.util.List;
 
@@ -201,6 +202,74 @@ public class DesignerPage extends AuthorPageObject {
             rows.nth(i).locator("vaadin-text-field").first().locator("input").fill(newOptions.get(i));
         }
         submitDialog(dialog, "Save");
+    }
+
+    // ---- rules on the board (UC-020, UC-033) ----------------------------------------------
+
+    /**
+     * UC-033 BR-005: the arrows the board draws red -- rules whose target is not after the question
+     * they read from. The arrow overlay is a Lit element, so its edges live in an open shadow root
+     * and Playwright reaches them like any Vaadin component's internals; an edge carries the rule's
+     * id in {@code data-edge-id}, and an invalid one the class {@code invalid}.
+     */
+    public Locator invalidRuleArrows() {
+        return page.locator("elicit-rule-arrows g.edge.invalid");
+    }
+
+    /**
+     * Waits until the board draws exactly {@code expected} red arrows. The overlay lays itself out
+     * on an animation frame (and again as fonts and transitions settle), so a count taken the
+     * moment the board renders is a race; this asks the overlay's own shadow root instead.
+     */
+    public void awaitInvalidRuleCount(int expected) {
+        try {
+            page.waitForFunction("expected => {"
+                    + " const overlay = document.querySelector('elicit-rule-arrows');"
+                    + " const root = overlay && overlay.shadowRoot;"
+                    + " return !!root && root.querySelectorAll('g.edge.invalid').length === expected; }", expected);
+        } catch (TimeoutError e) {
+            // The raw timeout names only the predicate; say what the board actually draws.
+            String drawn = String.valueOf(invalidRuleArrows().locator("text.label").allTextContents());
+            throw new IllegalStateException("The board draws " + invalidRuleArrows().count()
+                    + " invalid rule arrow(s), expected " + expected + ": " + drawn, e);
+        }
+    }
+
+    /**
+     * What the board writes beside an arrow: what the rule does ("Show Rent details"), with
+     * "— points backwards" appended while it is invalid. SVG text, so read as text content.
+     */
+    public String ruleArrowLabel(Locator arrow) {
+        return String.valueOf(arrow.locator("text.label").first().textContent()).trim();
+    }
+
+    /**
+     * UC-019 + UC-033: opens the rule an arrow stands for and points it at another element.
+     *
+     * <p>The gesture is a click on the arrow's own action glyph -- which is also the handle for
+     * dragging that end onto a new target, so the overlay only treats a press that never moves as
+     * a selection. Playwright's click is exactly that. Afterwards the board is rebuilt from the
+     * server, so the caller re-resolves any arrow locator it still holds.</p>
+     *
+     * @param arrow       one of {@link #invalidRuleArrows()} or any {@code g.edge} of the overlay
+     * @param targetKind  "Step", "Section" or "Question"
+     * @param targetLabel text identifying the new target in the dialog's "Step › Section › Question" paths
+     */
+    public void retargetRule(Locator arrow, String targetKind, String targetLabel) {
+        arrow.locator("g.glyph").first().click();
+        Locator dialog = dialog("Edit rule");
+        dialog.locator("vaadin-radio-group:has(label:text-is(\"Target\")) vaadin-radio-button")
+                .filter(new Locator.FilterOptions().setHasText(targetKind)).first().click();
+        selectComboItem(dialog, "Target element", targetLabel);
+        submitDialog(dialog, "Save");
+        page.locator("vaadin-notification-card")
+                .filter(new Locator.FilterOptions().setHasText("Rule updated")).first().waitFor();
+    }
+
+    /** Overview: back to the survey editor, which validates the survey again on arrival. */
+    public void openOverview() {
+        buttonByText("Overview").click();
+        page.waitForURL(url -> url.matches(".*/survey/\\d+"));
     }
 
     // ---- expanding collapsed nodes --------------------------------------------------------

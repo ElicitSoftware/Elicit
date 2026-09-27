@@ -4,7 +4,7 @@
 # recording harness on, and assemble the film.
 #
 #   ./record.sh                 reset, start, record, assemble
-#   ./record.sh --speed 1.5     the same, with the clips played faster in the film
+#   ./record.sh --speed 1.0     the same at life size, rather than the default quarter-slower
 #   ./record.sh --no-reset      record against stacks that are already up and clean
 #
 # The journey installs the one Census Household Survey, so it needs clean databases every time --

@@ -110,9 +110,15 @@ the rest skipped so the report shows where the theory broke. Every persona visit
 site's administrator, every respondent login) runs in a fresh browser context — which matters more
 here than in `../e2e_multisite`, because the chosen language lives in the browser session.
 
-1. USA's author **imports** `../samples/census-household-survey.elicit` into Author (UC-005) and
-   checks it: the phase fails with the validation panel's own text unless the definition is clean
-   (UC-007). That survey exercises every question type and every rule the engine supports.
+1. USA's author **imports** this directory's `census-household-survey.elicit` into Author (UC-005)
+   and **fixes it**. That file is the sample of the same name with one deliberate fault (see "The
+   definition the master imports" below): the `SHOW` rule that reveals the Rent details section
+   points at a section the respondent has already passed. The import succeeds — an import is a load,
+   not a review — and the editor's validation panel refuses to call the survey ready, naming the rule
+   as pointing backwards (UC-007, UC-033 A3). The author opens the **designer**, where that rule's
+   arrow is drawn red and labeled, re-points it at Rent details in the rule dialog (UC-019), and the
+   overview then reports "Ready to export: no findings." Any *other* finding fails the phase with the
+   panel's own text, so a real problem in the sample still surfaces here rather than three phases on.
 2. The author declares the survey **published in `es-419` and `ar`** (UC-044) and opens the
    Translations page, which lists every translatable string of the survey with nothing translated.
 3. The author **translates the survey**. One string is typed straight into the grid (UC-043 step 5);
@@ -153,6 +159,29 @@ here than in `../e2e_multisite`, because the chosen language lives in the browse
     department, and re-exporting one from the master reproduces the remote site's answer and
     dependent lines byte for byte.
 
+## The definition the master imports
+
+`census-household-survey.elicit` here is a copy of `../samples/census-household-survey.elicit` — the
+demonstration survey that exercises every question type and every rule the engine supports — with
+**one deliberate fault**: relationship 3, the `SHOW` rule that should reveal the *Rent details*
+section when the tenure question is answered `RENT`, points at the *About you* section of step 2
+instead (`downstream_step_id` 2, `downstream_ss_id` 2). Everything else is the sample byte for byte,
+so the translation fixture's keys still match.
+
+It is there because a journey that only ever imports a clean file shows nothing of what Author is
+for. This fault is one Author has an answer to at every level — a validation finding that blocks the
+export, a red arrow with its reason on the board, and a rule dialog that would refuse to save the
+rule back into that state (UC-033) — and fixing it is the second half of phase 1.
+
+To refresh the copy after the sample changes: copy the sample over it and re-apply the fault to the
+`relationships` record with id 3 (the recipe is in the file's own header comment). Then
+
+```bash
+../samples/validate-elicit.py census-household-survey.elicit
+```
+
+which replays Author's own checks and must report **exactly one** error, the backwards rule.
+
 ## The translations
 
 `src/test/resources/fixtures/census-household-survey.translations.json` holds the finished Latin
@@ -187,8 +216,8 @@ bundles from `../elicit-i18n`, which is also where the two navigation captions a
 
 - Docker Desktop, and the `survey`, `admin` and `author` images built from the umbrella root:
   `./buildDockerImages.sh Survey Admin Author`. Pedigree and FHHS are not needed.
-- The umbrella checkout, for `../elicit-i18n`, `../elicit-brand`, `../keycloak`, `../db-init` and
-  `../samples/census-household-survey.elicit`.
+- The umbrella checkout, for `../elicit-i18n`, `../elicit-brand`, `../keycloak` and `../db-init`.
+  The definition itself lives here, not in `../samples` (see "The definition the master imports").
 - Playwright's Chromium, installed once:
   `mvn exec:java -e -Dexec.mainClass=com.microsoft.playwright.CLI -Dexec.args="install chromium"`
   (from `../e2e-tests`, or here after a first `mvn test-compile`).
@@ -244,7 +273,7 @@ Pillow (the two things `make-brand-images.py` already needs).
 ```bash
 ./record.sh                     # reset all three databases, start all three sites, record, assemble
 ./record.sh --no-reset          # against stacks that are already up and clean
-./record.sh --speed 1.5         # the same, with the clips played faster in the film
+./record.sh --speed 1.0         # the same at life size, rather than a quarter slower
 ```
 
 `record.sh` is `./reset.sh all`, `./up.sh all`, the journey with the harness on, then the assembler.
@@ -266,13 +295,19 @@ down ("slowMo is not a luxury here" below).
 can be re-run as often as you like without re-running the journey — the clips are already on disk.
 
 ```bash
-./make-recording.py                                 # the newest run, life size, with cards
+./make-recording.py                                 # the newest run, 0.75x, with cards
 ./make-recording.py target/recording/20260927-0113  # a particular run
-./make-recording.py --speed 1.5                     # clips faster; cards keep their length
+./make-recording.py --speed 1.0                     # life size; 1.5 to skim, 0.5 to pore over
 ./make-recording.py --no-cards                      # clips only, no title cards and no chapters
 ./make-recording.py --out short.mp4 --card-seconds 2
 ./make-recording.py --help                          # also --fps, --crf, --width/--height, --keep, --verbose
 ```
+
+**The clips play at `--speed 0.75` by default** — a quarter slower than they were recorded, because
+at life size a Vaadin form fills and a page changes faster than a viewer can follow even with the
+slowMo of the run itself. Title cards keep their length whatever the speed, and so does the clock the
+subtitles run on: every cue is placed as a fraction of its clip, so the `.vtt` follows the picture at
+any speed. A full sixteen-phase run comes out about sixteen minutes at 0.75 and twelve at 1.0.
 
 Each `--out` name gets its own `.vtt` and `.png` beside it, so two cuts of one run do not overwrite
 each other.
@@ -305,7 +340,11 @@ Two places, both in `CensusMultilingualE2ETest`:
   helpers, so one beat narrates every site that helper runs at; a beat about something that happens
   once goes in that phase.
 
-Both are inert when not recording, so beats can be added freely without slowing the suite down.
+Both are inert when not recording, so beats can be added freely without slowing the suite down. So
+is `Recording.hold(page)`, the third lever: it keeps a page on screen for a moment where the journey
+only has to *read* it. A validation panel is asserted in milliseconds and the clip would otherwise cut
+the instant it appeared — phase 1 holds on the findings, on the red arrow and on the clean overview.
+An ordinary run never waits, and no assertion depends on the hold having happened.
 
 ### The three pieces
 
@@ -402,6 +441,8 @@ and application badge from, and a `file://` page would have proved nothing about
 - `mexico/mexico_brand/`, `arabia/arabia_brand/` — each site's brand mount, beside the compose
   file that mounts it. Source artwork is `images/flag.svg`; the PNGs and the `.ico` beside it are
   generated by `./make-brand-images.py`. USA mounts `../elicit-brand` unchanged.
+- `census-household-survey.elicit` — the definition phase 1 imports: the sample of the same name
+  with one deliberately broken rule (see "The definition the master imports").
 - `pom.xml` — borrows the page objects of `../e2e-tests` by source (build-helper) and runs only
   `**/multilingual/*E2ETest.java`.
 - `src/test/java/com/elicitsoftware/e2e/multilingual/` — `Site`, `MultilingualTestBase`,

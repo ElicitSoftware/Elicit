@@ -45,8 +45,9 @@
         <admin.password>admin</admin.password>
         <author.username>author</author.username>
         <author.password>author</author.password>
-        <!-- The definition the master imports (UC-005). -->
-        <census.definition>${project.basedir}/../samples/census-household-survey.elicit</census.definition>
+        <!-- The definition the master imports (UC-005): the sample with one deliberately broken
+             rule, for phase 1 to find in the editor and fix in the designer (see the file's note). -->
+        <census.definition>${project.basedir}/census-household-survey.elicit</census.definition>
         <!-- -De2e.headless=false to watch the browser. -->
         <e2e.headless>true</e2e.headless>
     </properties>
