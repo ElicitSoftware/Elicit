@@ -589,6 +589,7 @@ Every row is one key in `translations.properties`. Return a file `translations_<
 | `relationshipDialog.overrideUpstreamValue` | Override upstream value | Rule dialog · field label | 30 |  |
 | `relationshipDialog.removeRule` | Remove rule | Rule dialog · button | 20 |  |
 | `relationshipDialog.token.helper` | Optional for Show and Repeat, required for Text. Fills {TOKEN\|default} — or a phrase holding it, {Has TOKEN been\|Were you} — in the target's text and in every text inside it | Rule dialog · field helper text; {TOKEN | default} and {Has TOKEN been | Were you} are literal examples, keep them |
+| `relationshipDialog.token.helper.displayOnly` | This question shows text and collects no answer, so only the rule's own default upstream value can fill the token. Read from a question the respondent answers to fill it with their answer | Rule dialog · field helper text shown when the chosen source question is display-only (HTML or MODAL) | 200 |  |
 | `relationshipDialog.targetKind.step` | Step | Rule dialog · radio option | 15 |  |
 | `relationshipDialog.targetKind.section` | Section | Rule dialog · radio option | 15 |  |
 | `relationshipDialog.targetKind.question` | Question | Rule dialog · radio option | 15 |  |
@@ -1337,6 +1338,7 @@ relationshipDialog.defaultUpstreamValue=Default upstream value
 relationshipDialog.overrideUpstreamValue=Override upstream value
 relationshipDialog.removeRule=Remove rule
 relationshipDialog.token.helper=Optional for Show and Repeat, required for Text. Fills {TOKEN|default} — or a phrase holding it, {Has TOKEN been|Were you} — in the target's text and in every text inside it
+relationshipDialog.token.helper.displayOnly=This question shows text and collects no answer, so only the rule's own default upstream value can fill the token. Read from a question the respondent answers to fill it with their answer
 relationshipDialog.targetKind.step=Step
 relationshipDialog.targetKind.section=Section
 relationshipDialog.targetKind.question=Question
