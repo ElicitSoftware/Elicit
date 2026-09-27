@@ -166,11 +166,16 @@ RULES = [
  (4, sq["person"],   5, None, None,              FIELD_EXIST,  SHOW,        "Show a step per household member",  "", "", ""),
  (4, sq["person"],   5, None, None,              FIELD_EXIST,  TEXT_ACTION, "Fill {name} for this member",   "name", "", ""),
  (2, sq["name"],     5, None, None,              FIELD_EXIST,  TEXT_ACTION, "Fill {proband} with your name","proband", "", ""),
- # Chain the remaining steps, so nothing past Welcome is reachable until consent is given.
- # Without these, steps 3, 4 and 6 are ungated and appear in navigation from the first page.
- (2, sq["gender"],   3, None, None,              FIELD_EXIST,  SHOW,        "Show Your Home",                    "", "", ""),
- (3, sq["tenure"],   4, None, None,              FIELD_EXIST,  SHOW,        "Show Household Members",            "", "", ""),
- (4, sq["hhsize"],   6, None, None,              FIELD_EXIST,  SHOW,        "Show Finishing Up",                 "", "", ""),
+ # Gate the remaining steps on consent too. Without a rule they would be ungated and appear in
+ # navigation from the first page; gated on the consent CHECKBOX they appear together with About
+ # You, once consent is given. They are deliberately NOT chained one to the next on FIELD_EXIST:
+ # that operator returns true unconditionally (it only means "an answer row exists", and rows are
+ # created when a step is built), so such a chain fires the moment its upstream step materializes
+ # and collapses the whole survey at once -- see FINDINGS.md 3. FIELD_EXIST is used below for the
+ # one thing it does express: one step instance per REPEATed answer row.
+ (1, sq["consent"],  3, None, None,              BOOLEAN,      SHOW,        "Show Your Home once consent is given",         "", "", ""),
+ (1, sq["consent"],  4, None, None,              BOOLEAN,      SHOW,        "Show Household Members once consent is given", "", "", ""),
+ (1, sq["consent"],  6, None, None,              BOOLEAN,      SHOW,        "Show Finishing Up once consent is given",      "", "", ""),
 ]
 for n,(us,usq,ds,dss,dsq,op,act,desc,tok,ref,dflt) in enumerate(RULES, start=1):
     add("relationships", n, key(f"rule/{n}"), us, usq, ds, dss, dsq, op, act, desc, tok, ref, dflt, "", *TAIL)

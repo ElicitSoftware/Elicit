@@ -2,7 +2,11 @@
 
 Issues surfaced by walking `census-household-survey.elicit` end to end on 2026-09-25,
 against Survey built from `V3` plus migration `V018`. The sample exists to exercise every
-element and rule once, so these are the things that exercise turned up. None are fixed.
+element and rule once, so these are the things that exercise turned up.
+
+**Findings 1, 2, 3 and 5 were fixed on 2026-09-26**, because `../e2e_multisite_multilingual`
+walks this survey nine times and could not get past any of them. Finding 5 turned out not to be
+a navigation stall at all; see its section. Findings 4 and 6 stand.
 
 Line references are to the `V3` branch of `Survey/` and `main` of `Author/`.
 
@@ -10,7 +14,7 @@ Line references are to the `V3` branch of `Survey/` and `main` of `Author/`.
 
 ## 1. COMBOBOX answers are stored as a Java object identity hash
 
-**Severity: high — silent data corruption, affects any survey with a combobox.**
+**Severity: high — silent data corruption, affects any survey with a combobox. Fixed 2026-09-26.**
 
 Observed in `survey.answers` after answering the marital-status question:
 
@@ -39,7 +43,10 @@ compared against that string. The hash also changes between JVM runs.
 `MULTI_SELECT` has a related but milder variant — `SectionView` joins `codedValue` with
 commas in its own listener, while `Answer.getSelectedItems()` never fires for it.
 
-**Fix:** save `codedValue`, as `RADIO` does. Existing combobox answers are unrecoverable.
+**Fixed:** `SectionView` now saves `e.getValue().codedValue`, as `RADIO` does, with a null guard
+for a cleared value. That is also what `ElicitComboBox.setValue` reads back, so a combobox answer
+now survives the respondent leaving and returning — it never did before. Combobox answers written
+before the fix are unrecoverable.
 
 ---
 
@@ -62,7 +69,7 @@ Observed: "Which other race or origin?" (gated `CONTAINS 'OTHER'`) and "Is any p
 housing cost subsidized?" (gated `NOT_EQUAL 'OWN'`) were both visible from the first render.
 Section-level rules behave correctly — "Rent details" stayed hidden until tenure was `RENT`.
 
-**Fix:** add the same `UNION` branch to `sqlStep`.
+**Fixed 2026-09-26:** `sqlStep` now carries the same `UNION` branch as `sqlSection`.
 
 ---
 
@@ -76,7 +83,12 @@ Using `FIELD_EXIST` to chain steps therefore fires every rule the moment the ups
 materializes. In this sample that collapsed the whole chain at once — 44 answer rows with 12
 actually filled in, and steps 4, 5 and 6 all built while their upstream questions were blank.
 
-The sample's own rules were wrong here and need reworking. But the underlying gap is real:
+**The sample's own rules were reworked on 2026-09-26.** Steps 3, 4 and 6 are now gated on the
+consent checkbox with `BOOLEAN`, an operator that actually reads a value, instead of being chained
+one to the next on `FIELD_EXIST`. `FIELD_EXIST` is still used for the one thing it does express:
+one step instance per REPEATed answer row (rules 7 and 8), which is the FHHS pattern.
+
+The underlying gap is unchanged:
 for a free-text question there is no way to express "show this once a value has been
 entered". The seeded operators all test a *value* (`BOOLEAN`, `GREATER THAN`, `EQUAL`,
 `NOT_EQUAL`, `CONTAINS`) or nothing at all (`FIELD_EXIST`).
@@ -100,21 +112,45 @@ hook, and its only currency affordance is `setPrefixComponent`.
 
 ---
 
-## 5. Navigation stalls after a section REPEAT
+## 5. Navigation stalls after a section REPEAT — two bugs, both fixed
+
+**Severity: high — any survey with a REPEATed section was unfinishable. Fixed 2026-09-26.**
 
 After answering "How many cars, vans or trucks" with `2`, the REPEAT correctly created two
-Vehicle section instances (`0001-0003-0000-0004-0001-…` and `…-0004-0002-…`, each with its
-own section-title row). Navigation then would not advance past the Vehicles section — Next
-re-rendered the same page.
+Vehicle section instances (`0001-0003-0000-0004-0001-…` and `…-0004-0002-…`, each with its own
+section-title row) — and then Next re-rendered the same page. It was never a navigation
+*stall*: it was an exception, caught and shown as a notification, and then a missing button.
 
-Not diagnosed. It may be entangled with finding 3, since every later step had already been
-built by then.
+**5a. `SectionView.buildQuestions` dereferenced a null question.** The guard for the row that
+carries a section's title read
 
----
+```java
+if (answer.question == null && answer.sectionInstance == 0) {   // section title
+```
+
+A section title is exactly the row of a section that carries no question; the instance number has
+nothing to do with it. A REPEATed section's instances are numbered 1, 2, … and have a title row
+each, so they fell through to the question branch and threw
+`NullPointerException: Cannot invoke "Question.getQuestionType()" because "Answer.getQuestion()"
+is null`. `nextSection()` caught it and showed "Error navigating to next section", which on a
+page that had not changed looks exactly like a stall. The guard is now `answer.question == null`.
+
+**5b. `DisplayKey.getSectionString()` zeroed the section instance.** With 5a fixed the section's
+question rendered, but with no Previous/Next buttons and no title. `addButtons()` returns early
+when `navResponse.getCurrentNavItem()` is null, and it was: `QuestionManager.getCurrentNavItem`
+matched navigation items against `DisplayKey.getSectionString()`, which builds
+`survey-step-stepInstance-section-**0000**-0000-0000`. Navigation items are built from the
+respondent's own section-title answer rows, whose keys carry the real instance, so no item ever
+matched a repeated section. That form is right where a key names a section's *structure* — a
+placement is one row whichever instance is being looked at — so `getSectionString()` is unchanged
+and a new `getSectionInstanceString()` was added for the navigation lookup.
+
+Neither bug is specific to this sample: 5a hits any survey with a REPEATed section, and 5b hits
+the second and later instances of one.
 
 ## 6. Smaller notes
 
-- **`LESS THAN` is unreachable.** Implemented at `Relationship.java:266` and labelled in
+- **`LESS THAN` is unreachable.** Implemented at `Relationship.java:266` and labeled in
   Author's `RelationshipQuery`, but no migration seeds the row, so no definition can
   reference it.
 - **Token substitution is English-only.** `QuestionManager.replaceTokens` ends with

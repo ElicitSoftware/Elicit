@@ -142,6 +142,6 @@ relationships: 6|ffb61654-2a75-5e65-ae40-4620806c4d6a||16|||17|2|2|Repeat the pe
 relationships: 7|37b8a550-89a4-5f99-8ded-77e034d37e3b|4|17|5|||5|1|Show a step per household member|||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
 relationships: 8|620d79b2-ea75-5076-b343-3b3f4e242fda|4|17|5|||5|3|Fill {name} for this member|name||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
 relationships: 9|c8d23653-20c9-59c1-9bb2-68c4c1b3c6c1|2|3|5|||5|3|Fill {proband} with your name|proband||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
-relationships: 10|34a953fc-f73e-50d3-8fa0-28753aeda65a|2|5|3|||5|1|Show Your Home|||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
-relationships: 11|42aad0ab-a816-5113-b5b0-3368efae9ad4|3|10|4|||5|1|Show Household Members|||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
-relationships: 12|94ee42a3-e764-5af4-8f37-2a046ed3d122|4|16|6|||5|1|Show Finishing Up|||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 10|34a953fc-f73e-50d3-8fa0-28753aeda65a|1|2|3|||1|1|Show Your Home once consent is given|||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 11|42aad0ab-a816-5113-b5b0-3368efae9ad4|1|2|4|||1|1|Show Household Members once consent is given|||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 12|94ee42a3-e764-5af4-8f37-2a046ed3d122|1|2|6|||1|1|Show Finishing Up once consent is given|||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
