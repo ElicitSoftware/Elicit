@@ -70,7 +70,7 @@
 **Trigger:** The report service still reports not-ready and refuses reports once a survey is installed (step 8)  
 **Flow:**
 
-1. The manual states that the report service serves one named survey and recognises it by key, so a site that installed a different survey, or configured the service with the wrong key, is in the same position as one that installed nothing (FHHS UC-005 A1).
+1. The manual states that the report service serves one named survey and recognizes it by key, so a site that installed a different survey, or configured the service with the wrong key, is in the same position as one that installed nothing (FHHS UC-005 A1).
 2. The operator installs the survey that service serves, or corrects the key it is configured with (UC-011).
 3. Use case continues at step 8.
 

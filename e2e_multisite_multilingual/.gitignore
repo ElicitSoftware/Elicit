@@ -1,0 +1,7 @@
+data/
+target/
+exports/
+# Laid out from ../elicit-i18n by ./sync-i18n.sh on every ./up.sh
+i18n/*/*/translations*.properties
+i18n/arabia/i18n-config.json
+__pycache__/

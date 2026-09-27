@@ -24,8 +24,29 @@ import java.util.List;
  */
 public class SectionPage extends PageObject {
 
+    /** The chrome caption of the navigation button while a further section exists. */
+    private final String nextCaption;
+    /** Its caption on the last section. */
+    private final String reviewCaption;
+
+    /** A section shown in English, the language every deployment ships. */
     public SectionPage(Page page) {
+        this(page, "Next", "Review");
+    }
+
+    /**
+     * A section shown in a mounted language (Survey UC-009). The navigation button is always
+     * {@code section-next-button}, but whether it means "next section" or "last section" can only
+     * be told from its caption, which is chrome and therefore translated -- so a caller driving a
+     * respondent in Spanish or Arabic must say what those two words read as there.
+     *
+     * @param nextCaption   {@code sectionView.btnNext} in the respondent's language
+     * @param reviewCaption {@code sectionView.btnReview} in the respondent's language
+     */
+    public SectionPage(Page page, String nextCaption, String reviewCaption) {
         super(page);
+        this.nextCaption = nextCaption;
+        this.reviewCaption = reviewCaption;
     }
 
     /** What clicking the section's navigation button led to. */
@@ -33,6 +54,13 @@ public class SectionPage extends PageObject {
 
     /** How many blocked Review clicks (validation failures on the last section) to tolerate. */
     private static final int MAX_REVIEW_ATTEMPTS = 10;
+
+    /**
+     * The header of every MODAL question this page object has closed, in the order it closed them.
+     * A modal is dismissed the moment it is seen (see {@link #closeModalQuestions()}), so a caller
+     * that wants to assert what one said has no other chance to read it.
+     */
+    private final List<String> closedModalHeaders = new ArrayList<>();
 
     /**
      * Repeatedly fills whatever is visible and advances until the Review page is reached.
@@ -188,7 +216,7 @@ public class SectionPage extends PageObject {
         page.waitForTimeout(300); // let a rebuild that has just started swap the button in
         navButton = byId("section-next-button");
         navButton.waitFor();
-        if ("Next".equals(navButton.innerText().trim())) {
+        if (nextCaption.equals(navButton.innerText().trim())) {
             clickAfterFill(navButton);
             page.waitForTimeout(500);
             return Navigation.NEXT_SECTION;
@@ -219,10 +247,19 @@ public class SectionPage extends PageObject {
         return page.title();
     }
 
+    /**
+     * How a field's own label is read. {@code :scope > label[slot=label]} first, because a group
+     * component -- a radio group, a checkbox group -- contains its children's labels too, and a
+     * plain {@code querySelector('label')} returns the first option's label instead of the
+     * question's own (confirmed live: the race question read "White").
+     */
+    private static final String OWN_LABEL =
+            "e => (e.querySelector(':scope > label[slot=\"label\"]') || e.querySelector('label'))";
+
     /** The visible labels of every question component on the section, in DOM order. */
     public List<String> labels() {
         Object result = page.locator(".elicit-input-field").evaluateAll(
-                "els => els.map(e => (e.querySelector('label')?.textContent || e.textContent || '').trim())");
+                "els => els.map(e => ((" + OWN_LABEL + ")(e)?.textContent || e.textContent || '').trim())");
         return ((List<?>) result).stream().map(Object::toString).toList();
     }
 
@@ -232,7 +269,7 @@ public class SectionPage extends PageObject {
         if (field.count() == 0) {
             return "";
         }
-        return (String) field.evaluate("e => (e.querySelector('label')?.textContent || '').trim()");
+        return (String) field.evaluate("e => ((" + OWN_LABEL + ")(e)?.textContent || '').trim()");
     }
 
     /**
@@ -260,9 +297,150 @@ public class SectionPage extends PageObject {
             }
             case "vaadin-radio-group" -> field.locator("vaadin-radio-button")
                     .filter(new Locator.FilterOptions().setHasText(value)).first().locator("input").check();
+            case "vaadin-checkbox" -> field.locator("input[type=checkbox]").setChecked(Boolean.parseBoolean(value));
+            // The three temporal pickers are set through the web component's own `value` property,
+            // which is always ISO (yyyy-MM-dd, HH:mm, yyyy-MM-ddTHH:mm) whatever the page's
+            // language, rather than by typing into the field: what a respondent may type there is
+            // the locale's own format -- dd/MM/yyyy in Spanish, and Arabic-Indic digits in Arabic --
+            // so a typed date would be a different string on every site. Setting the property fires
+            // value-changed, which is what Flow listens to.
+            case "vaadin-date-picker", "vaadin-time-picker", "vaadin-date-time-picker" ->
+                    field.evaluate("(el, v) => { el.value = v; el.dispatchEvent(new CustomEvent('change', { bubbles: true })); }", value);
             default -> throw new IllegalStateException("fillById does not handle " + tag + " for " + displayKey);
         }
         page.waitForTimeout(600);
+    }
+
+    /**
+     * Chooses answer options <em>by position</em> on the question with id {@code displayKey}, for
+     * the choice types: radio group, combo box, checkbox group and multi-select combo box. Position
+     * rather than label, so a test can answer the same survey in any language -- the labels are
+     * survey content and are translated (Survey UC-009), the display order is not.
+     *
+     * <p>{@code indexes} are zero-based positions in the question's select group. A single-valued
+     * type takes the first one and ignores the rest.</p>
+     */
+    public void chooseOptionsAt(String displayKey, int... indexes) {
+        Locator field = byId(displayKey);
+        field.waitFor();
+        String tag = (String) field.evaluate("el => el.tagName.toLowerCase()");
+        switch (tag) {
+            case "vaadin-radio-group" -> field.locator("vaadin-radio-button").nth(indexes[0]).locator("input").check();
+            case "vaadin-checkbox-group" -> {
+                for (int index : indexes) {
+                    field.locator("vaadin-checkbox").nth(index).locator("input[type=checkbox]").check();
+                    page.waitForTimeout(300); // each toggle is its own save round trip
+                }
+            }
+            case "vaadin-combo-box" -> {
+                input(displayKey).click();
+                Locator item = page.locator("vaadin-combo-box-item").nth(indexes[0]);
+                item.waitFor();
+                item.click();
+            }
+            case "vaadin-multi-select-combo-box" -> {
+                Locator msInput = input(displayKey);
+                msInput.click();
+                for (int index : indexes) {
+                    Locator item = page.locator("vaadin-multi-select-combo-box-item").nth(index);
+                    item.waitFor();
+                    // The overlay's list is virtualized and neighbors can overlap the hit area.
+                    item.click(new Locator.ClickOptions().setForce(true));
+                    page.waitForTimeout(200);
+                }
+                msInput.press("Escape");
+            }
+            default -> throw new IllegalStateException("chooseOptionsAt does not handle " + tag + " for " + displayKey);
+        }
+        page.waitForTimeout(600);
+    }
+
+    /**
+     * The option labels of the choice question with id {@code displayKey}, in display order -- what
+     * the respondent actually reads, so a multilingual test can assert the options were translated.
+     * For the two combo-box types the overlay is opened to read its items and closed again.
+     */
+    public List<String> optionLabels(String displayKey) {
+        Locator field = byId(displayKey);
+        field.waitFor();
+        String tag = (String) field.evaluate("el => el.tagName.toLowerCase()");
+        switch (tag) {
+            case "vaadin-radio-group" -> {
+                return field.locator("vaadin-radio-button").allInnerTexts().stream().map(String::trim).toList();
+            }
+            case "vaadin-checkbox-group" -> {
+                return field.locator("vaadin-checkbox").allInnerTexts().stream().map(String::trim).toList();
+            }
+            case "vaadin-combo-box", "vaadin-multi-select-combo-box" -> {
+                String item = "vaadin-combo-box".equals(tag) ? "vaadin-combo-box-item" : "vaadin-multi-select-combo-box-item";
+                Locator comboInput = input(displayKey);
+                comboInput.click();
+                Locator items = page.locator(item);
+                items.first().waitFor();
+                // The overlay's list is virtualized: an item element is attached first and its
+                // label written into it by the renderer a tick later, so a read taken the moment
+                // the first item appears comes back as a list of empty strings (confirmed live).
+                page.waitForFunction("selector => { const els = document.querySelectorAll(selector);"
+                        + " return els.length > 0 && [...els].every(e => e.textContent.trim().length > 0); }", item);
+                List<String> labels = items.allInnerTexts().stream().map(String::trim).toList();
+                comboInput.press("Escape");
+                page.waitForTimeout(200);
+                return labels;
+            }
+            default -> throw new IllegalStateException("optionLabels does not handle " + tag + " for " + displayKey);
+        }
+    }
+
+    /**
+     * Closes every MODAL question currently open on the section. A {@code MODAL} question is an
+     * {@code ElicitModal} dialog that opens itself the moment the section attaches, with a close
+     * button whose id is the question's display key plus {@code -close}; until it is closed it
+     * covers the section's own buttons.
+     */
+    /**
+     * The headers of the MODAL questions closed so far, in order.
+     *
+     * <p>A question's short text is what {@code ElicitModal} renders as the dialog header, and
+     * short text is translatable, so on a site serving a translated survey this is one of the
+     * strings that has to arrive in the respondent's language.</p>
+     */
+    public List<String> closedModalHeaders() {
+        return List.copyOf(closedModalHeaders);
+    }
+
+    /**
+     * The header of whichever dialog is open, or "" when none is.
+     *
+     * <p>Read off the {@code headerTitle} property of the {@code vaadin-dialog} host rather than
+     * out of the rendered overlay: {@code Dialog.setHeaderTitle} sets that property, and where the
+     * web component then draws it is its own business.</p>
+     */
+    private String openModalHeader() {
+        Object title = page.evaluate("() => {"
+                + " const d = [...document.querySelectorAll('vaadin-dialog')].find(x => x.opened);"
+                + " return d && d.headerTitle ? d.headerTitle : ''; }");
+        return title == null ? "" : String.valueOf(title);
+    }
+
+    public void closeModalQuestions() {
+        // A MODAL question's close button is the only element in Survey whose id ends in "-close"
+        // (ElicitModal.CLOSE_BUTTON_ID_SUFFIX), so this is specific without having to guess where
+        // Vaadin renders it: a Dialog's contents stay in the light DOM of the vaadin-dialog host
+        // and are only portalled into the overlay visually, so scoping to vaadin-dialog-overlay
+        // finds nothing at all.
+        Locator closes = page.locator("vaadin-button[id$=\"-close\"]:visible");
+        for (int i = 0; i < 5 && closes.count() > 0; i++) {
+            // Read the header before dismissing it; after the click there is nothing left to read.
+            String header = openModalHeader();
+            if (!header.isEmpty()) {
+                closedModalHeaders.add(header);
+            }
+            closes.first().click();
+            page.waitForTimeout(400);
+        }
+        if (closes.count() > 0) {
+            throw new IllegalStateException("A MODAL question would not close on " + page.url());
+        }
     }
 
     /**
@@ -312,13 +490,15 @@ public class SectionPage extends PageObject {
     }
 
     private void clickNextButton() {
+        closeModalQuestions(); // see review(): a rebuilt section re-opens its MODAL over the buttons
         Locator navButton = byId("section-next-button");
         navButton.waitFor();
         page.waitForTimeout(300);
         navButton = byId("section-next-button");
         navButton.waitFor();
-        if (!"Next".equals(navButton.innerText().trim())) {
-            throw new IllegalStateException("Expected a Next button but the section shows '" + navButton.innerText().trim() + "'");
+        if (!nextCaption.equals(navButton.innerText().trim())) {
+            throw new IllegalStateException("Expected the '" + nextCaption + "' button but the section shows '"
+                    + navButton.innerText().trim() + "'");
         }
         navButton.click();
     }
@@ -338,9 +518,25 @@ public class SectionPage extends PageObject {
 
     /** Clicks Review on the last section and waits for the review page. */
     public void review() {
+        // A MODAL question re-opens itself every time the section is rebuilt (ElicitModal opens on
+        // attach), so one closed a moment ago can be covering this button again.
+        closeModalQuestions();
         Locator navButton = byId("section-next-button");
         navButton.waitFor();
+        page.waitForTimeout(300);
+        String caption = navButton.innerText().trim();
+        if (!reviewCaption.equals(caption)) {
+            throw new IllegalStateException("Expected the '" + reviewCaption + "' button on the last section but it shows '"
+                    + caption + "' (fields " + fieldIds() + ")");
+        }
         clickAfterFill(navButton);
         page.waitForURL(url -> url.contains("/review"));
+    }
+
+    /** True when the navigation button reads "Review", i.e. this is the survey's last section. */
+    public boolean onLastSection() {
+        Locator navButton = byId("section-next-button");
+        navButton.waitFor();
+        return reviewCaption.equals(navButton.innerText().trim());
     }
 }

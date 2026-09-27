@@ -1,0 +1,132 @@
+# Arabia - a remote site of the multilingual multi-site e2e test (see ../README.md).
+#
+# The site stack only (survey, admin, db) on host ports 100 below USA's, with its own project name
+# and data directories under ../data/arabia. It has no Author, no Keycloak and no Mailpit of its
+# own:
+#   - Admin authenticates against USA's Keycloak through the image default
+#     http://host.docker.internal:8180/realms/elicit/ (same admin/admin user)
+#   - Admin sends mail to USA's Mailpit: the admin service also joins USA's compose network, so the
+#     service name `mailpit` resolves there and SMTP stays unpublished.
+#     Being on both networks makes the shared service names `survey` and `db` ambiguous for Admin
+#     (Docker DNS answers with whichever it likes -- confirmed against ../../e2e_multisite), so this
+#     site's survey and db carry the aliases `arabia-survey` / `arabia-db` and Admin is pointed at
+#     those.
+# USA must therefore be up before this stack starts (../up.sh enforces that).
+#
+# The i18n mount is ../i18n/arabia, which holds Arabic (ar) and nothing else. That is what makes
+# this an Arabic site: the apps ship English only, so the selector offers English and Arabic here,
+# and the survey's Arabic content is served because ar is both in the survey's published set and
+# mounted here (Survey UC-009 BR-009). Arabic is written right to left, so every page here is laid
+# out RTL (UC-009 step 3).
+#
+# The brand mount is ./arabia_brand, not the platform default: the flag of Arabia as the header
+# mark, its green as the palette, and an Arabic-first font stack for the right-to-left screens.
+# Every site in this suite looks different on purpose -- in a recording or a screenshot of three
+# identical consoles, the brand is what says which one this is. See arabia_brand/README.md.
+
+name: elicit-ml-arabia
+
+networks:
+  usa:
+    external: true
+    name: elicit-ml-usa_default
+
+services:
+  survey:
+    image: elicitsoftware/survey:latest
+    networks:
+      default:
+        aliases:
+          - arabia-survey
+    ports:
+      - 7980:8080
+    environment:
+      TZ: America/Detroit
+      accessCode.autoRegister: true
+      LOG_LEVEL: INFO
+      brand.file.system.path: /opt/brand
+      i18n.file.system.path: /opt/i18n
+      CORS_ORIGINS: http://localhost:7980
+      # A site holds a survey's translations for elicit.content.translations-ttl (5 minutes by
+      # default) before reloading them, so an Admin apply surfaces "within this window without
+      # a restart" -- which means a respondent who logs in just after an apply reads the base
+      # language for every string whose translation changed in it. The journey applies a
+      # revision and sends a respondent in seconds later, so it turns the window down rather
+      # than sleeping through it. A real deployment keeps the default.
+      elicit.content.translations-ttl: PT5S
+      quarkus.application.name: survey
+      # quarkus.otel.enabled is a build-time property: the runtime switch is this one.
+      quarkus.otel.sdk.disabled: "true"
+    healthcheck:
+      test: ["CMD", "curl", "--head", "-fsS", "http://localhost:8080/q/health/ready"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 60s
+    volumes:
+      - ./arabia_brand/:/opt/brand:ro
+      - ../i18n/arabia/:/opt/i18n:ro
+    depends_on:
+      db:
+        condition: service_healthy
+  admin:
+    image: elicitsoftware/admin:latest
+    ports:
+      - 7981:8080
+    networks:
+      - default
+      - usa
+    healthcheck:
+      test: ["CMD", "curl", "--head", "-fsS", "http://localhost:8080/q/health/ready"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 60s
+    environment:
+      TZ: America/Detroit
+      quarkus.mailer.from: elicit-arabia@localhost
+      quarkus.mailer.host: mailpit
+      quarkus.mailer.port: 1025
+      quarkus.mailer.tls: false
+      brand.file.system.path: /opt/brand
+      i18n.file.system.path: /opt/i18n
+      # This site's own Survey (the reporting rebuild after an apply) and database, by their
+      # unambiguous aliases (see the note at the top).
+      ELICIT_SURVEY_URL: http://arabia-survey:8080
+      quarkus.datasource.jdbc.url: jdbc:postgresql://arabia-db:5432/survey?connectTimeout=30&socketTimeout=600&tcpKeepAlive=true&tcpKeepAlivesIdle=60
+      quarkus.datasource.owner.jdbc.url: jdbc:postgresql://arabia-db:5432/survey?connectTimeout=30&socketTimeout=600&tcpKeepAlive=true&tcpKeepAlivesIdle=60
+      ELICIT_DB_PASSWORD: SAOWNERPW
+      ELICIT_OWNER_DB_PASSWORD: SURVEYPW
+      OIDC_CLIENT_SECRET: secret
+      quarkus.application.name: admin
+      # quarkus.otel.enabled is a build-time property: the runtime switch is this one.
+      quarkus.otel.sdk.disabled: "true"
+    volumes:
+      - ./arabia_brand/:/opt/brand:ro
+      - ../i18n/arabia/:/opt/i18n:ro
+    depends_on:
+      db:
+        condition: service_healthy
+      survey:
+        condition: service_healthy
+  db:
+    image: elicitsoftware/elicit_db:latest
+    networks:
+      default:
+        aliases:
+          - arabia-db
+    volumes:
+      - ../data/arabia/PGDATA:/var/lib/postgresql/data
+    ports:
+      - 5352:5432
+    environment:
+      TZ: "America/Detroit"
+      POSTGRES_USER: "survey"
+      POSTGRES_PASSWORD: "admin"
+      PGDATA: "/var/lib/postgresql/data/pgdata"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U survey && psql -U survey -d survey -c 'SELECT 1;'"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 60s

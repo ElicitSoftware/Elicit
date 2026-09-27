@@ -22,7 +22,7 @@
 3. The system states what the document already contains, so that the operator adds nothing to it: what the application is for and who uses it, a glossary of the terms that must stay consistent or stay untranslated, the rules for placeholders and for embedded markup, and every key with its English text, where it appears, its maximum length where it has one, and its flags.
 4. The system gives the document's own return instruction: exactly one `translations_<tag>.properties` file, UTF-8 encoded, carrying the same keys in the same order as the English texts at the end of the document, one `key=translation` per line.
 5. The operator chooses the language tag, writing it with a hyphen — `es-419`, `pt-BR` — and tells the translator that the returned file name carries the same tag with underscores.
-6. The operator tells the translator what the document deliberately leaves out: the organisation name and the brand description, which are translated in the brand directory instead (UC-014 BR-005), and the survey content held in the database, which this mechanism does not translate at all (UC-015 BR-004).
+6. The operator tells the translator what the document deliberately leaves out: the organization name and the brand description, which are translated in the brand directory instead (UC-014 BR-005), and the survey content held in the database, which this mechanism does not translate at all (UC-015 BR-004).
 7. The translator returns one file, and the operator checks it against the document's own rules — the keys unchanged, the placeholders matching, no lone apostrophe in a text that takes parameters, and the maximum lengths respected.
 8. The operator deploys the file (UC-016) and reviews the rendered pages, paying particular attention to the texts the document gave a maximum length and, for a right-to-left language, to the mirrored layout.
 9. The operator keeps the returned file with the site's configuration, so that it survives a reinstallation or an upgrade (UC-011).
@@ -103,7 +103,7 @@ The keys are the application's own identifiers. A translation adds none, removes
 
 ### BR-005: Brand text is not in the document
 
-The organisation name and the brand description belong to the mounted brand and are translated there. Putting them in an application's translation file would place the same text in two places and make the brand's own value unreachable.
+The organization name and the brand description belong to the mounted brand and are translated there. Putting them in an application's translation file would place the same text in two places and make the brand's own value unreachable.
 
 ### BR-006: A returned file is deployment data
 

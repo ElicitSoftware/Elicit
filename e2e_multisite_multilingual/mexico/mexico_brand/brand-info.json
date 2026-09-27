@@ -1,0 +1,18 @@
+{
+  "brand": {
+    "name": "Elicit Mexico",
+    "version": "1.0.0",
+    "description": "Demo brand for this suite's Mexico site: Bandera green and Bandera red from the national flag, a warm white Paper background, the flag itself as the header mark.",
+    "primaryColor": "#006847",
+    "organization": "Elicit Software",
+    "lastUpdated": "2026-09-27",
+    "localized": {
+      "es-419": {
+        "description": "Marca de demostración del sitio de México: verde y rojo bandera tomados de la bandera nacional, fondo papel cálido y la propia bandera como marca del encabezado."
+      },
+      "ar": {
+        "description": "علامة توضيحية لموقع المكسيك: الأخضر والأحمر المأخوذان من العلم الوطني، وخلفية ورقية دافئة، والعلم نفسه كشعار الترويسة."
+      }
+    }
+  }
+}

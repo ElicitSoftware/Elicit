@@ -80,7 +80,7 @@ or step by step:
 
 ```bash
 ./reset.sh all       # wipe data/ (PGDATA, Mailpit, SFTP, Keycloak copy) of both sites
-./up.sh              # site 1, then site 2; a first start initialises both databases (1–2 min each)
+./up.sh              # site 1, then site 2; a first start initializes both databases (1–2 min each)
 ./status.sh          # HTTP probe of every URL above
 mvn -DskipTests=false test               # the journey (add -De2e.headless=false to watch)
 ./down.sh            # stop both

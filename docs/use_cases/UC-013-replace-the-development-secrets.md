@@ -18,7 +18,7 @@
 
 1. The operator reads the secrets section, which lists every credential the platform ships with a documented value, where that value is set today, and which module presents it.
 2. The system gives the database credentials: the login roles the bundled database image creates carry three documented passwords between the four of them, and the same passwords are named again in each module's shipped configuration, so that each one has an issuing place and one or more presenting places.
-3. The system gives the account the bundled database image is initialised with, which is a superuser of the cluster and is not the role any module connects as.
+3. The system gives the account the bundled database image is initialized with, which is a superuser of the cluster and is not the role any module connects as.
 4. The system gives the identity credentials: in the bundled realm the console's client and the authoring tool's client share one documented secret, the machine client used for subject import carries a second, and the bundled provider's own administrator account is documented as well.
 5. The system gives the remaining bundled accounts — the file-transfer account the report service uploads through, and the mail catcher, which accepts anything and authenticates no one.
 6. The operator changes each credential at the place that issues it and at every place that presents it, in the order the manual gives for that credential.
@@ -28,12 +28,12 @@
 
 ## Alternative Flows
 
-### A1: The bundled database has already been initialised
+### A1: The bundled database has already been initialized
 
 **Trigger:** The role passwords are changed after the database's first start (step 6)  
 **Flow:**
 
-1. The manual states that the image's initialisation scripts run only against an empty data directory, so that editing them changes nothing on a database that already exists.
+1. The manual states that the image's initialization scripts run only against an empty data directory, so that editing them changes nothing on a database that already exists.
 2. The manual gives the statement that changes a login role's password on a running cluster, and states that every module presenting that role's password must then be changed to match before it is restarted.
 3. Use case continues at step 6.
 

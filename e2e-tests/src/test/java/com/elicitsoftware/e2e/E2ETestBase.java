@@ -259,7 +259,7 @@ public abstract class E2ETestBase {
      *
      * <p>So instead a context-wide route intercepts the popup's request, fetches the real
      * response from the server (content type and size are what the caller asserts on), and
-     * fulfils the popup with a trivial HTML page so it loads normally and can be closed.</p>
+     * fulfills the popup with a trivial HTML page so it loads normally and can be closed.</p>
      */
     protected PdfDownload openPdfPopup(Runnable action) {
         String pattern = "**/api/pdf/download*";

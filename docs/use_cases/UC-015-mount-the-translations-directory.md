@@ -23,7 +23,7 @@
 5. The operator points each application at the directory with `i18n.file.system.path` — which defaults to `/i18n`, and which the compose file sets to `/opt/i18n` with a read-only volume — and gives the survey application, the console, the authoring tool and the authoring preview the same mount.
 6. The system gives the resolution order, which runs per key rather than per file: the bundle inside the image, then the local directory named by `i18n.local.path` (default `i18n`), then the mount, with a later tier winning for any key it defines; the exact language tag then falls back to the language alone, and then to English; and a key defined in no tier renders as `!key!` and is logged once rather than rendering blank.
 7. The system states that the languages an application offers are the union of `i18n.bundled.locales` — `en` in every image — and every `translations_*.properties` found in the local directory and on the mount, so a language that exists only on the mount is offered in the selector like any other.
-8. The system states plainly what this mechanism does not reach: survey content held in the database — question and answer text, answer options, section and step names, report bodies and message templates — is not translated by it and appears in the language it was authored in, whatever language a reader selects.
+8. The system states plainly what this mechanism does and does not reach: it translates the applications' own chrome, while survey content held in the database — question and answer text, answer options, step and section names — is translated by a second mechanism, written in Author against a particular survey and delivered inside that survey's definition file. Mounting a language here does not translate a survey's questions, and publishing a survey in a language does not reach a site that has not mounted that language for its own chrome; both are needed. Message templates and the body of an external report service are outside both and appear as authored.
 9. The operator restarts each application, confirms that the selector lists the expected languages, and proceeds to add, replace or remove a language (UC-016).
 
 ## Alternative Flows
@@ -34,7 +34,7 @@
 **Flow:**
 
 1. The manual states that a partial file is an override rather than an error: the keys it carries win, and every key it omits keeps the value from the tier below, ending at English.
-2. The manual states the visible consequence — a page mixing the new language with English — and that this is the intended behaviour, not a sign of a broken mount.
+2. The manual states the visible consequence — a page mixing the new language with English — and that this is the intended behavior, not a sign of a broken mount.
 3. Use case continues at step 7.
 
 ### A2: Only one application is translated
@@ -96,9 +96,9 @@ A mounted file does not replace the file below it; it overrides the keys it defi
 
 An application never reads another application's texts. Making a language available to the whole site therefore means placing a file in each of the sub-directories the site runs.
 
-### BR-004: Survey content is not translated by this mechanism
+### BR-004: This mechanism translates chrome; survey content is translated elsewhere
 
-Only the applications' own chrome — navigation, buttons, labels, notifications, validation messages, and document headers and footers — is translated here. Question text, answer options, section and step names, report bodies and message templates are stored in the database and appear as authored (FR-031).
+Only the applications' own chrome — navigation, buttons, labels, notifications, validation messages, and document headers and footers — is translated here. Survey content is translated too, but not from this directory: those translations are written in Author against one survey and arrive at a site inside its definition file (Survey V019). Message templates and the body of an external report service are outside both mechanisms and appear as authored (FR-031).
 
 ### BR-005: Translation files are read server-side only
 
@@ -107,3 +107,7 @@ Nothing in the translations directory is served over HTTP. The directory exists 
 ### BR-006: The language a reader sees is chosen per session
 
 A `?lang=<tag>` parameter on a route wins, then the language remembered in the browser session, then the browser's own preference negotiated against the offered languages, then English. The choice lives in the session only; it is never stored against a respondent or a user account, and it never crosses sessions (Admin UC-026, Author UC-040).
+
+### BR-007: A content language needs its chrome mounted here
+
+A respondent is offered a survey's content in a language only when that language is both published for the survey and present in this directory for the application's own texts. A site that has not mounted a language therefore holds the survey's translations of it without ever serving them, which is what lets one definition file suit every site (Survey UC-009 BR-009, Author UC-044 BR-002).

@@ -66,8 +66,10 @@ offers no formatting hook for either.
 ### Token mechanics worth copying
 
 - Placeholders are `{phrase|default}` and match by **containment**, so one rule
-  declaring the token `name` fills both `{name|this person}` and
-  `{name's|this person's}`.
+  declaring the token `NAME` fills both `{<NAME>|this person}` and
+  `{<NAME>'s|this person's}`. A token is written `<NAME>` where it is used --
+  upper case, in angle brackets, inside the placeholder's phrase -- so a rule
+  fills a reference and never a word that merely reads like one.
 - Only `CHECKBOX`, `HTML`, `RADIO` and `TEXT` answers actually fill a token —
   `QuestionManager.getKeyValues` switches on type names and falls through for
   `COMBOBOX`, `INTEGER` and the rest. Both tokens here are fed by `TEXT` questions.

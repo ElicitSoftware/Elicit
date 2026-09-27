@@ -35,6 +35,9 @@ button and menu labels short.
 | export | Producing the definition file for the Admin console | Use "export", never "publish" |
 | retire / restore | Removing an element from the current definition (kept in history) and bringing it back | Translate consistently |
 | ontology, dimension, tag, reporting tag | Reporting metadata attached to questions | Translate consistently |
+| content language | A language a survey's own questions and options are published in, as opposed to the language of the tool itself | Translate consistently; keep it distinct from the tool's language |
+| base language | The language a survey's content is written in, and the one every untranslated string falls back to | Translate consistently |
+| out of date (translation) | A translation whose original wording has changed since it was made, so it is no longer shown | Translate consistently; not "expired" or "invalid" |
 | PDF, CSV, JSON, HTTP, OIDC, ID, URL, `.elicit` | Technical names | Keep as written |
 
 ## Rules for the translation
@@ -135,7 +138,7 @@ Every row is one key in `translations.properties`. Return a file `translations_<
 | `exportDialog.issue.warning` | Warning: {0} | Export dialog · validation list item | 100 | params: {0} = finding text |
 | `exportDialog.errorsBlock` | {0} error(s) block the export; fix them in the editor first. | Export dialog · paragraph | 80 | params: {0} = number of errors |
 | `exportDialog.warningsDoNotBlock` | Warnings do not block the export. | Export dialog · paragraph | 50 |  |
-| `exportDialog.retroactiveReminder` | Reminder: renaming a step or section and changing a question's ontology tag apply retroactively at deployed sites (historical reports and answers are relabelled). | Export dialog · secondary paragraph | 200 |  |
+| `exportDialog.retroactiveReminder` | Reminder: renaming a step or section and changing a question's ontology tag apply retroactively at deployed sites (historical reports and answers are relabeled). | Export dialog · secondary paragraph | 200 |  |
 | `exportDialog.download` | Download {0} | Export dialog · download link | 40 | params: {0} = file name |
 | `exportDialog.revisionSummary` | Revision {0}: {1} | Export dialog · paragraph after export | 80 | params: {0} = revision number, {1} = list of table names with counts |
 | `importDefinitionView.pageTitle` | Import definition | Import page · browser tab title | 25 |  |
@@ -733,7 +736,7 @@ Every row is one key in `translations.properties`. Return a file `translations_<
 | `systemBrandingView.source.embedded` | Embedded default | System branding · source badge (packaged default) | 20 |  |
 | `systemBrandingView.source.absent` | Absent | System branding · source badge | 15 |  |
 | `systemBrandingView.source.unreadable` | Unreadable | System branding · source badge | 15 |  |
-| `systemBrandingView.asset.colourStylesheet` | colour stylesheet | System branding · what an asset is for | 30 |  |
+| `systemBrandingView.asset.colorStylesheet` | color stylesheet | System branding · what an asset is for | 30 |  |
 | `systemBrandingView.asset.typographyStylesheet` | typography stylesheet | System branding · what an asset is for | 30 |  |
 | `systemBrandingView.asset.themeStylesheet` | theme stylesheet | System branding · what an asset is for | 30 |  |
 | `systemBrandingView.asset.horizontalLogo` | horizontal logo | System branding · what an asset is for | 30 |  |
@@ -778,6 +781,38 @@ Every row is one key in `translations.properties`. Return a file `translations_<
 | `oidcDiagnosticsView.accessToken` | Access Token: {0} | OIDC diagnostics page · label in a monospace block | 40 | params: {0} = masked token |
 | `oidcDiagnosticsView.accessTokenUnavailable` | Access Token: Not available or resolvable | OIDC diagnostics page · label in a monospace block | 60 |  |
 | `oidcDiagnosticsView.accessTokenError` | Access Token Error: {0} | OIDC diagnostics page · label in a monospace block | 60 | params: {0} = technical error text |
+| `surveyEditorView.translations` | Translations… | Survey overview · toolbar button opening the translations page | 20 |  |
+| `surveyMetadataDialog.baseLanguage` | Content language | Survey details dialog · field label: the language the content is written in | 25 |  |
+| `surveyMetadataDialog.baseLanguage.helper` | The language this survey's questions are written in. | Survey details dialog · helper text under that field | 80 |  |
+| `surveyMetadataDialog.contentLanguages` | Published translations | Survey details dialog · field label: the languages the survey is published in | 25 |  |
+| `surveyMetadataDialog.contentLanguages.helper` | Comma-separated language tags this survey is published in, such as es-419,ar. A site offers one only when it also has that language for its own screens. | Survey details dialog · helper text; the tags themselves stay as they are | 200 |  |
+| `translationsView.pageTitle` | Translations | Translations page · browser tab title | 20 |  |
+| `translationsView.heading` | Translations — {0} | Translations page · heading | 40 | params: {0} = the survey's title, untranslated |
+| `translationsView.backToOverview` | Back to the survey overview | Translations page · tooltip on the back button | 40 |  |
+| `translationsView.intro` | Every string a respondent reads, beside its translation. A string with no translation, or one whose wording changed after it was translated, is shown to respondents in the survey's own language. | Translations page · introductory paragraph | 250 |  |
+| `translationsView.language` | Language | Translations page · label of the language selector | 15 |  |
+| `translationsView.onlyOutstanding` | Only what needs work | Translations page · checkbox filtering to missing and out-of-date rows | 25 |  |
+| `translationsView.counts` | {0} translated, {1} missing, {2} out of date | Translations page · summary line | 60 | params: {0} = translated, {1} = missing, {2} = out of date |
+| `translationsView.request` | Request translation | Translations page · button producing the file for a translator | 25 |  |
+| `translationsView.import` | Import a returned file | Translations page · upload button for the returned file | 25 |  |
+| `translationsView.noLanguages` | This survey publishes no translations yet. | Translations page · shown when the survey publishes no language | 60 |  |
+| `translationsView.manageLanguages` | Add a language | Translations page · button opening the survey details dialog | 20 |  |
+| `translationsView.grid.element` | Where | Translations page · grid column header: which step, section or question | 12 |  |
+| `translationsView.grid.field` | Text | Translations page · grid column header: which text of it | 12 |  |
+| `translationsView.grid.baseText` | Original | Translations page · grid column header: the text as authored | 12 | identical in Spanish |
+| `translationsView.grid.translation` | Translation | Translations page · grid column header: the editable translation | 15 |  |
+| `translationsView.grid.status` | Status | Translations page · grid column header | 12 |  |
+| `translationsView.status.translated` | Translated | Translations page · status badge | 12 |  |
+| `translationsView.status.missing` | Missing | Translations page · status badge | 12 |  |
+| `translationsView.status.stale` | Out of date | Translations page · status badge: the wording changed after translation | 15 |  |
+| `translationsView.status.staleTooltip` | Translated from: {0} | Translations page · tooltip on the out-of-date badge | 40 | params: {0} = the wording it was translated from |
+| `translationImport.title` | Translations imported | Import result dialog · title | 30 |  |
+| `translationImport.counts` | {0} imported, {1} unchanged, {2} left untranslated, {3} rejected. | Import result dialog · summary line | 80 | params: {0} = imported, {1} = unchanged, {2} = skipped, {3} = rejected |
+| `translationImport.stale` | {0} of them were translated from wording that has since changed, so they will not be shown until they are translated again. | Import result dialog · note under the summary | 150 | params: {0} = how many |
+| `translationImport.rejected` | These were not imported: | Import result dialog · heading above the list of rejected items | 40 |  |
+| `translationImport.warnings` | Worth checking: | Import result dialog · heading above the list of warnings | 40 |  |
+| `designer.staleTranslations` | The {0} changed. Its {1} translation(s) ({2}) are now out of date and will not be shown to respondents until they are translated again. | Designer · notification after a wording change | 180 | params: {0} = what changed (question, step name, ...), {1} = how many languages, {2} = the language tags |
+| `designer.staleTranslations.open` | Open translations | Designer · button in that notification | 20 |  |
 
 ## English source file
 
@@ -851,7 +886,7 @@ exportDialog.issue.error=Error: {0}
 exportDialog.issue.warning=Warning: {0}
 exportDialog.errorsBlock={0} error(s) block the export; fix them in the editor first.
 exportDialog.warningsDoNotBlock=Warnings do not block the export.
-exportDialog.retroactiveReminder=Reminder: renaming a step or section and changing a question's ontology tag apply retroactively at deployed sites (historical reports and answers are relabelled).
+exportDialog.retroactiveReminder=Reminder: renaming a step or section and changing a question's ontology tag apply retroactively at deployed sites (historical reports and answers are relabeled).
 exportDialog.download=Download {0}
 exportDialog.revisionSummary=Revision {0}: {1}
 importDefinitionView.pageTitle=Import definition
@@ -1449,7 +1484,7 @@ systemBrandingView.source.local=Local
 systemBrandingView.source.embedded=Embedded default
 systemBrandingView.source.absent=Absent
 systemBrandingView.source.unreadable=Unreadable
-systemBrandingView.asset.colourStylesheet=colour stylesheet
+systemBrandingView.asset.colorStylesheet=color stylesheet
 systemBrandingView.asset.typographyStylesheet=typography stylesheet
 systemBrandingView.asset.themeStylesheet=theme stylesheet
 systemBrandingView.asset.horizontalLogo=horizontal logo
@@ -1494,4 +1529,36 @@ oidcDiagnosticsView.idTokenError=ID Token Error: {0}
 oidcDiagnosticsView.accessToken=Access Token: {0}
 oidcDiagnosticsView.accessTokenUnavailable=Access Token: Not available or resolvable
 oidcDiagnosticsView.accessTokenError=Access Token Error: {0}
+surveyEditorView.translations=Translations…
+surveyMetadataDialog.baseLanguage=Content language
+surveyMetadataDialog.baseLanguage.helper=The language this survey's questions are written in.
+surveyMetadataDialog.contentLanguages=Published translations
+surveyMetadataDialog.contentLanguages.helper=Comma-separated language tags this survey is published in, such as es-419,ar. A site offers one only when it also has that language for its own screens.
+translationsView.pageTitle=Translations
+translationsView.heading=Translations — {0}
+translationsView.backToOverview=Back to the survey overview
+translationsView.intro=Every string a respondent reads, beside its translation. A string with no translation, or one whose wording changed after it was translated, is shown to respondents in the survey's own language.
+translationsView.language=Language
+translationsView.onlyOutstanding=Only what needs work
+translationsView.counts={0} translated, {1} missing, {2} out of date
+translationsView.request=Request translation
+translationsView.import=Import a returned file
+translationsView.noLanguages=This survey publishes no translations yet.
+translationsView.manageLanguages=Add a language
+translationsView.grid.element=Where
+translationsView.grid.field=Text
+translationsView.grid.baseText=Original
+translationsView.grid.translation=Translation
+translationsView.grid.status=Status
+translationsView.status.translated=Translated
+translationsView.status.missing=Missing
+translationsView.status.stale=Out of date
+translationsView.status.staleTooltip=Translated from: {0}
+translationImport.title=Translations imported
+translationImport.counts={0} imported, {1} unchanged, {2} left untranslated, {3} rejected.
+translationImport.stale={0} of them were translated from wording that has since changed, so they will not be shown until they are translated again.
+translationImport.rejected=These were not imported:
+translationImport.warnings=Worth checking:
+designer.staleTranslations=The {0} changed. Its {1} translation(s) ({2}) are now out of date and will not be shown to respondents until they are translated again.
+designer.staleTranslations.open=Open translations
 ```

@@ -12,7 +12,7 @@
 ## Preconditions
 
 - The operator has the manual (UC-001).
-- The operator has a setting in hand, either by name or by the behaviour it governs.
+- The operator has a setting in hand, either by name or by the behavior it governs.
 
 ## Main Success Scenario
 
@@ -32,7 +32,7 @@
 **Trigger:** The operator wants to change a framework setting the images leave at its own default (step 7)  
 **Flow:**
 
-1. The manual states that it lists the framework settings the images set, not the framework's whole catalogue, that every other setting of the framework is nonetheless available to a site, and that it is left at the framework's own default.
+1. The manual states that it lists the framework settings the images set, not the framework's whole catalog, that every other setting of the framework is nonetheless available to a site, and that it is left at the framework's own default.
 2. The manual gives the address of the framework's configuration index and stops there (FR-018).
 3. Use case continues at step 8.
 

@@ -39,6 +39,38 @@ public class SurveyEditorPage extends AuthorPageObject {
                 .filter(new Locator.FilterOptions().setHasText("Survey updated")).first().waitFor();
     }
 
+    /**
+     * Edit details (Author UC-044): sets the survey's published translations -- the comma-separated
+     * BCP-47 tags of the "Published translations" field -- and optionally the base language the
+     * content is written in ("Content language"; null leaves it alone).
+     */
+    public void setContentLanguages(String publishedTags, String baseLanguage) {
+        buttonByText("Edit details").click();
+        Locator dialog = dialog("Edit survey");
+        if (baseLanguage != null) {
+            fieldByLabel(dialog, "Content language").fill(baseLanguage);
+        }
+        fieldByLabel(dialog, "Published translations").fill(publishedTags);
+        submitDialog(dialog, "Save");
+        page.locator("vaadin-notification-card")
+                .filter(new Locator.FilterOptions().setHasText("Survey updated")).first().waitFor();
+    }
+
+    /** The published translations the Edit details dialog currently holds (UC-044 step 3). */
+    public String contentLanguages() {
+        buttonByText("Edit details").click();
+        Locator dialog = dialog("Edit survey");
+        String value = fieldByLabel(dialog, "Published translations").inputValue();
+        buttonByText(dialog, "Cancel").click();
+        return value;
+    }
+
+    /** Navigates to the survey's Translations page through the toolbar (caption "Translations…"). */
+    public void openTranslations() {
+        buttonByText("Translations").click(); // the caption is "Translations…" (U+2026)
+        page.waitForURL(url -> url.endsWith("/translations"));
+    }
+
     /** True once the validation panel reports nothing blocking or noteworthy. */
     public boolean isReadyToExport() {
         return page.getByText("Ready to export: no findings.").count() > 0;

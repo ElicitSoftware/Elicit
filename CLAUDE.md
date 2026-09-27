@@ -46,7 +46,7 @@ GitHub repo, dropped into this directory and excluded from this repo via
 The credential a respondent enters to reach a survey is the **access code**
 (`survey.respondents.access_code`, `accessCode` in Java, `<ACCESS_CODE>` in email
 templates, `{AccessCode}` in the FHHS SFTP XML template). "Token" means only a
-question-text placeholder (`{KEY|default}`, `survey.relationships.token`) or an
+question-text placeholder (`{<KEY>|default}`, `survey.relationships.token`) or an
 OIDC/Bearer token. Never call the respondent credential a token.
 
 ## Module Conventions (shared by Survey, Admin, Author, FHHS)
@@ -215,7 +215,9 @@ the mount, per key, falling back to English; a language that exists only on the 
 is offered too. `test-partial-i18n/` exercises the override and mount-only paths.
 Direction (RTL/LTR) follows the language, with `i18n-config.json` as an optional
 override. Brand names are translated in the brand's own `localized` block, never in the
-app bundles. Survey content in the database is not translated by this mechanism. See
+app bundles. Survey content in the database is translated by a separate mechanism
+(`survey.translations`, Survey V019): authored in Author, carried in the `.elicit` file, and
+served only where the survey publishes the language *and* this mount has it. See
 `docs/I18N_IMPLEMENTATION_GUIDE.md`.
 
 ## Umbrella Docs

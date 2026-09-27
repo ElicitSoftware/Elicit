@@ -5,19 +5,19 @@
 **Use Case ID:** UC-014  
 **Use Case Name:** Mount an External Brand  
 **Primary Actor:** Deployment Operator  
-**Goal:** Give the survey application, the console and the authoring tool the site's own colours, typefaces, logos and organisation name by mounting a brand directory, so that the site is branded without rebuilding any image.  
+**Goal:** Give the survey application, the console and the authoring tool the site's own colors, typefaces, logos and organization name by mounting a brand directory, so that the site is branded without rebuilding any image.  
 **Status:** Open  
 **Requirements:** [FR-022, FR-023, FR-024, FR-025](../requirements.md)
 
 ## Preconditions
 
 - The applications are installed by one of the two paths (UC-007 or UC-008) and the operator knows how a setting reaches them (UC-011).
-- The site has its colour values, its typeface stack and its logo, icon and favicon files.
+- The site has its color values, its typeface stack and its logo, icon and favicon files.
 
 ## Main Success Scenario
 
 1. The operator reads the branding chapter, which states that every application carries a complete brand inside its image and that mounting a brand replaces files of that default rather than the whole of it.
-2. The system gives the directory layout a brand must follow: `brand-config.json` and `brand-info.json` at the root, `colors/brand-colors.css`, `typography/brand-typography.css` with its `typography.json` companion, `images/` holding the horizontal logo, the icon and the favicon, and `theme.css`, which imports the colour and typography stylesheets and is the file an application inlines into the page head.
+2. The system gives the directory layout a brand must follow: `brand-config.json` and `brand-info.json` at the root, `colors/brand-colors.css`, `typography/brand-typography.css` with its `typography.json` companion, `images/` holding the horizontal logo, the icon and the favicon, and `theme.css`, which imports the color and typography stylesheets and is the file an application inlines into the page head.
 3. The system states that a brand populates `--brand-*` custom properties only: each application's own stylesheet maps the Lumo theme tokens onto them, so a brand never sets a `--lumo-*` value itself, and a brand that defines only `--brand-*` values needs no knowledge of the applications.
 4. The operator assembles the site's brand directory, starting from the repository's default brand and changing only the files that differ, and names the brand in `brand-config.json` along with the logo, icon and favicon file names it expects to find under `images/`.
 5. The operator points each application at the directory with `brand.file.system.path` — which defaults to `/brand`, and which the compose file sets to `/opt/brand` with a read-only volume — and gives the survey application, the console, the authoring tool and the authoring preview the same mount.
@@ -30,7 +30,7 @@
 
 ### A1: Only part of the brand is replaced
 
-**Trigger:** The site wants its own colours but keeps the supplied typography, logo and favicon (step 4)  
+**Trigger:** The site wants its own colors but keeps the supplied typography, logo and favicon (step 4)  
 **Flow:**
 
 1. The manual states that fallback is per file: a mounted directory holding only `colors/brand-colors.css` is valid, and every other asset resolves to the embedded default.
@@ -103,7 +103,7 @@ The base `name` in `brand-config.json` derives the technical brand key the appli
 
 ### BR-005: Brand text is translated in the brand
 
-The organisation name in the header and the brand description in the page metadata come from the brand directory, so they are translated there and never in an application's translation files (UC-015). A localised value resolves by exact tag, then by language alone, then by the base value.
+The organization name in the header and the brand description in the page metadata come from the brand directory, so they are translated there and never in an application's translation files (UC-015). A localised value resolves by exact tag, then by language alone, then by the base value.
 
 ### BR-006: The resolved brand is cached
 

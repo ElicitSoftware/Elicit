@@ -7,7 +7,7 @@
 #   ./up.sh site2      site 2 only (site 1 must already be up: site 2 uses its Keycloak and Mailpit)
 #
 # Waits until each site's Survey and Admin answer their readiness probes. A first start
-# initialises the database in one pass (Survey creates the schema; nothing seeds a survey --
+# initializes the database in one pass (Survey creates the schema; nothing seeds a survey --
 # the journey authors and applies its own), which takes a minute or two per site.
 
 set -euo pipefail
@@ -71,7 +71,7 @@ for site in $SITES; do
     docker compose -f "$site/docker-compose.yml" up -d || true
     # Docker Desktop for Mac (VirtioFS) can fail PostgreSQL's very first start on a fresh bind
     # mount with `data directory ... has wrong ownership` (docker/for-mac#7415, see
-    # ../resetDatabase.sh). The cure is to wipe the half-initialised directory and start again.
+    # ../resetDatabase.sh). The cure is to wipe the half-initialized directory and start again.
     if wrong_ownership "$site"; then
         echo "  ⚠️  $site db hit the VirtioFS 'wrong ownership' glitch on first start; wiping PGDATA and retrying once"
         docker compose -f "$site/docker-compose.yml" down

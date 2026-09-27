@@ -61,7 +61,7 @@
 **Trigger:** A deployed file carries a misspelled key, a missing placeholder or a lone apostrophe in a parameterised text (step 7)  
 **Flow:**
 
-1. The manual states that no application validates a mounted file: a key it does not recognise is simply never read, and a text whose placeholders do not match its English original is rendered as written or mangled by the formatter.
+1. The manual states that no application validates a mounted file: a key it does not recognize is simply never read, and a text whose placeholders do not match its English original is rendered as written or mangled by the formatter.
 2. The manual states the symptoms this produces — an English text where a translated one was expected, and a text showing a brace-delimited placeholder or losing an apostrophe — and that a key defined in no tier renders as `!key!`.
 3. The operator corrects the file and repeats from step 3, which is where the checks belong until a Languages screen performs them.
 4. Use case continues at step 3.
@@ -72,7 +72,7 @@
 **Flow:**
 
 1. The manual states that these screens are specified and not implemented: Admin UC-027 (Admin FR-034) for the console and the survey application, and Author UC-041 (Author FR-054) for the authoring tool. Neither application has a Languages address, and no procedure in this manual depends on one.
-2. The manual states what they will change when they are built: an administrator will upload a translation file through the application, which will validate it, summarise it, record the direction and reload the translations, so that a language can be added without server access.
+2. The manual states what they will change when they are built: an administrator will upload a translation file through the application, which will validate it, summarize it, record the direction and reload the translations, so that a language can be added without server access.
 3. The manual states that they will need the translations directory to be mounted writable, which the compose file does not do today (C-013, Admin C-015, Author C-024), and that until then the procedure in this use case is the only one.
 4. Use case continues at step 2.
 

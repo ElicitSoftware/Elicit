@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Flag of "Arabia", the fictional third site of this suite: a green field
+     carrying a white eight-point star (khatim), 2:3. It is not any nation's
+     flag, by design -- see ../README.md ("The flag artwork"). The green is
+     the one the Saudi flag uses, which is where this site's palette starts. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 48" width="72" height="48" role="img" aria-label="Flag of Arabia">
+  <rect x="0" y="0" width="72" height="48" fill="#006C35"/>
+  <g fill="#FFFFFF">
+    <rect x="25" y="13" width="22" height="22"/>
+    <rect x="25" y="13" width="22" height="22" transform="rotate(45 36 24)"/>
+  </g>
+</svg>

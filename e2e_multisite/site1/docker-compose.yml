@@ -90,7 +90,7 @@ services:
       pedigree:
         condition: service_started
   # Author stack: the `author` database is created by ../../db-init/V0.0.4__CREATE_AUTHOR_DATABASE.sql
-  # on first initialisation; author-survey creates the schema there and serves the preview.
+  # on first initialization; author-survey creates the schema there and serves the preview.
   author-survey:
     image: elicitsoftware/survey:latest
     ports:

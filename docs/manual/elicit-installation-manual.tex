@@ -337,9 +337,9 @@ Survey preview instance, not by Author, which owns no migrations of its own.
 
 \begin{elicitnote}[The bundled database image does all of this for you]
 \file{elicitsoftware/elicit_db} runs the role script and the schema script when its data
-directory is first initialised, and the compose file mounts
+directory is first initialized, and the compose file mounts
 \file{db-init/V0.0.4__CREATE_AUTHOR_DATABASE.sql} to add the authoring database at the same
-time. An initialisation script runs \emph{only} against an empty data directory; to add the
+time. An initialization script runs \emph{only} against an empty data directory; to add the
 authoring database to a cluster that already exists, run it by hand:
 
 \begin{elicitcmd}
@@ -419,7 +419,7 @@ A site that cannot manage Elicit's roles in its identity provider can set
 \opt{elicit.authorization.mode} to \val{DATABASE} on Admin. That makes the console consult
 its own \val{survey.user_roles} table as a fallback and shows the role-assignment section of
 the user editor. It does \emph{not} disable OIDC — sign-in is unchanged, and roles the
-provider supplies are still honoured. Under this mode the identity provider's account names
+provider supplies are still honored. Under this mode the identity provider's account names
 must match the console's user records.
 
 %% ================================================================== 5
@@ -727,6 +727,14 @@ instance that merely renders surveys, such as Author's preview. \\
 diagnostics report is written to the log. \\
 \opt{elicit.diagnostics.startup.delay} & \val{10s} & \chgmay & How long after startup that
 report is written. \\
+\opt{elicit.content.translations-ttl} & \val{PT5M} & \chgmay & How long a survey's content
+translations are held in memory before being reloaded, as an ISO-8601 duration. A translation
+published through \emph{Apply Survey Definition} reaches respondents within this window without
+a restart. See Chapter~\ref{sec:i18n}. \\
+\opt{elicit.content.serve-stale-translations} & \val{false} & \chgmay & Whether to show a
+translation whose base text has been edited since it was made. Left \val{false}, such a string
+falls back to the survey's base language, so every language asks the same question; set
+\val{true} only where continuity matters more than that. \\
 \end{settings}
 
 \subsection{Admin}
@@ -998,7 +1006,7 @@ environment:
 
 Read-only is correct: no application writes to the brand directory.
 
-\screenshot{17-branded-header}{A branded application. The header logo, the colours and the
+\screenshot{17-branded-header}{A branded application. The header logo, the colors and the
 typefaces all come from the mounted directory.}
 
 \subsection{Translated brand text}
@@ -1039,11 +1047,16 @@ Survey, Admin and Author ship English only. A deployment adds languages by mount
 the language selector appears in the header only once more than one language is available, so
 an English-only site never shows it.
 
-\begin{elicitcaution}[Survey content is not translated by this]
+\begin{elicitcaution}[Survey content is translated separately]
 This mechanism translates the applications' own chrome — buttons, labels, page titles,
 notifications, validation messages, PDF headers. Survey content stored in the database —
-question text, answer options, section and step names, report bodies, message templates —
-appears in the language it was authored in and is not affected by the language selector.
+question text, answer options, step and section names, tooltips, validation messages — is
+translated too, but not from here: those translations are written in Author against a
+particular survey and arrive at a site inside its definition file. A respondent is offered a
+content language only when the survey publishes it \emph{and} this site has that language
+mounted for its own chrome, so the two directories are what tie the two halves together.
+Message templates and the body of an external report service are outside both mechanisms and
+appear in the language they were authored in.
 \end{elicitcaution}
 
 \subsection{The layout}

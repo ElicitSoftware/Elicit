@@ -9,9 +9,15 @@ per-key fallback from an external mount to a local directory to the embedded def
 
 - **In scope:** application chrome — buttons, labels, page titles, notifications, validation
   messages, PDF headers and footers, and the organization name supplied by the brand.
-- **Out of scope:** survey content stored in the database (question text, answer options,
-  section and step names, report bodies, message templates). It appears in the language it was
-  authored in. Content translation is tracked on a separate branch.
+- **Out of scope:** message templates and the body of an external report service, which appear
+  in the language they were authored in.
+- **Survey content is translated by a second, separate mechanism** (Survey V019): question text,
+  answer options, step and section names, tooltips, validation messages and report titles live in
+  `survey.translations`, are written in Author against a particular survey, and travel to a site
+  inside its definition file rather than on this mount. The two meet at the runtime: a respondent
+  is offered a content language only when the survey publishes it and that language is also
+  mounted here for the chrome, so no one reads translated questions between English buttons. See
+  `Survey/docs/research/i18n_survey.md`.
 - Text direction is right-to-left or left-to-right only; vertical writing modes are not
   supported.
 
@@ -24,7 +30,7 @@ keeps working alongside hand-written extraction:
 src/main/resources/vaadin-i18n/
   translations.properties               # English — the only language the application ships
   translations.context.properties       # translator context per key (not read by Vaadin)
-i18n/TRANSLATION_REQUEST.md             # generated handoff document
+i18n/TRANSLATION_REQUEST.md             # generated handoff document (committed; no UI)
 ```
 
 Every other language lives outside the application, in the deployment translations directory
@@ -106,14 +112,26 @@ the same way (see `DeploymentScript.md`). Translation files are never served ove
 
 ## Getting a language translated
 
-Each module generates `i18n/TRANSLATION_REQUEST.md` from its English bundle and the context
-sidecar (`TranslationRequestGeneratorTest`; on drift copy `target/i18n/TRANSLATION_REQUEST.md`
-into `i18n/`). The document carries the application's purpose and audience, a glossary of terms
-that must stay consistent or untranslated, the placeholder and HTML rules, every key with its
-English text, location, maximum length and flags, and the return instructions: one
-`translations_<tag>.properties`, same keys, same order. Hand it to a translator or an AI agent,
-drop the returned file into the module (to ship it) or into the mount (to deploy it), and run
-the module's `TranslationBundleConsistencyTest`.
+These are the application's own static strings, so the handoff has **no on-screen flow**: nothing
+to download from a running Survey, Admin or Author, no upload page, no per-language screen. Each
+module keeps one committed Markdown document, `i18n/TRANSLATION_REQUEST.md`, generated from its
+English bundle and the context sidecar (`TranslationRequestGeneratorTest`; on drift copy
+`target/i18n/TRANSLATION_REQUEST.md` into `i18n/`). One document per module serves every target
+language — the person requesting a translation states the target in it before handing it off.
+
+The document carries the application's purpose and audience, a glossary of terms that must stay
+consistent or untranslated (**access code**, never "token"), the placeholder, `MessageFormat`
+apostrophe, HTML and maximum-length rules, every key with its English text, location, maximum
+length and flags, and the return instructions: exactly one UTF-8 `translations_<tag>.properties`,
+same keys, same order. Hand it to a translator or an AI agent, drop the returned file into the
+module (to ship it) or into the mount (to deploy it), and run the module's
+`TranslationBundleConsistencyTest`.
+
+Survey **content** is the opposite case and does have an on-screen flow: Author's Translations page
+writes a JSON handoff per survey and target language (`ELICIT_CONTENT_TRANSLATION_V1`), and reads
+the filled file back with per-item validation. Keep the two apart — a chrome translation is a
+properties file for the mount, a content translation is JSON that travels inside the definition
+file.
 
 ## Tests that guard the design
 

@@ -1,0 +1,203 @@
+# USA - the master site of the multilingual multi-site e2e test (see ../README.md).
+#
+# A self-contained, trimmed copy of ../../docker-compose.yml on the stock host ports, with its own
+# compose project name and its own data directories under ../data/usa so the test never touches the
+# developer's postgresql/PGDATA. It cannot run at the same time as the umbrella stack or
+# ../../e2e_multisite (same ports). Differences from the umbrella file:
+#   - no fhhs: it serves only the Family History Survey and this journey runs the Census Household
+#     Survey, so it would never become ready (FHHS UC-005)
+#   - no pedigree: nothing but FHHS uses it, and FHHS is not here
+#   - no sftpServer: it went with FHHS, nothing else used it
+#   - no jaeger and no OTLP exporters: this suite reads failures from screenshots and logs, and a
+#     collector per site is three containers of no use to it
+#   - no published ports for SMTP (1025): Admin reaches mailpit by service name
+# Keycloak and Mailpit here are shared with Mexico and Arabia (see their compose files).
+#
+# This is the only site with Author: the master authors the survey, translates it and exports the
+# definition the other two apply. The `author` database it and author-survey use is created by
+# ../../db-init/V0.0.4__CREATE_AUTHOR_DATABASE.sql on first initialization of this site's db.
+#
+# The i18n mount is ../i18n/usa, which holds English only (empty app directories). The master
+# therefore never offers a language selector -- an English-only deployment, which is what the
+# journey asserts it is.
+name: elicit-ml-usa
+
+services:
+  survey:
+    image: elicitsoftware/survey:latest
+    ports:
+      - 8080:8080
+    environment:
+      TZ: America/Detroit
+      accessCode.autoRegister: true
+      # INFO so a test run's rule evaluation and save errors show in `docker compose logs survey`.
+      LOG_LEVEL: INFO
+      brand.file.system.path: /opt/brand
+      i18n.file.system.path: /opt/i18n
+      # A site holds a survey's translations for elicit.content.translations-ttl (5 minutes by
+      # default) before reloading them, so an Admin apply surfaces "within this window without
+      # a restart" -- which means a respondent who logs in just after an apply reads the base
+      # language for every string whose translation changed in it. The journey applies a
+      # revision and sends a respondent in seconds later, so it turns the window down rather
+      # than sleeping through it. A real deployment keeps the default.
+      elicit.content.translations-ttl: PT5S
+      quarkus.application.name: survey
+      # quarkus.otel.enabled is a build-time property: the runtime switch is this one.
+      quarkus.otel.sdk.disabled: "true"
+    healthcheck:
+      test: ["CMD", "curl", "--head", "-fsS", "http://localhost:8080/q/health/ready"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 60s
+    volumes:
+      - ../../elicit-brand/:/opt/brand:ro
+      - ../i18n/usa/:/opt/i18n:ro
+    depends_on:
+      db:
+        condition: service_healthy
+  admin:
+    image: elicitsoftware/admin:latest
+    ports:
+      - 8081:8080
+    healthcheck:
+      test: ["CMD", "curl", "--head", "-fsS", "http://localhost:8080/q/health/ready"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 60s
+    environment:
+      TZ: America/Detroit
+      quarkus.mailer.from: elicit-usa@localhost
+      quarkus.mailer.host: mailpit
+      quarkus.mailer.port: 1025
+      quarkus.mailer.tls: false
+      brand.file.system.path: /opt/brand
+      i18n.file.system.path: /opt/i18n
+      ELICIT_DB_PASSWORD: SAOWNERPW
+      ELICIT_OWNER_DB_PASSWORD: SURVEYPW
+      OIDC_CLIENT_SECRET: secret
+      quarkus.application.name: admin
+      # quarkus.otel.enabled is a build-time property: the runtime switch is this one.
+      quarkus.otel.sdk.disabled: "true"
+    volumes:
+      - ../../elicit-brand/:/opt/brand:ro
+      - ../i18n/usa/:/opt/i18n:ro
+    depends_on:
+      db:
+        condition: service_healthy
+      survey:
+        condition: service_healthy
+  # Author's preview instance: a second Survey pointed at the `author` database, with the reporting
+  # ETL off (Author's database holds many surveys whose step names would collide in dim_step).
+  author-survey:
+    image: elicitsoftware/survey:latest
+    ports:
+      - 8085:8080
+    environment:
+      TZ: America/Detroit
+      accessCode.autoRegister: true
+      elicit.etl.enabled: "false"
+      brand.file.system.path: /opt/brand
+      i18n.file.system.path: /opt/i18n
+      quarkus.datasource.jdbc.url: jdbc:postgresql://db:5432/author?connectTimeout=30&socketTimeout=600&tcpKeepAlive=true&tcpKeepAlivesIdle=60
+      quarkus.datasource.owner.jdbc.url: jdbc:postgresql://db:5432/author?connectTimeout=30&socketTimeout=600&tcpKeepAlive=true&tcpKeepAlivesIdle=60
+      # A site holds a survey's translations for elicit.content.translations-ttl (5 minutes by
+      # default) before reloading them, so an Admin apply surfaces "within this window without
+      # a restart" -- which means a respondent who logs in just after an apply reads the base
+      # language for every string whose translation changed in it. The journey applies a
+      # revision and sends a respondent in seconds later, so it turns the window down rather
+      # than sleeping through it. A real deployment keeps the default.
+      elicit.content.translations-ttl: PT5S
+      quarkus.application.name: author-survey
+      # quarkus.otel.enabled is a build-time property: the runtime switch is this one.
+      quarkus.otel.sdk.disabled: "true"
+    healthcheck:
+      test: ["CMD", "curl", "--head", "-fsS", "http://localhost:8080/q/health/ready"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 60s
+    volumes:
+      - ../../elicit-brand/:/opt/brand:ro
+      - ../i18n/usa/:/opt/i18n:ro
+    depends_on:
+      db:
+        condition: service_healthy
+  author:
+    image: elicitsoftware/author:latest
+    ports:
+      - 8084:8080
+    healthcheck:
+      test: ["CMD", "curl", "--head", "-fsS", "http://localhost:8080/q/health/ready"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 60s
+    environment:
+      TZ: America/Detroit
+      brand.file.system.path: /opt/brand
+      i18n.file.system.path: /opt/i18n
+      quarkus.datasource.jdbc.url: jdbc:postgresql://db:5432/author?connectTimeout=30&socketTimeout=600&tcpKeepAlive=true&tcpKeepAlivesIdle=60
+      ELICIT_DB_PASSWORD: SURVEYPW
+      OIDC_CLIENT_SECRET: secret
+      # OIDC stays at the image default http://host.docker.internal:8180/realms/elicit/ (see the
+      # note in ../../docker-compose.yml on why host.docker.internal is the right name).
+      quarkus.application.name: author
+      # quarkus.otel.enabled is a build-time property: the runtime switch is this one.
+      quarkus.otel.sdk.disabled: "true"
+    volumes:
+      - ../../elicit-brand/:/opt/brand:ro
+      - ../i18n/usa/:/opt/i18n:ro
+    depends_on:
+      db:
+        condition: service_healthy
+      author-survey:
+        condition: service_healthy
+  db:
+    image: elicitsoftware/elicit_db:latest
+    volumes:
+      - ../data/usa/PGDATA:/var/lib/postgresql/data
+      - ../../db-init/V0.0.4__CREATE_AUTHOR_DATABASE.sql:/docker-entrypoint-initdb.d/V0.0.4__CREATE_AUTHOR_DATABASE.sql:ro
+    ports:
+      - 5452:5432
+    environment:
+      TZ: "America/Detroit"
+      POSTGRES_USER: "survey"
+      POSTGRES_PASSWORD: "admin"
+      PGDATA: "/var/lib/postgresql/data/pgdata"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U survey && psql -U survey -d survey -c 'SELECT 1;'"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 60s
+  # Shared by all three sites: Mexico's and Arabia's Admin authenticate against this realm, whose
+  # redirect URIs include http://localhost:8031/* and http://localhost:7981/*
+  # (../../keycloak/elicit-realm.json).
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.2.3
+    command: start-dev --import-realm --verbose -Dkeycloak.features=scripts
+    ports:
+      - "8180:8080"
+    environment:
+      TZ: "America/Detroit"
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    volumes:
+      - ../../keycloak:/opt/keycloak/data/import
+      - ../data/usa/keycloak-h2:/h2
+  # Shared by all three sites: their Admin containers join this project's network, so the service
+  # name `mailpit` resolves there and SMTP stays unpublished.
+  mailpit:
+    image: axllent/mailpit
+    volumes:
+      - ../data/usa/mailpit:/data
+    ports:
+      - 8025:8025
+    environment:
+      TZ: "America/Detroit"
+      MP_MAX_MESSAGES: 5000
+      MP_DATABASE: /data/mailpit.db
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
