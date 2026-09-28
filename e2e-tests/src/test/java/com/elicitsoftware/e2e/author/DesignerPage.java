@@ -5,12 +5,16 @@ import com.microsoft.playwright.Page;
 import com.microsoft.playwright.TimeoutError;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * SurveyDesignerView (Author UC-011/UC-014/UC-015/UC-016/UC-019) -- the flow-chart board at
  * {@code /survey/{id}/design}. Steps, sections and questions are added through the toolbar and
  * the per-node "⋮" menus rather than the drag-and-drop palette (every drag has a menu
  * equivalent, and a menu click is far more robust under automation).
+ *
+ * <p>That the drags themselves remain <em>possible</em> is not something a menu click can show,
+ * so {@link #dropZones()} measures the board's insertion bars separately.</p>
  *
  * <p>Board nodes carry stable {@code data-node-id} attributes ({@code step-N}, {@code ss-N},
  * {@code sq-N}) and show their names in {@code h3.designer-lane-name} (steps),
@@ -202,6 +206,104 @@ public class DesignerPage extends AuthorPageObject {
             rows.nth(i).locator("vaadin-text-field").first().locator("input").fill(newOptions.get(i));
         }
         submitDialog(dialog, "Save");
+    }
+
+    // ---- insertion bars (UC-016) ----------------------------------------------------------
+
+    /**
+     * One of the board's insertion bars as a drag sees it: the kind of element it accepts
+     * ("step", "section" or "question"), its rendered box, whether a pointer at the center of
+     * that box reaches it at all, and what sits topmost there (for the failure message).
+     */
+    public record DropZoneBox(String kind, double width, double height, boolean droppable, String topmost) {}
+
+    /**
+     * Every insertion bar currently drawn on the board (UC-016).
+     *
+     * <p>Nothing is dragged here -- the bars keep the same geometry whether or not a drag is
+     * running, by design, so measuring them at rest is enough. This is the only level at which a
+     * bar that CSS has collapsed shows up: {@code SurveyDesignerViewTest} fires the drop listeners
+     * server-side, where a zone of zero width still "works". A step bar did collapse this way once
+     * the board began to left-align its children, which made the palette's step glyph impossible
+     * to drop, so every bar is checked for a real box and for being reachable at its own center.</p>
+     *
+     * <p>{@code droppable} asks whether the bar appears anywhere in {@code elementsFromPoint} at
+     * that center, not whether it is topmost. Things legitimately paint over the board -- the
+     * rule-arrow overlay's own hit bands and glyphs, a notification, a dialog on its way out -- and
+     * none of them mean the bar has stopped existing. A bar that has collapsed is absent from the
+     * stack altogether, which is the distinction that matters; {@code topmost} is carried only so a
+     * failure says what was in the way.</p>
+     *
+     * <p>The caller must have the board in view: a bar scrolled out of the viewport is reported as
+     * not droppable, because that is all the hit test can say about it.</p>
+     */
+    @SuppressWarnings("unchecked")
+    public List<DropZoneBox> dropZones() {
+        // A dialog that has just been saved is still fading out over the board, and its overlay
+        // would be what the hit test finds. Wait for the board to be uncovered before measuring.
+        page.waitForFunction("() => document.querySelectorAll('vaadin-dialog-overlay').length === 0");
+        Object measured = page.evaluate("() => Array.from(document.querySelectorAll('.designer-board .designer-drop-zone')).map(zone => {"
+                + " const box = zone.getBoundingClientRect();"
+                + " const kind = (Array.from(zone.classList).find(c => c.startsWith('designer-drop-zone-')) || '')"
+                + "     .replace('designer-drop-zone-', '');"
+                + " const stack = document.elementsFromPoint(box.left + box.width / 2, box.top + box.height / 2);"
+                + " const describe = el => !el ? 'nothing' : el.tagName.toLowerCase()"
+                + "     + (typeof el.className === 'string' && el.className ? '.' + el.className.trim().split(/\\s+/).join('.') : '');"
+                + " return {kind: kind, width: box.width, height: box.height,"
+                + "         droppable: stack.indexOf(zone) >= 0, topmost: describe(stack[0])}; })");
+        return ((List<Map<String, Object>>) measured).stream()
+                .map(zone -> new DropZoneBox(String.valueOf(zone.get("kind")),
+                        ((Number) zone.get("width")).doubleValue(),
+                        ((Number) zone.get("height")).doubleValue(),
+                        Boolean.TRUE.equals(zone.get("droppable")),
+                        String.valueOf(zone.get("topmost"))))
+                .toList();
+    }
+
+    /** The insertion bars that accept {@code kind} ("step", "section" or "question"). */
+    public List<DropZoneBox> dropZones(String kind) {
+        return dropZones().stream().filter(zone -> kind.equals(zone.kind())).toList();
+    }
+
+    /** What the board offers while something is being dragged: which targets are outlined. */
+    public record DragHighlight(boolean questionRowsLit, boolean insertionBarsLit) {}
+
+    /**
+     * Starts a drag of the rule glyph for {@code action} ("SHOW", "REPEAT" or "TEXT"), reports what
+     * the board lights up, and ends the drag (UC-019).
+     *
+     * <p>A rule is dropped on the question it reads from, never on an insertion bar, so the rows are
+     * what must light. The board used to outline every insertion bar for any drag at all, which
+     * pointed a rule at targets that turn it away; scoping the highlight to the payload silently
+     * left rules with no feedback until the rows were wired up, and that is what this pins down.</p>
+     *
+     * <p>The gesture is a synthetic {@code dragstart} rather than a real pointer drag: Vaadin's
+     * {@code DragSource} listens for that event, so it round-trips to the server and the board comes
+     * back marked, while Chromium's real HTML5 drag is not reliably drivable from automation.</p>
+     */
+    public DragHighlight highlightWhileDraggingRule(String action) {
+        String glyph = ".elicit-glyph-rule-" + action.toLowerCase();
+        page.waitForFunction("() => document.querySelectorAll('vaadin-dialog-overlay').length === 0");
+        page.evaluate("selector => { const g = document.querySelector(selector);"
+                + " if (!g) { throw new Error('no rule glyph for ' + selector); }"
+                + " g.dispatchEvent(new DragEvent('dragstart',"
+                + "     {bubbles: true, cancelable: true, dataTransfer: new DataTransfer()})); }", glyph);
+        page.waitForFunction("() => document.querySelector('.designer-board')"
+                + ".classList.contains('dragging-rule')");
+        try {
+            return new DragHighlight(outlined(".designer-row:not(.retired)"), outlined(".designer-drop-zone-step"));
+        } finally {
+            page.evaluate("selector => { const g = document.querySelector(selector);"
+                    + " if (g) { g.dispatchEvent(new DragEvent('dragend',"
+                    + "     {bubbles: true, cancelable: true, dataTransfer: new DataTransfer()})); } }", glyph);
+        }
+    }
+
+    /** Whether the first element matching {@code selector} draws the dashed drop-target outline. */
+    private boolean outlined(String selector) {
+        Object style = page.evaluate("selector => { const el = document.querySelector(selector);"
+                + " return el ? getComputedStyle(el).outlineStyle : 'none'; }", selector);
+        return "dashed".equals(String.valueOf(style));
     }
 
     // ---- rules on the board (UC-020, UC-033) ----------------------------------------------

@@ -17,10 +17,12 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -68,6 +70,22 @@ class AuthorToRespondentE2ETest extends E2ETestBase {
         designer.addStep("Welcome");
         designer.addSectionToFirstStep("Basics");
         designer.addTextQuestionToFirstSection("What is your favorite color?");
+
+        // 3b. Author UC-016: the board's insertion bars must be droppable. The steps above went in
+        //     through the menus, which is what the rest of this suite does, and that hides a whole
+        //     class of breakage: a bar the board's layout has collapsed to zero width swallows
+        //     every palette drag silently, and the server-side view test cannot see it because it
+        //     calls the drop listener directly. Measure the bars instead.
+        List<DesignerPage.DropZoneBox> stepZones = designer.dropZones("step");
+        assertEquals(2, stepZones.size(), "expected an insertion bar above and below the one step, got " + stepZones);
+        assertTrue(designer.dropZones().stream().allMatch(DesignerPage.DropZoneBox::droppable),
+                "every insertion bar on the board must be a real drop target, but it shows " + designer.dropZones());
+
+        // 3c. Author UC-019: a rule is dropped on the question it reads from, so a rule drag must
+        //     light the question rows -- and must not light the insertion bars, which turn it away.
+        DesignerPage.DragHighlight ruleDrag = designer.highlightWhileDraggingRule("SHOW");
+        assertTrue(ruleDrag.questionRowsLit(), "dragging a rule glyph must light the question rows");
+        assertFalse(ruleDrag.insertionBarsLit(), "an insertion bar cannot take a rule, so it must stay dark");
 
         // 4. Author UC-004 / UC-007: point the survey at its first section, then expect a clean
         //    validation panel -- Export is disabled while any error remains.
