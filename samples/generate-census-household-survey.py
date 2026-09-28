@@ -52,16 +52,25 @@ for n, (name, items) in enumerate(GROUPS.items(), start=1):
         add("select_items", iid, key(f"item/{name}/{coded}"), n, display, order, coded, *TAIL)
 
 # ---------------- steps ----------------
-STEPS = [(1,"Welcome"),(2,"About You"),(3,"Your Home"),(4,"Household Members"),
-         (5,"{<NAME>\u007Cthis person}"),(6,"Finishing Up")]
-for n,(order,name) in enumerate(STEPS, start=1):
-    add("steps", n, key(f"step/{order}"), order, name, "", f"{name} step", *TAIL)
+# dimension_name is the step's label in the reporting schema (surveyreport.dim_step). It is set
+# explicitly: the per-member step's display name is a token phrase, and the others are prefixed
+# so they cannot collide with another survey's "Welcome" on the same site (dim_step_un is unique
+# site-wide). See docs/research/faceted_exploration.md, rules G10 and G15.
+STEPS = [(1,"Welcome","Census Welcome"),(2,"About You","Census About You"),
+         (3,"Your Home","Census Your Home"),(4,"Household Members","Census Household Members"),
+         (5,"{<NAME>\u007Cthis person}","Household Member"),(6,"Finishing Up","Census Finishing Up")]
+for n,(order,name,dim) in enumerate(STEPS, start=1):
+    add("steps", n, key(f"step/{order}"), order, name, dim, f"{name} step", *TAIL)
 
 # ---------------- sections ----------------
-SECTIONS = ["Introduction","About you","Race and language","Housing","Rent details","Vehicles",
-            "Vehicle","Household members","{<NAME>\u007Cthis person}","Contact","Anything else"]
-for n,name in enumerate(SECTIONS, start=1):
-    add("sections", n, key(f"section/{n}"), n, name, "", f"{name} section", *TAIL)
+SECTIONS = [("Introduction","Census Introduction"),("About you","Census About You"),
+            ("Race and language","Census Race and Language"),("Housing","Census Housing"),
+            ("Rent details","Census Rent Details"),("Vehicles","Census Vehicles"),
+            ("Vehicle","Vehicle"),("Household members","Census Household Members"),
+            ("{<NAME>\u007Cthis person}","Household Member"),("Contact","Census Contact"),
+            ("Anything else","Census Anything Else")]
+for n,(name,dim) in enumerate(SECTIONS, start=1):
+    add("sections", n, key(f"section/{n}"), n, name, dim, f"{name} section", *TAIL)
 
 # ---------------- steps_sections (step -> sections mounted in it) ----------------
 MOUNTS = [(1,[1]), (2,[2,3]), (3,[4,5,6,7]), (4,[8]), (5,[9]), (6,[10,11])]
@@ -180,6 +189,41 @@ RULES = [
 for n,(us,usq,ds,dss,dsq,op,act,desc,tok,ref,dflt) in enumerate(RULES, start=1):
     add("relationships", n, key(f"rule/{n}"), us, usq, ds, dss, dsq, op, act, desc, tok, ref, dflt, "", *TAIL)
 
+# ---------------- reporting: dimensions, ontology, metadata ----------------
+# Written to the guidelines of docs/research/faceted_exploration.md section 4. A dimension is a
+# value table role-played by tags (G11): the two ages share `age`, the two genders share `gender`.
+# A tag is one report column and one facet; it is attached at question scope, so it follows the
+# question wherever it appears, and reports the answer (metadata value empty). Only closed-
+# vocabulary and integer questions are tagged (G5); Race (CHECKBOX_GROUP) and Languages
+# (MULTI_SELECT) are deliberately untagged because a multi-choice answer is stored comma-joined
+# and would report every combination as one value (G6); free text, dates, the rent amount and
+# contact details are never tagged (G7). Tag names are Title Case, no hyphens (G10), and the
+# household member's attributes carry the entity prefix (G12).
+for t in ("dimensions","ontology","metadata"): rows.setdefault(t, [])
+DIMS = ["age","gender"]
+did = {}
+for n,name in enumerate(DIMS, start=1):
+    did[name] = n
+    add("dimensions", n, key(f"dimension/{name}"), name)
+NAMESPACE = "census"
+# (tag, dimension or None, question label)
+TAGS = [
+ ("Age",                 "age",    "age"),
+ ("Gender",              "gender", "gender"),
+ ("Marital Status",      None,     "marital"),
+ ("Tenure",              None,     "tenure"),
+ ("Subsidized",          None,     "subsidy"),     # CHECKBOX: true / false
+ ("Vehicle Count",       None,     "vehcount"),
+ ("Household Size",      None,     "hhsize"),
+ ("Member Age",          "age",    "personage"),
+ ("Member Gender",       "gender", "persongen"),
+ ("Member Relationship", None,     "personrel"),
+]
+for n,(tag,dim,label) in enumerate(TAGS, start=1):
+    add("ontology", n, key(f"tag/{tag}"), NAMESPACE, tag, did[dim] if dim else None)
+    # metadata: source_id|element_key|steps_sections_id|question_id|sections_question_id|ontology_id|value
+    add("metadata", n, key(f"metadata/{label}"), None, qid[label], None, n, None)
+
 # ---------------- survey ----------------
 add("surveys", 1, key("survey"), "Census Household Survey", 2, "Census Household Survey",
     "A demonstration survey about census household data. It uses every question type and every "
@@ -188,9 +232,10 @@ add("surveys", 1, key("survey"), "Census Household Survey", 2, "Census Household
 
 # ---------------- emit ----------------
 ORDER = ["surveys","select_groups","select_items","steps","sections","steps_sections",
-         "questions","sections_questions","relationships"]
+         "questions","sections_questions","relationships","dimensions","ontology","metadata"]
 EXPECTED = {"surveys":10,"select_groups":10,"select_items":11,"steps":11,"sections":11,
-            "steps_sections":12,"questions":20,"sections_questions":10,"relationships":19}
+            "steps_sections":12,"questions":20,"sections_questions":10,"relationships":19,
+            "dimensions":3,"ontology":5,"metadata":7}
 for t in ORDER:
     for r in rows[t]:
         assert len(r) == EXPECTED[t], f"{t}: {len(r)} fields, expected {EXPECTED[t]}: {r}"
@@ -198,7 +243,10 @@ for t in ORDER:
 now = "2026-09-25T12:45:00Z"
 out = ["# ELICIT_SURVEY_EXPORT_V1", "# survey_id: 1", f"# survey_key: {key('survey')}",
        "# survey_name: Census Household Survey"]
-for t in ORDER + ["reports","post_survey_actions","dimensions","ontology","metadata"]:
+HEADER = ["surveys","select_groups","select_items","steps","sections","steps_sections",
+          "questions","sections_questions","relationships","reports","post_survey_actions",
+          "dimensions","ontology","metadata"]
+for t in HEADER:
     out.append(f"# {t}: {len(rows.get(t, []))}")
 out += [f"# generated: {now}", f"# survey_revision: {now}", ""]
 for t in ORDER:

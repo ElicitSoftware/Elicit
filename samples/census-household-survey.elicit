@@ -13,9 +13,9 @@
 # relationships: 12
 # reports: 0
 # post_survey_actions: 0
-# dimensions: 0
-# ontology: 0
-# metadata: 0
+# dimensions: 2
+# ontology: 10
+# metadata: 10
 # generated: 2026-09-25T12:45:00Z
 # survey_revision: 2026-09-25T12:45:00Z
 
@@ -55,23 +55,23 @@ select_items: 26|2982af77-186c-54bf-b4f7-14bdd59b4e6e|6|Parent|3|PARENT|0|1970-0
 select_items: 27|6598ddfd-c320-5bfb-abdb-87b36e065ef5|6|Brother or sister|4|SIBLING|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
 select_items: 28|32412ede-3646-555f-bf21-adbea361ef60|6|Roommate or housemate|5|ROOMMATE|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
 select_items: 29|b4d6cd07-896a-5ab3-bb42-8c983b1bc9ea|6|Other relative|6|OTHER|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
-steps: 1|e062590f-5452-5b6b-8caa-2a4b08843dfe|1|Welcome||Welcome step|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
-steps: 2|75f39b4c-3e3c-54d7-a3c1-10d2a858ee25|2|About You||About You step|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
-steps: 3|b842a1e1-2c1a-592d-8e71-3d5164d59803|3|Your Home||Your Home step|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
-steps: 4|9dd92bba-1473-5d2e-a67d-546e5f983f66|4|Household Members||Household Members step|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
-steps: 5|1041580f-4362-5fe2-95e8-119134bb621a|5|{<NAME>\|this person}||{<NAME>\|this person} step|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
-steps: 6|36cbe350-9b63-52e7-a534-b6f83a1cb4e0|6|Finishing Up||Finishing Up step|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
-sections: 1|eb79355c-1019-59ed-949e-735139f4fbcf|1|Introduction||Introduction section|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
-sections: 2|cb3ed4fe-1434-53e1-8b71-11806db9fac3|2|About you||About you section|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
-sections: 3|3a26aa7f-88c6-58b7-a6fc-340ae3950e2b|3|Race and language||Race and language section|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
-sections: 4|a22daf67-9dc2-56cf-a3c0-f19104986b4c|4|Housing||Housing section|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
-sections: 5|6193cf18-06ab-5900-9ccb-69e37e22ce0a|5|Rent details||Rent details section|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
-sections: 6|375ed3ba-8d7c-5404-8540-bcfb9a1539c7|6|Vehicles||Vehicles section|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
-sections: 7|01262607-8b33-514c-ae46-9d58dc1b0e65|7|Vehicle||Vehicle section|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
-sections: 8|4064adef-e737-5047-86e1-1583215c0c49|8|Household members||Household members section|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
-sections: 9|debe0f17-1c49-5c34-ad02-bcdb6cad126b|9|{<NAME>\|this person}||{<NAME>\|this person} section|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
-sections: 10|efffd848-f6f5-5a03-ba91-1e2a89d7aacb|10|Contact||Contact section|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
-sections: 11|3ae99aec-0012-5d4c-909f-8bb102aee57e|11|Anything else||Anything else section|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+steps: 1|e062590f-5452-5b6b-8caa-2a4b08843dfe|1|Welcome|Census Welcome|Welcome step|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+steps: 2|75f39b4c-3e3c-54d7-a3c1-10d2a858ee25|2|About You|Census About You|About You step|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+steps: 3|b842a1e1-2c1a-592d-8e71-3d5164d59803|3|Your Home|Census Your Home|Your Home step|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+steps: 4|9dd92bba-1473-5d2e-a67d-546e5f983f66|4|Household Members|Census Household Members|Household Members step|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+steps: 5|1041580f-4362-5fe2-95e8-119134bb621a|5|{<NAME>\|this person}|Household Member|{<NAME>\|this person} step|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+steps: 6|36cbe350-9b63-52e7-a534-b6f83a1cb4e0|6|Finishing Up|Census Finishing Up|Finishing Up step|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections: 1|eb79355c-1019-59ed-949e-735139f4fbcf|1|Introduction|Census Introduction|Introduction section|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections: 2|cb3ed4fe-1434-53e1-8b71-11806db9fac3|2|About you|Census About You|About you section|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections: 3|3a26aa7f-88c6-58b7-a6fc-340ae3950e2b|3|Race and language|Census Race and Language|Race and language section|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections: 4|a22daf67-9dc2-56cf-a3c0-f19104986b4c|4|Housing|Census Housing|Housing section|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections: 5|6193cf18-06ab-5900-9ccb-69e37e22ce0a|5|Rent details|Census Rent Details|Rent details section|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections: 6|375ed3ba-8d7c-5404-8540-bcfb9a1539c7|6|Vehicles|Census Vehicles|Vehicles section|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections: 7|01262607-8b33-514c-ae46-9d58dc1b0e65|7|Vehicle|Vehicle|Vehicle section|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections: 8|4064adef-e737-5047-86e1-1583215c0c49|8|Household members|Census Household Members|Household members section|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections: 9|debe0f17-1c49-5c34-ad02-bcdb6cad126b|9|{<NAME>\|this person}|Household Member|{<NAME>\|this person} section|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections: 10|efffd848-f6f5-5a03-ba91-1e2a89d7aacb|10|Contact|Census Contact|Contact section|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections: 11|3ae99aec-0012-5d4c-909f-8bb102aee57e|11|Anything else|Census Anything Else|Anything else section|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
 steps_sections: 1|4e2a29e7-1ec7-57e2-aa6c-a80adfea62c1|1|1|1|1|0001-0001-0000-0001-0000-0000-0000|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
 steps_sections: 2|f4e09099-0f26-532b-8cf9-631a21a66359|2|2|2|1|0001-0002-0000-0001-0000-0000-0000|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
 steps_sections: 3|4607b9a7-9902-53aa-9016-5f7c9328b632|2|2|3|2|0001-0002-0000-0002-0000-0000-0000|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
@@ -145,3 +145,25 @@ relationships: 9|c8d23653-20c9-59c1-9bb2-68c4c1b3c6c1|2|3|5|||5|3|Fill <PROBAND>
 relationships: 10|34a953fc-f73e-50d3-8fa0-28753aeda65a|1|2|3|||1|1|Show Your Home once consent is given|||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
 relationships: 11|42aad0ab-a816-5113-b5b0-3368efae9ad4|1|2|4|||1|1|Show Household Members once consent is given|||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
 relationships: 12|94ee42a3-e764-5af4-8f37-2a046ed3d122|1|2|6|||1|1|Show Finishing Up once consent is given|||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+dimensions: 1|36a75e92-62ef-5b45-bbfb-8d9bad1e8e7f|age
+dimensions: 2|fbc78c4a-0087-51c7-a6c0-087bd94f5754|gender
+ontology: 1|07f2f80a-f43f-5071-a8ab-9493a4a29c50|census|Age|1
+ontology: 2|6471a424-6f7a-5f25-8081-945d57cff563|census|Gender|2
+ontology: 3|64a1e369-b674-588c-8c5a-e735eedc02c1|census|Marital Status|
+ontology: 4|a4d2965f-f37e-5dd5-91de-fa06c5a3583f|census|Tenure|
+ontology: 5|4bb8de5e-2a1f-55a9-a483-5e5101d21c63|census|Subsidized|
+ontology: 6|95c4c4a4-0a34-53d6-92c3-e8dfebea8d2c|census|Vehicle Count|
+ontology: 7|82d62eb0-fc28-5881-9380-1447b0b60568|census|Household Size|
+ontology: 8|ae96e4ad-b7ad-5789-906d-b02ff58169bf|census|Member Age|1
+ontology: 9|04d93d8a-aa9d-56ae-a982-77c7b04250ce|census|Member Gender|2
+ontology: 10|1a866b67-9b19-5de9-a7cc-58f8e63d80bf|census|Member Relationship|
+metadata: 1|ff873f83-84fc-5f86-96f9-232d0a4ad3a0||4||1|
+metadata: 2|0905a265-e55a-51b2-8112-93902569e7c9||5||2|
+metadata: 3|f373d80e-1661-5012-8b62-3496d7e1d48b||6||3|
+metadata: 4|d3e7b822-bc9e-5bdb-bfad-0e2084e0403e||10||4|
+metadata: 5|b56aba07-c23e-58e6-b2fa-bc16a8141215||12||5|
+metadata: 6|124daf3e-7017-5533-871f-212c122ef8e8||14||6|
+metadata: 7|8ab6b8cd-4c10-5a95-9a56-33f9e4257dfa||16||7|
+metadata: 8|7529f0c7-08ac-56bb-abc8-860b7f3a98ac||18||8|
+metadata: 9|0c22a7ec-6960-5185-b973-17ecc4787705||19||9|
+metadata: 10|c84b9584-24aa-5187-816a-179f21a10493||20||10|

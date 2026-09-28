@@ -17,6 +17,20 @@ curl -u <admin> -F "file=@samples/census-household-survey.elicit" \
 It carries `display_order` 2, so it installs alongside the Family History Survey
 rather than colliding with it.
 
+### Reporting tags
+
+The sample is tagged for the reporting star schema to the authoring guidelines in
+`docs/research/faceted_exploration.md` (section 4): two dimensions, `age` and `gender`, each
+role-played by a respondent tag and a household-member tag (`Age` / `Member Age`,
+`Gender` / `Member Gender`); `Marital Status`, `Tenure`, `Subsidized`, `Vehicle Count`,
+`Household Size` and `Member Relationship` on their own tables; every tag attached at question
+scope and reporting the answer. Race (a CHECKBOX_GROUP) and Languages (a MULTI_SELECT) are
+deliberately untagged — a multi-choice answer is stored comma-joined and would report every
+combination as one value — and free text, dates, the rent amount and contact details are never
+tagged. Step and section `dimension_name`s are set explicitly: `Household Member` for the
+per-member step, whose display name is a token phrase, and a `Census` prefix on the rest so they
+cannot collide with another survey's `Welcome` on the same site.
+
 ### Coverage
 
 | | Covered |
