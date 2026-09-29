@@ -1,9 +1,9 @@
 # Elicit Internationalization (i18n) Guide
 
 How the Survey, Admin and Author applications localize their own user interface, how a
-deployment adds languages without rebuilding, and how to get a new language translated.
-The design mirrors the brand system (`BRAND_SYSTEM_IMPLEMENTATION_GUIDE.md`): a per-file,
-per-key fallback from an external mount to a local directory to the embedded default.
+site chooses which of them it offers, and how to get a new language translated.
+Unlike the brand system (`BRAND_SYSTEM_IMPLEMENTATION_GUIDE.md`), which a deployment supplies on a
+mount, translations ship inside the release: a site chooses among them rather than providing them.
 
 ## Scope
 
@@ -14,9 +14,9 @@ per-key fallback from an external mount to a local directory to the embedded def
 - **Survey content is translated by a second, separate mechanism** (Survey V019): question text,
   answer options, step and section names, tooltips, validation messages and report titles live in
   `survey.translations`, are written in Author against a particular survey, and travel to a site
-  inside its definition file rather than on this mount. The two meet at the runtime: a respondent
-  is offered a content language only when the survey publishes it and that language is also
-  mounted here for the chrome, so no one reads translated questions between English buttons. See
+  inside its definition file rather than in the image. The two meet at the runtime: a respondent
+  is offered a content language only when the survey publishes it and the site also offers that
+  language for the chrome, so no one reads translated questions between English buttons. See
   `Survey/docs/research/i18n_survey.md`.
 - Text direction is right-to-left or left-to-right only; vertical writing modes are not
   supported.
@@ -28,23 +28,40 @@ keeps working alongside hand-written extraction:
 
 ```
 src/main/resources/vaadin-i18n/
-  translations.properties               # English — the only language the application ships
+  translations.properties               # English — authored here, edited by Vaadin Copilot
   translations.context.properties       # translator context per key (not read by Vaadin)
-i18n/TRANSLATION_REQUEST.md             # generated handoff document (committed; no UI)
+i18n/
+  translations_es_419.properties        # received from a translator; packaged by the build
+  translations_ar.properties
+  TRANSLATION_REQUEST.md                # generated handoff document (committed; no UI)
+  README.md
 ```
 
-Every other language lives outside the application, in the deployment translations directory
-(`elicit-i18n/<app>/` in this repository, see below): the release is English only, and a
-deployment adds languages by mounting files. The language selector in the header appears
-only when more than one language is available, so an English-only deployment never shows it.
-In the test and dev profiles each module reads `../elicit-i18n`, so the module tests that
-exercise Spanish and Arabic need the umbrella checkout (the module CI fetches that directory).
+English is **authored**; the other languages are **received**, which is why they sit apart from
+`src/`. A `<resource>` block in each module's `pom.xml` copies `i18n/translations_*.properties`
+onto the classpath at `vaadin-i18n/`, beside the English bundle, so a released image carries the
+translation it was built and tested with. Two details in that block are load-bearing: `filtering`
+must be `false` (a filtered copy is re-encoded, which corrupts the Arabic, and a translated string
+may contain `${...}`), and the include is `translations_*.properties` rather than
+`translations*.properties`, so `i18n/` can never shadow the authored English bundle.
 
-Adding a language today is a server-side step (drop the file into the mount and restart, see
-`DeploymentScript.md`). Managing languages from the Admin console (for the console and the
-survey application, `elicit_admin` role) and from the Author tool (`elicit_author` role) is
-specified but not built: Admin `UC-021` / `FR-026` and Author `UC-035` / `FR-048`, which need
-the mount to be writable (Admin `C-014`, Author `C-022`).
+`vaadin-i18n/` sits at the classpath root, not under `META-INF/resources`, so Quarkus never serves
+it. Requesting `/vaadin-i18n/translations_ar.properties` from a running application returns
+Vaadin's SPA fallback — `index.html`, `Content-Type: text/html` — not the file.
+
+**There is no translations mount.** Languages are curated by ElicitSoftware and arrive in a
+release: a deployment can neither add a language nor patch one. That is what keeps a translation
+and the code that renders it at the same version, and it is why "which translation is this site
+running?" has one answer — the version tag. The module tests need no umbrella checkout.
+
+Adding a language is therefore a release step: hand a module's `TRANSLATION_REQUEST.md` to a
+translator, put the returned file in that module's `i18n/`, add the tag to
+`i18n.bundled.locales`, and do the same in all three modules — `checkLanguages.sh` fails the
+build if they disagree. Managing languages from the Admin console (`elicit_admin`) and from the
+Author tool (`elicit_author`) is specified but not built, and was specified against a writable
+mount that no longer exists: it has to be re-specified as a screen that edits the offered-language
+list, which needs a mutable store rather than a startup-time property (Admin `C-015`,
+Author `C-025`).
 
 Keys are `<view>.<element>[.<qualifier>]` (`mainView.btnLogin`, `searchView.grid.firstName`)
 with shared keys under `common.*`. Values are Java `MessageFormat` patterns only when
@@ -53,20 +70,23 @@ parameters are passed, so an apostrophe in a parameter-less sentence needs no do
 ## Resolution order (`ElicitI18NProvider`)
 
 For a key and locale, each module's `ElicitI18NProvider` (a CDI bean qualified
-`@VaadinServiceEnabled`, which is how the Vaadin Quarkus extension discovers it) merges three
-tiers per **key**, later tiers winning:
+`@VaadinServiceEnabled`, which is how the Vaadin Quarkus extension discovers it) reads the
+classpath bundle `vaadin-i18n/translations[_tag].properties` and nothing else, then falls back
+from the exact locale to the language-only locale, then to English. A key missing everywhere
+renders as `!key!` and is logged once, never blank. In the `%test` profile the pseudo-locale
+`zxx` renders every key as `⟦key⟧`.
 
-1. classpath `vaadin-i18n/translations[_tag].properties`
-2. local directory `i18n/<app>/translations[_tag].properties` (`i18n.local.path`, default `i18n`)
-3. external mount `<i18n.file.system.path>/<app>/translations[_tag].properties`
-   (default `/i18n`, `/opt/i18n` in Docker)
+Which locales are **offered** is `i18n.bundled.locales` alone. That property does two jobs, and
+the first is why it has to exist at all: classpath resources cannot be enumerated, so nothing can
+discover which `translations_*.properties` the jar holds — the set has to be declared. The second
+is the site's control: narrow it and the extra languages stay in the image unreachable. The
+switcher hides them, `LocaleSelection.resolve` refuses a `?lang=` naming one, and survey content
+is not served in one either, because content follows the chrome (`Survey UC-009 BR-009`).
 
-then falls back from the exact locale to the language-only locale, then to English. A key
-missing everywhere renders as `!key!` and is logged once, never blank. The provided locales are
-the union of `i18n.bundled.locales` (`en`) and every `translations_*.properties` found in tiers 2–3,
-so a language that exists only on the mount is offered too. `<app>` is `i18n.app.name`
-(`survey`, `admin`, `author`; `author-survey` uses `survey`) and is rejected if it contains
-path separators. In the `%test` profile the pseudo-locale `zxx` renders every key as `⟦key⟧`.
+`checkLanguages.sh` in the umbrella root is what keeps the declaration honest: it fails the build
+when a module ships a bundle it does not declare, when a tag is declared with no bundle, when the
+three modules disagree, or when Author's `author.content.languages` differs from the set. All four
+are otherwise silent.
 
 ## Choosing the language (`LocaleInitializer`, `LocaleSelection`, `LanguageSwitcher`)
 
@@ -85,17 +105,27 @@ page so every view is rebuilt in the new language.
 `document.documentElement.lang`/`dir` plus the `--elicit-font-scale` custom property on the
 document element. Arabic, Hebrew, Persian, Urdu, Pashto, Sindhi, Uyghur, Yiddish, Dhivehi and
 Kurdish (Sorani) are right-to-left by default and every language is unscaled by default; an
-optional `i18n-config.json` at the mount root (then local `i18n/`, then classpath
-`META-INF/i18n/`) overrides or extends that:
+the classpath `META-INF/i18n/i18n-config.json` each image ships declares the rest:
 
 ```json
 { "locales": [ { "tag": "ar", "direction": "rtl", "fontScale": 1.15 } ] }
 ```
 
-Both properties are optional per entry and resolved independently, exact tag before language, so
-a mount that carries only `direction` behaves as it did before font scale existed. A `fontScale`
-that is not a number or falls outside `0.75`–`2.0` is logged and dropped, leaving that language at
-`1.0`; it is never clamped into range, because a scale a deployer did not mean is worse than none.
+Both properties are optional per entry and resolved independently, exact tag before language, so an
+entry that carries only `direction` behaves as it did before font scale existed. A `fontScale` that
+is not a number or falls outside `0.75`–`2.0` is logged and dropped, leaving that language at `1.0`;
+it is never clamped into range, because a scale nobody meant is worse than none.
+
+A site overrides either value for one tag with a config property, `i18n.direction.<tag>` or
+`i18n.font-scale.<tag>`, which wins over the shipped file. Properties rather than a file, because
+there is no mounted directory to put a file in — without them a site could not adjust typography at
+all short of a new build. They are read for the tag being asked about rather than enumerated, so an
+operator can name any tag without the lookup having to discover which keys exist, which is the part
+of SmallRye's property enumeration that does not survive environment variables.
+
+The scale is per language but page-wide: it multiplies the root font size, so a page in that
+language grows entirely — spacing, controls and any Latin text on it — while other languages stay
+at `1.0`.
 
 Application CSS uses logical properties (`margin-inline-start`, `text-align: start`) so the
 mirrored layout needs no per-language stylesheet. The scale has one hook, in each app's
@@ -110,12 +140,13 @@ the `--brand-font-size-*` tokens and the applications' own rules are all express
 property scales the page in proportion and nothing clips; scaling only the font-size tokens would
 grow text inside controls that had not grown with it. `100%` is the reader's own browser default,
 so a scale multiplies a reader's enlarged text rather than replacing it. The shipped
-`elicit-i18n/i18n-config.json` scales `ar` by 1.15: Arabic's apparent x-height is smaller than
-Latin's in the system font stack, so it reads small at a size that is comfortable in English.
+Each image's `META-INF/i18n/i18n-config.json` scales `ar` by 1.15: Arabic's apparent x-height is
+smaller than Latin's in the system font stack, so it reads small at a size that is comfortable in
+English.
 
 A per-locale `fontFamily` is deliberately *not* part of this. A family is only useful with a face
-the reader's device actually has, or one the deployment can ship, and there is no font mount to
-ship it from; adding the property without that would be a setting that silently does nothing.
+the reader's device actually has, and there is nothing to ship one from; adding the property
+without that would be a setting that silently does nothing.
 
 ## Brand text
 
@@ -127,12 +158,15 @@ still derives the technical brand key. See `elicit-brand/README.md`.
 
 ## Docker and non-Docker deployment
 
-`docker-compose.yml` mounts `./elicit-i18n/:/opt/i18n:ro` into `survey`, `admin`, `author`
-and `author-survey` and sets `i18n.file.system.path: /opt/i18n`. `elicit-i18n/` holds one
-sub-directory per app with copies of the shipped bundles, so it is safe to mount as is and edit
-in place; `test-partial-i18n/` shows a single-key override and a mount-only language. Outside
-Docker, set `i18n.file.system.path` through any Quarkus config source and lay the directory out
-the same way (see `DeploymentScript.md`). Translation files are never served over HTTP.
+Nothing to mount and nothing to lay out: the languages are in the images. `docker-compose.yml`
+carries no i18n wiring at all, and a stock stack offers English, Spanish and Arabic.
+
+A site that wants fewer sets `i18n.bundled.locales` on the service, in Docker or through any
+Quarkus config source outside it (see `DeploymentScript.md`). `e2e_multisite_multilingual/` is the
+worked example: three sites differing only by that one line — `en`, `en,es-419`, `en,ar`.
+
+Translation files are never served over HTTP: `vaadin-i18n/` is at the classpath root, not under
+`META-INF/resources`.
 
 ## Getting a language translated
 
@@ -148,14 +182,14 @@ consistent or untranslated (**access code**, never "token"), the placeholder, `M
 apostrophe, HTML and maximum-length rules, every key with its English text, location, maximum
 length and flags, and the return instructions: exactly one UTF-8 `translations_<tag>.properties`,
 same keys, same order. Hand it to a translator or an AI agent, drop the returned file into the
-module (to ship it) or into the mount (to deploy it), and run the module's
-`TranslationBundleConsistencyTest`.
+module's `i18n/`, add the tag to `i18n.bundled.locales` in all three modules, and run each
+module's `TranslationBundleConsistencyTest` and the umbrella's `checkLanguages.sh`.
 
 Survey **content** is the opposite case and does have an on-screen flow: Author's Translations page
 writes a JSON handoff per survey and target language (`ELICIT_CONTENT_TRANSLATION_V1`), and reads
 the filled file back with per-item validation. Keep the two apart — a chrome translation is a
-properties file for the mount, a content translation is JSON that travels inside the definition
-file.
+properties file packaged in the image, a content translation is JSON that travels inside the
+definition file.
 
 ## Tests that guard the design
 
@@ -164,10 +198,11 @@ file.
 | `DisplayedStringsCoverageTest` | No prose-like string literal reaches a UI text API in the view sources (100 % coverage gate, NFR) |
 | `DisplayedStringsSweepTest` | With the `zxx` pseudo-locale, every rendered route shows only `⟦key⟧` markers outside `data-i18n-content` subtrees |
 | `TranslationBundleConsistencyTest` | Locale files carry exactly the English keys; every referenced key exists; placeholders match; no untranslated values; every key has context |
-| `ElicitI18NProviderMountTest` | Mount-only locales, per-key override, language fallback, `!key!`, traversal guard, cache reset |
-| `LocaleConfigTest`, `LocaleLayoutTest` | RTL/LTR defaults, font scale and their manifest overrides (including a refused scale); `?lang=`; switcher contents |
+| `ElicitI18NProviderTest` | The packaged bundles resolve with no filesystem at all (this is what catches a broken pom `<resource>` mapping); narrowing `i18n.bundled.locales` hides a language whose bundle is still in the image; language fallback; `!key!`; cache reset |
+| `LocaleConfigTest`, `LocaleLayoutTest` | RTL/LTR defaults, the shipped manifest, the `i18n.direction.<tag>` / `i18n.font-scale.<tag>` property overrides (including a refused scale, a non-numeric one and a throwing lookup), and `LocaleConfig.parse` against a malformed manifest; `?lang=`; switcher contents |
 | `TranslationRequestGeneratorTest` | The committed handoff document matches the shipped bundle |
 | `BrandUtilTest` | Localized brand names resolve tag → language → base |
 
 Survey content rendered by the views (question components, review and report cards, authored
 survey text on the About page) is marked with `data-i18n-content` so the sweep skips it.
+| `checkLanguages.sh` (umbrella) | Survey, Admin and Author ship the same languages, each declares the bundles it ships, and Author's `author.content.languages` matches; run by `buildDockerImages.sh` before anything is built |

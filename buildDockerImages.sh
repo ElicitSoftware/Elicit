@@ -41,6 +41,12 @@
 # SKIP_MANUAL=1 skips the manual; so does naming targets without it. SKIP_PROPERTY_CHECK=1
 # typesets without the gate.
 #
+# checkLanguages.sh runs first, before any target: it checks that the three UI modules ship the
+# same set of translated bundles, that each declares them in i18n.bundled.locales, and that
+# Author's author.content.languages matches. A disagreement fails the run without building
+# anything, because the alternative is a release in which an author can publish survey content
+# that no site can render.
+#
 # PREMM5 is not cloned by cloneAllProjects.sh and is commented out of
 # docker-compose.yml; add it to MODULES if you restore that module. The
 # postgresql/ directory holds only the local PGDATA volume -- there is no build
@@ -93,6 +99,17 @@ if [ -n "$building_a_module" ] && command -v lsof >/dev/null 2>&1; then
         esac
         echo "WARNING: port $port is in use by pid ${pids% }; $why" >&2
     done
+fi
+
+# Survey, Admin and Author must agree on which languages Elicit carries, and each must declare
+# the bundles it actually ships. Nothing at runtime can reconcile that -- classpath resources
+# cannot be enumerated -- and a mismatch is silent: a language one application has and another
+# lacks lets an author publish survey content no respondent could ever read. Checked before
+# anything is built, unconditionally, because it reads files and starts no JVM. A run that builds
+# only the manual still gets it: the manual documents these settings.
+if ! ./checkLanguages.sh; then
+    echo "Refusing to build: the modules disagree about which languages Elicit carries." >&2
+    exit 1
 fi
 
 mkdir -p "$LOG_DIR"

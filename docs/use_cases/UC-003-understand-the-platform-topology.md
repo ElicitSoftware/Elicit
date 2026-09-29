@@ -17,7 +17,7 @@
 
 1. The operator reads the module list: the subject-facing survey application, the administration console, the authoring tool, and the two optional services — the survey-specific report service and the pedigree drawing service.
 2. The system states, for each module, what it does, whether it is required, and what it needs: a database, an identity provider, a mail relay, or another module.
-3. The operator reads what the modules share: one PostgreSQL cluster, one `survey` schema that the survey application owns, one identity provider, one brand directory and one translations directory.
+3. The operator reads what the modules share: one PostgreSQL cluster, one `survey` schema that the survey application owns, one identity provider and one brand directory. Translations are not shared: each application carries its own inside its image.
 4. The system states that the authoring tool works in a database of its own so that drafts never reach a site's survey data, and that its respondent preview is a second instance of the survey application pointed at that database.
 5. The operator reads the first-start order and its reason: the survey application creates the shared `survey` schema, the console and the report service migrate on top of it, so the survey application starts and becomes healthy first.
 6. The system states that the order constrains only the first start of a new database; once the schema exists the modules may be started in any order.

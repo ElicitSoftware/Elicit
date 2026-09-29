@@ -9,7 +9,7 @@ the platform *as a whole*, and only the concerns no single module owns.
 ## The problem
 
 Elicit ships as separate module images that share one PostgreSQL database, one
-identity provider, one brand directory and one translations directory. Nothing
+identity provider and one brand directory. Nothing
 in any module's repository describes that whole. An operator standing up a site
 today has to reconstruct it from `docker-compose.yml`, from
 `DeploymentScript.md`, from two implementation guides written for developers,

@@ -24,29 +24,39 @@ To insure the database populates please start the modules in this order.
 5) Import the Family History Survey
    Sign in to Admin as an administrator, create a department if asked, then open Apply Survey Definition and upload `FHHS/family-history-survey.elicit`. The apply rebuilds Survey's reporting schema, and FHHS becomes ready on its next health probe; nothing needs restarting. Do the same on every site that runs the Family History Survey.
 
-### Translations directory
+### Choosing which languages a site offers
 
-Survey, Admin and Author read their user-interface texts from translation files. Each image
-ships English only; the header shows a language selector once more than one language is
-available. A deployment adds languages (this repository provides Latin American Spanish,
-`es-419`, and Arabic, `ar`, under `elicit-i18n/`) or overrides texts without rebuilding by
-pointing `i18n.file.system.path` (default `/i18n`; `/opt/i18n` in the compose file) at a
-directory with one sub-directory per application:
+Survey, Admin and Author carry their own user-interface texts in every language Elicit supports —
+English, Latin American Spanish (`es-419`) and Arabic (`ar`) — packaged inside the images. There is
+nothing to mount and nothing to supply: a released image renders the translation it was built and
+tested with, and the header shows a language selector once more than one language is available.
+
+A site that should offer fewer sets one property per service:
 
 ```
-/opt/i18n/
-  i18n-config.json                  # optional, text direction per language tag
-  survey/translations_<tag>.properties
-  admin/translations_<tag>.properties
-  author/translations_<tag>.properties
+i18n.bundled.locales=en           # English only; no language selector
+i18n.bundled.locales=en,es-419    # English and Latin American Spanish
+i18n.bundled.locales=en,ar        # English and Arabic, laid out right to left
 ```
 
-A mounted file only needs the keys it changes; missing keys fall back to the shipped text and
-then to English. Restart the module after editing. The umbrella repository's `elicit-i18n/`
-directory is a complete starting point, and each module's `i18n/TRANSLATION_REQUEST.md` is
-the document to hand to a translator or an AI agent for a new language. The organization
-name shown in the header is translated in the brand directory instead (`localized` block in
-`brand-config.json`, see `elicit-brand/README.md`).
+Set it through any Quarkus configuration source — an environment entry in the compose file, a
+system property, `application.properties` on the classpath. A language left out stays in the image
+but is unreachable: absent from the selector, refused in a `?lang=` link, and not served for survey
+content either, because a survey's content is only served in a language the site also offers for the
+interface.
+
+Adjusting typography for one language, where the shipped default does not suit a deployment's
+displays:
+
+```
+i18n.font-scale.ar=1.2            # Arabic ships at 1.15
+i18n.direction.<tag>=rtl|ltr      # only for a language whose script the release does not know
+```
+
+A new language is a release, not a deployment step: ElicitSoftware translates it and it arrives in
+the next version. Each module's `i18n/TRANSLATION_REQUEST.md` is the document handed to a translator
+or an AI agent to produce one. The organization name shown in the header is translated in the brand
+directory instead (`localized` block in `brand-config.json`, see `elicit-brand/README.md`).
 
 ### Upgrading an existing deployment to Kimball Type 2 SCD (V3.0.0)
 

@@ -24,7 +24,7 @@
 6. The operator restarts each application, because the resolved brand is cached for the life of the service.
 7. The operator opens Branding in the console's System section (Admin UC-023) and in the authoring tool's (Author UC-036), which reports the configured path, whether that directory exists, which metadata files are present in it, and, for each asset, whether it resolved from the mount, from the local directory, from the embedded default or from nowhere.
 8. The operator, if the site offers more than one language, translates the brand's own texts in the brand itself: an optional `localized` block keyed by language tag in `brand-config.json` carries `name` and `organization`, and the matching block in `brand-info.json` carries `description`.
-9. The operator proceeds to the translations directory (UC-015).
+9. The operator proceeds to choosing the site's languages (UC-015).
 
 ## Alternative Flows
 
@@ -103,7 +103,7 @@ The base `name` in `brand-config.json` derives the technical brand key the appli
 
 ### BR-005: Brand text is translated in the brand
 
-The organization name in the header and the brand description in the page metadata come from the brand directory, so they are translated there and never in an application's translation files (UC-015). A localised value resolves by exact tag, then by language alone, then by the base value.
+The organization name in the header and the brand description in the page metadata come from the brand directory, so they are translated there and never in an application's own translation files (UC-015). A localised value resolves by exact tag, then by language alone, then by the base value.
 
 ### BR-006: The resolved brand is cached
 

@@ -204,23 +204,37 @@ See `docs/BRAND_SYSTEM_IMPLEMENTATION_GUIDE.md`.
 
 ## Translations (i18n)
 
-`elicit-i18n/` is the default translations mount, mounted read-only at `/opt/i18n`
-(`i18n.file.system.path`) in the Survey, Admin, Author and author-survey containers with
-one sub-directory per app (`survey/`, `admin/`, `author/`). The apps ship English only and hide
-the language selector until a second language is mounted; `elicit-i18n` holds the Spanish
-(`es-419`) and Arabic (`ar`) files, and the module test and dev profiles read it as `../elicit-i18n`,
-so the module language tests need this umbrella checkout. Each app resolves a key
-through classpath `vaadin-i18n/translations[_tag].properties` → local `i18n/<app>/` →
-the mount, per key, falling back to English; a language that exists only on the mount
-is offered too. `test-partial-i18n/` exercises the override and mount-only paths.
-Direction (RTL/LTR) follows the language, with `i18n-config.json` as an optional override;
-the same file's optional per-locale `fontScale` multiplies the root font size for that language
-(shipped as 1.15 for `ar`, applied through `--elicit-font-scale` and one `html { font-size: … }`
-rule in each app's `styles.css`). Brand names are translated in the brand's own `localized` block, never in the
-app bundles. Survey content in the database is translated by a separate mechanism
-(`survey.translations`, Survey V019): authored in Author, carried in the `.elicit` file, and
-served only where the survey publishes the language *and* this mount has it. See
-`docs/I18N_IMPLEMENTATION_GUIDE.md`.
+Each app ships its own interface text for every language it supports, packaged inside the image.
+The English bundle is authored at `src/main/resources/vaadin-i18n/translations.properties`, Vaadin's
+standard location; the translated ones are received from a translator, kept in the module's own
+`i18n/` directory and copied to the same classpath location by a `<resource>` block in its `pom.xml`.
+All three ship English, Latin American Spanish (`es-419`) and Arabic (`ar`).
+
+**There is no translations mount.** Languages are curated by ElicitSoftware and arrive in a
+release: a deployment can neither add one nor patch one, so a released image renders the
+translation it was built and tested with. `i18n.file.system.path`, `i18n.local.path` and
+`i18n.app.name` no longer exist, and the module language tests no longer need this umbrella
+checkout.
+
+What a site controls is one setting, `i18n.bundled.locales`. It both declares what the image
+carries — classpath resources cannot be listed, so nothing can discover which bundles are in the
+jar — and lets a site offer fewer than it carries. A language left out is unreachable: hidden from
+the switcher, refused by `?lang=`, and not served for survey content either.
+
+`checkLanguages.sh` holds the three modules to the same set, and holds Author's
+`author.content.languages` — the languages a survey's *content* may be published in — to that set
+too. `buildDockerImages.sh` runs it before building anything: a language one app has and another
+lacks would let an author publish content no respondent could read.
+
+Direction (RTL/LTR) follows the language. `META-INF/i18n/i18n-config.json` on each app's classpath
+declares what the release ships (`ar` is `rtl` at `fontScale` 1.15), and a site overrides either for
+one tag with `i18n.direction.<tag>` or `i18n.font-scale.<tag>`. The scale multiplies the root font
+size through `--elicit-font-scale` and one `html { font-size: … }` rule in each app's `styles.css`,
+so it grows the whole page for that language. Brand names are translated in the brand's own
+`localized` block, never in the app bundles. Survey content in the database is translated by a
+separate mechanism (`survey.translations`, Survey V019): authored in Author, carried in the
+`.elicit` file, and served only where the survey publishes the language *and* the site offers it.
+See `docs/I18N_IMPLEMENTATION_GUIDE.md`.
 
 ## Umbrella Docs
 

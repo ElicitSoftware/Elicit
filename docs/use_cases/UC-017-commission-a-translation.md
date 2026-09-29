@@ -6,13 +6,13 @@
 **Use Case Name:** Commission a Translation  
 **Primary Actor:** Deployment Operator  
 **Secondary Actor:** Translator (person or AI agent)  
-**Goal:** Hand a translator everything needed to produce a language file for one application, and receive back a file the deployment can mount without editing it.  
+**Goal:** Hand a translator everything needed to produce a language file for one application, and receive back a file that can be packaged into the application without editing it.  
 **Status:** Open  
 **Requirements:** [FR-030](../requirements.md)
 
 ## Preconditions
 
-- The translations directory is mounted and the operator knows which sub-directory the language will be placed in (UC-015).
+- The language has been asked for and is being prepared for a release (UC-016).
 - The site has decided which language it needs and which applications it needs it for.
 
 ## Main Success Scenario
@@ -77,7 +77,7 @@
 
 ### Success Postconditions
 
-- The site holds one translation file per application for the language, each checked against the request document's rules and ready to be placed in the mount (UC-016).
+- There is one translation file per application for the language, each checked against the request document's rules and ready to be committed to that application's `i18n/` directory (UC-016).
 
 ### Failure Postconditions
 
@@ -103,8 +103,8 @@ The keys are the application's own identifiers. A translation adds none, removes
 
 ### BR-005: Brand text is not in the document
 
-The organization name and the brand description belong to the mounted brand and are translated there. Putting them in an application's translation file would place the same text in two places and make the brand's own value unreachable.
+The organization name and the brand description belong to the mounted brand and are translated there. Putting them in an application's translation file would place the same text in two places and make the brand's own value unreachable. The brand is still supplied by the deployment; only the applications' own texts moved into the images.
 
 ### BR-006: A returned file is deployment data
 
-The commissioned file belongs to the site's mounted translations directory, not to an application image. A site that wishes to carry a language in a build of its own places it in the local tier instead (UC-015 A4), and the mount still overrides it.
+The commissioned file belongs in the application's own `i18n/` directory, where the build packages it onto the classpath. There is no deployment-side location for it: a language reaches a site by upgrading to a release that carries it (UC-016), which is what keeps a translation and the code that renders it at the same version.

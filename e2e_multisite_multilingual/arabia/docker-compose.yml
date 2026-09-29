@@ -13,17 +13,9 @@
 #     those.
 # USA must therefore be up before this stack starts (../up.sh enforces that).
 #
-# The i18n mount is ../i18n/arabia, which holds Arabic (ar) and nothing else. That is what makes
-# this an Arabic site: the apps ship English only, so the selector offers English and Arabic here,
-# and the survey's Arabic content is served because ar is both in the survey's published set and
-# mounted here (Survey UC-009 BR-009). Arabic is written right to left, so every page here is laid
-# out RTL (UC-009 step 3).
+# Languages are packaged in the images; this site offers en,ar.
+# English and Arabic, which is also what makes the console and survey render right to left.
 #
-# The brand mount is ./arabia_brand, not the platform default: the flag of Arabia as the header
-# mark, its green as the palette, and an Arabic-first font stack for the right-to-left screens.
-# Every site in this suite looks different on purpose -- in a recording or a screenshot of three
-# identical consoles, the brand is what says which one this is. See arabia_brand/README.md.
-
 name: elicit-ml-arabia
 
 networks:
@@ -45,7 +37,7 @@ services:
       accessCode.autoRegister: true
       LOG_LEVEL: INFO
       brand.file.system.path: /opt/brand
-      i18n.file.system.path: /opt/i18n
+      i18n.bundled.locales: en,ar
       CORS_ORIGINS: http://localhost:7980
       # A site holds a survey's translations for elicit.content.translations-ttl (5 minutes by
       # default) before reloading them, so an Admin apply surfaces "within this window without
@@ -65,7 +57,6 @@ services:
       start_period: 60s
     volumes:
       - ./arabia_brand/:/opt/brand:ro
-      - ../i18n/arabia/:/opt/i18n:ro
     depends_on:
       db:
         condition: service_healthy
@@ -89,7 +80,7 @@ services:
       quarkus.mailer.port: 1025
       quarkus.mailer.tls: false
       brand.file.system.path: /opt/brand
-      i18n.file.system.path: /opt/i18n
+      i18n.bundled.locales: en,ar
       # This site's own Survey (the reporting rebuild after an apply) and database, by their
       # unambiguous aliases (see the note at the top).
       ELICIT_SURVEY_URL: http://arabia-survey:8080
@@ -103,7 +94,6 @@ services:
       quarkus.otel.sdk.disabled: "true"
     volumes:
       - ./arabia_brand/:/opt/brand:ro
-      - ../i18n/arabia/:/opt/i18n:ro
     depends_on:
       db:
         condition: service_healthy

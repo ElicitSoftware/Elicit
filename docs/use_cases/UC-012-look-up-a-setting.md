@@ -18,7 +18,7 @@
 
 1. The operator meets a setting — in the compose file, in a module's own properties file, in a log line, or in another chapter of the manual — and turns to the configuration reference.
 2. The system states how the reference is arranged: the settings common to all three applications first, then one section per application for that application's own settings, then the framework settings the images actually set, then a pointer to the framework's own configuration index for everything else.
-3. The operator reads the common section, which covers the brand directory, the translations directory and their local counterparts, and the health, metrics and tracing endpoints every module exposes.
+3. The operator reads the common section, which covers the brand directory and its local counterpart, the languages an application offers, and the health, metrics and tracing endpoints every module exposes.
 4. The operator turns to the section for the application in hand and finds the setting with its default value, a sentence on what it does, and its marking as one the site must set, may set, or should leave alone (FR-019).
 5. The system states that a default printed in the reference is the value the module ships with — the one in its properties file, or the one the code declares where no properties file sets it — and that the correspondence is checked when the manual is built.
 6. The operator, for a setting that is not Elicit's own, reads the framework section, which gives the datasource, migration, identity, HTTP, mail and telemetry settings the images set and the values they set them to.
