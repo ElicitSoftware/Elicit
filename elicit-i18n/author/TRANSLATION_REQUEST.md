@@ -792,12 +792,16 @@ Every row is one key in `translations.properties`. Return a file `translations_<
 | `translationsView.backToOverview` | Back to the survey overview | Translations page · tooltip on the back button | 40 |  |
 | `translationsView.intro` | Every string a respondent reads, beside its translation. A string with no translation, or one whose wording changed after it was translated, is shown to respondents in the survey's own language. | Translations page · introductory paragraph | 250 |  |
 | `translationsView.language` | Language | Translations page · label of the language selector | 15 |  |
+| `translationsView.language.option` | {0} — {1} | Translations page · language picker item: the tag then the language name | 40 | params: {0} = language tag, {1} = language name; identical (punctuation only) |
+| `translationsView.language.option.new` | {0} — {1} · not published yet | Translations page · language picker item for a language the survey does not publish yet | 60 | params: {0} = language tag, {1} = language name |
+| `translationsView.language.placeholder` | Choose or type a language | Translations page · language picker placeholder | 30 |  |
+| `translationsView.language.helper` | Not in the list? Type a language tag, such as es-419. | Translations page · helper text under the language picker; the example tag stays as it is | 60 |  |
+| `translationsView.language.published` | {0} is now one of this survey''s published languages; {1} string(s) still need translating. | Translations page · notification after a language is added to the published set | 110 | params: {0} = language tag, {1} = how many strings are still untranslated |
 | `translationsView.onlyOutstanding` | Only what needs work | Translations page · checkbox filtering to missing and out-of-date rows | 25 |  |
 | `translationsView.counts` | {0} translated, {1} missing, {2} out of date | Translations page · summary line | 60 | params: {0} = translated, {1} = missing, {2} = out of date |
 | `translationsView.request` | Request translation | Translations page · button producing the file for a translator | 25 |  |
 | `translationsView.import` | Import a returned file | Translations page · upload button for the returned file | 25 |  |
-| `translationsView.noLanguages` | This survey publishes no translations yet. | Translations page · shown when the survey publishes no language | 60 |  |
-| `translationsView.manageLanguages` | Add a language | Translations page · button opening the survey details dialog | 20 |  |
+| `translationsView.noLanguages` | This survey publishes no translations yet. Choose a language to start one. | Translations page · shown in place of the counts when no language is chosen yet | 80 |  |
 | `translationsView.grid.element` | Where | Translations page · grid column header: which step, section or question | 12 |  |
 | `translationsView.grid.field` | Text | Translations page · grid column header: which text of it | 12 |  |
 | `translationsView.grid.baseText` | Original | Translations page · grid column header: the text as authored | 12 | identical in Spanish |
@@ -1541,12 +1545,16 @@ translationsView.heading=Translations — {0}
 translationsView.backToOverview=Back to the survey overview
 translationsView.intro=Every string a respondent reads, beside its translation. A string with no translation, or one whose wording changed after it was translated, is shown to respondents in the survey's own language.
 translationsView.language=Language
+translationsView.language.option={0} — {1}
+translationsView.language.option.new={0} — {1} · not published yet
+translationsView.language.placeholder=Choose or type a language
+translationsView.language.helper=Not in the list? Type a language tag, such as es-419.
+translationsView.language.published={0} is now one of this survey''s published languages; {1} string(s) still need translating.
 translationsView.onlyOutstanding=Only what needs work
 translationsView.counts={0} translated, {1} missing, {2} out of date
 translationsView.request=Request translation
 translationsView.import=Import a returned file
-translationsView.noLanguages=This survey publishes no translations yet.
-translationsView.manageLanguages=Add a language
+translationsView.noLanguages=This survey publishes no translations yet. Choose a language to start one.
 translationsView.grid.element=Where
 translationsView.grid.field=Text
 translationsView.grid.baseText=Original
