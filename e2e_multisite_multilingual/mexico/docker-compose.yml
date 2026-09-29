@@ -13,16 +13,9 @@
 #     those.
 # USA must therefore be up before this stack starts (../up.sh enforces that).
 #
-# The i18n mount is ../i18n/mexico, which holds Latin American Spanish (es-419) and nothing else.
-# That is what makes this a Spanish site: the apps ship English only, so the selector offers
-# English and Spanish here, and the survey's Spanish content is served because es-419 is both in
-# the survey's published set and mounted here (Survey UC-009 BR-009).
+# Languages are packaged in the images; this site offers en,es-419.
+# English and Latin American Spanish.
 #
-# The brand mount is ./mexico_brand, not the platform default: the flag of Mexico as the header
-# mark and its green/red as the palette. Every site in this suite looks different on purpose --
-# in a recording or a screenshot of three identical consoles, the brand is what says which one
-# this is. See mexico_brand/README.md.
-
 name: elicit-ml-mexico
 
 networks:
@@ -44,7 +37,7 @@ services:
       accessCode.autoRegister: true
       LOG_LEVEL: INFO
       brand.file.system.path: /opt/brand
-      i18n.file.system.path: /opt/i18n
+      i18n.bundled.locales: en,es-419
       CORS_ORIGINS: http://localhost:8030
       # A site holds a survey's translations for elicit.content.translations-ttl (5 minutes by
       # default) before reloading them, so an Admin apply surfaces "within this window without
@@ -64,7 +57,6 @@ services:
       start_period: 60s
     volumes:
       - ./mexico_brand/:/opt/brand:ro
-      - ../i18n/mexico/:/opt/i18n:ro
     depends_on:
       db:
         condition: service_healthy
@@ -88,7 +80,7 @@ services:
       quarkus.mailer.port: 1025
       quarkus.mailer.tls: false
       brand.file.system.path: /opt/brand
-      i18n.file.system.path: /opt/i18n
+      i18n.bundled.locales: en,es-419
       # This site's own Survey (the reporting rebuild after an apply) and database, by their
       # unambiguous aliases (see the note at the top).
       ELICIT_SURVEY_URL: http://mexico-survey:8080
@@ -102,7 +94,6 @@ services:
       quarkus.otel.sdk.disabled: "true"
     volumes:
       - ./mexico_brand/:/opt/brand:ro
-      - ../i18n/mexico/:/opt/i18n:ro
     depends_on:
       db:
         condition: service_healthy

@@ -47,8 +47,8 @@ rectangle "Elicit Platform — Installation" {
     usecase "UC-014\nMount an External Brand" as UC014
 
     ' Translations (FR-026..FR-031)
-    usecase "UC-015\nMount the Translations Directory" as UC015
-    usecase "UC-016\nAdd, Replace or Remove a Language" as UC016
+    usecase "UC-015\nChoose the Languages a Site Offers" as UC015
+    usecase "UC-016\nAsk for a New Language" as UC016
     usecase "UC-017\nCommission a Translation" as UC017
 
     ' Verification (FR-032..FR-035)

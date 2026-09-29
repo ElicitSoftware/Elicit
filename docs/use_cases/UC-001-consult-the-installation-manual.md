@@ -21,7 +21,7 @@
 3. The operator reads the orientation chapters: what the platform is made of, what the modules share, and what must exist before starting (UC-003, UC-004).
 4. The operator follows the provisioning chapters in order: the database cluster (UC-005), the identity provider (UC-006), then one of the two installation paths (UC-007 or UC-008).
 5. The operator completes the first sign-in and installs a survey definition (UC-009, UC-010).
-6. The operator consults the configuration reference for any setting their site needs to change (UC-011, UC-012), and the branding and translations chapters for the directories their site mounts (UC-014, UC-015, UC-016).
+6. The operator consults the configuration reference for any setting their site needs to change (UC-011, UC-012), the branding chapter for the directory their site mounts (UC-014), and the translations chapter for the languages their site offers (UC-015, UC-016).
 7. The operator verifies the installation against the checks the manual gives (UC-018).
 8. The system repeats the version and the build date in the footer of every page.
 9. The operator holds a running, verified site and knows what every setting it runs with does.
@@ -80,7 +80,7 @@ The manual is a standalone document that needs no Elicit service to deliver it, 
 
 ### BR-002: One vocabulary with the applications
 
-The manual uses the names the applications and the repository use: module, site, department, access code, survey definition, brand directory, translations directory. The credential a respondent enters is the access code, never a token (C-010).
+The manual uses the names the applications and the repository use: module, site, department, access code, survey definition, brand directory. The credential a respondent enters is the access code, never a token (C-010).
 
 ### BR-003: The manual is stamped with its build
 

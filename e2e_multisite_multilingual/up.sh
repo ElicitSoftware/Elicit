@@ -7,8 +7,9 @@
 #   ./up.sh mexico       Mexico only (USA must already be up)
 #   ./up.sh arabia       Arabia only (USA must already be up)
 #
-# Lays out the translations mounts from ../elicit-i18n first (./sync-i18n.sh), then waits until
-# each site's Survey and Admin answer their readiness probes. A first start initializes the
+# Waits until each site's Survey and Admin answer their readiness probes. Languages are packaged
+# in the images; each site's compose file names the ones it offers in i18n.bundled.locales, so
+# there is nothing to lay out first. A first start initializes the
 # database in one pass (Survey creates the schema; nothing seeds a survey or a department -- the
 # journey authors, applies and creates its own), which takes a minute or two per site.
 
@@ -64,8 +65,6 @@ wait_ready() { # site port name
     docker compose -f "$1/docker-compose.yml" ps >&2
     return 1
 }
-
-./sync-i18n.sh
 
 for site in $SITES; do
     if [ "$site" != usa ]; then
