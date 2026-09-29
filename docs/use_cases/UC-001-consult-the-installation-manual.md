@@ -7,7 +7,7 @@
 **Primary Actor:** Deployment Operator  
 **Goal:** Obtain a printable manual that takes an operator from an empty machine to a running, verified Elicit site, and that answers what every setting the site is configured with does, stamped with the platform version it describes.  
 **Status:** Open  
-**Requirements:** [FR-001, FR-003, NFR-001, NFR-006, NFR-009, C-001](../requirements.md)
+**Requirements:** [FR-001, FR-003, FR-036, NFR-001, NFR-006, NFR-009, NFR-012, C-001](../requirements.md)
 
 ## Preconditions
 
@@ -99,7 +99,8 @@ A chapter documenting behavior that is specified but not implemented says so and
 Each stage of the manual that is a screen carries a captioned screenshot of that screen, so
 that an operator can match the instruction to what is in front of them. The figures are
 captured from a real installation, and the first-run figures are captured from a database
-that has never been used, because those screens cannot be reproduced on an installed one.
+that has never been used, because those screens cannot be reproduced on an installed one
+(FR-036, NFR-012).
 
 ### BR-006: Provisioning only
 

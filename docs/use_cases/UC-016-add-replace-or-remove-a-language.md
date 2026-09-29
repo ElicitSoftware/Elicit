@@ -71,9 +71,9 @@
 **Trigger:** The operator looks for the Languages screen described in the console's and the authoring tool's specifications (step 1)  
 **Flow:**
 
-1. The manual states that these screens are specified and not implemented: Admin UC-027 (Admin FR-034) for the console and the survey application, and Author UC-041 (Author FR-054) for the authoring tool. Neither application has a Languages address, and no procedure in this manual depends on one.
+1. The manual states that these screens are specified and not implemented: Admin UC-027 (Admin FR-034) for the console and the survey application, and Author UC-041 (Author FR-055) for the authoring tool. Neither application has a Languages address, and no procedure in this manual depends on one.
 2. The manual states what they will change when they are built: an administrator will upload a translation file through the application, which will validate it, summarize it, record the direction and reload the translations, so that a language can be added without server access.
-3. The manual states that they will need the translations directory to be mounted writable, which the compose file does not do today (C-013, Admin C-015, Author C-024), and that until then the procedure in this use case is the only one.
+3. The manual states that they will need the translations directory to be mounted writable, which the compose file does not do today (C-013, Admin C-015, Author C-025), and that until then the procedure in this use case is the only one.
 4. Use case continues at step 2.
 
 ## Postconditions
