@@ -213,8 +213,10 @@ so the module language tests need this umbrella checkout. Each app resolves a ke
 through classpath `vaadin-i18n/translations[_tag].properties` → local `i18n/<app>/` →
 the mount, per key, falling back to English; a language that exists only on the mount
 is offered too. `test-partial-i18n/` exercises the override and mount-only paths.
-Direction (RTL/LTR) follows the language, with `i18n-config.json` as an optional
-override. Brand names are translated in the brand's own `localized` block, never in the
+Direction (RTL/LTR) follows the language, with `i18n-config.json` as an optional override;
+the same file's optional per-locale `fontScale` multiplies the root font size for that language
+(shipped as 1.15 for `ar`, applied through `--elicit-font-scale` and one `html { font-size: … }`
+rule in each app's `styles.css`). Brand names are translated in the brand's own `localized` block, never in the
 app bundles. Survey content in the database is translated by a separate mechanism
 (`survey.translations`, Survey V019): authored in Author, carried in the `.elicit` file, and
 served only where the survey publishes the language *and* this mount has it. See

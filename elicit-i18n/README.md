@@ -7,7 +7,7 @@ application reads only its own sub-directory:
 
 ```
 elicit-i18n/
-├── i18n-config.json        # optional: text direction per language tag
+├── i18n-config.json        # optional: text direction and font scale per language tag
 ├── survey/                 # Elicit Survey (also used by author-survey)
 │   ├── translations.properties          # English, the fallback for every other language
 │   ├── translations_es_419.properties   # Latin American Spanish
@@ -31,6 +31,14 @@ mounting this directory is what makes those languages available. How the mount i
 - **Right-to-left languages:** Arabic, Hebrew, Persian, Urdu and a few others are mirrored
   automatically. For any other language, declare it in `i18n-config.json`:
   `{"locales":[{"tag":"dv","direction":"rtl"}]}`.
+- **Text size per language:** a script can read smaller than Latin at the same font size — Arabic
+  does in the system font stack — so a language may carry a `fontScale` in the same entry:
+  `{"locales":[{"tag":"ar","direction":"rtl","fontScale":1.15}]}`. It multiplies the reader's own
+  base text size for pages shown in that language and nothing else; every other language is
+  untouched. The shipped file above scales `ar` by 1.15, which a site can raise, lower or delete.
+  Both properties are optional: an entry may carry either, and a language with no entry renders as
+  it always has. A scale outside 0.75–2.0, or one that is not a number, is logged and ignored
+  rather than applied.
 - **Produce a translation:** give `TRANSLATION_REQUEST.md` to a translator or an AI agent;
   it contains every key with its context and the rules for placeholders and HTML, and asks
   for a complete `translations_<tag>.properties` back. Regenerate it in the module with the

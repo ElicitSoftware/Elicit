@@ -21,10 +21,11 @@
 3. The operator checks the file before it is deployed — that it is a UTF-8 properties file, that every key in it exists in the application's English texts, that each text carries exactly the placeholders its English original carries, and that no parameterised text contains a lone apostrophe — using the rules the console's specification states (Admin UC-027 BR-003, BR-004 and BR-005).
 4. The operator places the file in the application's sub-directory of the mount as `translations_<tag>.properties`, writing the tag with underscores in the file name — `translations_es_419.properties` — while the tag itself is written with hyphens everywhere else.
 5. The operator checks the language's layout direction: Arabic, Hebrew, Persian, Urdu, Pashto, Sindhi, Uyghur, Yiddish, Dhivehi and Kurdish (Sorani) are right-to-left without being declared, and any other right-to-left language is declared in `i18n-config.json` at the root of the mount, which may also force a language the other way.
-6. The operator restarts each application whose sub-directory was changed, because the directory is read on startup and the languages an application offers are held for the life of the service.
-7. The operator confirms the result: the language appears in the header's selector, the pages render in it, and a right-to-left language mirrors the layout rather than only changing the words.
-8. The operator records the language and its file with the site's configuration, so that a later reinstallation or upgrade recreates the same mount (UC-011).
-9. The operator proceeds to verification (UC-018).
+6. The operator reads the language's pages and, if its script reads smaller than English at the same size, gives it a `fontScale` in the same `i18n-config.json` entry — a multiple of the reader's own text size, applied only to pages shown in that language. The shipped mount scales Arabic; a language with no scale renders unchanged, and a scale outside 0.75–2.0 is ignored with a warning rather than applied.
+7. The operator restarts each application whose sub-directory was changed, because the directory is read on startup and the languages an application offers are held for the life of the service.
+8. The operator confirms the result: the language appears in the header's selector, the pages render in it, and a right-to-left language mirrors the layout rather than only changing the words.
+9. The operator records the language and its file with the site's configuration, so that a later reinstallation or upgrade recreates the same mount (UC-011).
+10. The operator proceeds to verification (UC-018).
 
 ## Alternative Flows
 
@@ -34,8 +35,8 @@
 **Flow:**
 
 1. The manual states that the file is the unit of change: the returned file replaces the whole of the previous one for that tag and application, and there is no way to change one text on its own.
-2. The operator overwrites the file and restarts the application, as in steps 6 and 7.
-3. Use case continues at step 8.
+2. The operator overwrites the file and restarts the application, as in steps 7 and 8.
+3. Use case continues at step 9.
 
 ### A2: A language is removed
 
@@ -54,11 +55,11 @@
 
 1. The manual states that a file carrying only the keys to change is a valid override: every other key keeps the value from the tier below, ending at English (UC-015 BR-002).
 2. The manual states that this applies to English itself — a `translations.properties` on the mount rewords the shipped English texts by the same rule.
-3. Use case continues at step 6.
+3. Use case continues at step 7.
 
 ### A4: The file is wrong and nothing reports it
 
-**Trigger:** A deployed file carries a misspelled key, a missing placeholder or a lone apostrophe in a parameterised text (step 7)  
+**Trigger:** A deployed file carries a misspelled key, a missing placeholder or a lone apostrophe in a parameterised text (step 8)  
 **Flow:**
 
 1. The manual states that no application validates a mounted file: a key it does not recognize is simply never read, and a text whose placeholders do not match its English original is rendered as written or mangled by the formatter.
@@ -72,7 +73,7 @@
 **Flow:**
 
 1. The manual states that these screens are specified and not implemented: Admin UC-027 (Admin FR-034) for the console and the survey application, and Author UC-041 (Author FR-055) for the authoring tool. Neither application has a Languages address, and no procedure in this manual depends on one.
-2. The manual states what they will change when they are built: an administrator will upload a translation file through the application, which will validate it, summarize it, record the direction and reload the translations, so that a language can be added without server access.
+2. The manual states what they will change when they are built: an administrator will upload a translation file through the application, which will validate it, summarize it, record the direction and font scale and reload the translations, so that a language can be added without server access.
 3. The manual states that they will need the translations directory to be mounted writable, which the compose file does not do today (C-013, Admin C-015, Author C-025), and that until then the procedure in this use case is the only one.
 4. Use case continues at step 2.
 
@@ -80,7 +81,7 @@
 
 ### Success Postconditions
 
-- The application's sub-directory holds exactly the language files the site intends, direction is declared where it is not the default, and every restarted application offers those languages in its selector.
+- The application's sub-directory holds exactly the language files the site intends, direction and font scale are declared where they are not the default, and every restarted application offers those languages in its selector.
 
 ### Failure Postconditions
 
@@ -111,3 +112,7 @@ The translations directory is read when an application starts, and the set of of
 ### BR-006: A read-only mount is sufficient today, and will not be
 
 The operator writes to the directory on the host, not through an application, so the read-only mount in the compose file is no obstacle to this procedure. It is an obstacle to the specified screens, which write the file themselves; a site intending to use them will have to mount the directory writable (C-013).
+
+### BR-007: How a language is presented is declared beside it, not inside it
+
+A language's text direction and its font scale are properties of the language, not of the brand or of any survey, so they live in `i18n-config.json` at the root of the mount rather than in a translation file, a brand or a survey definition. Direction has a built-in default for the known right-to-left scripts and font scale has a built-in default of 1; a declaration overrides either, both are optional in an entry, and a value the application cannot use is logged and ignored rather than applied or refused at startup.

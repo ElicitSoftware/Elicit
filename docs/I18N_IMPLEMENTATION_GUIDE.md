@@ -78,20 +78,44 @@ respondent or user. Every page shows a `LanguageSwitcher` (`Select`, id `languag
 listing the provided locales in their own language; picking one remembers it and reloads the
 page so every view is rebuilt in the new language.
 
-## Direction (`LocaleDirectionConfig`, `LocaleLayout`)
+## Direction and font scale (`LocaleConfig`, `LocaleLayout`)
 
-`LocaleLayout.apply(ui, locale)` sets Vaadin's `Direction`, the `dir` and `lang` attributes on
-the UI element (assertable in browserless tests) and `document.documentElement.lang`/`dir`.
-Arabic, Hebrew, Persian, Urdu, Pashto, Sindhi, Uyghur, Yiddish, Dhivehi and Kurdish (Sorani)
-are right-to-left by default; an optional `i18n-config.json` at the mount root (then local
-`i18n/`, then classpath `META-INF/i18n/`) overrides or extends that:
+`LocaleLayout.apply(ui, locale)` sets Vaadin's `Direction`, the `dir`, `lang` and
+`data-font-scale` attributes on the UI element (assertable in browserless tests) and
+`document.documentElement.lang`/`dir` plus the `--elicit-font-scale` custom property on the
+document element. Arabic, Hebrew, Persian, Urdu, Pashto, Sindhi, Uyghur, Yiddish, Dhivehi and
+Kurdish (Sorani) are right-to-left by default and every language is unscaled by default; an
+optional `i18n-config.json` at the mount root (then local `i18n/`, then classpath
+`META-INF/i18n/`) overrides or extends that:
 
 ```json
-{ "locales": [ { "tag": "ar", "direction": "rtl" } ] }
+{ "locales": [ { "tag": "ar", "direction": "rtl", "fontScale": 1.15 } ] }
 ```
 
+Both properties are optional per entry and resolved independently, exact tag before language, so
+a mount that carries only `direction` behaves as it did before font scale existed. A `fontScale`
+that is not a number or falls outside `0.75`–`2.0` is logged and dropped, leaving that language at
+`1.0`; it is never clamped into range, because a scale a deployer did not mean is worse than none.
+
 Application CSS uses logical properties (`margin-inline-start`, `text-align: start`) so the
-mirrored layout needs no per-language stylesheet.
+mirrored layout needs no per-language stylesheet. The scale has one hook, in each app's
+`styles.css`:
+
+```css
+html { font-size: calc(100% * var(--elicit-font-scale, 1)); }
+```
+
+It is the *root* font size deliberately. Lumo's and Aura's font sizes, spacing and control sizes,
+the `--brand-font-size-*` tokens and the applications' own rules are all expressed in `rem`, so one
+property scales the page in proportion and nothing clips; scaling only the font-size tokens would
+grow text inside controls that had not grown with it. `100%` is the reader's own browser default,
+so a scale multiplies a reader's enlarged text rather than replacing it. The shipped
+`elicit-i18n/i18n-config.json` scales `ar` by 1.15: Arabic's apparent x-height is smaller than
+Latin's in the system font stack, so it reads small at a size that is comfortable in English.
+
+A per-locale `fontFamily` is deliberately *not* part of this. A family is only useful with a face
+the reader's device actually has, or one the deployment can ship, and there is no font mount to
+ship it from; adding the property without that would be a setting that silently does nothing.
 
 ## Brand text
 
@@ -141,7 +165,7 @@ file.
 | `DisplayedStringsSweepTest` | With the `zxx` pseudo-locale, every rendered route shows only `⟦key⟧` markers outside `data-i18n-content` subtrees |
 | `TranslationBundleConsistencyTest` | Locale files carry exactly the English keys; every referenced key exists; placeholders match; no untranslated values; every key has context |
 | `ElicitI18NProviderMountTest` | Mount-only locales, per-key override, language fallback, `!key!`, traversal guard, cache reset |
-| `LocaleDirectionConfigTest`, `LocaleLayoutTest` | RTL/LTR defaults and manifest override; `?lang=`; switcher contents |
+| `LocaleConfigTest`, `LocaleLayoutTest` | RTL/LTR defaults, font scale and their manifest overrides (including a refused scale); `?lang=`; switcher contents |
 | `TranslationRequestGeneratorTest` | The committed handoff document matches the shipped bundle |
 | `BrandUtilTest` | Localized brand names resolve tag → language → base |
 

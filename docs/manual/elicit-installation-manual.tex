@@ -1065,7 +1065,7 @@ One directory, one sub-directory per application:
 
 \begin{elicitfile}
 <translations>/
-  i18n-config.json                     optional; text direction per tag
+  i18n-config.json                     optional; direction and font scale per tag
   survey/translations_es_419.properties
   survey/translations_ar.properties
   admin/translations_es_419.properties
@@ -1111,6 +1111,8 @@ offered too.
         file; to \emph{remove} one, delete it.
   \item If the language is right-to-left and not one of the defaults, record its direction in
         \file{i18n-config.json} at the mount root.
+  \item If the language's script reads smaller than English at the same size, give it a
+        \opt{fontScale} in the same entry (Section~\ref{sec:direction}).
   \item Restart the module.
 \end{enumerate}
 
@@ -1136,18 +1138,37 @@ the one to use. When they arrive they will need the translations directory mount
 \emph{writable}; the shipped compose file mounts it read-only.
 \end{elicitnote}
 
-\subsection{Text direction}
+\subsection{Text direction and text size}
+\label{sec:direction}
 
 Arabic, Hebrew, Persian, Urdu, Pashto, Sindhi, Uyghur, Yiddish, Dhivehi and Kurdish (Sorani)
-are right-to-left by default. Override or extend that with \file{i18n-config.json} at the
-mount root:
+are right-to-left by default, and every language is shown at the reader's own text size.
+Override or extend either with \file{i18n-config.json} at the mount root:
 
 \begin{elicitfile}
-{ "locales": [ { "tag": "ar", "direction": "rtl" } ] }
+{ "locales": [ { "tag": "ar", "direction": "rtl", "fontScale": 1.15 } ] }
 \end{elicitfile}
 
-Only right-to-left and left-to-right are supported. The applications' stylesheets use logical
-properties, so a mirrored layout needs no per-language stylesheet.
+Only right-to-left and left-to-right are supported for \opt{direction}. The applications'
+stylesheets use logical properties, so a mirrored layout needs no per-language stylesheet.
+
+\opt{fontScale} multiplies the reader's own base text size on pages shown in that language, and
+does nothing to any other language. It exists because a script can read smaller than Latin at the
+same font size: Arabic does in the system font stack, so a page that is comfortable in English is
+cramped in Arabic. The whole page scales in proportion --- text, spacing and controls together ---
+so nothing is clipped, and a reader who has enlarged text in their browser keeps that enlargement
+on top of the scale.
+
+The repository's \file{elicit-i18n/i18n-config.json} scales \val{ar} by \val{1.15}. Raise it,
+lower it or delete it to taste; the change takes effect on the next restart of each module.
+
+\begin{elicitnote}[Both properties are optional, and a bad value is ignored]
+An entry may carry \opt{direction}, \opt{fontScale} or both, and a language with no entry at
+all renders exactly as it did before either existed. A \opt{fontScale} that is not a number, or
+that falls outside \val{0.75} to \val{2.0}, is written to the log and dropped --- that language
+is then shown unscaled. It is never clamped into range: a size the deployer did not ask for is
+worse than none.
+\end{elicitnote}
 
 \subsection{Which language a reader gets}
 
