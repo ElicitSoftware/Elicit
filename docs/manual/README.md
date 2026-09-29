@@ -87,7 +87,7 @@ are not.
 ## Regenerating the screenshots
 
 The 18 figures are committed. Regenerate them only when the screens they show
-change — and read this section first, because **six of them cannot be retaken
+change — and read this section first, because **three of them cannot be retaken
 without destroying the local database.**
 
 ```bash
@@ -98,13 +98,18 @@ npm --prefix docs/manual/capture install
 npm --prefix docs/manual/capture run capture
 ```
 
-Figures `04` to `08` are **first-run screens**: the sign-in, the blocking
-no-department dialog with both setup banners, the empty Departments list, the
-first department form, and the console once the department exists. They only
-exist on a database that has never had a department or a survey, so the script
-captures them before it creates the department and before it applies the
-definition. Running the capture against an installed stack silently produces
-the wrong pictures for those five — reset first.
+Figures `05`, `06` and `07` are **first-run screens**: the blocking
+no-department dialog with both setup banners, the empty Departments list and the
+first department form. They exist only on a database that has never had a
+department, so the script takes them before it creates one. Figures `04` (the
+sign-in page) and `08` (the console once a department exists) are reproducible on
+any stack and are not part of that set.
+
+On a stack that already has a department the run **skips** those three, says so
+with the reason, and leaves the committed figures untouched — it does not
+photograph an ordinary console and pass it off as the first run. So a capture
+without the reset is safe and still refreshes the other fifteen; reset only when
+one of the three first-run screens is what changed.
 
 The script then does the install itself, in order: it creates the department
 (which is what dismisses the modal dialog — until it does, every later click is
