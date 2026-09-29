@@ -17,7 +17,7 @@
 ## Main Success Scenario
 
 1. The operator reads the translations chapter, which states that every image ships English only, that every other language is a file in a mounted directory, and that the language selector in the header appears only once more than one language is available — so an English-only site never shows one.
-2. The system gives the directory layout: an optional `i18n-config.json` at the root of the mount, and one sub-directory per application holding `translations.properties` and a `translations_<tag>.properties` for each further language.
+2. The system gives the directory layout: an optional `i18n-config.json` at the root of the mount, carrying the text direction and the font scale of any language that needs either declared, and one sub-directory per application holding `translations.properties` and a `translations_<tag>.properties` for each further language.
 3. The system states that the sub-directory an application reads is named by `i18n.app.name` — `survey`, `admin` or `author` — that the authoring preview instance reads `survey` like the survey application, and that a value containing a path separator is rejected rather than followed.
 4. The operator takes the repository's translations directory as the starting point, which already carries a copy of each application's English file together with Latin American Spanish and Arabic, and edits it in place or copies it to the site's own location.
 5. The operator points each application at the directory with `i18n.file.system.path` — which defaults to `/i18n`, and which the compose file sets to `/opt/i18n` with a read-only volume — and gives the survey application, the console, the authoring tool and the authoring preview the same mount.
