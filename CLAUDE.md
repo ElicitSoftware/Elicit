@@ -51,7 +51,7 @@ OIDC/Bearer token. Never call the respondent credential a token.
 
 ## Module Conventions (shared by Survey, Admin, Author, FHHS)
 
-- Java 25, Quarkus 3.39.2, Maven. Vaadin 25.2.7 Flow for the three UI apps;
+- Java 25, Quarkus 3.39.5, Maven. Vaadin 25.2.7 Flow for the three UI apps;
   FHHS is headless REST.
 - **Hibernate ORM with Panache — not jOOQ.** Flyway migrations live under
   `src/main/resources/db/migration`.
@@ -224,7 +224,7 @@ served only where the survey publishes the language *and* this mount has it. See
 
 The umbrella now carries its own AIUP artifacts — the first ones it has had —
 scoped to the platform as one deployable whole: `docs/vision.md`,
-`docs/requirements.md` (FR-001..035, NFR-001..010, C-001..014),
+`docs/requirements.md` (FR-001..037, NFR-001..012, C-001..014),
 `docs/use_cases.puml` and `docs/use_cases/UC-001..019`. Module requirement and
 use-case IDs are unrelated to these.
 

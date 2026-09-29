@@ -148,13 +148,17 @@ services:
         condition: service_started
     # volumes:
       # - ./sftp_ssh/fhhs_user:/ssh/fhhs_user:ro        
+  # premm5 (not cloned by cloneAllProjects.sh; see CLAUDE.md).
+  # NOTE before re-enabling: 8084 is Author's published port now, so pick another host port, and
+  # the healthcheck must probe the container-internal 8080 like every other service here, not the
+  # published one.
   # premm5:
   #   image: elicitsoftware/premm5:latest
   #   #open this port for local testing. It is not needed for inter container communication.
   #   ports:
-  #     - 8084:8080
+  #     - 8086:8080
   #   healthcheck:
-  #       test: ["CMD", "curl", "--head", "-fsS", "http://localhost:8084/q/health/ready"]
+  #       test: ["CMD", "curl", "--head", "-fsS", "http://localhost:8080/q/health/ready"]
   #       interval: 15s
   #       timeout: 5s
   #       retries: 20

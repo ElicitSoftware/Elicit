@@ -7,7 +7,7 @@
 **Primary Actor:** Release Engineer  
 **Goal:** Typeset the installation manual from its LaTeX sources and stamp it with a platform version and build date, on any machine with a container runtime and no TeX installation.  
 **Status:** Open  
-**Requirements:** [FR-002, NFR-001, NFR-002, NFR-003, NFR-008, C-002, C-003](../requirements.md)
+**Requirements:** [FR-002, FR-037, NFR-001, NFR-002, NFR-003, NFR-007, NFR-008, NFR-011, C-002, C-003](../requirements.md)
 
 ## Preconditions
 
@@ -105,3 +105,18 @@ The PDF is a release artifact of the umbrella repository. No module image carrie
 ### BR-006: Drift from the code is detectable
 
 The configuration reference is checkable against the modules' sources by a script in the same directory, so a stale default is found by running something rather than by reading (NFR-004, NFR-005).
+
+### BR-007: The figures are reproducible, not retouched
+
+Every figure in the manual is captured from a running installation of the version the manual is
+stamped with, at 2x for print, by one script that drives a real browser through the applications
+(`docs/manual/capture/capture-screenshots.mjs`). No figure is drawn, mocked or edited by hand, and
+a figure the script cannot reach is reported rather than left silently stale. The first-run figures
+come first in the same pass, before a department or a survey exists, because a database that has
+had either cannot show those screens again (FR-037, NFR-011, NFR-012).
+
+### BR-008: Listings survive being copied
+
+Commands and SQL are set in the brand package's verbatim environments, whose monospaced family is
+loaded with `Ligatures=NoCommon`, so that no ligature or smart quote is substituted into a setting
+name, a command or a query and text copied out of the PDF runs as printed (NFR-007).

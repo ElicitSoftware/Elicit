@@ -20,6 +20,7 @@ actor "Translator\n(person or AI agent)" as tr
 rectangle "Elicit Platform — Installation" {
 
     ' The manual as a deliverable (FR-001..FR-003, NFR-001..NFR-003)
+    ' and its figures (FR-036, FR-037, NFR-011, NFR-012), which UC-001 reads and UC-002 makes
     usecase "UC-001\nConsult the Installation Manual" as UC001
     usecase "UC-002\nBuild the Installation Manual" as UC002
 

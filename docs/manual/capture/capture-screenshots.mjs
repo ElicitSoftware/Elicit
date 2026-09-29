@@ -40,6 +40,13 @@ const DEPARTMENT = {
 
 let page;
 const missed = [];
+const skipped = [];
+
+/** A figure this deployment's state cannot produce; the committed one stays as it is. */
+function skip(name, why) {
+  skipped.push({ name, why });
+  console.log(`  – ${name} — ${why}`);
+}
 const pause = (ms) => page.waitForTimeout(ms);
 
 async function shot(name) {
@@ -128,33 +135,49 @@ async function main() {
   await page.fill('#password', PASS);
   await page.press('#password', 'Enter');
   await pause(7000);
-  // The blocking dialog, the "no survey" banner and the default-accounts banner are all on
-  // this one screen, which is exactly what an installer meets first.
-  await tryShot('05-first-sign-in');
+  // Figures 05 to 07 exist only on a database that has never had a department: the blocking
+  // dialog is what makes them. On an installed stack the same steps would quietly photograph
+  // an ordinary console and put that in the manual, so decide which run this is first.
+  const firstRun = await page
+    .getByRole('button', { name: 'Add a department' })
+    .isVisible()
+    .catch(() => false);
 
-  await tryShot('06-departments-empty', async () => {
-    await click('Add a department');
-  });
+  if (firstRun) {
+    // The blocking dialog, the "no survey" banner and the default-accounts banner are all on
+    // this one screen, which is exactly what an installer meets first.
+    await tryShot('05-first-sign-in');
 
-  await tryShot('07-new-department', async () => {
-    await click('New Department');
-  });
+    await tryShot('06-departments-empty', async () => {
+      await click('Add a department');
+    });
 
-  // Creating it assigns the department to its creator and unblocks the console. Until this
-  // succeeds the dialog is modal over every route, so it intercepts every later click and
-  // nothing after this point can be captured.
-  await fill('Department name', DEPARTMENT.name);
-  await fill('Department code', DEPARTMENT.code);
-  await fill('From email', DEPARTMENT.email);
-  await click('Create department');
-  await pause(5000);
+    await tryShot('07-new-department', async () => {
+      await click('New Department');
+    });
 
-  await goto(ADMIN);
-  if (await page.getByRole('button', { name: 'Add a department' }).isVisible().catch(() => false)) {
-    throw new Error(
-      'the department was not created — the blocking dialog is still up, so no ' +
-        'later figure would be usable. Check the fields on the department form.'
-    );
+    // Creating it assigns the department to its creator and unblocks the console. Until this
+    // succeeds the dialog is modal over every route, so it intercepts every later click and
+    // nothing after this point can be captured.
+    await fill('Department name', DEPARTMENT.name);
+    await fill('Department code', DEPARTMENT.code);
+    await fill('From email', DEPARTMENT.email);
+    await click('Create department');
+    await pause(5000);
+
+    await goto(ADMIN);
+    if (await page.getByRole('button', { name: 'Add a department' }).isVisible().catch(() => false)) {
+      throw new Error(
+        'the department was not created — the blocking dialog is still up, so no ' +
+          'later figure would be usable. Check the fields on the department form.'
+      );
+    }
+  } else {
+    const why = 'this deployment already has a department; the screen exists only before the first one'
+      + ' — run resetDatabase.sh V3 first';
+    for (const name of ['05-first-sign-in', '06-departments-empty', '07-new-department']) {
+      skip(name, why);
+    }
   }
   await tryShot('08-console-ready');
 
@@ -203,6 +226,10 @@ async function main() {
   await browser.close();
 
   console.log(`\nWrote figures to ${OUT}`);
+  if (skipped.length) {
+    console.log(`\n${skipped.length} figure(s) this deployment cannot produce — the committed ones stand:`);
+    for (const { name, why } of skipped) console.log(`  ${name} — ${why}`);
+  }
   if (missed.length) {
     console.error(`\n${missed.length} figure(s) not captured: ${missed.join(', ')}`);
     process.exit(1);
