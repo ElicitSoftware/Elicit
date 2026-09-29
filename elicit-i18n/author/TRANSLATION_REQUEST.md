@@ -182,7 +182,7 @@ Every row is one key in `translations.properties`. Return a file `translations_<
 | `guideView.rules.repeat.term` | Repeat | Guide page · bold rule name starting a bullet | 15 |  |
 | `guideView.rules.repeat.desc` | — the target section or question is repeated as many times as the answer says, for example one 'Child' section per child. | Guide page · rest of the bullet (keep the leading dash) | 150 |  |
 | `guideView.rules.text.term` | Text | Guide page · bold rule name starting a bullet | 15 |  |
-| `guideView.rules.text.desc` | — the answer is written into the target's text wherever a {TOKEN\|default} placeholder appears, so a later question can say 'your daughter' instead of 'your child'. The rule reaches everything inside its target: one Text rule on a step fills the token in every section and question of that step. A token is a slot name, not a question — several rules may fill the same token, each where it is used. | Guide page · rest of the bullet (keep the leading dash); {TOKEN | default} is a literal placeholder syntax, keep it | 450 |
+| `guideView.rules.text.desc` | — the answer is written into the target's text wherever a {<TOKEN>\|default} placeholder appears, so a later question can say 'your daughter' instead of 'your child'. The rule reaches everything inside its target: one Text rule on a step fills the token in every section and question of that step. A token is a slot name, not a question — several rules may fill the same token, each where it is used. | Guide page · rest of the bullet (keep the leading dash); {<TOKEN> | default} is a literal placeholder syntax, keep it | 450 |
 | `guideView.rules.p2` | There is no Hide rule. Hiding is the same as not showing: give the element a Show rule and it stays hidden until that rule holds. | Guide page · paragraph | 150 |  |
 | `guideView.rules.p3` | Operators are Boolean, Greater than, Equal, Not equal, Field exists and Contains. When several rules point at the same target, all of them must hold. | Guide page · paragraph; operator names should match the rule editor | 150 |  |
 | `guideView.designer.h` | The designer draws all of this | Guide page · section heading | 40 |  |
@@ -556,7 +556,7 @@ Every row is one key in `translations.properties`. Return a file `translations_<
 | `questionDialog.variant.helper` | Vaadin theme variants applied to the field | Question dialog · field helper text | 60 |  |
 | `questionDialog.help.type` | The kind of input the respondent uses to answer. | Question dialog · field tooltip | 80 |  |
 | `questionDialog.help.shortText` | A short machine-friendly name, shown in the tree and on the board. | Question dialog · field tooltip | 100 |  |
-| `questionDialog.help.text` | The question as the respondent sees it. May contain {TOKEN} placeholders that TEXT rules fill in. | Question dialog · field tooltip; {TOKEN} is a literal placeholder example, keep it | 140 |  |
+| `questionDialog.help.text` | The question as the respondent sees it. May contain {<TOKEN>} placeholders that TEXT rules fill in. | Question dialog · field tooltip; {<TOKEN>} is a literal placeholder example, keep it | 140 |  |
 | `questionDialog.help.toolTip` | Help text shown to the respondent when they hover the field. | Question dialog · field tooltip | 100 |  |
 | `questionDialog.help.required` | The respondent must answer this before continuing. | Question dialog · field tooltip | 80 |  |
 | `questionDialog.help.minimum` | The smallest number the respondent may enter. | Question dialog · field tooltip | 80 |  |
@@ -567,7 +567,7 @@ Every row is one key in `translations.properties`. Return a file `translations_<
 | `questionDialog.help.mask` | A regular expression matched against every character the respondent types; anything that does not match cannot be entered. It limits which characters are allowed, not the shape of the answer. Digits only: [0-9]. Phone number: [0-9 ()+-]. Letters and spaces: [A-Za-z ]. | Question dialog · field tooltip; the bracketed patterns are literal regular expressions, keep them as they are | 320 |  |
 | `questionDialog.help.placeholder` | Faint example text shown in the empty field. | Question dialog · field tooltip | 80 |  |
 | `questionDialog.help.defaultValue` | The value the field starts with. | Question dialog · field tooltip | 60 |  |
-| `questionDialog.help.sample` | An example answer, used only in previews. Wherever a Text rule writes this question's answer into another text, the preview shows this instead: sample "Bob" previews "Hello {PName}" as "Hello Bob". Respondents never see it. | Question dialog · field tooltip; "Bob", "Hello {PName}" and "Hello Bob" are literal examples | 300 |  |
+| `questionDialog.help.sample` | An example answer, used only in previews. Wherever a Text rule writes this question's answer into another text, the preview shows this instead: sample "Bob" previews "Hello {<PNAME>}" as "Hello Bob". Respondents never see it. | Question dialog · field tooltip; "Bob", "Hello {<PNAME>}" and "Hello Bob" are literal examples | 300 |  |
 | `questionDialog.help.variant` | Visual style variants applied to the field: alignment, size, or layout. | Question dialog · field tooltip | 100 |  |
 | `questionDialog.error.typeRequired` | Choose a question type | Question dialog · field error | 40 |  |
 | `questionDialog.error.textRequired` | A question needs its text | Question dialog · field error | 40 |  |
@@ -588,7 +588,7 @@ Every row is one key in `translations.properties`. Return a file `translations_<
 | `relationshipDialog.defaultUpstreamValue` | Default upstream value | Rule dialog · field label | 30 |  |
 | `relationshipDialog.overrideUpstreamValue` | Override upstream value | Rule dialog · field label | 30 |  |
 | `relationshipDialog.removeRule` | Remove rule | Rule dialog · button | 20 |  |
-| `relationshipDialog.token.helper` | Optional for Show and Repeat, required for Text. Fills {TOKEN\|default} — or a phrase holding it, {Has TOKEN been\|Were you} — in the target's text and in every text inside it | Rule dialog · field helper text; {TOKEN | default} and {Has TOKEN been | Were you} are literal examples, keep them |
+| `relationshipDialog.token.helper` | Optional for Show and Repeat, required for Text. Fills {<TOKEN>\|default} — or a phrase holding it, {Has <TOKEN> been\|Were you} — in the target's text and in every text inside it | Rule dialog · field helper text; {<TOKEN> | default} and {Has <TOKEN> been | Were you} are literal examples, keep them |
 | `relationshipDialog.token.helper.displayOnly` | This question shows text and collects no answer, so only the rule's own default upstream value can fill the token. Read from a question the respondent answers to fill it with their answer | Rule dialog · field helper text shown when the chosen source question is display-only (HTML or MODAL) | 200 |  |
 | `relationshipDialog.targetKind.step` | Step | Rule dialog · radio option | 15 |  |
 | `relationshipDialog.targetKind.section` | Section | Rule dialog · radio option | 15 |  |
@@ -599,7 +599,7 @@ Every row is one key in `translations.properties`. Return a file `translations_<
 | `relationshipDialog.help.action` | What the rule does when it matches: SHOW reveals the target, REPEAT instantiates it once per the answer, TEXT substitutes the answer into the target's text. A SHOW or REPEAT rule may also carry a token naming the slot the upstream answer fills in the target's texts; a TEXT rule must. | Rule dialog · field tooltip; SHOW, REPEAT and TEXT are action names, keep them | 200 |  |
 | `relationshipDialog.help.targetKind` | Whether the rule acts on a whole step, a section, or a single question. A rule with a token on a step fills it in every section and question of that step; on a section, in every question of it. | Rule dialog · field tooltip | 220 |  |
 | `relationshipDialog.help.target` | The element the action applies to. | Rule dialog · field tooltip | 60 |  |
-| `relationshipDialog.help.token` | The slot written as {TOKEN} in the target's texts that the upstream answer fills. Any rule may carry one — a SHOW or REPEAT rule that also names a token fills it, as the runtime does — and a TEXT rule must. Pick one the survey already uses or type a new name (up to 10 characters). The same token may be filled by several rules, one per place it is used. The preview shows the upstream question's sample answer in its place. | Rule dialog · field tooltip; TEXT is an action name and {TOKEN} a literal example, keep them | 320 |  |
+| `relationshipDialog.help.token` | The slot written as {<TOKEN>} in the target's texts that the upstream answer fills. Any rule may carry one — a SHOW or REPEAT rule that also names a token fills it, as the runtime does — and a TEXT rule must. Pick one the survey already uses or type a new name (up to 10 characters). The same token may be filled by several rules, one per place it is used. The preview shows the upstream question's sample answer in its place. | Rule dialog · field tooltip; TEXT is an action name and {<TOKEN>} a literal example, keep them | 320 |  |
 | `relationshipDialog.help.description` | An optional note for authors. It is not shown to respondents. | Rule dialog · field tooltip | 80 |  |
 | `relationshipDialog.help.defaultUpstreamValue` | The value to assume for the upstream answer when the respondent has not answered it yet. | Rule dialog · field tooltip | 120 |  |
 | `relationshipDialog.help.overrideUpstreamValue` | A fixed value to use for the upstream answer instead of the respondent's actual answer. | Rule dialog · field tooltip | 120 |  |
@@ -935,7 +935,7 @@ guideView.rules.show.desc=— the target appears only when the rule holds. Until
 guideView.rules.repeat.term=Repeat
 guideView.rules.repeat.desc=— the target section or question is repeated as many times as the answer says, for example one 'Child' section per child.
 guideView.rules.text.term=Text
-guideView.rules.text.desc=— the answer is written into the target's text wherever a {TOKEN|default} placeholder appears, so a later question can say 'your daughter' instead of 'your child'. The rule reaches everything inside its target: one Text rule on a step fills the token in every section and question of that step. A token is a slot name, not a question — several rules may fill the same token, each where it is used.
+guideView.rules.text.desc=— the answer is written into the target's text wherever a {<TOKEN>|default} placeholder appears, so a later question can say 'your daughter' instead of 'your child'. The rule reaches everything inside its target: one Text rule on a step fills the token in every section and question of that step. A token is a slot name, not a question — several rules may fill the same token, each where it is used.
 guideView.rules.p2=There is no Hide rule. Hiding is the same as not showing: give the element a Show rule and it stays hidden until that rule holds.
 guideView.rules.p3=Operators are Boolean, Greater than, Equal, Not equal, Field exists and Contains. When several rules point at the same target, all of them must hold.
 guideView.designer.h=The designer draws all of this
@@ -1309,7 +1309,7 @@ questionDialog.sample.helper=Previews the texts that Text rules fill with this a
 questionDialog.variant.helper=Vaadin theme variants applied to the field
 questionDialog.help.type=The kind of input the respondent uses to answer.
 questionDialog.help.shortText=A short machine-friendly name, shown in the tree and on the board.
-questionDialog.help.text=The question as the respondent sees it. May contain {TOKEN} placeholders that TEXT rules fill in.
+questionDialog.help.text=The question as the respondent sees it. May contain {<TOKEN>} placeholders that TEXT rules fill in.
 questionDialog.help.toolTip=Help text shown to the respondent when they hover the field.
 questionDialog.help.required=The respondent must answer this before continuing.
 questionDialog.help.minimum=The smallest number the respondent may enter.
@@ -1320,7 +1320,7 @@ questionDialog.help.selectGroup=The list of choices the respondent picks from.
 questionDialog.help.mask=A regular expression matched against every character the respondent types; anything that does not match cannot be entered. It limits which characters are allowed, not the shape of the answer. Digits only: [0-9]. Phone number: [0-9 ()+-]. Letters and spaces: [A-Za-z ].
 questionDialog.help.placeholder=Faint example text shown in the empty field.
 questionDialog.help.defaultValue=The value the field starts with.
-questionDialog.help.sample=An example answer, used only in previews. Wherever a Text rule writes this question's answer into another text, the preview shows this instead: sample "Bob" previews "Hello {PName}" as "Hello Bob". Respondents never see it.
+questionDialog.help.sample=An example answer, used only in previews. Wherever a Text rule writes this question's answer into another text, the preview shows this instead: sample "Bob" previews "Hello {<PNAME>}" as "Hello Bob". Respondents never see it.
 questionDialog.help.variant=Visual style variants applied to the field: alignment, size, or layout.
 questionDialog.error.typeRequired=Choose a question type
 questionDialog.error.textRequired=A question needs its text
@@ -1341,7 +1341,7 @@ relationshipDialog.description=Description
 relationshipDialog.defaultUpstreamValue=Default upstream value
 relationshipDialog.overrideUpstreamValue=Override upstream value
 relationshipDialog.removeRule=Remove rule
-relationshipDialog.token.helper=Optional for Show and Repeat, required for Text. Fills {TOKEN|default} — or a phrase holding it, {Has TOKEN been|Were you} — in the target's text and in every text inside it
+relationshipDialog.token.helper=Optional for Show and Repeat, required for Text. Fills {<TOKEN>|default} — or a phrase holding it, {Has <TOKEN> been|Were you} — in the target's text and in every text inside it
 relationshipDialog.token.helper.displayOnly=This question shows text and collects no answer, so only the rule's own default upstream value can fill the token. Read from a question the respondent answers to fill it with their answer
 relationshipDialog.targetKind.step=Step
 relationshipDialog.targetKind.section=Section
@@ -1352,7 +1352,7 @@ relationshipDialog.help.value=The value the answer is compared against. Leave em
 relationshipDialog.help.action=What the rule does when it matches: SHOW reveals the target, REPEAT instantiates it once per the answer, TEXT substitutes the answer into the target's text. A SHOW or REPEAT rule may also carry a token naming the slot the upstream answer fills in the target's texts; a TEXT rule must.
 relationshipDialog.help.targetKind=Whether the rule acts on a whole step, a section, or a single question. A rule with a token on a step fills it in every section and question of that step; on a section, in every question of it.
 relationshipDialog.help.target=The element the action applies to.
-relationshipDialog.help.token=The slot written as {TOKEN} in the target's texts that the upstream answer fills. Any rule may carry one — a SHOW or REPEAT rule that also names a token fills it, as the runtime does — and a TEXT rule must. Pick one the survey already uses or type a new name (up to 10 characters). The same token may be filled by several rules, one per place it is used. The preview shows the upstream question's sample answer in its place.
+relationshipDialog.help.token=The slot written as {<TOKEN>} in the target's texts that the upstream answer fills. Any rule may carry one — a SHOW or REPEAT rule that also names a token fills it, as the runtime does — and a TEXT rule must. Pick one the survey already uses or type a new name (up to 10 characters). The same token may be filled by several rules, one per place it is used. The preview shows the upstream question's sample answer in its place.
 relationshipDialog.help.description=An optional note for authors. It is not shown to respondents.
 relationshipDialog.help.defaultUpstreamValue=The value to assume for the upstream answer when the respondent has not answered it yet.
 relationshipDialog.help.overrideUpstreamValue=A fixed value to use for the upstream answer instead of the respondent's actual answer.
