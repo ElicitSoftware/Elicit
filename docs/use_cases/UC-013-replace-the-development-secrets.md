@@ -102,7 +102,7 @@ Every credential has a place that issues it and at least one place that presents
 
 ### BR-003: Secrets reach an application as configuration
 
-No credential is changed by editing or rebuilding a module image. Every one of them is a setting, supplied through a configuration source the site controls (UC-006 BR-005).
+No credential is changed by editing or rebuilding a module image. Every one of them is a setting, supplied through a configuration source the site controls (UC-006 BR-003).
 
 ### BR-004: An accepted risk is re-confirmed, not inherited
 

@@ -18,7 +18,7 @@
 
 ## Main Success Scenario
 
-1. The operator reads the configuration chapter, which opens with the one mechanism both applications share, so that the rules are learnt once and then applied per module.
+1. The operator reads the configuration chapter, which opens with the one mechanism both applications share, so that the rules are learned once and then applied per module.
 2. The system gives the ordered list of sources a value may be read from — system properties, environment variables, a `.env` file, a properties file in a `config` directory beside the runnable artifact, and the properties file built into the artifact — and states that a source earlier in that list overrides every source after it.
 3. The system gives the rule that turns a setting's dotted name into an environment variable name, and states that in the container path a setting may equally be written under its dotted name as an environment entry, which is how the shipped compose file writes most of them.
 4. The system explains the profile prefix: a line whose name begins with a profile marker is read only while that profile is active, the prefixed lines in the shipped files serve development and the module test suites, and the chapter states which profile a deployed application actually runs under so that the operator knows which lines apply to a site.

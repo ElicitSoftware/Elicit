@@ -56,7 +56,7 @@ running?" has one answer — the version tag. The module tests need no umbrella 
 
 Adding a language is therefore a release step: hand a module's `TRANSLATION_REQUEST.md` to a
 translator, put the returned file in that module's `i18n/`, add the tag to
-`i18n.bundled.locales`, and do the same in every module — `checkLanguages.sh` fails the
+`i18n.bundled.locales`, and do the same in both applications — `checkLanguages.sh` fails the
 build if they disagree. Managing languages from the Admin console (`elicit_admin`) is specified
 but not built, and was specified against a writable mount that no longer exists: it has to be
 re-specified as a screen that edits the offered-language list, which needs a mutable store rather
@@ -180,7 +180,7 @@ consistent or untranslated (**access code**, never "token"), the placeholder, `M
 apostrophe, HTML and maximum-length rules, every key with its English text, location, maximum
 length and flags, and the return instructions: exactly one UTF-8 `translations_<tag>.properties`,
 same keys, same order. Hand it to a translator or an AI agent, drop the returned file into the
-module's `i18n/`, add the tag to `i18n.bundled.locales` in every module, and run each
+module's `i18n/`, add the tag to `i18n.bundled.locales` in both applications, and run each
 module's `TranslationBundleConsistencyTest` and the umbrella's `checkLanguages.sh`.
 
 Survey **content** is the opposite case and does have an on-screen flow: Author's Translations page

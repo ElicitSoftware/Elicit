@@ -23,7 +23,7 @@
 4. The operator reads the survey application's startup diagnostics report in the service log, which is written a short configurable delay after start and gives what is running, both database connections and the migration the schema is at, which brand resolved and where each asset came from, every outbound target it could reach, and the effective deployment settings with secrets reported only as present or absent.
 5. The operator signs in to the console and works through its System section: an overview of what is running with the setup work still outstanding, the state of both database connections and each module's migration history, which brand directory resolved, the effective mail settings with a test message, a bounded reachability probe of every outbound dependency, and the current sign-in's authentication and role state.
 6. The operator confirms in the database that applying the survey definition rebuilt the reporting star schema, by counting the rows of the step dimension: the count is zero on an installation that carries no survey and non-zero once one has been applied.
-7. The operator completes one end-to-end walkthrough: generate an access code for a test subject in the console, enter the survey with it, answer, finalise, and generate that subject's report.
+7. The operator completes one end-to-end walkthrough: generate an access code for a test subject in the console, enter the survey with it, answer, finalize, and generate that subject's report.
 8. The operator records the outcome. Any check that did not pass is taken to the failure chapter (UC-019).
 
 ## Alternative Flows

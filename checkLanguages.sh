@@ -100,17 +100,18 @@ for i in "${!MODULES[@]}"; do
     fi
 done
 
-# 3. The authoring tool, when it happens to be checked out beside us. Not an error when it is
-# absent -- it is a separate private repository and is not cloned here -- but when a developer
-# does have it, saying so early beats finding out from Author's own build.
+# 3. The authoring tool, when it happens to be checked out beside us. This never fails the build
+# and deliberately does not touch $status. Author is a separate private repository that is not
+# cloned here, so whatever is or is not sitting in ./Author -- a partial clone, a worktree
+# mid-rebase, nothing at all -- must never be able to stop the public build. Author's own build
+# enforces the three-way invariant; this is a courtesy heads-up for a developer who has both.
 if [ -d Author ]; then
     author_shipped=$(tags_from_files Author)
     author_content=$(tags_from_property Author author.content.languages)
     if [ "$author_shipped" != "$reference" ] || [ "$author_content" != "$reference" ]; then
-        echo "ERROR: Author ships [$author_shipped] and publishes content in [$author_content]," >&2
-        echo "       but Survey and Admin ship [$reference]. An author could publish survey" >&2
-        echo "       content in a language no site can render." >&2
-        status=1
+        echo "WARNING: the Author checkout beside this one ships [$author_shipped] and publishes" >&2
+        echo "         content in [$author_content], while Survey and Admin ship [$reference]." >&2
+        echo "         Author's own build is what enforces this; it is only reported here." >&2
     fi
 fi
 

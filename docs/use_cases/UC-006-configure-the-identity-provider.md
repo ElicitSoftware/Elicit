@@ -17,7 +17,7 @@
 
 ## Main Success Scenario
 
-1. The operator reads the identity chapter, which describes the clients and roles in provider-neutral terms and gives the repository's Keycloak realm as the worked example.
+1. The operator reads the identity chapter, which describes the client and roles in provider-neutral terms and gives the repository's Keycloak realm as the worked example.
 2. The system states that the console authenticates against a confidential client of its own, and that the survey application authenticates no one — a respondent enters an access code, not a sign-in.
 3. The operator creates a confidential client for the console, with a redirect URI covering the console's address and a client secret.
 4. The system gives the three roles and what each permits: the platform administrator role, the console user role, and the role a machine client uses to import subjects through the integration API.

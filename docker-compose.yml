@@ -141,9 +141,8 @@ services:
       # - ./sftp_ssh/fhhs_user:/ssh/fhhs_user:ro        
   # premm5 (not cloned by cloneAllProjects.sh; see CLAUDE.md).
   # NOTE before re-enabling: the healthcheck must probe the container-internal 8080 like every
-  # other service here, not the published one. 8084 and 8085 are free again now that the
-  # authoring tool has its own compose file, but Author's stack still uses them, so pick a port
-  # that does not collide if you run both.
+  # other service here, not the published one. 8084 and 8085 are unused in this file now, but
+  # they are the authoring tool's ports in its own compose file, so 8086 stays the clearer choice.
   # premm5:
   #   image: elicitsoftware/premm5:latest
   #   #open this port for local testing. It is not needed for inter container communication.

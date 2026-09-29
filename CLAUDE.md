@@ -59,11 +59,11 @@ OIDC/Bearer token. Never call the respondent credential a token.
 
 ## Module Conventions (shared by Survey, Admin, FHHS)
 
-- Java 25, Quarkus 3.39.5, Maven. Vaadin 25.2.7 Flow for the three UI apps;
+- Java 25, Quarkus 3.39.5, Maven. Vaadin 25.2.7 Flow for the two UI apps;
   FHHS is headless REST.
 - **Hibernate ORM with Panache — not jOOQ.** Flyway migrations live under
   `src/main/resources/db/migration`.
-- All four follow the **AI Unified Process** (AIUP): `docs/` is the source of
+- All three follow the **AI Unified Process** (AIUP): `docs/` is the source of
   truth for behavior, `src/` is the implementation. The `aiup-core` plugin
   supplies the skills (`/requirements`, `/entity-model`, `/use-case-diagram`,
   `/use-case-spec`, `/reverse-engineer`).
@@ -94,9 +94,10 @@ Applications: `survey`, `admin`, `fhhs` and `pedigree`. Supporting services:
 Healthchecks target the **container-internal** port `8080`, not the published
 host port. Every service exports OTLP traces/metrics/logs to `jaeger:4317`.
 
-Ports `8084` and `8085` are free here, but Author's own stack publishes them
-(the tool and its Survey preview instance), so the two compose files cannot run
-at the same time.
+Ports `8084` and `8085` are unused here now. Author's own compose file publishes
+them, and publishes every other port in this table at the same values, so the two
+stacks cannot run at once — not because of 8084/8085, but because they collide on
+8080 downwards.
 
 `PREMM5` is commented out in the compose file and is not cloned by
 `cloneAllProjects.sh`.
@@ -211,7 +212,7 @@ Each app ships its own interface text for every language it supports, packaged i
 The English bundle is authored at `src/main/resources/vaadin-i18n/translations.properties`, Vaadin's
 standard location; the translated ones are received from a translator, kept in the module's own
 `i18n/` directory and copied to the same classpath location by a `<resource>` block in its `pom.xml`.
-All three ship English, Latin American Spanish (`es-419`) and Arabic (`ar`).
+Both ship English, Latin American Spanish (`es-419`) and Arabic (`ar`).
 
 **There is no translations mount.** Languages are curated by ElicitSoftware and arrive in a
 release: a deployment can neither add one nor patch one, so a released image renders the
@@ -228,8 +229,9 @@ the switcher, refused by `?lang=`, and not served for survey content either.
 before building anything: a language one app has and another lacks cannot be served. The
 authoring tool is the third party to that invariant — it declares which languages a survey's
 *content* may be published in (`author.content.languages`) — and it is not cloned here, so
-**Author's own build runs the authoritative three-way check**. This script warns about a
-mismatch when an Author checkout happens to be present, and passes without it.
+**Author's own build runs the authoritative three-way check**. When an Author checkout
+happens to be sitting here this script reports a mismatch, but only as a warning: a private
+repository must never be able to fail the public build.
 
 Direction (RTL/LTR) follows the language. `META-INF/i18n/i18n-config.json` on each app's classpath
 declares what the release ships (`ar` is `rtl` at `fontScale` 1.15), and a site overrides either for

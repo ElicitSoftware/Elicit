@@ -568,8 +568,7 @@ Files under `docs/research/faceted_exploration/`:
 | File | Purpose |
 |---|---|
 | `synth-fhhs.sql` | Generates N finalized FHHS respondents (`-v N=3000`) directly into `survey.respondents`, `survey.subjects` and `survey.answers` — tagged answers only, question ids resolved at run time, layout asserted, rows marked `access_code LIKE 'SYN%'` / `xid LIKE 'SYN-%'`. Not re-openable in the Survey UI. |
-| `synth-cleanup.sql` | Removes everything the generator created (fact rows first — no delete trigger) and reverts the dimension-name suffixes the run needed on any other survey that shares those
-step and section names (`survey_id <> 1`). |
+| `synth-cleanup.sql` | Removes everything the generator created (fact rows first — no delete trigger) and reverts the dimension-name suffixes the run needed on any other survey sharing those step and section names (`survey_id <> 1`). |
 | `relatives.sql`, `diagnoses.sql`, `respondents.sql` | The three recordsets of section 3; tab columns first (10, 7, 6). |
 | `Check.java` | Opens the three `.bfilter` files through the engine API and prints the cascade counts. |
 | `family-history-survey.elicit`, `family-history-survey-rework.md` | The FHHS definition with its reporting layer reworked under section 4, and the change log. Apply it to a scratch site instead of `FHHS/family-history-survey.elicit` to see the relabeled facets; it renames `other_age_key` and relabels history. |

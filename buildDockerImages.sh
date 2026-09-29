@@ -28,10 +28,10 @@
 #
 # Manual is not a module and produces no image: it is the installation manual
 # (umbrella UC-002), typeset from docs/manual/ by a TeX Live container into
-# docs/manual/elicit-installation-manual.pdf. Unlike the administrator's and
-# administrator's manual -- which its own buildDockerImage.sh typesets into the image
-# it is about to build -- this PDF is a release artifact of the umbrella repo, read
-# before there is an Elicit site to serve it from. It belongs in this run anyway:
+# docs/manual/elicit-installation-manual.pdf. Unlike the administrator's manual --
+# which Admin's own buildDockerImage.sh typesets into the image it is about to
+# build -- this PDF is a release artifact of the umbrella repo, read before there
+# is an Elicit site to serve it from. It belongs in this run anyway:
 # it stamps the version Survey and Admin agree on, so it is only truthful
 # when built from the same tree as the images. It contends with nothing the module
 # builds use (no Maven, no target/, no test port), and finishes in well under a
@@ -81,8 +81,8 @@ for m in "${MODULES[@]}"; do
     done
 done
 
-# Anything listening on a module's dev-mode port (8080-8084) or Quarkus test port
-# (8089-8092) is almost always a dev-mode instance, and the tests will either hang
+# Anything listening on a module's dev-mode port (8080-8083) or Quarkus test port
+# (8089-8091) is almost always a dev-mode instance, and the tests will either hang
 # on it or fail to bind. Warn, naming the process, but leave the decision to the user.
 # A run that builds only the manual runs no tests and binds nothing, so it says nothing.
 building_a_module=
