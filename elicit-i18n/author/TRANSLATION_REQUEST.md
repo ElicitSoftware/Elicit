@@ -786,7 +786,8 @@ Every row is one key in `translations.properties`. Return a file `translations_<
 | `surveyMetadataDialog.baseLanguage` | Content language | Survey details dialog · field label: the language the content is written in | 25 |  |
 | `surveyMetadataDialog.baseLanguage.helper` | The language this survey's questions are written in. | Survey details dialog · helper text under that field | 80 |  |
 | `surveyMetadataDialog.contentLanguages` | Published translations | Survey details dialog · field label: the languages the survey is published in | 25 |  |
-| `surveyMetadataDialog.contentLanguages.helper` | Comma-separated language tags this survey is published in, such as es-419,ar. A site offers one only when it also has that language for its own screens. | Survey details dialog · helper text; the tags themselves stay as they are | 200 |  |
+| `surveyMetadataDialog.contentLanguages.helper` | The languages this survey is published in. Elicit carries these; contact ElicitSoftware for another and it arrives in the next release. | Survey details dialog · helper text under the published-languages picker; "ElicitSoftware" is a company name and stays as it is | 200 |  |
+| `surveyMetadataDialog.contentLanguages.option` | {0} — {1} | Survey details dialog · published-languages picker item: the tag then the language name | 40 | params: {0} = language tag, {1} = language name; identical (punctuation only) |
 | `translationsView.pageTitle` | Translations | Translations page · browser tab title | 20 |  |
 | `translationsView.heading` | Translations — {0} | Translations page · heading | 40 | params: {0} = the survey's title, untranslated |
 | `translationsView.backToOverview` | Back to the survey overview | Translations page · tooltip on the back button | 40 |  |
@@ -794,8 +795,9 @@ Every row is one key in `translations.properties`. Return a file `translations_<
 | `translationsView.language` | Language | Translations page · label of the language selector | 15 |  |
 | `translationsView.language.option` | {0} — {1} | Translations page · language picker item: the tag then the language name | 40 | params: {0} = language tag, {1} = language name; identical (punctuation only) |
 | `translationsView.language.option.new` | {0} — {1} · not published yet | Translations page · language picker item for a language the survey does not publish yet | 60 | params: {0} = language tag, {1} = language name |
-| `translationsView.language.placeholder` | Choose or type a language | Translations page · language picker placeholder | 30 |  |
-| `translationsView.language.helper` | Not in the list? Type a language tag, such as es-419. | Translations page · helper text under the language picker; the example tag stays as it is | 60 |  |
+| `translationsView.language.option.unsupported` | {0} — {1} · not carried by Elicit | Translations page · language picker item for a language the survey publishes but Elicit has no application text for | 60 | params: {0} = language tag, {1} = language name |
+| `translationsView.language.placeholder` | Choose a language | Translations page · language picker placeholder | 30 |  |
+| `translationsView.language.helper` | Elicit carries these languages. Need another? Contact ElicitSoftware and it arrives in the next release. | Translations page · helper text under the language picker; "ElicitSoftware" is a company name and stays as it is | 120 |  |
 | `translationsView.language.published` | {0} is now one of this survey''s published languages; {1} string(s) still need translating. | Translations page · notification after a language is added to the published set | 110 | params: {0} = language tag, {1} = how many strings are still untranslated |
 | `translationsView.onlyOutstanding` | Only what needs work | Translations page · checkbox filtering to missing and out-of-date rows | 25 |  |
 | `translationsView.counts` | {0} translated, {1} missing, {2} out of date | Translations page · summary line | 60 | params: {0} = translated, {1} = missing, {2} = out of date |
@@ -1539,7 +1541,8 @@ surveyEditorView.translations=Translations…
 surveyMetadataDialog.baseLanguage=Content language
 surveyMetadataDialog.baseLanguage.helper=The language this survey's questions are written in.
 surveyMetadataDialog.contentLanguages=Published translations
-surveyMetadataDialog.contentLanguages.helper=Comma-separated language tags this survey is published in, such as es-419,ar. A site offers one only when it also has that language for its own screens.
+surveyMetadataDialog.contentLanguages.helper=The languages this survey is published in. Elicit carries these; contact ElicitSoftware for another and it arrives in the next release.
+surveyMetadataDialog.contentLanguages.option={0} — {1}
 translationsView.pageTitle=Translations
 translationsView.heading=Translations — {0}
 translationsView.backToOverview=Back to the survey overview
@@ -1547,8 +1550,9 @@ translationsView.intro=Every string a respondent reads, beside its translation. 
 translationsView.language=Language
 translationsView.language.option={0} — {1}
 translationsView.language.option.new={0} — {1} · not published yet
-translationsView.language.placeholder=Choose or type a language
-translationsView.language.helper=Not in the list? Type a language tag, such as es-419.
+translationsView.language.option.unsupported={0} — {1} · not carried by Elicit
+translationsView.language.placeholder=Choose a language
+translationsView.language.helper=Elicit carries these languages. Need another? Contact ElicitSoftware and it arrives in the next release.
 translationsView.language.published={0} is now one of this survey''s published languages; {1} string(s) still need translating.
 translationsView.onlyOutstanding=Only what needs work
 translationsView.counts={0} translated, {1} missing, {2} out of date
