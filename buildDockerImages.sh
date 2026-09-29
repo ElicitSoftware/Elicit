@@ -15,8 +15,8 @@
 #
 # Nothing forces an order: no image is built FROM another, no pom depends on
 # another module's artifact, each module has its own target/ and node_modules/,
-# and the Quarkus test ports are distinct (Survey 8089, Admin 8090, FHHS 8091,
-# Author 8092). The only shared resource is ~/.m2, which Maven 3.9 handles
+# and the Quarkus test ports are distinct (Survey 8089, Admin 8090, FHHS 8091).
+# The only shared resource is ~/.m2, which Maven 3.9 handles
 # concurrently; on a cold cache a rare download collision is fixed by rerunning.
 #
 # A module running in dev mode is not compatible with building it: dev mode holds
@@ -29,10 +29,10 @@
 # Manual is not a module and produces no image: it is the installation manual
 # (umbrella UC-002), typeset from docs/manual/ by a TeX Live container into
 # docs/manual/elicit-installation-manual.pdf. Unlike the administrator's and
-# author's manuals -- which their own buildDockerImage.sh typesets into the image
+# administrator's manual -- which its own buildDockerImage.sh typesets into the image
 # it is about to build -- this PDF is a release artifact of the umbrella repo, read
 # before there is an Elicit site to serve it from. It belongs in this run anyway:
-# it stamps the version Survey, Admin and Author agree on, so it is only truthful
+# it stamps the version Survey and Admin agree on, so it is only truthful
 # when built from the same tree as the images. It contends with nothing the module
 # builds use (no Maven, no target/, no test port), and finishes in well under a
 # minute. It is gated: docs/manual/check-properties.sh checks the manual's configuration
@@ -41,11 +41,10 @@
 # SKIP_MANUAL=1 skips the manual; so does naming targets without it. SKIP_PROPERTY_CHECK=1
 # typesets without the gate.
 #
-# checkLanguages.sh runs first, before any target: it checks that the three UI modules ship the
-# same set of translated bundles, that each declares them in i18n.bundled.locales, and that
-# Author's author.content.languages matches. A disagreement fails the run without building
-# anything, because the alternative is a release in which an author can publish survey content
-# that no site can render.
+# checkLanguages.sh runs first, before any target: it checks that Survey and Admin ship the same
+# set of translated bundles and that each declares them in i18n.bundled.locales. A disagreement
+# fails the run without building anything. The authoring tool is the third party to that
+# invariant and is not cloned here; Author's own build runs the authoritative three-way check.
 #
 # PREMM5 is not cloned by cloneAllProjects.sh and is commented out of
 # docker-compose.yml; add it to MODULES if you restore that module. The
@@ -55,7 +54,7 @@
 set -u
 cd "$(dirname "$0")"
 
-ALL_MODULES=(Survey FHHS Pedigree Admin Author Manual)
+ALL_MODULES=(Survey FHHS Pedigree Admin Manual)
 if [ $# -gt 0 ]; then MODULES=("$@"); else MODULES=("${ALL_MODULES[@]}"); fi
 LOG_DIR=build-logs
 
@@ -89,24 +88,23 @@ done
 building_a_module=
 for m in "${MODULES[@]}"; do [ "$m" = Manual ] || building_a_module=1; done
 if [ -n "$building_a_module" ] && command -v lsof >/dev/null 2>&1; then
-    for port in 8080 8081 8082 8083 8084 8089 8090 8091 8092; do
+    for port in 8080 8081 8082 8083 8089 8090 8091; do
         pids=$(lsof -nP -iTCP:"$port" -sTCP:LISTEN -t 2>/dev/null | sort -u | tr '\n' ' ')
         [ -n "$pids" ] || continue
         case $port in
             8080) why="Survey's tests call localhost:8080 and will hang on a dev-mode Survey" ;;
-            808[1-4]) why="looks like a dev-mode instance; stop it before building that module" ;;
+            808[1-3]) why="looks like a dev-mode instance; stop it before building that module" ;;
             *) why="a Quarkus test port; that module's tests cannot bind it" ;;
         esac
         echo "WARNING: port $port is in use by pid ${pids% }; $why" >&2
     done
 fi
 
-# Survey, Admin and Author must agree on which languages Elicit carries, and each must declare
-# the bundles it actually ships. Nothing at runtime can reconcile that -- classpath resources
-# cannot be enumerated -- and a mismatch is silent: a language one application has and another
-# lacks lets an author publish survey content no respondent could ever read. Checked before
-# anything is built, unconditionally, because it reads files and starts no JVM. A run that builds
-# only the manual still gets it: the manual documents these settings.
+# Survey and Admin must agree on which languages Elicit carries, and each must declare the
+# bundles it actually ships. Nothing at runtime can reconcile that -- classpath resources cannot
+# be enumerated -- and a mismatch is silent. Checked before anything is built, unconditionally,
+# because it reads files and starts no JVM. A run that builds only the manual still gets it: the
+# manual documents these settings.
 if ! ./checkLanguages.sh; then
     echo "Refusing to build: the modules disagree about which languages Elicit carries." >&2
     exit 1

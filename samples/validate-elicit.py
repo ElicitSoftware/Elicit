@@ -66,7 +66,7 @@ for idx, tgt, lbl in ((2,"steps","upstream_step_id"),(3,"sections_questions","up
                       (6,"sections_questions","downstream_sq_id")):
     fk("relationships", idx, tgt, lbl)
 
-# choice types need a select group (Author ExportValidation)
+# choice types need a select group (the authoring tool rejects the export otherwise)
 qtype, qtext = {}, {}
 for n, f in rows["questions"]:
     qtype[f[0]] = int(f[2]) if f[2] else 0

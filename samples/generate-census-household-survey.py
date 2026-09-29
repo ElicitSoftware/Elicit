@@ -164,7 +164,7 @@ for sec, labels in ASSIGN:
 # ---------------- relationships ----------------
 # up_step, up_sq, down_step, down_ss, down_sq, operator, action, description, token, ref, default
 # A rule whose target sits in the upstream question's OWN section is stored question-only:
-# upstream_step, downstream_step and downstream_ss are all null (see Author RulePath.complete).
+# upstream_step, downstream_step and downstream_ss are all null (a same-page rule path).
 RULES = [
  (1, sq["consent"],  2, None, None,              BOOLEAN,      SHOW,        "Show About You once consent is given", "", "", ""),
  (None, sq["race"],  None, None, sq["raceother"],CONTAINS,     SHOW,        "Ask which other race",              "", "OTHER", ""),

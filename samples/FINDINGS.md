@@ -4,11 +4,11 @@ Issues surfaced by walking `census-household-survey.elicit` end to end on 2026-0
 against Survey built from `V3` plus migration `V018`. The sample exists to exercise every
 element and rule once, so these are the things that exercise turned up.
 
-**Findings 1, 2, 3 and 5 were fixed on 2026-09-26**, because `../e2e_multisite_multilingual`
-walks this survey nine times and could not get past any of them. Finding 5 turned out not to be
-a navigation stall at all; see its section. Findings 4 and 6 stand.
+**Findings 1, 2, 3 and 4 were fixed on 2026-09-26**, because the multilingual multi-site journey
+walks this survey nine times and could not get past any of them. Finding 4 turned out not to be
+a navigation stall at all; see its section. Finding 5 stands.
 
-Line references are to the `V3` branch of `Survey/` and `main` of `Author/`.
+Line references are to the `V3` branch of `Survey/`.
 
 ---
 
@@ -95,24 +95,7 @@ entered". The seeded operators all test a *value* (`BOOLEAN`, `GREATER THAN`, `E
 
 ---
 
-## 4. `questions.mask` is inert, and Author advertises it anyway
-
-`ElicitComponent.setInputMask` (line 212) is `private` and has no callers anywhere in
-`Survey/src`. The column round-trips through export and import and is never applied.
-
-Author shows an "Input mask" field (`QuestionDialog.java:68`) with the help text *"A pattern
-that constrains what the respondent can type."* — so the UI offers a control with no runtime
-effect. It is shown only for text-like types (`QuestionDialog.java:291`).
-
-Neither FHHS nor this sample sets a mask on any question.
-
-Note that the method targets `HasAllowedCharPattern`, a character filter. It cannot display
-a symbol, so it is not a route to currency formatting; Vaadin's `NumberField` has no format
-hook, and its only currency affordance is `setPrefixComponent`.
-
----
-
-## 5. Navigation stalls after a section REPEAT — two bugs, both fixed
+## 4. Navigation stalls after a section REPEAT — two bugs, both fixed
 
 **Severity: high — any survey with a REPEATed section was unfinishable. Fixed 2026-09-26.**
 
@@ -121,7 +104,7 @@ Vehicle section instances (`0001-0003-0000-0004-0001-…` and `…-0004-0002-…
 section-title row) — and then Next re-rendered the same page. It was never a navigation
 *stall*: it was an exception, caught and shown as a notification, and then a missing button.
 
-**5a. `SectionView.buildQuestions` dereferenced a null question.** The guard for the row that
+**4a. `SectionView.buildQuestions` dereferenced a null question.** The guard for the row that
 carries a section's title read
 
 ```java
@@ -135,7 +118,7 @@ each, so they fell through to the question branch and threw
 is null`. `nextSection()` caught it and showed "Error navigating to next section", which on a
 page that had not changed looks exactly like a stall. The guard is now `answer.question == null`.
 
-**5b. `DisplayKey.getSectionString()` zeroed the section instance.** With 5a fixed the section's
+**4b. `DisplayKey.getSectionString()` zeroed the section instance.** With 4a fixed the section's
 question rendered, but with no Previous/Next buttons and no title. `addButtons()` returns early
 when `navResponse.getCurrentNavItem()` is null, and it was: `QuestionManager.getCurrentNavItem`
 matched navigation items against `DisplayKey.getSectionString()`, which builds
@@ -145,14 +128,13 @@ matched a repeated section. That form is right where a key names a section's *st
 placement is one row whichever instance is being looked at — so `getSectionString()` is unchanged
 and a new `getSectionInstanceString()` was added for the navigation lookup.
 
-Neither bug is specific to this sample: 5a hits any survey with a REPEATed section, and 5b hits
+Neither bug is specific to this sample: 4a hits any survey with a REPEATed section, and 4b hits
 the second and later instances of one.
 
-## 6. Smaller notes
+## 5. Smaller notes
 
-- **`LESS THAN` is unreachable.** Implemented at `Relationship.java:266` and labeled in
-  Author's `RelationshipQuery`, but no migration seeds the row, so no definition can
-  reference it.
+- **`LESS THAN` is unreachable.** Implemented at `Relationship.java:266`, but no migration
+  seeds the row in `survey.operator_types`, so no definition can reference it.
 - **Token substitution is English-only.** `QuestionManager.replaceTokens` ends with
   hardcoded fix-ups (`" her's "` → `" her "`, `s's` → `s'`). These are wrong for any other
   language and run regardless of locale.

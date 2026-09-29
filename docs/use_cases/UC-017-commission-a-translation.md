@@ -17,7 +17,7 @@
 
 ## Main Success Scenario
 
-1. The operator decides which applications the language is for, the manual having stated that the survey application, the console and the authoring tool are translated separately and each needs its own file.
+1. The operator decides which applications the language is for, the manual having stated that the survey application and the console are translated separately and each needs its own file.
 2. The operator takes that application's translation request document, one per application, which the repository carries beside the application's translation files and which is generated from the application's English texts and a per-key context file rather than written by hand.
 3. The system states what the document already contains, so that the operator adds nothing to it: what the application is for and who uses it, a glossary of the terms that must stay consistent or stay untranslated, the rules for placeholders and for embedded markup, and every key with its English text, where it appears, its maximum length where it has one, and its flags.
 4. The system gives the document's own return instruction: exactly one `translations_<tag>.properties` file, UTF-8 encoded, carrying the same keys in the same order as the English texts at the end of the document, one `key=translation` per line.
@@ -61,7 +61,7 @@
 **Trigger:** The site offers the language to respondents and to its own staff (step 1)  
 **Flow:**
 
-1. The manual states that this is three documents and three returned files, one per application, because the key sets do not overlap.
+1. The manual states that this is two documents and two returned files, one per application, because the key sets do not overlap.
 2. The manual states that the glossary terms shared between the documents — the product name, the access code, the subject and respondent distinction — should be translated the same way across all of them, and that this is the operator's instruction to give, since nothing checks it.
 3. Use case continues at step 2.
 

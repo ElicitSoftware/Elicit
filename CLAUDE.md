@@ -19,13 +19,21 @@ GitHub repo, dropped into this directory and excluded from this repo via
 | ------------- | ---------------------------- | ---------------------------------------------- |
 | `Survey/`     | `ElicitSoftware/Survey`      | Subject-facing survey app (Quarkus + Vaadin)    |
 | `Admin/`      | `ElicitSoftware/Admin`       | Administrator app (Quarkus + Vaadin)            |
-| `Author/`     | `ElicitSoftware/Author`      | Survey authoring tool (Quarkus + Vaadin)        |
 | `FHHS/`       | `ElicitSoftware/FHHS`        | Family Health History Survey; headless REST     |
 | `Pedigree/`   | `ElicitSoftware/Pedigree`    | R/Kinship2 pedigree-drawing service (plumber)   |
 | `Prometheus/` | *tracked here*               | Prometheus config; not a repo, not in compose   |
 | `postgresql/` | *not tracked, not a repo*    | Local `PGDATA` volume only                      |
 
-`cloneAllProjects.sh` bootstraps all five module clones.
+`cloneAllProjects.sh` bootstraps all four module clones.
+
+**Author is not here.** The authoring tool is a separate **private** repository
+and is not part of this open-source project: it is not cloned, not built, and
+not in the compose file. A developer who has access still checks it out at
+`Elicit/Author/`, where `.gitignore` hides it, because Author's own
+`docker-compose.yml` and its end-to-end suites read `../elicit-brand`,
+`../sftp_ssh` and `../../FHHS/family-history-survey.elicit` from here. Shared
+assets live in this repo once; what is Author's alone (its Keycloak realm, the
+`author` database script, the three e2e suites) lives in Author.
 
 ### Working Across Modules
 
@@ -49,7 +57,7 @@ templates, `{AccessCode}` in the FHHS SFTP XML template). "Token" means only a
 question-text placeholder (`{<KEY>|default}`, `survey.relationships.token`) or an
 OIDC/Bearer token. Never call the respondent credential a token.
 
-## Module Conventions (shared by Survey, Admin, Author, FHHS)
+## Module Conventions (shared by Survey, Admin, FHHS)
 
 - Java 25, Quarkus 3.39.5, Maven. Vaadin 25.2.7 Flow for the three UI apps;
   FHHS is headless REST.
@@ -67,10 +75,10 @@ OIDC/Bearer token. Never call the respondent credential a token.
 
 ## Local Stack (`docker-compose.yml`)
 
-Applications: `survey`, `admin`, `fhhs`, `pedigree`, `author`, and
-`author-survey`. Supporting services: `db` (PostgreSQL), `keycloak` (OIDC),
-`mailpit` (SMTP), `sftpServer`, and `jaeger` (OpenTelemetry). All app images
-are built locally as `elicitsoftware/<name>:latest`.
+Applications: `survey`, `admin`, `fhhs` and `pedigree`. Supporting services:
+`db` (PostgreSQL), `keycloak` (OIDC), `mailpit` (SMTP), `sftpServer`, and
+`jaeger` (OpenTelemetry). All app images are built locally as
+`elicitsoftware/<name>:latest`.
 
 | Port    | Service                                    |
 | ------- | ------------------------------------------ |
@@ -78,8 +86,6 @@ are built locally as `elicitsoftware/<name>:latest`.
 | `8081`  | Admin                                      |
 | `8082`  | FHHS                                       |
 | `8083`  | Pedigree                                   |
-| `8084`  | Author                                     |
-| `8085`  | Author preview (`author-survey`)           |
 | `8180`  | Keycloak (admin/admin)                     |
 | `8025`  | Mailpit web UI                             |
 | `16686` | Jaeger UI                                  |
@@ -88,12 +94,9 @@ are built locally as `elicitsoftware/<name>:latest`.
 Healthchecks target the **container-internal** port `8080`, not the published
 host port. Every service exports OTLP traces/metrics/logs to `jaeger:4317`.
 
-`author-survey` is a second `elicitsoftware/survey:latest` container serving
-Author's preview: both its datasources point at the `author` database rather than
-`survey`, `accessCode.autoRegister` lets an author type any access code to walk a
-draft, and `elicit.etl.enabled=false` keeps it from touching the reporting schema
-(Author's database holds many surveys whose step names would collide in
-`surveyreport.dim_step`).
+Ports `8084` and `8085` are free here, but Author's own stack publishes them
+(the tool and its Survey preview instance), so the two compose files cannot run
+at the same time.
 
 `PREMM5` is commented out in the compose file and is not cloned by
 `cloneAllProjects.sh`.
@@ -180,12 +183,12 @@ to start cleanly on 2026-09-20.
   target; `SKIP_PROPERTY_CHECK=1` typesets without the gate; a `Manual`-only run
   prints no port warnings). There
   is no build-time dependency between the images; each module's tests use a
-  distinct Quarkus test port (Survey 8089, Admin 8090, FHHS 8091, Author 8092).
+  distinct Quarkus test port (Survey 8089, Admin 8090, FHHS 8091).
   PREMM5 is not built (that module is not cloned and is commented out of
   compose), and there is no `postgresql/` build step — `elicitsoftware/elicit_db`
   is pulled, not built. Ctrl-C stops the module builds too (Bash would otherwise leave them
   running as orphans that hold `target/` and the test ports while the lock is released),
-  and the script warns about listeners on ports 8080-8084 and 8089-8092 before it starts:
+  and the script warns about listeners on ports 8080-8083 and 8089-8091 before it starts:
   a dev-mode Survey on 8080 hangs the Survey test suite, because the test data points
   post-survey-action and report URLs at `localhost:8080`, dev mode parks requests while
   it restarts, and neither Survey HTTP client sets a timeout.
@@ -221,10 +224,12 @@ carries — classpath resources cannot be listed, so nothing can discover which 
 jar — and lets a site offer fewer than it carries. A language left out is unreachable: hidden from
 the switcher, refused by `?lang=`, and not served for survey content either.
 
-`checkLanguages.sh` holds the three modules to the same set, and holds Author's
-`author.content.languages` — the languages a survey's *content* may be published in — to that set
-too. `buildDockerImages.sh` runs it before building anything: a language one app has and another
-lacks would let an author publish content no respondent could read.
+`checkLanguages.sh` holds Survey and Admin to the same set, and `buildDockerImages.sh` runs it
+before building anything: a language one app has and another lacks cannot be served. The
+authoring tool is the third party to that invariant — it declares which languages a survey's
+*content* may be published in (`author.content.languages`) — and it is not cloned here, so
+**Author's own build runs the authoritative three-way check**. This script warns about a
+mismatch when an Author checkout happens to be present, and passes without it.
 
 Direction (RTL/LTR) follows the language. `META-INF/i18n/i18n-config.json` on each app's classpath
 declares what the release ships (`ar` is `rtl` at `fontScale` 1.15), and a site overrides either for
@@ -245,12 +250,12 @@ scoped to the platform as one deployable whole: `docs/vision.md`,
 use-case IDs are unrelated to these.
 
 - `docs/manual/` — the **installation manual** (UC-001), a LaTeX/PDF that covers
-  Survey, Admin and Author: topology, prerequisites, the database roles and
+  Survey and Admin: topology, prerequisites, the database roles and
   schemas, the OIDC clients and roles, both installation paths, the first
   sign-in, the configuration reference, branding, translations and verification.
   Built by `docs/manual/build-manual.sh` through a TeX Live container, stamped
-  with the version the three modules agree on, and built alongside the images by
-  `buildDockerImages.sh` (target `Manual`). Unlike the author's manual it is
+  with the version the two modules agree on, and built alongside the images by
+  `buildDockerImages.sh` (target `Manual`). Unlike the in-application manuals it is
   **not** packaged into any image — an operator reads it before any Elicit
   service exists. `docs/manual/check-properties.sh` gates the configuration
   reference against the modules' `@ConfigProperty` declarations and

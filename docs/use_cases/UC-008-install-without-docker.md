@@ -27,16 +27,7 @@
 
 ## Alternative Flows
 
-### A1: The site runs the authoring tool
-
-**Trigger:** The site authors surveys (step 7)  
-**Flow:**
-
-1. The operator points a second instance of the survey application at the authoring database and starts it, which creates the schema there, then starts the authoring tool against the same database.
-2. The manual states the two settings that distinguish the preview instance: it accepts any access code so that an author can walk a draft, and it never builds or updates the reporting schema.
-3. Use case continues at step 7.
-
-### A2: A module is started out of order on a new database
+### A1: A module is started out of order on a new database
 
 **Trigger:** The console or the report service is started before the survey application has migrated (step 6)  
 **Flow:**
@@ -45,7 +36,7 @@
 2. The manual states that nothing is corrupted, that the fix is to let the survey application finish and start the module again, and that there is no automatic ordering here as there is in the container path.
 3. Use case continues at step 5.
 
-### A3: The site runs more than one instance of a module
+### A2: The site runs more than one instance of a module
 
 **Trigger:** The site runs the survey application behind a load balancer (step 4)  
 **Flow:**
@@ -53,7 +44,7 @@
 1. The manual states which settings must agree across instances — the datasource, the brand and translations paths — and that the proxy-forwarding settings must be on for sign-in redirects to be built with the external address.
 2. Use case continues at step 4.
 
-### A4: Configuration is supplied as environment variables only
+### A3: Configuration is supplied as environment variables only
 
 **Trigger:** The site's service manager provides no file-based configuration (step 3)  
 **Flow:**

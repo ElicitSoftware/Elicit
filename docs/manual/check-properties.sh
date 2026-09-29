@@ -27,7 +27,7 @@ TEX="${MANUAL_DIR}/elicit-installation-manual.tex"
 QUIET=0
 [[ "${1:-}" == "--quiet" ]] && QUIET=1
 
-for m in Survey Admin Author; do
+for m in Survey Admin; do
   if [[ ! -d "${REPO_DIR}/${m}/src/main" ]]; then
     echo "[check] ${m} is not cloned — run cloneAllProjects.sh first." >&2
     exit 1
@@ -38,7 +38,7 @@ python3 - "${REPO_DIR}" "${TEX}" "${QUIET}" <<'PY'
 import os, re, sys
 
 repo, tex_path, quiet = sys.argv[1], sys.argv[2], sys.argv[3] == "1"
-MODULES = ("Survey", "Admin", "Author")
+MODULES = ("Survey", "Admin")
 
 # Keys the manual deliberately does not list one by one. Each entry is a prefix.
 # Observability, telemetry and Vaadin plumbing are covered as a group in the manual and
@@ -138,7 +138,7 @@ documented = {
 # first cell names the setting. Only the reference tables count: an \opt{} in running prose
 # is a mention, not a declaration, and the \val{} nearest it is usually about something else.
 # The cell matters as much as the row. A description that lists a setting's allowed values
-# ("reads \val{survey}, \val{admin} or \val{author}") would otherwise hand the first of
+# ("reads \val{survey} or \val{admin}") would otherwise hand the first of
 # them to a key whose default cell deliberately says "per app". A default cell with no
 # \val{} claims no value, so there is nothing to compare and the row is skipped.
 row_default = {}
@@ -160,7 +160,7 @@ undocumented = sorted(k for k in required if k not in documented)
 
 # A Quarkus key the images leave at Quarkus's own default is still worth documenting, so an
 # unread key is only a problem when it is one of Elicit's own.
-ELICIT_PREFIXES = ("elicit.", "brand.", "i18n.", "accessCode.", "author.", "admin.", "build.")
+ELICIT_PREFIXES = ("elicit.", "brand.", "i18n.", "accessCode.", "admin.", "build.")
 stale = sorted(
     d for d in documented
     if d not in read

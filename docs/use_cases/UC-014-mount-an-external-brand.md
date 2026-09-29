@@ -5,7 +5,7 @@
 **Use Case ID:** UC-014  
 **Use Case Name:** Mount an External Brand  
 **Primary Actor:** Deployment Operator  
-**Goal:** Give the survey application, the console and the authoring tool the site's own colors, typefaces, logos and organization name by mounting a brand directory, so that the site is branded without rebuilding any image.  
+**Goal:** Give the survey application and the console the site's own colors, typefaces, logos and organization name by mounting a brand directory, so that the site is branded without rebuilding any image.  
 **Status:** Open  
 **Requirements:** [FR-022, FR-023, FR-024, FR-025](../requirements.md)
 
@@ -20,9 +20,9 @@
 2. The system gives the directory layout a brand must follow: `brand-config.json` and `brand-info.json` at the root, `colors/brand-colors.css`, `typography/brand-typography.css` with its `typography.json` companion, `images/` holding the horizontal logo, the icon and the favicon, and `theme.css`, which imports the color and typography stylesheets and is the file an application inlines into the page head.
 3. The system states that a brand populates `--brand-*` custom properties only: each application's own stylesheet maps the Lumo theme tokens onto them, so a brand never sets a `--lumo-*` value itself, and a brand that defines only `--brand-*` values needs no knowledge of the applications.
 4. The operator assembles the site's brand directory, starting from the repository's default brand and changing only the files that differ, and names the brand in `brand-config.json` along with the logo, icon and favicon file names it expects to find under `images/`.
-5. The operator points each application at the directory with `brand.file.system.path` — which defaults to `/brand`, and which the compose file sets to `/opt/brand` with a read-only volume — and gives the survey application, the console, the authoring tool and the authoring preview the same mount.
+5. The operator points each application at the directory with `brand.file.system.path` — which defaults to `/brand`, and which the compose file sets to `/opt/brand` with a read-only volume — and gives the survey application and the console the same mount.
 6. The operator restarts each application, because the resolved brand is cached for the life of the service.
-7. The operator opens Branding in the console's System section (Admin UC-023) and in the authoring tool's (Author UC-036), which reports the configured path, whether that directory exists, which metadata files are present in it, and, for each asset, whether it resolved from the mount, from the local directory, from the embedded default or from nowhere.
+7. The operator opens Branding in the console's System section (Admin UC-023), which reports the configured path, whether that directory exists, which metadata files are present in it, and, for each asset, whether it resolved from the mount, from the local directory, from the embedded default or from nowhere.
 8. The operator, if the site offers more than one language, translates the brand's own texts in the brand itself: an optional `localized` block keyed by language tag in `brand-config.json` carries `name` and `organization`, and the matching block in `brand-info.json` carries `description`.
 9. The operator proceeds to choosing the site's languages (UC-015).
 
@@ -51,9 +51,8 @@
 **Trigger:** The site brands the subject-facing survey application differently from its internal console (step 5)  
 **Flow:**
 
-1. The manual states that `brand.file.system.path` is set per application, so each service may mount a different directory, and that nothing in the platform requires the three to agree.
-2. The manual states that the authoring preview instance should be given the same brand as the authoring tool, so that an author previewing a draft sees what a respondent will see.
-3. Use case continues at step 6.
+1. The manual states that `brand.file.system.path` is set per application, so each service may mount a different directory, and that nothing in the platform requires the two to agree.
+2. Use case continues at step 6.
 
 ### A4: The brand is changed on a running site
 
@@ -95,7 +94,7 @@ Each expected asset is resolved on its own, in the order mount, local directory,
 
 ### BR-003: A brand supplies `--brand-*`, never `--lumo-*`
 
-The brand defines only its own custom properties. Each application's stylesheet maps the Lumo tokens onto them, which is what lets one brand directory serve the survey application, the console and the authoring tool unchanged.
+The brand defines only its own custom properties. Each application's stylesheet maps the Lumo tokens onto them, which is what lets one brand directory serve the survey application and the console unchanged.
 
 ### BR-004: The base name is the brand key
 

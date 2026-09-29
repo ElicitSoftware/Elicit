@@ -19,7 +19,7 @@
 1. The operator reads the secrets section, which lists every credential the platform ships with a documented value, where that value is set today, and which module presents it.
 2. The system gives the database credentials: the login roles the bundled database image creates carry three documented passwords between the four of them, and the same passwords are named again in each module's shipped configuration, so that each one has an issuing place and one or more presenting places.
 3. The system gives the account the bundled database image is initialized with, which is a superuser of the cluster and is not the role any module connects as.
-4. The system gives the identity credentials: in the bundled realm the console's client and the authoring tool's client share one documented secret, the machine client used for subject import carries a second, and the bundled provider's own administrator account is documented as well.
+4. The system gives the identity credentials: in the bundled realm the console's client carries one documented secret, the machine client used for subject import carries a second, and the bundled provider's own administrator account is documented as well.
 5. The system gives the remaining bundled accounts — the file-transfer account the report service uploads through, and the mail catcher, which accepts anything and authenticates no one.
 6. The operator changes each credential at the place that issues it and at every place that presents it, in the order the manual gives for that credential.
 7. The operator restarts the modules whose configuration changed and confirms each one connects: the datasources through the readiness endpoint, the identity provider through a sign-in.
@@ -50,7 +50,7 @@
 **Trigger:** The operator changes the database passwords across the modules (step 6)  
 **Flow:**
 
-1. The manual states that the console and the authoring tool read their database passwords from settings the compose file supplies, while the survey application carries its two passwords directly in its own shipped configuration and takes no such setting.
+1. The manual states that the console reads its database password from a setting the compose file supplies, while the survey application carries its two passwords directly in its own shipped configuration and takes no such setting.
 2. The manual names the settings to override for the survey application, so that a site changes every database password and not only the ones the compose file makes visible.
 3. Use case continues at step 6.
 
@@ -69,7 +69,7 @@
 **Flow:**
 
 1. The manual states that the compose file turns on automatic registration for the survey application, so that during evaluation any access code typed in reaches a survey, and that the setting's own default is off.
-2. The manual states that a site delivering a real survey leaves it off, and that the authoring tool's preview instance keeps it on deliberately so that an author can walk a draft (UC-011 A5).
+2. The manual states that a site delivering a real survey leaves it off, the setting existing for an evaluation stack and for a draft being walked before it is published.
 3. Use case continues at step 8.
 
 ### A6: A secret must not be written into a file the site keeps

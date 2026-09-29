@@ -38,8 +38,8 @@ This configuration monitors:
 - **Survey Application** (port 8080)
 - **Admin Application** (port 8081) 
 - **FHHS Application** (port 8082)
-- **PREMM5 Application** (port 8083)
-- **Pedigree Service** (port 8084)
+- **PREMM5 Application** (not part of this compose file)
+- **Pedigree Service** (port 8083)
 
 ## 🔍 Query Resources
 

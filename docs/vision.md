@@ -1,10 +1,10 @@
 # Elicit Platform — Vision (Umbrella)
 
 This is the vision document for the **umbrella repository**: Elicit considered as
-one deployable platform rather than as five independent modules. Each module
-(`Survey/`, `Admin/`, `Author/`, `FHHS/`, `Pedigree/`) carries its own
-`docs/vision.md` for its own behavior. This document covers only what is true of
-the platform *as a whole*, and only the concerns no single module owns.
+one deployable platform rather than as four independent modules. Each module
+(`Survey/`, `Admin/`, `FHHS/`, `Pedigree/`) carries its own `docs/vision.md`
+for its own behavior. This document covers only what is true of the platform
+*as a whole*, and only the concerns no single module owns.
 
 ## The problem
 
@@ -13,7 +13,7 @@ identity provider and one brand directory. Nothing
 in any module's repository describes that whole. An operator standing up a site
 today has to reconstruct it from `docker-compose.yml`, from
 `DeploymentScript.md`, from two implementation guides written for developers,
-and from three `application.properties` files totaling some 760 lines in which
+and from two `application.properties` files totaling some 590 lines in which
 the Elicit-specific settings are interleaved with Quarkus defaults.
 
 The consequences are concrete and have all been observed:
@@ -37,9 +37,8 @@ operator from an empty machine to a running, verified Elicit site, and is the
 single reference for every setting that site is configured with.
 
 It is typeset from LaTeX in the Elicit default brand, matching the author's
-manual (`Author/docs/manual/`), and built by a script in this repository so that
-it can be stamped with a platform version and a build date and reproduced
-exactly.
+manual, and built by a script in this repository so that it can be stamped
+with a platform version and a build date and reproduced exactly.
 
 ## Scope
 
@@ -47,13 +46,13 @@ exactly.
 
 - The platform topology: which modules exist, what each one needs, what they
   share, and in what order they may be started.
-- The PostgreSQL cluster: roles, schemas, the `survey` and `author` databases,
-  and the grants the migrations assume.
+- The PostgreSQL cluster: roles, schemas, the `survey` database, and the
+  grants the migrations assume.
 - The identity provider: the OIDC clients and the roles the applications check.
 - Both installation paths: Docker Compose, and module-by-module without Docker.
-- The configuration reference for Survey, Admin and Author: every
-  Elicit-specific setting with its default, and the Quarkus settings the images
-  actually set, with a pointer to `quarkus.io` for the rest.
+- The configuration reference for Survey and Admin: every Elicit-specific
+  setting with its default, and the Quarkus settings the images actually set,
+  with a pointer to `quarkus.io` for the rest.
 - External branding: the directory layout, the fallback rules, and how to mount
   one.
 - Translations: the directory layout, the resolution order, and how a deployment
@@ -63,10 +62,11 @@ exactly.
 **Out of scope** — operating a deployment once it runs:
 
 - Running the console day to day (Admin's administrator's manual, Admin UC-029).
-- Building a survey (Author's manual, `Author/docs/manual/`, Author UC-039).
-- FHHS and Pedigree configuration beyond what Survey, Admin and Author need in
-  order to reach them. FHHS is specific to one survey and carries its own
-  deployment documentation.
+- Building a survey (the author's manual, which ships with the authoring
+  tool).
+- FHHS and Pedigree configuration beyond what Survey and Admin need in order
+  to reach them. FHHS is specific to one survey and carries its own deployment
+  documentation.
 - Kubernetes, cloud load balancers, TLS termination and backup policy: site
   infrastructure, not Elicit configuration.
 - Upgrade procedures, which stay in `DeploymentScript.md`; the manual points at

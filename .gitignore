@@ -1,10 +1,13 @@
 /Admin
-/Author
 /ElicitSoftware
 /FHHS
 /Survey
 /PREMM5
 /Pedigree
+# Author is a separate private repository and is not cloned by cloneAllProjects.sh, but a
+# developer who has access checks it out here, beside the other modules -- its own compose file
+# and its end-to-end suites expect that layout. It must stay ignored: this repository is public.
+/Author
 # Per-issue git worktrees of a module clone, e.g. Author-22 for Author#22.
 /Author-*
 /Postgr

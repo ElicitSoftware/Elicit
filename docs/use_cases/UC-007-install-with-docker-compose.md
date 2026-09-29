@@ -21,7 +21,7 @@
 3. The operator edits the compose file for the site: the database passwords and the client secret (UC-013), the brand directory (UC-014), the languages this site offers (UC-015) and any setting from the configuration reference (UC-011).
 4. The operator brings the stack up in one command.
 5. The system starts the database, waits for it to become healthy, then starts the survey application, which creates and migrates the shared schema.
-6. The system starts the remaining services as their dependencies become healthy: the console, the authoring tool's database instance and the authoring tool, and the two optional services if the site runs them.
+6. The system starts the remaining services as their dependencies become healthy: the console, and the two optional services if the site runs them.
 7. The operator watches the services become healthy and reads the status script's output.
 8. The operator proceeds to the first sign-in (UC-009).
 
