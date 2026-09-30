@@ -392,8 +392,9 @@ must match the console's user records.
 \label{sec:compose}
 \markboth{Installing with Docker Compose}{}
 
-The umbrella repository carries \file{docker-compose.yml}, the default brand and the default
-translations. Together they are a working site and a worked example.
+The umbrella repository carries \file{docker-compose.yml} and the default brand. Together they
+are a working site and a worked example. It carries no translations: each image brings its own
+(Chapter~\ref{sec:i18n}).
 
 \subsection{What the file defines}
 
@@ -1026,9 +1027,9 @@ chrome. Widening the property past what the image actually carries does nothing,
 is no bundle behind it to find; a site cannot make itself more multilingual than its release
 shipped (Section~\ref{sec:commission}).
 
-\screenshot{18-language-selector}{The header of an application offering more than one language.
-The selector is shown only when there is something to select; a site narrowed to \val{en}
-never sees it.}
+\screenshot{18-language-selector}{The selector, open on an application offering all three
+shipped languages. Each row is labeled in its own language. The selector appears only when
+there is something to select, so a site narrowed to \val{en} never sees it.}
 
 \subsection{How a text is resolved}
 

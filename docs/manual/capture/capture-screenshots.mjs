@@ -215,13 +215,22 @@ async function main() {
     await goto(SURVEY);
   });
 
-  // The selector closed, not open. Opening it would put this build's blank Spanish and
-  // Arabic labels into the manual; what the figure is for is that the selector APPEARS at
-  // all, which it does only once a second language is on the mount.
+  // Open, so the figure shows the languages this image offers rather than repeating figure 17.
+  // The overlay's items render after it opens; at 900 ms the figure caught them blank.
   await tryShot('18-language-selector', async () => {
-    await page.locator('#language-switcher').first().scrollIntoViewIfNeeded();
-    await pause(1200);
+    const selector = page.locator('#language-switcher').first();
+    if (!(await selector.isVisible().catch(() => false))) {
+      throw new Error(
+        'the selector is not in the header, so only one language is offered — widen ' +
+          'i18n.bundled.locales on Survey and re-run'
+      );
+    }
+    await selector.click();
+    await pause(2500);
   });
+
+  // Escape, never a selection: choosing a language would reload Survey in it.
+  await page.keyboard.press('Escape').catch(() => {});
 
   await browser.close();
 

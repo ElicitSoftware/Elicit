@@ -127,14 +127,14 @@ Env: `ADMIN_URL`, `SURVEY_URL`, `KEYCLOAK_URL`, `ADMIN_USER`, `ADMIN_PASSWORD`,
 After regenerating, check that every `\screenshot{…}` caption in the `.tex` still
 describes what the figure shows — the caption is part of the instruction.
 
-### Figure 18 is captured with the selector closed, on purpose
+### Figure 18 is captured with the selector open
 
-The language selector's dropdown currently renders the mounted Spanish and
-Arabic rows with **blank labels** (English alone is labeled) in both Survey and
-Admin. The figure shows the closed selector in the header, because what it is
-there to demonstrate is that the selector appears at all — which happens only
-once a second language is on the mount. Open it again for the figure when that
-defect is fixed.
+The selector's rows are labeled from the JDK's own names for each language, so
+they are readable whatever the bundles translate. They render *after* the
+overlay opens, though: the script waits 2.5 s before the shot, because a shorter
+wait once photographed them blank and that blankness was mistaken for a defect.
+The step fails rather than skips when the selector is absent — a Survey narrowed
+to `en` hides it, and a closed selector would only repeat figure 17.
 
 ## When the manual and a module disagree
 
