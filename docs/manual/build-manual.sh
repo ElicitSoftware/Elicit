@@ -7,7 +7,7 @@
 # the document (UC-002 BR-002); when they are not supplied both read "unknown" (UC-002 A2,
 # BR-003), so a copy is never silently undated.
 #
-# Unlike the author's manual, this PDF is a release artifact of the umbrella repository.
+# Unlike the administrator's manual, this PDF is a release artifact of the umbrella repository.
 # It is not packaged into, and not served by, any module image (umbrella C-001): an
 # operator reads it before there is an Elicit site to serve it from (UC-001 BR-001).
 #
@@ -38,24 +38,24 @@ fi
 # The umbrella holds no pom.xml of its own, and its git tags version the repository rather
 # than the platform — v1.1.1 while the modules are at 3.0.0 — so a tag is the wrong source.
 # The platform version is what the applications carry, and they carry one version between
-# them. Take it from the three modules when they agree, and stamp "unknown" otherwise rather
+# them. Take it from the two modules when they agree, and stamp "unknown" otherwise rather
 # than pick one: a wrong version on the title page is worse than an absent one (BR-003).
 VERSION="${1:-}"
 BUILD_DATE="${2:-}"
 if [[ -z "${VERSION}" ]]; then
   declare -a MODULE_VERSIONS=()
-  for module in Survey Admin Author; do
+  for module in Survey Admin; do
     pom="${REPO_DIR}/${module}/pom.xml"
     [[ -f "${pom}" ]] || continue
     v="$(sed -n '1,30p' "${pom}" | grep -m1 -o '<version>[^<]*</version>' | sed 's/<[^>]*>//g' || true)"
     [[ -n "${v}" ]] && MODULE_VERSIONS+=("${v}")
   done
-  if [[ ${#MODULE_VERSIONS[@]} -eq 3 ]]; then
+  if [[ ${#MODULE_VERSIONS[@]} -eq 2 ]]; then
     UNIQUE="$(printf '%s\n' "${MODULE_VERSIONS[@]}" | sort -u | wc -l | tr -d ' ')"
     if [[ "${UNIQUE}" == "1" ]]; then
       VERSION="${MODULE_VERSIONS[0]}"
     else
-      echo "[manual] Survey, Admin and Author disagree on their version" \
+      echo "[manual] Survey and Admin disagree on their version" \
            "(${MODULE_VERSIONS[*]}) — stamping \"unknown\". Pass a version to override." >&2
     fi
   elif [[ ${#MODULE_VERSIONS[@]} -gt 0 ]]; then

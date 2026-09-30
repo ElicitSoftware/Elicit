@@ -1,6 +1,6 @@
 # Elicit Internationalization (i18n) Guide
 
-How the Survey, Admin and Author applications localize their own user interface, how a
+How the Survey and Admin applications localize their own user interface, how a
 site chooses which of them it offers, and how to get a new language translated.
 Unlike the brand system (`BRAND_SYSTEM_IMPLEMENTATION_GUIDE.md`), which a deployment supplies on a
 mount, translations ship inside the release: a site chooses among them rather than providing them.
@@ -56,12 +56,11 @@ running?" has one answer — the version tag. The module tests need no umbrella 
 
 Adding a language is therefore a release step: hand a module's `TRANSLATION_REQUEST.md` to a
 translator, put the returned file in that module's `i18n/`, add the tag to
-`i18n.bundled.locales`, and do the same in all three modules — `checkLanguages.sh` fails the
-build if they disagree. Managing languages from the Admin console (`elicit_admin`) and from the
-Author tool (`elicit_author`) is specified but not built, and was specified against a writable
-mount that no longer exists: it has to be re-specified as a screen that edits the offered-language
-list, which needs a mutable store rather than a startup-time property (Admin `C-015`,
-Author `C-025`).
+`i18n.bundled.locales`, and do the same in both applications — `checkLanguages.sh` fails the
+build if they disagree. Managing languages from the Admin console (`elicit_admin`) is specified
+but not built, and was specified against a writable mount that no longer exists: it has to be
+re-specified as a screen that edits the offered-language list, which needs a mutable store rather
+than a startup-time property (Admin `C-015`).
 
 Keys are `<view>.<element>[.<qualifier>]` (`mainView.btnLogin`, `searchView.grid.firstName`)
 with shared keys under `common.*`. Values are Java `MessageFormat` patterns only when
@@ -84,9 +83,8 @@ switcher hides them, `LocaleSelection.resolve` refuses a `?lang=` naming one, an
 is not served in one either, because content follows the chrome (`Survey UC-009 BR-009`).
 
 `checkLanguages.sh` in the umbrella root is what keeps the declaration honest: it fails the build
-when a module ships a bundle it does not declare, when a tag is declared with no bundle, when the
-three modules disagree, or when Author's `author.content.languages` differs from the set. All four
-are otherwise silent.
+when a module ships a bundle it does not declare, when a tag is declared with no bundle, or when
+the modules disagree. All three are otherwise silent.
 
 ## Choosing the language (`LocaleInitializer`, `LocaleSelection`, `LanguageSwitcher`)
 
@@ -162,8 +160,8 @@ Nothing to mount and nothing to lay out: the languages are in the images. `docke
 carries no i18n wiring at all, and a stock stack offers English, Spanish and Arabic.
 
 A site that wants fewer sets `i18n.bundled.locales` on the service, in Docker or through any
-Quarkus config source outside it (see `DeploymentScript.md`). `e2e_multisite_multilingual/` is the
-worked example: three sites differing only by that one line — `en`, `en,es-419`, `en,ar`.
+Quarkus config source outside it (see `DeploymentScript.md`). Sites that differ only by that one
+line — `en`, `en,es-419`, `en,ar` — are otherwise identical deployments.
 
 Translation files are never served over HTTP: `vaadin-i18n/` is at the classpath root, not under
 `META-INF/resources`.
@@ -171,7 +169,7 @@ Translation files are never served over HTTP: `vaadin-i18n/` is at the classpath
 ## Getting a language translated
 
 These are the application's own static strings, so the handoff has **no on-screen flow**: nothing
-to download from a running Survey, Admin or Author, no upload page, no per-language screen. Each
+to download from a running Survey or Admin, no upload page, no per-language screen. Each
 module keeps one committed Markdown document, `i18n/TRANSLATION_REQUEST.md`, generated from its
 English bundle and the context sidecar (`TranslationRequestGeneratorTest`; on drift copy
 `target/i18n/TRANSLATION_REQUEST.md` into `i18n/`). One document per module serves every target
@@ -182,7 +180,7 @@ consistent or untranslated (**access code**, never "token"), the placeholder, `M
 apostrophe, HTML and maximum-length rules, every key with its English text, location, maximum
 length and flags, and the return instructions: exactly one UTF-8 `translations_<tag>.properties`,
 same keys, same order. Hand it to a translator or an AI agent, drop the returned file into the
-module's `i18n/`, add the tag to `i18n.bundled.locales` in all three modules, and run each
+module's `i18n/`, add the tag to `i18n.bundled.locales` in both applications, and run each
 module's `TranslationBundleConsistencyTest` and the umbrella's `checkLanguages.sh`.
 
 Survey **content** is the opposite case and does have an on-screen flow: Author's Translations page
@@ -205,4 +203,4 @@ definition file.
 
 Survey content rendered by the views (question components, review and report cards, authored
 survey text on the About page) is marked with `data-i18n-content` so the sweep skips it.
-| `checkLanguages.sh` (umbrella) | Survey, Admin and Author ship the same languages, each declares the bundles it ships, and Author's `author.content.languages` matches; run by `buildDockerImages.sh` before anything is built |
+| `checkLanguages.sh` (umbrella) | Survey and Admin ship the same languages and each declares the bundles it ships; run by `buildDockerImages.sh` before anything is built |

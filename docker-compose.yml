@@ -30,11 +30,6 @@
 #
 # The application will be available at the following URL: http://localhost:8080
 #
-# The Author stack (author-survey, author -- see the section below) uses its own
-# `author` database in the same Postgres container and needs no restart dance:
-#   Author            http://localhost:8084  (Keycloak user author/author)
-#   Author preview    http://localhost:8085  (Survey against the author database)
-#   Author database   localhost:5452, database `author` (survey/admin)
 
 services:
   survey:
@@ -69,7 +64,6 @@ services:
     volumes:
       - ./elicit-brand/:/opt/brand:ro
       # - ../Elicit_Campsites/um-brand/:/opt/brand:ro
-      # Translations (UC-008): one host directory, one sub-directory per app (survey/, admin/, author/)
       # - ../Kindred/kindred-brand/:/opt/brand:ro
       # - ./test-partial-brand/:/opt/brand:ro
     depends_on:
@@ -146,9 +140,9 @@ services:
     # volumes:
       # - ./sftp_ssh/fhhs_user:/ssh/fhhs_user:ro        
   # premm5 (not cloned by cloneAllProjects.sh; see CLAUDE.md).
-  # NOTE before re-enabling: 8084 is Author's published port now, so pick another host port, and
-  # the healthcheck must probe the container-internal 8080 like every other service here, not the
-  # published one.
+  # NOTE before re-enabling: the healthcheck must probe the container-internal 8080 like every
+  # other service here, not the published one. 8084 and 8085 are unused in this file now, but
+  # they are the authoring tool's ports in its own compose file, so 8086 stays the clearer choice.
   # premm5:
   #   image: elicitsoftware/premm5:latest
   #   #open this port for local testing. It is not needed for inter container communication.
@@ -228,7 +222,6 @@ services:
     volumes:
       - ./elicit-brand/:/opt/brand:ro
       # - ../Elicit_Campsites/um-brand/:/opt/brand:ro
-      # Translations (UC-008): one host directory, one sub-directory per app (survey/, admin/, author/)
       # - ../Kindred/kindred-brand/:/opt/brand:ro
       # - ./test-partial-brand/:/brand:ro                
     depends_on:
@@ -240,109 +233,6 @@ services:
         condition: service_started  # Changed from service_healthy to service_started
       pedigree:
         condition: service_started
-# -----------------------------------------------------------------------------
-# Author stack
-# The authoring tool works in a database of its own -- `author`, a second database
-# in the same Postgres container, created by ./db-init/V0.0.4__CREATE_AUTHOR_DATABASE.sql
-# when the cluster is first initialized -- so drafts never touch the site's survey data:
-#   author-survey - a second Survey container pointed at db/author. Survey owns
-#                   the schema migrations, so this is what creates the survey
-#                   schema there; it also serves as the respondent preview of a
-#                   survey being authored (host port 8085, any access code works)
-#   author        - the authoring tool (host port 8084)
-# Keycloak, Jaeger and the brand assets are shared with the rest of the stack.
-# There is no FHHS on this side, so a single `docker compose up -d` is enough
-# for the Author stack; the restart dance above only concerns the site stack.
-# An existing ./postgresql/PGDATA does not get the `author` database automatically:
-# run the init script once (see the comment at the top of that file) or reset PGDATA.
-# -----------------------------------------------------------------------------
-  author-survey:
-    image: elicitsoftware/survey:latest
-    ports:
-      - 8085:8080
-    environment:
-      TZ: America/Detroit
-      # Preview only: an author types any access code to walk through a draft.
-      accessCode.autoRegister: true
-      # Preview only: never build or update the reporting schema. Author's database holds
-      # many surveys (whose step names collide in surveyreport.dim_step) and nothing reports
-      # on preview answers.
-      elicit.etl.enabled: "false"
-      brand.file.system.path: /opt/brand
-      # Both of Survey's datasources move from the `survey` database to `author`.
-      quarkus.datasource.jdbc.url: jdbc:postgresql://db:5432/author?connectTimeout=30&socketTimeout=600&tcpKeepAlive=true&tcpKeepAlivesIdle=60
-      quarkus.datasource.owner.jdbc.url: jdbc:postgresql://db:5432/author?connectTimeout=30&socketTimeout=600&tcpKeepAlive=true&tcpKeepAlivesIdle=60
-      # OpenTelemetry configuration
-      quarkus.application.name: author-survey
-      quarkus.otel.enabled: true
-      quarkus.otel.exporter.otlp.endpoint: http://jaeger:4317
-      quarkus.otel.exporter.otlp.traces.endpoint: http://jaeger:4317
-      quarkus.otel.traces.enabled: true
-      quarkus.otel.metrics.enabled: true
-      quarkus.otel.logs.enabled: true
-      quarkus.datasource.jdbc.telemetry: true
-      quarkus.otel.instrument.jdbc: true
-      OTEL_SERVICE_NAME: author-survey
-      OTEL_RESOURCE_ATTRIBUTES: service.name=author-survey,service.version=1.0,deployment.environment=local
-    healthcheck:
-        test: ["CMD", "curl", "--head", "-fsS", "http://localhost:8080/q/health/ready"]
-        interval: 15s
-        timeout: 5s
-        retries: 20
-        start_period: 60s
-    volumes:
-      - ./elicit-brand/:/opt/brand:ro
-      # - ../Elicit_Campsites/um-brand/:/opt/brand:ro
-      # Translations (UC-008): one host directory, one sub-directory per app (survey/, admin/, author/)
-    depends_on:
-      db:
-        condition: service_healthy
-  author:
-    image: elicitsoftware/author:latest
-    ports:
-      - 8084:8080
-    healthcheck:
-        test: ["CMD", "curl", "--head", "-fsS", "http://localhost:8080/q/health/ready"]
-        interval: 15s
-        timeout: 5s
-        retries: 20
-        start_period: 60s
-    environment:
-      TZ: America/Detroit
-      brand.file.system.path: /opt/brand
-      # Author connects as survey_user (Survey's grants cover every definition table)
-      # to the `author` database; the schema there is created by author-survey.
-      quarkus.datasource.jdbc.url: jdbc:postgresql://db:5432/author?connectTimeout=30&socketTimeout=600&tcpKeepAlive=true&tcpKeepAlivesIdle=60
-      ELICIT_DB_PASSWORD: SURVEYPW
-      OIDC_CLIENT_SECRET: secret
-      # The OIDC URL is left at the image default, http://host.docker.internal:8180/realms/elicit/,
-      # the same one Admin uses. It has to work from both places the browser and the container reach
-      # Keycloak: the container resolves host.docker.internal to the Docker host, where Keycloak is
-      # published on 8180, and Docker Desktop maps the same name to 127.0.0.1 on the host. Pointing
-      # it at http://keycloak:8080 instead breaks the login redirect - the browser cannot reach the
-      # compose-internal name, and on a host with a "127.0.0.1 keycloak" hosts entry it lands on
-      # Survey, which listens on 8080.
-      # OpenTelemetry configuration
-      quarkus.application.name: author
-      quarkus.otel.enabled: true
-      quarkus.otel.exporter.otlp.endpoint: http://jaeger:4317
-      quarkus.otel.exporter.otlp.traces.endpoint: http://jaeger:4317
-      quarkus.otel.traces.enabled: true
-      quarkus.otel.metrics.enabled: true
-      quarkus.otel.logs.enabled: true
-      quarkus.datasource.jdbc.telemetry: true
-      quarkus.otel.instrument.jdbc: true
-      OTEL_SERVICE_NAME: author
-      OTEL_RESOURCE_ATTRIBUTES: service.name=author,service.version=3.0.0,deployment.environment=local
-    volumes:
-      - ./elicit-brand/:/opt/brand:ro
-      # - ../Elicit_Campsites/um-brand/:/opt/brand:ro
-      # Translations (UC-008): one host directory, one sub-directory per app (survey/, admin/, author/)
-    depends_on:
-      db:
-        condition: service_healthy
-      author-survey:
-        condition: service_healthy
 # Test containers
 # These containers are used for running the application in a development environment.
 # They are not needed for production or will be replaced by non containerized applications.
@@ -354,8 +244,6 @@ services:
     # this will cause the database to be recreated.
     volumes:
       - ./postgresql/PGDATA:/var/lib/postgresql/data
-      # Adds the `author` database (Author stack) on first initialization.
-      - ./db-init/V0.0.4__CREATE_AUTHOR_DATABASE.sql:/docker-entrypoint-initdb.d/V0.0.4__CREATE_AUTHOR_DATABASE.sql:ro
     ports:
       - 5452:5432
     environment:

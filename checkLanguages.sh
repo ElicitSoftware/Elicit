@@ -1,18 +1,23 @@
 #!/bin/bash
 #
-# Checks that Survey, Admin and Author agree on which languages Elicit carries.
+# Checks that Survey and Admin agree on which languages Elicit carries.
 #
-# Each module packages its translated bundles from its own i18n/ directory onto the classpath,
-# declares them in i18n.bundled.locales, and Author separately declares which of them a survey's
-# content may be published in (author.content.languages). Nothing at runtime can reconcile those:
-# classpath resources cannot be enumerated, so a bundle that is shipped but not declared is simply
-# never offered, and a tag declared with no bundle offers a language that renders entirely in
-# English. Both are silent.
+# Each module packages its translated bundles from its own i18n/ directory onto the classpath and
+# declares them in i18n.bundled.locales. Nothing at runtime can reconcile the two: classpath
+# resources cannot be enumerated, so a bundle that is shipped but not declared is simply never
+# offered, and a tag declared with no bundle offers a language that renders entirely in English.
+# Both are silent.
 #
-# The cross-module half matters more. A language Author has but Survey lacks lets an author publish
-# survey content that no respondent could ever read, because Survey serves content only in a
-# language its own chrome has (Survey UC-009 BR-009) -- which is the failure Author#40 exists to
-# prevent, reintroduced from the other end.
+# The cross-module half matters more. A language one application has and another lacks cannot be
+# served, because Survey renders content only in a language its own chrome has (Survey UC-009
+# BR-009).
+#
+# The authoring tool is the third party to that invariant, and the one most likely to break it:
+# it declares which languages a survey's *content* may be published in, and content published in
+# a language no site can render is exactly the failure this guards against. Author is a separate
+# private repository and is not cloned here, so this script cannot check it. Author's own build
+# runs the full three-way check -- it sits inside an umbrella checkout and can see Survey and
+# Admin -- and that run is the authoritative one.
 #
 # So this is an invariant the build holds rather than a convention. Run from the umbrella root;
 # buildDockerImages.sh runs it before any image is built. Cheap enough to run unconditionally:
@@ -20,7 +25,7 @@
 set -uo pipefail
 cd "$(dirname "$0")"
 
-MODULES=(Survey Admin Author)
+MODULES=(Survey Admin)
 status=0
 # Indexed arrays, aligned with MODULES: /bin/bash on macOS is 3.2 and has no associative arrays.
 shipped=()
@@ -83,9 +88,10 @@ for i in "${!MODULES[@]}"; do
     fi
 done
 
-# 2. All three modules must ship the same languages.
+# 2. The modules must ship the same languages.
 reference=${shipped[0]}
-for i in 1 2; do
+for i in "${!MODULES[@]}"; do
+    [ "$i" -eq 0 ] && continue
     if [ "${shipped[$i]}" != "$reference" ]; then
         echo "ERROR: ${MODULES[$i]} ships [${shipped[$i]}] but ${MODULES[0]} ships [$reference]." >&2
         echo "       A language one application has and another lacks cannot be served: Survey" >&2
@@ -94,15 +100,26 @@ for i in 1 2; do
     fi
 done
 
-# 3. Author's publishable content languages must be that same set.
-content=$(tags_from_property Author author.content.languages)
-if [ "$content" != "$reference" ]; then
-    echo "ERROR: Author's author.content.languages is [$content] but the applications ship [$reference]." >&2
-    echo "       An author could publish survey content in a language no site can render." >&2
-    status=1
+# 3. The authoring tool, when it happens to be checked out beside us. This never fails the build
+# and deliberately does not touch $status. Author is a separate private repository that is not
+# cloned here, so whatever is or is not sitting in ./Author -- a partial clone, a worktree
+# mid-rebase, nothing at all -- must never be able to stop the public build. Author's own build
+# enforces the three-way invariant; this is a courtesy heads-up for a developer who has both.
+if [ -d Author ]; then
+    author_shipped=$(tags_from_files Author)
+    author_content=$(tags_from_property Author author.content.languages)
+    if [ "$author_shipped" != "$reference" ] || [ "$author_content" != "$reference" ]; then
+        echo "WARNING: the Author checkout beside this one ships [$author_shipped] and publishes" >&2
+        echo "         content in [$author_content], while Survey and Admin ship [$reference]." >&2
+        echo "         Author's own build is what enforces this; it is only reported here." >&2
+    fi
 fi
 
 if [ "$status" -eq 0 ]; then
-    echo "Languages agree across Survey, Admin and Author: [$reference]"
+    if [ -d Author ]; then
+        echo "Languages agree across Survey, Admin and Author: [$reference]"
+    else
+        echo "Languages agree across Survey and Admin: [$reference]"
+    fi
 fi
 exit $status

@@ -19,7 +19,7 @@
 1. The operator reads the language chapter, which states that a language is curated by ElicitSoftware and packaged into the applications, and that a deployment can neither add one nor patch one.
 2. The system states the reason rather than only the rule: a translation and the code that renders it are released together, so a site always renders the wording that version was built and tested with, and "which translation is this site running?" is answered by the version tag alone.
 3. The operator asks ElicitSoftware for the language, naming it by its BCP-47 tag.
-4. The system states what ElicitSoftware does with that request: each application's `i18n/TRANSLATION_REQUEST.md` is handed to a translator or an AI agent (UC-017), the returned file is added to all three applications, and the build refuses the release if they disagree about which languages they carry.
+4. The system states what ElicitSoftware does with that request: each application's `i18n/TRANSLATION_REQUEST.md` is handed to a translator or an AI agent (UC-017), the returned file is added to both applications, and the build refuses the release if they disagree about which languages they carry.
 5. The system states that the language arrives in a later version, and that the site takes it by upgrading rather than by editing anything.
 6. After upgrading, the operator adds the tag to `i18n.bundled.locales` for each application that should offer it (UC-015) and restarts.
 
@@ -52,13 +52,13 @@
 2. The manual directs the operator to ElicitSoftware to discuss the schedule rather than to a workaround.
 3. Use case ends.
 
-### A4: The in-application Languages screens — not yet available
+### A4: The in-application Languages screen — not yet available
 
 **Trigger:** The operator looks for a screen that manages languages (step 1)  
 **Flow:**
 
-1. The manual states that Languages screens are specified for the console and the authoring tool (Admin UC-027, Author UC-041) and are not built.
-2. The manual states that they were specified against a writable translations directory that no longer exists, so what they will manage is the offered-language list rather than files, and that until they exist the setting is the operative route.
+1. The manual states that a Languages screen is specified for the console (Admin UC-027) and is not built.
+2. The manual states that it was specified against a writable translations directory that no longer exists, so what it will manage is the offered-language list rather than files, and that until it exists the setting is the operative route.
 3. Use case ends.
 
 ## Postconditions
@@ -77,9 +77,9 @@
 
 A language is curated by ElicitSoftware and packaged into every application that needs it. A deployment can neither add one nor patch one; it chooses among what the release carries (UC-015, C-012).
 
-### BR-002: A language is added to all three applications together
+### BR-002: A language is added to both applications together
 
-Survey, Admin and Author gain a language in the same release, and the build refuses to produce one where they disagree. A language one application had and another lacked could not be served: a survey's content is only shown in a language the site also offers for the application's own texts, so an author could otherwise publish content no respondent could read (C-015).
+Survey and Admin gain a language in the same release, and the build refuses to produce one where they disagree. A language one application had and another lacked could not be served: a survey's content is only shown in a language the site also offers for the application's own texts, so an author could otherwise publish content no respondent could read (C-015).
 
 ### BR-003: A correction is a release, like a new language
 

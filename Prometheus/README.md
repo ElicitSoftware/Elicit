@@ -2,6 +2,13 @@
 
 This directory contains all Prometheus-related configuration and storage for the Elicit platform.
 
+> **Nothing here runs today.** There is no `prometheus` service in `docker-compose.yml`, so
+> nothing scrapes the applications' `/q/metrics` endpoints and nothing serves `localhost:9090`.
+> The applications do expose the endpoints, and the rules below are written against them, but
+> this configuration describes a metrics pillar that is specified and not deployed. Jaeger is
+> independent of it: the compose file runs `all-in-one` with OTLP enabled, which is traces only,
+> so the Monitor tab in the Jaeger UI stays inert.
+
 ## 📁 Directory Structure
 
 ```
@@ -34,12 +41,17 @@ docker-compose up -d
 
 ## 📊 Monitoring Coverage
 
-This configuration monitors:
-- **Survey Application** (port 8080)
-- **Admin Application** (port 8081) 
-- **FHHS Application** (port 8082)
-- **PREMM5 Application** (port 8083)
-- **Pedigree Service** (port 8084)
+`prometheus.yml` defines these scrape jobs:
+- **survey-app**, **admin-app**, **fhhs-app** — the Quarkus applications, scraped by service
+  name on the container-internal port 8080, not the host ports the compose file publishes
+- **premm5-app** — PREMM5, which is commented out of `docker-compose.yml` and not cloned, so
+  this job never resolves
+- **postgresql**, **cadvisor** — expect a `postgres-exporter` and a `cadvisor` container,
+  neither of which exists in this compose file
+- **prometheus** — itself
+
+Pedigree has no job at all. See the note at the top of this file: nothing runs this
+configuration today.
 
 ## 🔍 Query Resources
 

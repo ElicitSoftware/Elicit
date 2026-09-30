@@ -22,10 +22,9 @@
 3. The operator reads each application's readiness and liveness endpoints under the health root path, which report whether the application's own checks pass rather than merely that a port is open. The manual states that the addresses are the same inside and outside a container but the port is not: the container health checks address the port inside the container, and the operator addresses the published one.
 4. The operator reads the survey application's startup diagnostics report in the service log, which is written a short configurable delay after start and gives what is running, both database connections and the migration the schema is at, which brand resolved and where each asset came from, every outbound target it could reach, and the effective deployment settings with secrets reported only as present or absent.
 5. The operator signs in to the console and works through its System section: an overview of what is running with the setup work still outstanding, the state of both database connections and each module's migration history, which brand directory resolved, the effective mail settings with a test message, a bounded reachability probe of every outbound dependency, and the current sign-in's authentication and role state.
-6. The operator opens the same System section in the authoring tool, which carries every one of those screens except the mail one, and confirms that the tool's own database holds the schema its preview instance depends on.
-7. The operator confirms in the database that applying the survey definition rebuilt the reporting star schema, by counting the rows of the step dimension: the count is zero on an installation that carries no survey and non-zero once one has been applied.
-8. The operator completes one end-to-end walkthrough: generate an access code for a test subject in the console, enter the survey with it, answer, finalise, and generate that subject's report.
-9. The operator records the outcome. Any check that did not pass is taken to the failure chapter (UC-019).
+6. The operator confirms in the database that applying the survey definition rebuilt the reporting star schema, by counting the rows of the step dimension: the count is zero on an installation that carries no survey and non-zero once one has been applied.
+7. The operator completes one end-to-end walkthrough: generate an access code for a test subject in the console, enter the survey with it, answer, finalize, and generate that subject's report.
+8. The operator records the outcome. Any check that did not pass is taken to the failure chapter (UC-019).
 
 ## Alternative Flows
 
@@ -52,7 +51,7 @@
 **Trigger:** The site runs the pedigree service or the trace collector (step 2)  
 **Flow:**
 
-1. The manual states that the script probes the survey application, the console, the report service, the authoring tool and its preview instance, and the bundled identity provider and mail catcher, and that the pedigree service and the trace collector are not among them.
+1. The manual states that the script probes the survey application, the console, the report service, and the bundled identity provider and mail catcher, and that the pedigree service and the trace collector are not among them.
 2. The operator checks those directly: the pedigree service through the console's connection probe, which lists every report service address the database holds, and the trace collector through the trace user interface.
 3. Use case continues at step 3.
 
@@ -63,25 +62,25 @@
 
 1. The manual states that the survey application has no administrator sign-in and therefore no System section: its equivalent is the startup diagnostics report of step 4, which covers the same ground in the log.
 2. The manual states that the report is on by default, that the delay before it is written can be changed, that it can be switched off entirely, and that its findings requiring action are logged at a level that survives the log level the images run at.
-3. Use case continues at step 7.
+3. Use case continues at step 6.
 
 ### A5: The site scrapes the metrics endpoints
 
 **Trigger:** The site runs its own metrics collector (step 3)  
 **Flow:**
 
-1. The manual gives each application's metrics path and states that in the console and the authoring tool it is permitted without authentication, as the health paths are, and that the survey application requires no authentication for it either.
+1. The manual gives each application's metrics path and states that in the console it is permitted without authentication, as the health paths are, and that the survey application requires no authentication for it either.
 2. The manual states that this repository runs no metrics collector and that nothing here scrapes those endpoints, so the site supplies its own (BR-005).
 3. Use case continues at step 4.
 
 ### A6: The reporting star schema is still a skeleton
 
-**Trigger:** The step dimension is empty although a survey definition was applied (step 7)  
+**Trigger:** The step dimension is empty although a survey definition was applied (step 6)  
 **Flow:**
 
 1. The manual states that the migrations create only a handful of skeleton reporting tables and that the rest of the star schema is built when a definition is applied, which asks the survey application to rebuild it.
 2. The operator checks that the console could reach the survey application to make that request, which the console's connection probe reports, and applies the definition again.
-3. Use case continues at step 7.
+3. Use case continues at step 6.
 
 ## Postconditions
 
@@ -119,4 +118,4 @@ Each application exposes a metrics path, but this repository runs nothing that s
 
 ### BR-006: Each application reports on itself
 
-The console and the authoring tool report their own state on their own System screens, each against its own database connection, its own brand mount and its own outbound targets. Neither reports on the other, and neither reports on the survey application, which has no sign-in and writes its report to the log instead. Verifying a site means reading all three.
+The console reports its own state on its own System screens, against its own database connection, its own brand mount and its own outbound targets. It does not report on the survey application, which has no sign-in and writes its report to the log instead. Verifying a site means reading both.

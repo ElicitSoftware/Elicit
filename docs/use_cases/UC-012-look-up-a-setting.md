@@ -5,7 +5,7 @@
 **Use Case ID:** UC-012  
 **Use Case Name:** Look Up a Setting  
 **Primary Actor:** Deployment Operator  
-**Goal:** Find any one setting an installed module reads — what it does, what it defaults to, and whether the site should change it — without reading a module's source or comparing three properties files.  
+**Goal:** Find any one setting an installed module reads — what it does, what it defaults to, and whether the site should change it — without reading a module's source or comparing two properties files.  
 **Status:** Open  
 **Requirements:** [FR-016, FR-017, FR-018](../requirements.md)
 
@@ -17,7 +17,7 @@
 ## Main Success Scenario
 
 1. The operator meets a setting — in the compose file, in a module's own properties file, in a log line, or in another chapter of the manual — and turns to the configuration reference.
-2. The system states how the reference is arranged: the settings common to all three applications first, then one section per application for that application's own settings, then the framework settings the images actually set, then a pointer to the framework's own configuration index for everything else.
+2. The system states how the reference is arranged: the settings common to both applications first, then one section per application for that application's own settings, then the framework settings the images actually set, then a pointer to the framework's own configuration index for everything else.
 3. The operator reads the common section, which covers the brand directory and its local counterpart, the languages an application offers, and the health, metrics and tracing endpoints every module exposes.
 4. The operator turns to the section for the application in hand and finds the setting with its default value, a sentence on what it does, and its marking as one the site must set, may set, or should leave alone (FR-019).
 5. The system states that a default printed in the reference is the value the module ships with — the one in its properties file, or the one the code declares where no properties file sets it — and that the correspondence is checked when the manual is built.
@@ -47,7 +47,7 @@
 
 ### A3: The same name appears for more than one application
 
-**Trigger:** The setting is one that two or three of the applications read (step 4)  
+**Trigger:** The setting is one that both applications read (step 4)  
 **Flow:**
 
 1. The manual states that a shared name may carry a different default in each application — the translations sub-directory each one reads is the plainest case — and that the per-application section gives the value for the application in hand.
@@ -76,7 +76,7 @@
 **Trigger:** A setting read by a module does not appear in the reference (step 4)  
 **Flow:**
 
-1. The manual states that its build checks every setting the three applications read against the reference and fails when one is missing, so that such a gap is a build failure rather than a silent omission (NFR-004).
+1. The manual states that its build checks every setting the two applications read against the reference and fails when one is missing, so that such a gap is a build failure rather than a silent omission (NFR-004).
 2. Use case continues at step 7.
 
 ## Postconditions
@@ -93,7 +93,7 @@
 
 ### BR-001: Common settings once, application settings per application
 
-A setting all three applications read appears once, in the common section. A setting one application reads appears in that application's section. No setting appears twice with two descriptions.
+A setting both applications read appears once, in the common section. A setting one application reads appears in that application's section. No setting appears twice with two descriptions.
 
 ### BR-002: Elicit settings in full, framework settings where set
 
@@ -109,4 +109,4 @@ Settings the manual does not list are reached through one pointer to the framewo
 
 ### BR-005: Coverage is checked, not asserted
 
-The claim that the reference covers every setting the three applications read is verified by the manual's own build, so that the claim cannot quietly stop being true between releases (NFR-004).
+The claim that the reference covers every setting the two applications read is verified by the manual's own build, so that the claim cannot quietly stop being true between releases (NFR-004).

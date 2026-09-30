@@ -12,13 +12,13 @@
 ## Preconditions
 
 - The applications are installed by one of the two paths (UC-007 or UC-008) and the operator knows how a setting reaches them (UC-011).
-- The operator knows which languages the site is to offer, and for which of the three applications.
+- The operator knows which languages the site is to offer, and for which of the two applications.
 
 ## Main Success Scenario
 
 1. The operator reads the translations chapter, which states that every image already carries the applications' own texts in every language the release supports — English, Latin American Spanish and Arabic — and that there is nothing to supply or lay out.
 2. The system states that a released image renders the translation that version was built and tested with: languages are curated and arrive in a release, so a site can neither add one nor change one, only choose among them (UC-016).
-3. The operator sets `i18n.bundled.locales` on each application to the languages this site is to offer — the survey application, the console, the authoring tool and the authoring preview each taking their own value, since a site may run them for different audiences.
+3. The operator sets `i18n.bundled.locales` on each application to the languages this site is to offer — the survey application and the console each taking their own value, since a site may run them for different audiences.
 4. The system states that the language selector in the header appears only once more than one language is offered, so a site left at `en` never shows one.
 5. The system states what a withheld language does: it stays inside the image but is unreachable — absent from the selector, refused in a `?lang=` link, and not served for survey content either.
 6. The system gives the resolution a reader actually sees: the exact language tag, then the language alone, then English. A text missing from every language renders as `!key!` and is logged once rather than rendering blank.
@@ -32,7 +32,7 @@
 **Trigger:** The site offers a language to respondents but not to its own staff (step 3)  
 **Flow:**
 
-1. The manual states that each application has its own setting, so a language named for the survey application alone reaches respondents and neither the console nor the authoring tool.
+1. The manual states that each application has its own setting, so a language named for the survey application alone reaches respondents and not the console.
 2. The manual states that this is a legitimate arrangement — a site whose respondents and whose staff read different languages — and not a misconfiguration.
 3. Use case continues at step 4.
 
@@ -105,8 +105,8 @@ The translation files sit at the root of each application's classpath rather tha
 
 ### BR-006: The language a reader sees is chosen per session
 
-A `?lang=<tag>` parameter on a route wins, then the language remembered in the browser session, then the browser's own preference negotiated against the offered languages, then English. The choice lives in the session only; it is never stored against a respondent or a user account, and it never crosses sessions (Admin UC-026, Author UC-040).
+A `?lang=<tag>` parameter on a route wins, then the language remembered in the browser session, then the browser's own preference negotiated against the offered languages, then English. The choice lives in the session only; it is never stored against a respondent or a user account, and it never crosses sessions (Admin UC-026).
 
 ### BR-007: A content language needs the site to offer that language
 
-A respondent is offered a survey's content in a language only when that language is both published for the survey and offered by the site for the application's own texts. A site that withholds a language therefore holds the survey's translations of it without ever serving them, which is what lets one definition file suit every site (Survey UC-009 BR-009, Author UC-044 BR-002).
+A respondent is offered a survey's content in a language only when that language is both published for the survey and offered by the site for the application's own texts. A site that withholds a language therefore holds the survey's translations of it without ever serving them, which is what lets one definition file suit every site (Survey UC-009 BR-009).

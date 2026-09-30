@@ -1,11 +1,11 @@
 %% elicit-brand.sty — the Elicit default brand, as LaTeX.
 %%
-%% Umbrella copy. It is the same design as Author/docs/manual/elicit-brand.sty (umbrella
-%% C-003: the two manuals read as one set) with three additions the installation manual
-%% needs and the author's manual does not:
+%% Umbrella copy. It is the same design the other Elicit manuals are typeset in (umbrella
+%% C-003: they read as one set) with three additions the installation manual needs and
+%% an in-application manual does not:
 %%
-%%   * \elicitProduct — the product name in the page footer, so one package serves both
-%%     documents instead of hard-coding "Elicit Author".
+%%   * \elicitProduct — the product name in the page footer, so one package serves every
+%%     document instead of hard-coding one product's name.
 %%   * the settings table (\begin{settings} … \end{settings}) and its \opt/\val/\chg… marks,
 %%     for the configuration reference (umbrella FR-016, FR-017, FR-019).
 %%   * the elicitcmd / elicitsql verbatim environments, which introduce no ligatures and no
@@ -127,7 +127,7 @@
 }
 
 %% \screenshot{file}{caption} — a captured screen, ruled so it reads as a screen rather
-%% than as part of the page. Kept for parity with the author's manual.
+%% than as part of the page. Kept for parity with the other Elicit manuals.
 \newcommand{\screenshot}[2]{%
   \begin{figure}[H]
     \centering

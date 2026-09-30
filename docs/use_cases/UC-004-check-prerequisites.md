@@ -18,7 +18,7 @@
 1. The operator reads the prerequisite checklist.
 2. The system states the database requirement: a PostgreSQL 17 cluster the operator can create roles, schemas and databases in.
 3. The system states the runtime requirement for each installation path: a container runtime and compose for the container path, or a Java 25 runtime and a service manager for the module-by-module path.
-4. The system states the identity requirement: an OIDC provider in which two confidential clients and four roles can be created, reachable by both the browser and the application containers at the same address.
+4. The system states the identity requirement: an OIDC provider in which a confidential client and three roles can be created, reachable by both the browser and the application containers at the same address.
 5. The system states the mail requirement: an SMTP relay the console can send invitations and reminders through, and that the console is the only module that sends mail.
 6. The system states the storage requirement: a directory for the brand and a directory for the translations, each readable by every module that mounts it.
 7. The system lists the host ports each module listens on, and notes that container health checks target the container-internal port, not the published one.

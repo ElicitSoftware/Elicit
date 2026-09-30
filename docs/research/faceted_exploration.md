@@ -96,7 +96,7 @@ never go stale. A survey's recordsets are exactly such named statements.
 
 ## 2. What the reporting model can say today
 
-### 2.1 What an author controls (Author's Reporting page, UC-021–UC-024)
+### 2.1 What an author controls (the authoring tool's Reporting page, its own UC-021–UC-024)
 
 1. **Tag name** (`ontology.tag`, letters/digits/spaces/hyphens, effectively ≤ 59 characters so the
    derived column stays under PostgreSQL's 63) → the `fact_sections` column
@@ -301,8 +301,9 @@ Ordered by what each one removes from the guidelines.
 
 Today one `fact_sections` holds every survey's tag columns, `dim_<tag>` is one table per tag name
 site-wide, `survey.dimensions.name` is globally unique, `dim_step_un` / `dim_section_un` are
-unique on `value` across surveys (the reason `POST /api/etl/build` failed on the dev database and
-why `author-survey` runs with `elicit.etl.enabled=false`), and the `survey.respondents` triggers
+unique on `value` across surveys (the reason `POST /api/etl/build` failed on the dev database, and
+why a Survey instance serving many draft surveys has to run with `elicit.etl.enabled=false`), and
+the `survey.respondents` triggers
 plus `Sql.INSERT_MISSING_FACT_SECTION_SQL` guard on `survey_id = 1` while
 `FIND_MISSING_FACT_SECTION_RESPONDENTS` has no survey filter at all.
 
@@ -321,11 +322,12 @@ or regenerated from `survey.answers` by the back-fill (regeneration is far simpl
 for the brownfield `migration-v3` track anyway).
 
 Consumers that move: Survey ETL and its tests; FHHS `CancerHistoryRepository` (reads
-`fact_sections_view` by position) and `V0.0.6__Add_Performance_Indexes.sql`; Author
-`ReportingNames` / `ReportingService` / `ReportingView`; Admin `ReportingSchemaRebuildClient` and
+`fact_sections_view` by position) and `V0.0.6__Add_Performance_Indexes.sql`; the authoring tool's
+reporting-name derivation and impact preview (separate repository); Admin
+`ReportingSchemaRebuildClient` and
 the grants migration; umbrella `CLAUDE.md`, `DeploymentScript.md`, the installation manual.
 
-### 5.2 Reporting model extensions (Author page → `.elicit` → Survey ETL)
+### 5.2 Reporting model extensions (authoring tool → `.elicit` → Survey ETL)
 
 | | Field | Removes | What the ETL and a recordset generator do with it |
 |---|---|---|---|
@@ -338,13 +340,12 @@ the grants migration; umbrella `CLAUDE.md`, `DeploymentScript.md`, the installat
 
 (Section 5.5 proposes carrying E1–E4 and E6 as columns of a redesigned role table rather than
 as additions to `ontology` / `dimensions` / `metadata`.) With E1–E4 a generator produces, for
-any survey: one recordset per entity, one per facet group and one for respondents — the three the proof of concept wrote by hand. Author's
-`ReportingService` (`DimTable`, `FactColumn`, `Impact`) already predicts the schema from
-`ontology` and `dimensions` and is the natural place for the fields and for a "predicted
-recordsets" preview beside the impact panel. Each field travels the route the existing three do:
-`survey` DDL → JPA entity → `ReportingService` validation → dialog → `ElicitFormat` arity →
-Author exporter/importer → Admin export/import/update/apply → `Sql.java` →
-`docs/ai/AUTHORING_FOR_AI.md` → `entity_model.md`.
+any survey: one recordset per entity, one per facet group and one for respondents — the three the proof of concept wrote by hand. The
+authoring tool's reporting service already predicts the schema from `ontology` and `dimensions`
+and is the natural place for the fields and for a "predicted recordsets" preview beside the impact
+panel. Each field travels the route the existing three do: `survey` DDL → JPA entity → reporting
+validation → dialog → `.elicit` arity → the authoring tool's exporter/importer → Admin
+export/import/update/apply → `Sql.java` → the AI-authoring spec → `entity_model.md`.
 
 ### 5.3 ETL corrections that guidelines currently work around
 
@@ -367,7 +368,7 @@ Author exporter/importer → Admin export/import/update/apply → `Sql.java` →
 ### 5.4 Guidance where authors will see it
 
 Section 4 belongs in the author's manual (§8 "Tagging for reporting" is one paragraph today) and
-in `docs/ai/AUTHORING_FOR_AI.md`, which currently tells an AI author to leave reporting to a
+in the AI-authoring spec, which currently tells an AI author to leave reporting to a
 person; with E1–E4 the reporting layer becomes specifiable enough to draft.
 
 ### 5.5 A simpler mapping model: declared roles instead of harvested tags
@@ -567,7 +568,7 @@ Files under `docs/research/faceted_exploration/`:
 | File | Purpose |
 |---|---|
 | `synth-fhhs.sql` | Generates N finalized FHHS respondents (`-v N=3000`) directly into `survey.respondents`, `survey.subjects` and `survey.answers` — tagged answers only, question ids resolved at run time, layout asserted, rows marked `access_code LIKE 'SYN%'` / `xid LIKE 'SYN-%'`. Not re-openable in the Survey UI. |
-| `synth-cleanup.sql` | Removes everything the generator created (fact rows first — no delete trigger) and reverts the dimension-name suffixes the run needed on the e2e surveys. |
+| `synth-cleanup.sql` | Removes everything the generator created (fact rows first — no delete trigger) and reverts the dimension-name suffixes the run needed on any other survey sharing those step and section names (`survey_id <> 1`). |
 | `relatives.sql`, `diagnoses.sql`, `respondents.sql` | The three recordsets of section 3; tab columns first (10, 7, 6). |
 | `Check.java` | Opens the three `.bfilter` files through the engine API and prints the cascade counts. |
 | `family-history-survey.elicit`, `family-history-survey-rework.md` | The FHHS definition with its reporting layer reworked under section 4, and the change log. Apply it to a scratch site instead of `FHHS/family-history-survey.elicit` to see the relabeled facets; it renames `other_age_key` and relabels history. |
@@ -617,7 +618,7 @@ None scheduled; this is dependency order.
 | Step | Files |
 |---|---|
 | 1 | `Survey/src/main/java/com/elicitsoftware/etl/{Sql,ETLService,ETLRespondentService,ETLBuildResource}.java`; `Survey/src/main/resources/db/migration/V002__Create_Reporting_Schema.sql` and its `migration-v3` counterpart; `Survey/src/test/java/com/elicitsoftware/etl/*`, `scd/DimStepSectionRekeySpecTest.java`, `flyway/ManualSchemaMigrator*Test.java`; `Survey/docs/use_cases/UC-008-rebuild-reporting-schema.md`, `Survey/docs/entity_model.md` |
-| 2 | `FHHS/src/main/java/com/elicitsoftware/model/CancerHistoryRepository.java`, `FHHS/src/main/resources/db/migration/V0.0.6__Add_Performance_Indexes.sql`; `Author/src/main/java/com/elicitsoftware/author/survey/{ReportingNames,ReportingService}.java`, `.../flow/reporting/ReportingView.java`; `Admin/src/main/java/com/elicitsoftware/service/ReportingSchemaRebuildClient.java`, a successor to `Admin/src/main/resources/db/migration/V0.0.2__ADMIN_GRANTS.sql` |
-| 3 | `Author/src/main/java/com/elicitsoftware/model/{Dimension,Ontology,Metadata}.java`, `.../flow/reporting/{TagDialog,TagAssignmentDialog}.java`, `.../definition/{ElicitFormat,SurveyDefinitionExporter,SurveyDefinitionImporter,ExportValidation}.java`; Admin's `SurveyDefinition{Export,Import,Update,Apply}Service`; `Author/docs/manual/elicit-author-manual.tex` §8, `Author/docs/ai/AUTHORING_FOR_AI.md`, `Author/docs/requirements.md` (FR-061+), `Author/docs/use_cases/UC-047+` |
-| 4–5 | Survey ETL value handling and view generation; Author's Reporting page preview |
+| 2 | `FHHS/src/main/java/com/elicitsoftware/model/CancerHistoryRepository.java`, `FHHS/src/main/resources/db/migration/V0.0.6__Add_Performance_Indexes.sql`; the reporting-name and impact code of the authoring tool (separate repository); `Admin/src/main/java/com/elicitsoftware/service/ReportingSchemaRebuildClient.java`, a successor to `Admin/src/main/resources/db/migration/V0.0.2__ADMIN_GRANTS.sql` |
+| 3 | The authoring tool's reporting model, tag dialogs and `.elicit` exporter/importer, plus its manual, AI-authoring spec, requirements and use cases (separate repository); Admin's `SurveyDefinition{Export,Import,Update,Apply}Service` |
+| 4–5 | Survey ETL value handling and view generation; the authoring tool's Reporting page preview (separate repository) |
 | docs | `CLAUDE.md`, `DeploymentScript.md`, `docs/manual/elicit-installation-manual.tex` (database chapter), `Admin/docs/vision.md` |

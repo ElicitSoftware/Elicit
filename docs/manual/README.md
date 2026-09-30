@@ -2,8 +2,8 @@
 
 `Installing the Platform` — the printable manual that takes a deployment operator
 from an empty machine to a running, verified Elicit site, and is the single
-reference for every setting that site is configured with. It covers Survey,
-Admin and Author.
+reference for every setting that site is configured with. It covers Survey and
+Admin.
 
 See [`../use_cases/UC-001-consult-the-installation-manual.md`](../use_cases/UC-001-consult-the-installation-manual.md)
 and [`../use_cases/UC-002-build-the-installation-manual.md`](../use_cases/UC-002-build-the-installation-manual.md)
@@ -11,11 +11,11 @@ for the behavior this implements, and FR-001/FR-002 with NFR-001–NFR-010 in
 [`../requirements.md`](../requirements.md). Its chapters map one to one onto
 umbrella use cases UC-003 to UC-019.
 
-## Unlike the author's manual, this one ships with no image
+## This manual ships with no image
 
-The author's manual is packaged into the Author image and served through a role
-check. This one is **not** (umbrella C-001). An operator reads it *before* there
-is an Elicit service to serve it from, so it is a release artifact of this
+The administrator's manual is packaged into the Admin image and served through a
+role check. This one is **not** (umbrella C-001). An operator reads it *before*
+there is an Elicit service to serve it from, so it is a release artifact of this
 repository and nothing more. Publish the PDF with the release.
 
 ## What is here
@@ -23,7 +23,7 @@ repository and nothing more. Publish the PDF with the release.
 | Path | Committed? | What it is |
 | --- | --- | --- |
 | `elicit-installation-manual.tex` | yes | the manual |
-| `elicit-brand.sty` | yes | the Elicit default brand as LaTeX. The same design as `Author/docs/manual/elicit-brand.sty` plus the settings tables, the copy-safe verbatim environments and `\elicitProduct` |
+| `elicit-brand.sty` | yes | the Elicit default brand as LaTeX: the shared manual design plus the settings tables, the copy-safe verbatim environments and `\elicitProduct` |
 | `images/` | yes | the 18 captured figures, plus `elicit-logo.png` for the title page |
 | `capture/` | yes | `capture-screenshots.mjs` and its own `package.json`; regenerates `images/` from a freshly installed stack |
 | `build-manual.sh` | yes | typesets the PDF |
@@ -53,8 +53,8 @@ skips the build and exits zero.
 
 The umbrella holds no `pom.xml` of its own, and its git tags version the
 *repository*, not the platform — `v1.1.1` while the modules are at `3.0.0`. So an
-unstamped build takes the version the three modules carry, and uses it only when
-all three agree. If they disagree, or a module is not cloned, it stamps `unknown`
+unstamped build takes the version Survey and Admin carry, and uses it only when
+both agree. If they disagree, or a module is not cloned, it stamps `unknown`
 and says why: a wrong version on the title page is worse than an absent one.
 `unknown` is *written*, never omitted (UC-002 BR-003), so a printed copy is never
 silently undated.
@@ -81,8 +81,7 @@ OpenTelemetry, Micrometer, container-image and per-category logging settings —
 are listed as prefixes in `IGNORED_PREFIXES` inside the script; add to that list
 rather than documenting a key one at a time when it genuinely belongs to a group.
 
-The script needs `Survey/`, `Admin/` and `Author/` cloned, and says so if they
-are not.
+The script needs `Survey/` and `Admin/` cloned, and says so if they are not.
 
 ## Regenerating the screenshots
 

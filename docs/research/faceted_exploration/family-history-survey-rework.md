@@ -5,7 +5,8 @@
 `metadata`, and the `dimension_name` of steps and sections. No question, section, step, select
 item or rule is touched, so the instrument a respondent sees is identical. It is a research
 artifact for `../faceted_exploration.md`, not a replacement for the FHHS file: applying it to a
-site relabels history (Author C-011/C-012) and renames one fact column (`other_age_key` →
+site relabels history (the authoring tool's own C-011/C-012) and renames one fact column
+(`other_age_key` →
 `other_cancer_age_key`). `samples/validate-elicit.py` passes on it.
 
 Rule numbers refer to section 4 of the research document.

@@ -56,7 +56,7 @@
 **Trigger:** `docs/manual/check-properties.sh` runs — as the first half of the `Manual` target of `./buildDockerImages.sh`, or run directly by the release engineer (step 1)  
 **Flow:**
 
-1. The system compares every configuration key read by Survey, Admin and Author against the keys documented in the manual, and every documented default against the value in the module's sources. A default cell that states no value ("per app") claims nothing and is not compared.
+1. The system compares every configuration key read by Survey and Admin against the keys documented in the manual, and every documented default against the value in the module's sources. A default cell that states no value ("per app") claims nothing and is not compared.
 2. The system lists each key that is read but not documented, each key documented but no longer read, and each default that disagrees, and exits non-zero.
 3. Within a build, the target fails there: nothing is typeset, and a manual that documents keys the code no longer reads is never produced. `SKIP_PROPERTY_CHECK=1` typesets without the check.
 4. The release engineer corrects the manual or accepts the difference.

@@ -8,7 +8,7 @@
 **Secondary Actor:** PostgreSQL Cluster  
 **Goal:** Create the login roles, databases and schemas Elicit's migrations assume, with site passwords, so that the modules can create their own tables on first start.  
 **Status:** Open  
-**Requirements:** [FR-008, FR-009, FR-021, C-007](../requirements.md)
+**Requirements:** [FR-008, FR-021, C-007](../requirements.md)
 
 ## Preconditions
 
@@ -18,13 +18,12 @@
 ## Main Success Scenario
 
 1. The operator reads the database chapter, which states what Elicit creates for itself and what it expects to already exist.
-2. The system gives the two group roles and the four login roles, with what each login role is used by: the schema owner used for migrations, the role the survey application and the authoring tool connect as, the role the console connects as, and the role the reporting schema is read with.
+2. The system gives the two group roles and the four login roles, with what each login role is used by: the schema owner used for migrations, the role the survey application connects as, the role the console connects as, and the role the reporting schema is read with.
 3. The operator runs the given role script against the cluster, substituting a site password for each login role.
 4. The operator creates the site's survey database and runs the given schema script in it, which creates the two schemas owned by the schema owner and grants each role usage.
 5. The system states that no table is created here: every table, sequence, index and grant inside those schemas comes from a module's migrations on first start.
-6. The operator, if the site runs the authoring tool, creates the authoring database and runs the same schema script in it (UC-003 BR-003).
-7. The operator records each role's password for the configuration step (UC-011).
-8. The operator proceeds to the identity provider (UC-006).
+6. The operator records each role's password for the configuration step (UC-011).
+7. The operator proceeds to the identity provider (UC-006).
 
 ## Alternative Flows
 
@@ -33,19 +32,11 @@
 **Trigger:** The operator installs with the container path and keeps the bundled database (step 3)  
 **Flow:**
 
-1. The image runs the same role and schema scripts on first initialization of an empty data directory, so steps 3 to 6 are already done.
+1. The image runs the same role and schema scripts on first initialization of an empty data directory, so steps 3 and 4 are already done.
 2. The manual states that those scripts carry documented development passwords, and that a site keeping the image must change them (UC-013).
-3. Use case continues at step 7.
+3. Use case continues at step 6.
 
-### A2: The authoring database is added to an existing cluster
-
-**Trigger:** The cluster is already initialized and the authoring database is added later (step 6)  
-**Flow:**
-
-1. The manual states that an initialization script runs only against an empty data directory, and gives the command that runs the authoring database script against a running cluster instead.
-2. Use case continues at step 7.
-
-### A3: The cluster's collation version does not match
+### A2: The cluster's collation version does not match
 
 **Trigger:** The cluster is restored from a copy made under a different operating system (step 4)  
 **Flow:**
@@ -54,7 +45,7 @@
 2. The manual gives the refresh statement to run against the template database, then repeats the creation.
 3. Use case continues at step 4.
 
-### A4: The schema owner is not a superuser
+### A3: The schema owner is not a superuser
 
 **Trigger:** Site policy forbids a superuser login role (step 3)  
 **Flow:**
@@ -67,7 +58,7 @@
 
 ### Success Postconditions
 
-- The cluster carries the login roles with site passwords, the site's survey database and, if needed, the authoring database, each with an empty `survey` and `surveyreport` schema owned by the schema owner.
+- The cluster carries the login roles with site passwords and the site's survey database, with an empty `survey` and `surveyreport` schema owned by the schema owner.
 
 ### Failure Postconditions
 

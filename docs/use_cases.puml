@@ -126,9 +126,8 @@ UC010 --> au
 note bottom of UC016
   Server-side today (C-012).
   The in-application Languages
-  screens are specified and not
-  implemented: Admin UC-027,
-  Author UC-041.
+  screen is specified and not
+  implemented: Admin UC-027.
 end note
 
 @enduml
