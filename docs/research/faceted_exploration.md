@@ -321,6 +321,9 @@ and stored on `survey.surveys` gives both), and whether the existing `surveyrepo
 or regenerated from `survey.answers` by the back-fill (regeneration is far simpler and must exist
 for the brownfield `migration-v3` track anyway).
 
+*Answered 2026-10-01 in `per_survey_reporting_schema.md`: a slug stored on `survey.surveys` that a
+site can rename, and regeneration.*
+
 Consumers that move: Survey ETL and its tests; FHHS `CancerHistoryRepository` (reads
 `fact_sections_view` by position) and `V0.0.6__Add_Performance_Indexes.sql`; the authoring tool's
 reporting-name derivation and impact preview (separate repository); Admin
