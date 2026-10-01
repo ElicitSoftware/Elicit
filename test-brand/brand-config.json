@@ -5,5 +5,15 @@
   "logos": {
     "horizontal": "HorizontalLogo.png"
   },
-  "favicon": "favicon.svg"
+  "favicon": "favicon.svg",
+  "localized": {
+    "es-419": {
+      "name": "Marca de prueba de salud",
+      "organization": "Organización de prueba de salud"
+    },
+    "ar": {
+      "name": "علامة الرعاية الصحية التجريبية",
+      "organization": "مؤسسة الرعاية الصحية التجريبية"
+    }
+  }
 }

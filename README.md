@@ -51,17 +51,6 @@
       <li>The Admin application is used by survey administrators to register subjects, view survey progress, and view final reports.</li>
       </ul>
     </li>
-    <li><a href="https://github.com/ElicitSoftware/Author/">Author</a><br/>
-      <ul>
-        <li>Expected release in Winter 2025/26</li>
-        <li>This tool allows users to design new surveys with:</li>
-        <ul>
-          <li>Decision trees with branching logic to guide respondents through different survey paths based on their answers</li>
-          <li>Text replacement to dynamically insert values or responses into survey questions and instructions</li>
-          <li>Repeatable items to allow sections or questions to be repeated for multiple entries (e.g., family members, medications)</li>
-        </ul>
-      </ul>
-    </li>
     <li><a href="https://github.com/ElicitSoftware/Survey/">Survey</a><br/>
       <ul>
         <li>The subject-facing application that presents questions, guides users through the decision tree, records answers, and produces final reports.</li>
@@ -84,6 +73,10 @@
       </ul>
     </li>
     </ul>
+    Surveys themselves are designed in Elicit's authoring tool, which is distributed separately. It
+    exports a survey definition file (<code>.elicit</code>) that the Admin application applies to a
+    site. The Family Health History Survey and the sample under <code>samples/</code> are two such
+    definitions, ready to apply.
   </p>
 
 <!-- [![Product Name Screen Shot][product-screenshot]](https://example.com)
@@ -108,19 +101,39 @@ Here's a blank template to get started. To avoid retyping too much info, do a se
 ## Getting Started
 The easiest way to see Elicit Software in action is to check out the <a href="https://github.com/ElicitSoftware/FHHS/">Family Health History Survey</a>.
 
+### Installing it
+
+The **installation manual** takes a deployment operator from an empty machine to a
+running, verified Elicit site, and is the single reference for every setting that
+site is configured with. It covers the Survey and Admin applications, both
+installation paths, external branding and translations.
+
+```bash
+docs/manual/build-manual.sh   # writes docs/manual/elicit-installation-manual.pdf
+```
+
+See [`docs/manual/README.md`](docs/manual/README.md). Release-specific *upgrade*
+procedures stay in [`DeploymentScript.md`](DeploymentScript.md).
+
 <!-- USAGE EXAMPLES -->
 ## Usage
+A running Elicit site starts out with no survey, so the first step is to install one. A survey is
+carried in a **survey definition file** (`.elicit`), and a local checkout has two ready to apply:
+
+- `FHHS/family-history-survey.elicit` — the Family Health History Survey.
+- `samples/census-household-survey.elicit` — a small demonstration survey that exercises every
+  question type and rule the engine supports.
+
 To use the Elicit System:
 
-1. **Download the Authoring Tool** (available Winter 2025/26).
-2. **Create a new survey** using the Authoring Tool.
-3. **Publish the survey** to the database.
-
-Next, use the **Admin application** to:
-
-- Register subjects.
-- Generate a unique access code for each subject.
-- Send invitation emails containing the survey link and access code.
+1. **Sign in to the Admin application** as an administrator, and create a department if you are
+   asked for one.
+2. **Apply a survey definition** under **Admin > Apply Survey Definition**, uploading one of the
+   files above. The survey and its reporting schema are built as part of the apply; nothing needs
+   restarting.
+3. **Register subjects** — one at a time, in bulk, or over the integration API.
+4. **Generate a unique access code** for each subject.
+5. **Send invitation emails** containing the survey link and access code.
 
 Subjects receive the email, follow the link, and enter their access code in the Elicit Software to complete the questionnaire.
 

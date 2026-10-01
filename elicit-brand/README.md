@@ -1,7 +1,7 @@
 # Elicit Default Brand
 
 This directory is the **canonical default brand** for Elicit applications
-(Survey, Admin, and future projects such as Author). It uses the Ink/Verdigris
+(Survey and Admin, and the authoring tool distributed separately). It uses the Ink/Verdigris
 palette drawn from the Elicit clipboard/checkmark mark, a warm Paper
 background, and the system font stack.
 
@@ -86,3 +86,23 @@ docker compose up -d
 #   volumes:
 #     - ./elicit-brand/:/opt/brand:ro
 ```
+
+## Translated brand names
+
+The organization name (and the `brand-info.json` description) can carry per-language
+variants in an optional `localized` block keyed by language tag. The application shows the
+variant for the respondent's language, falling back to the language alone and then to the
+base value; the base `name` also derives the technical brand key and must stay as it is.
+
+```json
+{
+  "name": "Elicit Default Brand",
+  "organization": "Elicit Software",
+  "localized": {
+    "es-419": { "name": "Marca predeterminada de Elicit", "organization": "Elicit Software" },
+    "ar":     { "name": "العلامة الافتراضية لـ Elicit", "organization": "Elicit Software" }
+  }
+}
+```
+
+The `localized` block in `brand-info.json` sits inside `"brand"` and may carry `description`.

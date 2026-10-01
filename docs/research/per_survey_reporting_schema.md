@@ -1,0 +1,346 @@
+# One Reporting Schema per Survey: Removing the Survey-1 Restriction
+
+> **Status (2026-10-01):** Research plan, nothing implemented. The reporting star schema (the
+> Kimball schema Survey's ETL builds from a survey's reporting tags) works for **exactly one
+> survey: the one whose `survey.surveys.id` is 1**. Every other survey's finished respondents
+> get dimension values but no facts. Their step and section names collide with survey 1's in
+> site-wide unique columns, and their tag columns land in the same table as survey 1's. This
+> blocks the default reports (`default_reports.md`, G-3), the faceted browser
+> (`faceted_exploration.md`) and any second survey on a site.
+>
+> **Four decisions were made while writing this:**
+> - **Every survey gets its own reporting schema.** This confirms `faceted_exploration.md` §5.1.
+> - **The schema name is a readable slug derived from the survey name and stored on
+>   `survey.surveys`, and a site can change it.**
+> - **The existing `surveyreport` objects on upgraded databases are regenerated from
+>   `survey.answers`, not migrated.**
+> - **The work starts after `i18n` is merged into `V3`**, on branches cut from the merged line.
+>
+> Sections 9 and 10 list what is still open.
+
+## Overview
+
+`surveyreport` was designed for one survey per site, the Family History Survey. Survey owns it:
+- V002 creates the fixed tables.
+- The ETL adds a `dim_<tag>` table and a `<tag>_key` column on `fact_sections` for every tag it
+  finds.
+- Two triggers on `survey.respondents` keep `fact_respondents` current.
+
+Supporting several surveys was never designed in. The single-survey assumption survives in four
+forms:
+1. **Hard-coded guards.** `survey_id = 1` appears in both triggers and in two ETL queries.
+2. **Unscoped queries.** Most ETL statements read every survey's tags and steps.
+3. **Site-wide uniqueness.** `dim_step` and `dim_section` are unique on `value` across the site.
+4. **Shared structure.** One `fact_sections` and one `fact_sections_view` serve the whole site.
+
+Removing the guards alone would turn (2)–(4) from latent bugs into live ones. The fix is
+structural: each survey's star lives in its own schema, and every statement names that schema.
+
+Terminology:
+- A **survey schema** is the per-survey reporting schema this document proposes.
+- The **common schema** is `surveyreport` after the change, holding only what every survey
+  shares.
+- **Regenerate** means rebuilding a survey schema from `survey.answers` through the back-fill.
+- **Slug** means the schema name stored on the survey.
+
+## 1. What is wrong today
+
+### 1.1 The guards
+
+| Where | Guard | Effect for a survey other than 1 |
+|---|---|---|
+| `Survey/.../db/migration/V002__Create_Reporting_Schema.sql:127` (and `migration-v3` `:119`) | `insert_fact_respondent()`: `IF (TG_OP = 'INSERT' AND new.survey_id = 1)` | no `fact_respondents` row |
+| same file `:157` (`migration-v3` `:149`) | `update_fact_respondent()`: same guard | never updated |
+| `Survey/.../etl/Sql.java:277` | `NEW_RESPONDENTS_SQL`: `r.survey_id = 1` | unused; the constant is referenced only by javadoc |
+| `Sql.java:314` | `INSERT_MISSING_FACT_SECTION_SQL`: `a.survey_id = 1` | **no `fact_sections` rows**, so nothing in `fact_sections_view` |
+
+Survey 1 is whichever survey holds id 1 on that database, not necessarily the Family History
+Survey. On a site that imported another survey first, FHHS's reports would come back empty.
+
+### 1.2 Unscoped statements
+
+None of these filter by survey (all in `Sql.java`):
+
+| Statement | Reads | Consequence |
+|---|---|---|
+| `UPDATE_STEPS_DIMENSION_TABLE_SQL` :72, `UPDATE_SECTIONS_…` :81 | every survey's current steps and sections | a second survey with a step name already used fails `dim_step_un` and the rebuild returns FAILED. This is documented at `ETLService.java:152-156`, and it is why Author's preview Survey runs with `elicit.etl.enabled=false` (`Author/docker-compose.yml:265-267`) |
+| `FIND_NEW_DIMENSION_TABLES_SQL` :89 | every survey's metadata | `dim_<tag>` tables are shared by name across surveys |
+| `FIND_DIMENSIONS_TO_ADD_TO_FACT_SECTIONS_TABLE` :362, `FIND_FACT_SECTION_JOIN_COLUMNS` :408 | every survey's ontology | every survey's tag columns end up on the one `fact_sections` and in the one view. FHHS's 66 columns would appear on every survey's rows |
+| `FIND_MISSING_FACT_SECTION_RESPONDENTS` :643 | every finished respondent | every rebuild re-selects every finished non-survey-1 respondent, inserts nothing for them because of the guard, and selects them again next time |
+| `INSERT_ALL_RESPONDENTS_INTO_FACT_RESPONDENTS_SQL` :327 | every respondent | unused |
+
+`FIND_DIMENSTION_VALUES_SQL` (:160) is respondent-scoped and joins `metadata.survey_id =
+answers.survey_id`. That is why other surveys' values do reach the shared `dim_*` tables while
+their facts do not.
+
+### 1.3 Constraints in the `survey` schema
+
+| Constraint | Where | Bearing |
+|---|---|---|
+| `dimensions_un UNIQUE (name)`; no `survey_id` column | `V001:745-751` | dimension names are site-wide. A survey schema does not need this changed (section 9, Q-4) |
+| `ontology_un UNIQUE (name, tag)`, without `survey_id` | `V001:758-768` | the same (namespace, tag) pair cannot appear in two surveys. Author's namespace is the survey name, so collisions are unlikely but possible |
+
+### 1.4 A date problem found on the way
+
+`dim_date` holds 19700101 and 2020-01-01 through 2029-12-31 (`V004:16-3670`).
+`fact_respondents.created_key` and the other date keys have foreign keys to it. The insert trigger
+runs inside the `survey.respondents` insert, so **from 2030-01-01 registering a respondent in
+survey 1 fails with a foreign-key violation**. The same applies to the update trigger on first
+login and on finish. This document removes the triggers (section 3.4), which also removes the
+problem. Until then it is a dated defect worth recording on its own.
+
+## 2. Target design
+
+```
+surveyreport            (common)  dim_date, dim_status
+report_family_history   (survey)  dim_step, dim_section, dim_<tag>…, fact_sections,
+                                  fact_sections_view, fact_respondents (view), fact_respondents_view
+report_household        (survey)  … the same set, for another survey
+```
+
+- **Identifiers inside a survey schema stay byte-identical** to today's (`dim_<tag>`,
+  `<tag>_key`, `fact_sections_view`), and so does `ReportingNames` in Author. Only the schema
+  qualifier changes, so FHHS's column list, the faceted-exploration SQL and analysts' queries change
+  by one word.
+- **Uniqueness becomes per survey for free.** `dim_step_un` and `dim_section_un` keep their
+  definition but apply inside one survey.
+- **The common schema keeps its name.** `surveyreport` already exists on every site, and the
+  installation manual creates it with its grants (`docs/manual/elicit-installation-manual.tex:306-316`).
+  Keeping the conformed dimensions there means operators create nothing new by hand. Survey
+  schemas are created by the ETL as `elicit_owner`, which the manual already allows
+  (`GRANT CONNECT, CREATE ON DATABASE survey TO dbowner`, :297).
+- **`survey_id` stays on `fact_sections`.** It is redundant inside a survey schema, but analysts'
+  `UNION`s across surveys stay possible.
+
+## 3. Survey changes
+
+### 3.1 The name: `survey.surveys.report_schema`
+
+The name is a new nullable column, unique, assigned once by the ETL the first time it builds the
+survey. The assignment rule:
+- `report_` + the survey name, lower-cased.
+- Characters outside `[a-z0-9]` become `_`, repeats collapse, and the ends are trimmed.
+- The result is truncated to 63 bytes.
+- If the name is taken, `_2`, `_3`… is appended.
+
+**It is stored, not recomputed.** A later rename of the survey does not move its schema, and
+external queries keep working.
+
+The column is site-local data and is **not** carried in the `.elicit` file. Two sites applying the
+same survey may choose different names, and an import or update never touches it.
+`Sql.requireValidIdentifier` gains a schema form: `^[a-z_][a-z0-9_]{0,62}$`, not `surveyreport`,
+`survey`, `public`, nor `pg_*`/`information_schema`. This also closes
+`faceted_exploration.md` §5.3 item 4, the missing length guard, for schema names.
+
+### 3.2 Changing the name
+
+The user asked that sites be able to rename. The rename is an operation, not an edit of the
+column:
+- `elicit_owner` owns the schema.
+- Survey is the module connected as `elicit_owner` for reporting.
+- Admin connects as `surveyadmin_user`, which cannot `ALTER SCHEMA`.
+
+Survey therefore exposes it, for example `POST /api/etl/schema/{surveyKey}/rename` with
+`{"name": "report_fhh"}`. In one transaction under the rebuild lock it:
+1. validates the name (3.1);
+2. runs `ALTER SCHEMA <old> RENAME TO <new>`;
+3. updates `surveys.report_schema`.
+
+PostgreSQL resolves views, sequence defaults and foreign keys by OID, so everything inside the
+schema keeps working. Grants and ownership move with it. Admin offers the action on the survey's
+page, with the warning that external queries and BI connections that name the old schema stop
+working.
+
+Inside Elicit, **nothing may hard-code a survey schema's name**. Every module looks the name up
+from `survey.surveys` at query time: FHHS by its `family.history.survey.key` (section 6), and
+Survey's ETL by survey id.
+
+### 3.3 The ETL
+
+Every statement in `Sql.java` gains `<SCHEMA>` and `:surveyId`:
+
+| Group | Change |
+|---|---|
+| Table and column discovery (`FIND_NEW_DIMENSION_TABLES_SQL`, `FIND_DIMENSIONS_TO_ADD_…`, `FIND_FACT_SECTION_JOIN_COLUMNS`) | `information_schema` filters on `table_schema = :schema`; `metadata`/`ontology` joins filter on `survey_id = :surveyId` |
+| Step/section upserts | `WHERE s.survey_id = :surveyId`, target `<SCHEMA>.dim_step` |
+| DDL templates (`CREATE_NEW_DIMENSION_TABLE_SQL`, `ADD_DIM_COLUMN_…`, views) | `<SCHEMA>.` instead of `surveyreport.`; the views join `surveyreport.dim_date` / `dim_status` |
+| Fact inserts and back-fill | drop `a.survey_id = 1`; `FIND_MISSING_FACT_SECTION_RESPONDENTS` adds `r.survey_id = :surveyId` |
+| Dead code (`NEW_RESPONDENTS_SQL`, `INSERT_ALL_RESPONDENTS_…`, `NEW_FIND_MISSING_…`, `FACT_SECTIONS_KEYS`, `ADD_DIM_COLUMN_TO_FACT_ANSWER_TABLE`, the commented methods in `ETLService`) | delete |
+
+The three entry points change as follows:
+
+| Entry point | Today | Proposed |
+|---|---|---|
+| Startup (`ETLService.init`) | builds once if `surveyreport.dim_section` is empty, then back-fills everyone | for each survey: create the schema if `report_schema` is null, run the idempotent build, back-fill that survey's finished respondents |
+| `POST /api/etl/build` (`ETLBuildResource`) | rebuilds the whole site | takes `?survey=<survey_key>` and rebuilds that survey. Without it, all surveys, each in its own transaction, with per-survey results in the reply |
+| Finish (`ETLRespondentService.populateFactSectionTable`) | per respondent, shared schema | per respondent, into the survey's schema. If the schema does not exist yet (its build failed), log and return. The next build's back-fill picks the respondent up |
+
+A new step, *create survey schema*, runs `CREATE SCHEMA <name> AUTHORIZATION elicit_owner`, grants
+`USAGE` and default `SELECT` privileges to `surveyreport_user`, and grants `USAGE` plus the
+`fact_sections` `INSERT/SELECT/UPDATE` that `survey_user` holds today. It then creates `dim_step`,
+`dim_section` and `fact_sections` from the V002 definitions, now as Java templates, with the
+generic indexes from Survey V008 and FHHS V0.0.6 (section 6).
+
+### 3.4 `fact_respondents` becomes a view
+
+The decided design said "filled by the ETL". The ETL, however, runs only on finish and on a build,
+so an ETL-filled table would show every in-progress respondent as Not Started until the next build.
+**A view is simpler and always current:**
+
+```sql
+CREATE VIEW <SCHEMA>.fact_respondents AS
+  SELECT r.id, r.survey_id, r.active, r.logins,
+         COALESCE(to_char(r.created_dt,'YYYYMMDD')::int, 19700101)      AS created_key,
+         COALESCE(to_char(r.first_access_dt,'YYYYMMDD')::int, 19700101) AS first_access_key,
+         COALESCE(to_char(r.finalized_dt,'YYYYMMDD')::int, 19700101)    AS finalized_key,
+         CASE WHEN r.first_access_dt IS NULL AND r.finalized_dt IS NULL THEN 0
+              WHEN r.finalized_dt IS NULL THEN 1 ELSE 2 END             AS status,
+         …duration…
+  FROM survey.respondents r WHERE r.survey_id = <id>;
+```
+
+- The view runs with its owner's rights, so `surveyreport_user` needs no grant on `survey`.
+- The triggers and their functions are dropped. This removes the cross-schema write from every
+  respondent insert and update, and the 2030 failure (1.4).
+- `fact_respondents_view` joins `dim_date` with a `LEFT JOIN`, so a date beyond the table gives a
+  null label instead of a missing row. Extending `dim_date` itself is Q-5.
+- The duration definition (created vs first access, `default_reports.md` G-9) is settled here, once.
+
+### 3.5 Migrations: both tracks
+
+Following the two-track rule, every migration goes in both `db/migration` and `db/migration-v3`.
+
+**Greenfield (`db/migration`, unreleased and rewritable):**
+- V002 shrinks to `dim_date` and `dim_status` in `surveyreport`, with no triggers.
+- V008 drops its `fact_sections` indexes; the ETL creates them per schema.
+- A new migration adds `surveys.report_schema`.
+
+**Upgrade (`db/migration-v3`), one new migration:**
+1. Drop the two triggers and their functions.
+2. Drop `surveyreport.fact_sections_view`, `fact_respondents_view`, `fact_sections`,
+   `fact_respondents`, `dim_step`, `dim_section` and every other `dim_*` except
+   `dim_date`/`dim_status`, together with their sequences.
+3. Add `surveys.report_schema`.
+
+The next startup then **regenerates** every survey's schema from `survey.answers` (the user's
+decision). The cost:
+- Surrogate ids differ from before, so any external extract keyed on `fact_sections.id` or
+  `dim_*.id` must be re-pulled.
+- Answers soft-deleted before Finish were already purged, so nothing reported today is lost.
+
+The dropping migration and the regenerating startup are not one transaction. A startup that fails
+after the drop leaves a site with no reporting tables until a successful build. This is acceptable
+because reports are rebuilt from answers, but it must be stated in the upgrade procedure
+(`DeploymentScript.md`).
+
+## 4. Admin changes
+
+| What | Where | Change |
+|---|---|---|
+| Rebuild after apply | `service/ReportingSchemaRebuildClient.java:51,134` | pass `?survey=<key>` of the survey just applied |
+| Grant | `db/migration/V0.0.2__ADMIN_GRANTS.sql:30` gives `surveyadmin_user` `INSERT, SELECT, UPDATE` on `surveyreport.fact_respondents` | no Admin code uses it. A new migration revokes it before Survey's upgrade drops the table. Ordering is Q-6 |
+| Rename | new | an action on the survey's page that calls Survey's rename (3.2), with the warning. New UC, FR, translation keys with `es-419`/`ar`, and the translation request |
+| Test bootstrap | `src/test/resources/db/test/V0.0.0.1__TEST_BOOTSTRAP.sql:674-681` | drop the `fact_respondents` stub |
+
+## 5. Author changes
+
+- `ReportingView.java:219,226` shows authors `surveyreport.<dim>` and `fact_sections.<col>`, and
+  three translation keys (`translations.properties:426,475,502`) say "surveyreport schema". After
+  the change the schema is site-chosen and unknown to Author. Show the unqualified table names and
+  say "the survey's reporting schema". This combines naturally with the rename to *analysis tags*
+  proposed in `default_reports.md` §2.3.
+- `ReportingService.java:357-370` warns about cross-survey `fact_sections` column collisions ("one
+  table per site"). The warning becomes obsolete and is removed.
+- The `schema-mirror` test copies of Survey's V002/V004/V008 follow the greenfield rewrite.
+  `SchemaMirrorFreshnessTest` enforces this.
+- `db-init/V0.0.4__CREATE_AUTHOR_DATABASE.sql:22-33` keeps creating `surveyreport` (still the
+  common schema).
+- The preview Survey can keep `elicit.etl.enabled=false`, but for a new reason: the collision is
+  gone, and the reason left is that a drafts database should not grow one schema per draft. The
+  comment at `ETLService.java:68-73` and in the compose file is updated.
+
+## 6. FHHS changes
+
+FHHS is a consumer of the schema, not the target of this work, but it is the one consumer that
+must follow in the same release.
+
+| What | Where | Change |
+|---|---|---|
+| The report query | `model/CancerHistoryRepository.java:191` reads `surveyreport.fact_sections_view` | resolve the schema from `survey.surveys.report_schema` by `family.history.survey.key` (`application.properties:190`), already used by the readiness check (`FamilyHistorySurveyCheck.java:42-56`), and qualify the query with it. Cache per request, not per process, so a rename takes effect at once. Columns are still selected by name and mapped by position (:216-284); the column list does not change |
+| Readiness | FHHS UC-005 | not ready also when `report_schema` is null (survey imported but never built); the 503 says so |
+| Indexes | `db/migration/V0.0.6__Add_Performance_Indexes.sql`, both tracks | on greenfield `surveyreport.fact_sections` no longer exists, so this migration **would fail**. The greenfield copy is rewritten to the indexes on `survey` tables only (FHHS `db/migration` is unreleased). The upgrade track needs an FHHS migration ordered before Survey's drop, or `IF EXISTS` guards. The fact-table indexes move into Survey's per-schema template (3.3) |
+| The old union view | V0.0.3 / V0.0.7 (`migration-v3`) | unchanged; they create and then drop it before Survey's drop runs |
+| Tests | `db/test/V0.0.0.1__TEST_BOOTSTRAP.sql:55,573-623,710` (and `test-legacy`), `CancerHistoryRepositoryTest.java:31,96`, `ManualSchemaMigratorUpgradeTest.java:124` | the bootstrap creates a survey schema and sets `report_schema`; the test asserts the resolved qualifier |
+
+FHHS is on `V3` locally while Survey and Admin are on `i18n`. The merge the user plans first puts
+all four repositories on one line before any of this starts.
+
+## 7. Umbrella documents
+
+| Document | Change |
+|---|---|
+| `CLAUDE.md` :138-146 | the check `select count(*) from surveyreport.dim_step` becomes a lookup of `report_schema` and a count in that schema; "surveyreport grows from its six skeleton tables" is rewritten |
+| `docs/manual/elicit-installation-manual.tex` :129, :253, :279-316, :549, :572, :1168 | `surveyreport` is now the common schema; survey schemas are created by the application; `dbowner` needs `CREATE` on the database (already granted, now required); the narrowed-owner caution (:285-290) adds "create schemas"; the configuration reference picks up the rename endpoint if it gets a property. `check-properties.sh` keeps the manual honest |
+| `docs/use_cases/UC-005-prepare-the-database-cluster.md:61` | "empty `survey` and `surveyreport` schemas" stays true; add that survey schemas appear after the first build |
+| `DeploymentScript.md` | the upgrade step: what the `migration-v3` migration drops, that the next startup regenerates, and that extracts must be re-pulled |
+| `docs/research/faceted_exploration.md` §5.1 | the two open items (naming key, migrate vs regenerate) are answered here |
+| `docs/research/default_reports.md` G-3 | points here |
+
+## 8. Verification
+
+| Run | Proves |
+|---|---|
+| Survey unit/`@QuarkusTest`: two surveys in the fixture, with overlapping step names and the same tag name | each gets its own schema; no `dim_step_un` failure; `fact_sections` columns are disjoint; back-fill is per survey and terminates |
+| Rename test | `ALTER SCHEMA` plus the column update; views still answer; an invalid or taken name is refused and nothing changes |
+| `fact_respondents` view | status moves Not Started → In Progress → Finished without any build; a `created_dt` in 2031 still appears |
+| Greenfield (`resetDatabase.sh V3`), import FHHS then a second survey, finish one respondent in each | two schemas; FHHS reports unchanged; the default reports' prerequisite holds |
+| Brownfield (`resetDatabase.sh V2`) | the upgrade drop runs, startup regenerates, FHHS reports match the pre-upgrade output for the same respondents (required: FHHS changes always get a brownfield run) |
+| Import order | the second survey imported first: FHHS still reports, because nothing depends on id 1 |
+| Author e2e and multisite | the preview instance still starts; `DesignerPage.java:38`'s unique-name workaround can stay but is no longer needed |
+
+## 9. Research questions
+
+1. **Q-1 Multi-survey fixture.** Survey's test data has one survey (`V9005*`, "Library Card
+   Registration"). Build a second, small survey fixture with deliberately overlapping names before
+   touching `Sql.java`, so the failure is reproduced first.
+2. **Q-2 Transaction boundaries.** Is each per-survey build one transaction (DDL is transactional
+   in PostgreSQL), or does the startup log-and-continue per step as today? Prefer one transaction
+   per survey, so a half-built schema never exists.
+3. **Q-3 Survey deletion.** Can Admin delete a survey? If so, the survey schema should be dropped
+   or renamed to `retired_<name>`. Find the path before deciding.
+4. **Q-4 Dimension scope.** `dimensions_un` and `ontology_un` are site-wide. With per-survey
+   schemas they no longer *need* to be, but making `dimensions` per survey touches `survey` DDL,
+   Author and the `.elicit` format. Confirm it can stay out of this change and remain
+   `faceted_exploration.md` §5.5 work.
+5. **Q-5 `dim_date`.** Extend it to 2100 in the common schema, or generate missing years on
+   demand during a build? Either way, the `LEFT JOIN` in 3.4 stops a missing year from hiding a
+   respondent.
+6. **Q-6 Flyway ordering across modules.** Survey, Admin and FHHS each run their own history
+   table against the same database at startup. Admin's revoke and FHHS's index migration must not
+   run after Survey's drop and fail on a missing table. Verify with `IF EXISTS` everywhere, or
+   make Survey's upgrade migration tolerate dependents.
+7. **Q-7 Rename and concurrency.** A rename during a finish: the per-respondent ETL reads
+   `report_schema` at the start of its transaction. Confirm the rebuild lock, or a row lock on the
+   survey, covers it.
+
+## 10. Plan
+
+All work starts **after `i18n` is merged into `V3`**, on a branch per repository cut from the
+merged line, with one PR per repository. AIUP docs come first in each:
+- **Survey:** UC-008 (rebuild reporting schema) rewritten for per-survey, a new UC for rename, and
+  `entity_model.md`.
+- **Admin:** FR-027 and a new rename UC.
+- **FHHS:** UC-005.
+- **Author:** the reporting UCs.
+
+| Step | Repo | Content | Done when |
+|---|---|---|---|
+| 1 | Survey | Q-1 fixture; docs; `report_schema` column; ETL parameterized (3.3); schema creation; `fact_respondents` view; greenfield V002/V008 rewrite; `migration-v3` drop migration; build endpoint with `?survey=`; rename endpoint | Survey tests green with two surveys; `buildDockerImages.sh Survey` |
+| 2 | FHHS | schema lookup; readiness; V0.0.6 both tracks; tests | greenfield **and** brownfield reports match |
+| 3 | Admin | rebuild client passes the key; revoke grant; rename action and UC | apply of a second survey builds only it |
+| 4 | Author | drop the `surveyreport.` qualifier and the cross-survey warning; schema-mirror; preview comment | Author build, including the three-way language check |
+| 5 | Umbrella | `CLAUDE.md`, the manual (gated by `check-properties.sh`), UC-005, `DeploymentScript.md`, the two research docs | `buildDockerImages.sh` incl. `Manual` |
+| 6 | All | greenfield, brownfield, import-order and e2e runs of section 8 | all pass |
+
+Steps 1 and 2 ship together: FHHS cannot read a schema Survey no longer creates, and Survey
+cannot drop one FHHS still reads.

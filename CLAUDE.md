@@ -19,13 +19,21 @@ GitHub repo, dropped into this directory and excluded from this repo via
 | ------------- | ---------------------------- | ---------------------------------------------- |
 | `Survey/`     | `ElicitSoftware/Survey`      | Subject-facing survey app (Quarkus + Vaadin)    |
 | `Admin/`      | `ElicitSoftware/Admin`       | Administrator app (Quarkus + Vaadin)            |
-| `Author/`     | `ElicitSoftware/Author`      | Survey authoring tool (Quarkus + Vaadin)        |
 | `FHHS/`       | `ElicitSoftware/FHHS`        | Family Health History Survey; headless REST     |
 | `Pedigree/`   | `ElicitSoftware/Pedigree`    | R/Kinship2 pedigree-drawing service (plumber)   |
 | `Prometheus/` | *tracked here*               | Prometheus config; not a repo, not in compose   |
 | `postgresql/` | *not tracked, not a repo*    | Local `PGDATA` volume only                      |
 
-`cloneAllProjects.sh` bootstraps all five module clones.
+`cloneAllProjects.sh` bootstraps all four module clones.
+
+**Author is not here.** The authoring tool is a separate **private** repository
+and is not part of this open-source project: it is not cloned, not built, and
+not in the compose file. A developer who has access still checks it out at
+`Elicit/Author/`, where `.gitignore` hides it, because Author's own
+`docker-compose.yml` and its end-to-end suites read `../elicit-brand`,
+`../sftp_ssh` and `../../FHHS/family-history-survey.elicit` from here. Shared
+assets live in this repo once; what is Author's alone (its Keycloak realm, the
+`author` database script, the three e2e suites) lives in Author.
 
 ### Working Across Modules
 
@@ -46,16 +54,16 @@ GitHub repo, dropped into this directory and excluded from this repo via
 The credential a respondent enters to reach a survey is the **access code**
 (`survey.respondents.access_code`, `accessCode` in Java, `<ACCESS_CODE>` in email
 templates, `{AccessCode}` in the FHHS SFTP XML template). "Token" means only a
-question-text placeholder (`{KEY|default}`, `survey.relationships.token`) or an
+question-text placeholder (`{<KEY>|default}`, `survey.relationships.token`) or an
 OIDC/Bearer token. Never call the respondent credential a token.
 
-## Module Conventions (shared by Survey, Admin, Author, FHHS)
+## Module Conventions (shared by Survey, Admin, FHHS)
 
-- Java 25, Quarkus 3.39.2, Maven. Vaadin 25.2.7 Flow for the three UI apps;
+- Java 25, Quarkus 3.40.1 LTS, Maven. Vaadin 25.3.0 Flow for the two UI apps;
   FHHS is headless REST.
 - **Hibernate ORM with Panache — not jOOQ.** Flyway migrations live under
   `src/main/resources/db/migration`.
-- All four follow the **AI Unified Process** (AIUP): `docs/` is the source of
+- All three follow the **AI Unified Process** (AIUP): `docs/` is the source of
   truth for behavior, `src/` is the implementation. The `aiup-core` plugin
   supplies the skills (`/requirements`, `/entity-model`, `/use-case-diagram`,
   `/use-case-spec`, `/reverse-engineer`).
@@ -67,10 +75,10 @@ OIDC/Bearer token. Never call the respondent credential a token.
 
 ## Local Stack (`docker-compose.yml`)
 
-Applications: `survey`, `admin`, `fhhs`, `pedigree`, `author`, and
-`author-survey`. Supporting services: `db` (PostgreSQL), `keycloak` (OIDC),
-`mailpit` (SMTP), `sftpServer`, and `jaeger` (OpenTelemetry). All app images
-are built locally as `elicitsoftware/<name>:latest`.
+Applications: `survey`, `admin`, `fhhs` and `pedigree`. Supporting services:
+`db` (PostgreSQL), `keycloak` (OIDC), `mailpit` (SMTP), `sftpServer`, and
+`jaeger` (OpenTelemetry). All app images are built locally as
+`elicitsoftware/<name>:latest`.
 
 | Port    | Service                                    |
 | ------- | ------------------------------------------ |
@@ -78,8 +86,6 @@ are built locally as `elicitsoftware/<name>:latest`.
 | `8081`  | Admin                                      |
 | `8082`  | FHHS                                       |
 | `8083`  | Pedigree                                   |
-| `8084`  | Author                                     |
-| `8085`  | Author preview (`author-survey`)           |
 | `8180`  | Keycloak (admin/admin)                     |
 | `8025`  | Mailpit web UI                             |
 | `16686` | Jaeger UI                                  |
@@ -88,12 +94,10 @@ are built locally as `elicitsoftware/<name>:latest`.
 Healthchecks target the **container-internal** port `8080`, not the published
 host port. Every service exports OTLP traces/metrics/logs to `jaeger:4317`.
 
-`author-survey` is a second `elicitsoftware/survey:latest` container serving
-Author's preview: both its datasources point at the `author` database rather than
-`survey`, `accessCode.autoRegister` lets an author type any access code to walk a
-draft, and `elicit.etl.enabled=false` keeps it from touching the reporting schema
-(Author's database holds many surveys whose step names would collide in
-`surveyreport.dim_step`).
+Ports `8084` and `8085` are unused here now. Author's own compose file publishes
+them, and publishes every other port in this table at the same values, so the two
+stacks cannot run at once — not because of 8084/8085, but because they collide on
+8080 downwards.
 
 `PREMM5` is commented out in the compose file and is not cloned by
 `cloneAllProjects.sh`.
@@ -116,48 +120,42 @@ set. The Monitor tab in the Jaeger UI is therefore inert.
 The scrape config also still targets `premm5:8080` and assumes
 `postgres-exporter` and `cadvisor`, none of which exist in this compose file.
 
-### First Run Needs a Survey Restart
+### First Run: Nothing Is Seeded, the Import Provides It
 
-`docker compose up -d` gets the database and the survey content right in one pass:
-Survey creates the schema, then FHHS (which waits for Survey to be healthy) seeds
-the Family History Survey. FHHS's greenfield migrations use literal ids and fixed
-keys and no longer build anything over the ETL-generated reporting views, so a
-failed attempt can simply be retried.
+`docker compose up -d` creates the schema in one pass: Survey creates it, Admin adds its
+tables, and FHHS runs its own migrations (grants, indexes on the star schema, sequence
+hygiene). **No survey and no department are seeded.** The two accounts `admin` and
+`user` are, so the console can be signed into.
 
-That pass does **not** build the reporting star schema. Survey's
-`ETLService.init()` is a `@Startup` method gated on
-`surveyCount > 0 && dimSectionRows == 0`, and on a greenfield run Survey starts a
-few seconds before FHHS seeds the survey. The ETL finds `survey.surveys` empty,
-skips, and logs a WARN:
+The first sign-in as `admin` is blocked by a modal dialog until a department exists
+(Admin UC-028): follow its link to Departments and create one, which is assigned to the
+creator. A `user` with no department can only log out. Existing databases keep their
+seeded "Testing Department"; the dialog is only seen on a database created after this
+change.
 
-> No survey is defined in the database (survey.surveys is empty). Reporting schema
-> generation skipped. Import a survey definition through the Admin application,
-> then restart this application to build it.
-
-`surveyreport` is then left with only the six skeleton tables its Flyway
-migrations create (`dim_date`, `dim_section`, `dim_status`, `dim_step`,
-`fact_respondents`, `fact_sections`), with `dim_step` and `dim_section` empty.
-Restarting Survey after FHHS has seeded runs the build and grows `surveyreport`
-to 22 objects: 18 dimension tables (the four above plus the FHHS-derived
-`dim_cancer`, `dim_gender`, `dim_race`, `dim_relationship`, `dim_vital_status`
-and the rest, built from `survey.dimensions`), the two fact tables, and the
-`fact_respondents_view` / `fact_sections_view` views. The `dimSectionRows == 0`
-half of the gate makes the restart idempotent — a second one is a no-op.
-
-The fact tables stay empty until respondents exist; they fill through the
-`fact_respondent_insert` and `fact_update` triggers on `survey.respondents`.
-
-`deploy.sh` is that sequence (`up -d`, sleep 20, restart Survey), but its fixed
-sleep is not a real synchronization point on a cold start — restart Survey only
-once `elicit-fhhs-1` is healthy. Confirm the build with:
+The Family History Survey arrives by import: Admin > Apply Survey Definition with
+`FHHS/family-history-survey.elicit`. The apply asks Survey to rebuild the reporting star
+schema (`POST /api/etl/build`), so **no Survey restart is needed** and `surveyreport`
+grows from its six skeleton tables to the full set (18 dimension tables, two fact tables,
+`fact_respondents_view` / `fact_sections_view`) as part of the apply. Confirm with:
 
 ```sh
 docker exec elicit-db-1 psql -U survey -d survey \
   -c "select count(*) from surveyreport.dim_step;"
 ```
 
-which must be non-zero (15 for the Family History Survey). Verified on a
-greenfield run on 2026-09-22.
+which must be non-zero (15 for the Family History Survey).
+
+FHHS is specific to that survey (FHHS UC-005). Until it is imported, FHHS starts, logs one
+WARN naming the survey key and the import to perform, reports **not-ready** on
+`/q/health/ready`, and answers report requests with 503 carrying the same message. It goes
+healthy by itself on the next probe after the import; nothing needs restarting. Admin
+depends on FHHS with `service_started`, not `service_healthy`, so Admin comes up either
+way and the import is always reachable. `deploy.sh` (`up -d`, then restart Survey) is only
+needed on a stack whose survey was seeded before this change.
+
+The fact tables stay empty until respondents exist; they fill through the
+`fact_respondent_insert` and `fact_update` triggers on `survey.respondents`.
 
 `resetDatabase.sh V3` stops the stack and deletes `postgresql/PGDATA` for a
 greenfield run. `resetDatabase.sh V2` replaces it with a copy of `PGDATA_v2`, the
@@ -176,14 +174,25 @@ to start cleanly on 2026-09-20.
 ## Scripts
 
 - `cloneAllProjects.sh` — clone the five module repos.
-- `buildDockerImages.sh [Module ...]` — build the module images in parallel
-  (all five by default, or just the named ones), one log per module under
-  `build-logs/`, with a summary and a non-zero exit if any build failed. There
+- `buildDockerImages.sh [Target ...]` — build the module images in parallel
+  (all five by default, or just the named ones), one log per target under
+  `build-logs/`, with a summary and a non-zero exit if any build failed. The
+  sixth default target, `Manual`, is not a module and builds no image: it runs
+  `docs/manual/check-properties.sh` and then `docs/manual/build-manual.sh`, so
+  the installation manual is gated against the code and stamped from the same
+  tree as the images (`SKIP_MANUAL=1`, or naming targets without it, skips the
+  target; `SKIP_PROPERTY_CHECK=1` typesets without the gate; a `Manual`-only run
+  prints no port warnings). There
   is no build-time dependency between the images; each module's tests use a
-  distinct Quarkus test port (Survey 8089, Admin 8090, FHHS 8091, Author 8092).
+  distinct Quarkus test port (Survey 8089, Admin 8090, FHHS 8091).
   PREMM5 is not built (that module is not cloned and is commented out of
   compose), and there is no `postgresql/` build step — `elicitsoftware/elicit_db`
-  is pulled, not built.
+  is pulled, not built. Ctrl-C stops the module builds too (Bash would otherwise leave them
+  running as orphans that hold `target/` and the test ports while the lock is released),
+  and the script warns about listeners on ports 8080-8083 and 8089-8091 before it starts:
+  a dev-mode Survey on 8080 hangs the Survey test suite, because the test data points
+  post-survey-action and report URLs at `localhost:8080`, dev mode parks requests while
+  it restarts, and neither Survey HTTP client sets a timeout.
 - `deploy.sh` — bring up an initialized stack.
 - `resetDatabase.sh V2|V3` — reset `postgresql/PGDATA` to the V2 copy (brownfield)
   or delete it (greenfield); stops the stack first.
@@ -197,11 +206,69 @@ Admin containers via `brand.file.system.path`. `test-brand/` and
 `test-partial-brand/` exercise fallback behavior when a brand omits assets.
 See `docs/BRAND_SYSTEM_IMPLEMENTATION_GUIDE.md`.
 
+## Translations (i18n)
+
+Each app ships its own interface text for every language it supports, packaged inside the image.
+The English bundle is authored at `src/main/resources/vaadin-i18n/translations.properties`, Vaadin's
+standard location; the translated ones are received from a translator, kept in the module's own
+`i18n/` directory and copied to the same classpath location by a `<resource>` block in its `pom.xml`.
+Both ship English, Latin American Spanish (`es-419`) and Arabic (`ar`).
+
+**There is no translations mount.** Languages are curated by ElicitSoftware and arrive in a
+release: a deployment can neither add one nor patch one, so a released image renders the
+translation it was built and tested with. `i18n.file.system.path`, `i18n.local.path` and
+`i18n.app.name` no longer exist, and the module language tests no longer need this umbrella
+checkout.
+
+What a site controls is one setting, `i18n.bundled.locales`. It both declares what the image
+carries — classpath resources cannot be listed, so nothing can discover which bundles are in the
+jar — and lets a site offer fewer than it carries. A language left out is unreachable: hidden from
+the switcher, refused by `?lang=`, and not served for survey content either.
+
+`checkLanguages.sh` holds Survey and Admin to the same set, and `buildDockerImages.sh` runs it
+before building anything: a language one app has and another lacks cannot be served. The
+authoring tool is the third party to that invariant — it declares which languages a survey's
+*content* may be published in (`author.content.languages`) — and it is not cloned here, so
+**Author's own build runs the authoritative three-way check**. When an Author checkout
+happens to be sitting here this script reports a mismatch, but only as a warning: a private
+repository must never be able to fail the public build.
+
+Direction (RTL/LTR) follows the language. `META-INF/i18n/i18n-config.json` on each app's classpath
+declares what the release ships (`ar` is `rtl` at `fontScale` 1.15), and a site overrides either for
+one tag with `i18n.direction.<tag>` or `i18n.font-scale.<tag>`. The scale multiplies the root font
+size through `--elicit-font-scale` and one `html { font-size: … }` rule in each app's `styles.css`,
+so it grows the whole page for that language. Brand names are translated in the brand's own
+`localized` block, never in the app bundles. Survey content in the database is translated by a
+separate mechanism (`survey.translations`, Survey V019): authored in Author, carried in the
+`.elicit` file, and served only where the survey publishes the language *and* the site offers it.
+See `docs/I18N_IMPLEMENTATION_GUIDE.md`.
+
 ## Umbrella Docs
 
+The umbrella now carries its own AIUP artifacts — the first ones it has had —
+scoped to the platform as one deployable whole: `docs/vision.md`,
+`docs/requirements.md` (FR-001..037, NFR-001..012, C-001..014),
+`docs/use_cases.puml` and `docs/use_cases/UC-001..019`. Module requirement and
+use-case IDs are unrelated to these.
+
+- `docs/manual/` — the **installation manual** (UC-001), a LaTeX/PDF that covers
+  Survey and Admin: topology, prerequisites, the database roles and
+  schemas, the OIDC clients and roles, both installation paths, the first
+  sign-in, the configuration reference, branding, translations and verification.
+  Built by `docs/manual/build-manual.sh` through a TeX Live container, stamped
+  with the version the two modules agree on, and built alongside the images by
+  `buildDockerImages.sh` (target `Manual`). Unlike the in-application manuals it is
+  **not** packaged into any image — an operator reads it before any Elicit
+  service exists. `docs/manual/check-properties.sh` gates the configuration
+  reference against the modules' `@ConfigProperty` declarations and
+  `application.properties`; `buildDockerImages.sh` runs it before typesetting, so
+  a drifted reference fails the build rather than reaching a release.
 - `DeploymentScript.md` — non-Docker deployment, plus the procedure for
-  upgrading an existing deployment to Kimball Type 2 SCD (V3.0.0).
+  upgrading an existing deployment to Kimball Type 2 SCD (V3.0.0). Upgrade
+  procedures stay here and are deliberately **not** in the installation manual,
+  which is stamped with one version and outlives it.
 - `docs/BRAND_SYSTEM_IMPLEMENTATION_GUIDE.md`
+- `docs/I18N_IMPLEMENTATION_GUIDE.md`
 - `docs/metrics/OBSERVABILITY_IMPLEMENTATION_GUIDE.md`,
   `docs/metrics/PROMETHEUS_QUERIES.md`
 

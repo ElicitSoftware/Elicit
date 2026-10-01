@@ -16,11 +16,47 @@ To insure the database populates please start the modules in this order.
 1) Start Survey
    This will install most of the tables needed for a survey but no survey
 2) Start FHHS
-   This will install the Family History Survey. FHHS's migrations use literal ids and fixed keys, so if a start fails it can simply be started again once the cause is fixed; no restart of Survey is needed.
-3) Start Admin 
-   This will install all the tables needed for the Admin app. It will also create a "Test Department". This test department can be used to test the new installation or upgrades. It is recommended that
+   This installs FHHS's own tables, grants and indexes. It no longer installs the Family History Survey: FHHS starts, reports not-ready on `/q/health/ready` and refuses report requests until the survey has been imported (step 5). A failed start can simply be started again once the cause is fixed.
+3) Start Admin
+   This will install all the tables needed for the Admin app. No department is created: the first administrator to sign in is asked to create one (it is assigned to them), and a user with no department can only log out.
 4) Start Pedigree
    This is the module for generating a visual pedigree.
+5) Import the Family History Survey
+   Sign in to Admin as an administrator, create a department if asked, then open Apply Survey Definition and upload `FHHS/family-history-survey.elicit`. The apply rebuilds Survey's reporting schema, and FHHS becomes ready on its next health probe; nothing needs restarting. Do the same on every site that runs the Family History Survey.
+
+### Choosing which languages a site offers
+
+Survey and Admin carry their own user-interface texts in every language Elicit supports —
+English, Latin American Spanish (`es-419`) and Arabic (`ar`) — packaged inside the images. There is
+nothing to mount and nothing to supply: a released image renders the translation it was built and
+tested with, and the header shows a language selector once more than one language is available.
+
+A site that should offer fewer sets one property per service:
+
+```
+i18n.bundled.locales=en           # English only; no language selector
+i18n.bundled.locales=en,es-419    # English and Latin American Spanish
+i18n.bundled.locales=en,ar        # English and Arabic, laid out right to left
+```
+
+Set it through any Quarkus configuration source — an environment entry in the compose file, a
+system property, `application.properties` on the classpath. A language left out stays in the image
+but is unreachable: absent from the selector, refused in a `?lang=` link, and not served for survey
+content either, because a survey's content is only served in a language the site also offers for the
+interface.
+
+Adjusting typography for one language, where the shipped default does not suit a deployment's
+displays:
+
+```
+i18n.font-scale.ar=1.2            # Arabic ships at 1.15
+i18n.direction.<tag>=rtl|ltr      # only for a language whose script the release does not know
+```
+
+A new language is a release, not a deployment step: ElicitSoftware translates it and it arrives in
+the next version. Each module's `i18n/TRANSLATION_REQUEST.md` is the document handed to a translator
+or an AI agent to produce one. The organization name shown in the header is translated in the brand
+directory instead (`localized` block in `brand-config.json`, see `elicit-brand/README.md`).
 
 ### Upgrading an existing deployment to Kimball Type 2 SCD (V3.0.0)
 
@@ -121,11 +157,6 @@ of every outbound dependency (identity provider, report services, post-survey ac
 relay, telemetry collector), plus an OIDC page with the current sign-in's roles and masked tokens.
 Secrets are shown as present or absent only. The **Overview** page
 lists the setup work still outstanding, including the seeded accounts below.
-
-Author has the same **System** section (Overview, Database, Branding, Connections, OIDC) for
-users holding `elicit_admin` on the `elicit-author` client; that role grants no authoring. Its
-Database page tells you whether the Survey preview instance has created the survey schema in
-Author's database yet.
 
 ### Modify template data
 After starting a new Elicit system you will need to alter some of the template data. 
