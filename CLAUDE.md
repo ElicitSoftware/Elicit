@@ -59,7 +59,7 @@ OIDC/Bearer token. Never call the respondent credential a token.
 
 ## Module Conventions (shared by Survey, Admin, FHHS)
 
-- Java 25, Quarkus 3.39.5, Maven. Vaadin 25.2.7 Flow for the two UI apps;
+- Java 25, Quarkus 3.40.1 LTS, Maven. Vaadin 25.3.0 Flow for the two UI apps;
   FHHS is headless REST.
 - **Hibernate ORM with Panache — not jOOQ.** Flyway migrations live under
   `src/main/resources/db/migration`.
