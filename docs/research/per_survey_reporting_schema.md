@@ -21,6 +21,10 @@
 > `fact_sections` (section 3.6). It is built as part of this work, not ahead of it, because it
 > lives in the tables and the ETL this document rewrites.
 >
+> **Added 2026-10-02, a sixth decision:** deleting a survey in Author also deletes that survey's
+> reporting schema in Author's database, the one the preview Survey (`author-survey`) builds
+> (section 3.7). A deleted survey leaves no schema behind.
+>
 > Sections 9 and 10 list what is still open.
 
 ## Overview
@@ -332,6 +336,71 @@ the conversion has nothing to convert. It still gets the brownfield run of secti
 considered as a stopgap for sites on a build without these columns, and dropped: V3 has never been
 released, so there is no such site.
 
+### 3.7 Deleting a survey drops its schema
+
+**The requirement** (the user's, 2026-10-02): when a survey is deleted in Author (Author UC-047),
+its reporting schema is deleted with it. The database is Author's own, `author`, and the Survey
+instance that builds schemas there is the preview, `author-survey`
+(`Author/docker-compose.yml:256`).
+
+**Why it does not happen by itself.** UC-047 deletes rows of the `survey` schema, in one
+transaction, as `survey_user` (`Author/.../survey/SurveyService.java:234-265`). A survey schema is
+a separate object owned by `elicit_owner`:
+
+- No foreign key ties it to `survey.surveys`, so deleting the row leaves it standing.
+- The row held the only record of its name (`report_schema`), so afterwards nothing in Elicit can
+  find it.
+- Its facts describe preview respondents UC-047 has just deleted (BR-004), and its
+  `fact_respondents` view (3.4) selects a `survey_id` that no longer exists.
+- The backup, imported again and built, would be assigned `report_<slug>_2` beside the orphan,
+  because the name is taken (3.1).
+
+`survey_user` cannot drop it. As with the rename (3.2), Survey is the module that can.
+
+**The design.** Survey exposes `DELETE /api/etl/schema/{surveyKey}`. Under the rebuild lock, in
+one transaction, it:
+
+1. reads the survey's `report_schema`; if it is null, answers 200 with nothing dropped;
+2. runs `DROP SCHEMA <name> CASCADE`;
+3. sets `surveys.report_schema` to null.
+
+The call is idempotent, and it works whether or not `elicit.etl.enabled` is set: a schema built
+while the ETL was on still has to go after it is turned off.
+
+Author's delete then runs in this order:
+
+| Step | Who | What | If it fails |
+|---|---|---|---|
+| 1 | Author | reads `report_schema`; null means there is nothing to drop, continue at step 3 | |
+| 2 | Author → preview Survey | `DELETE /api/etl/schema/{surveyKey}` | the delete is refused and the survey is unchanged, which is UC-047's failure postcondition |
+| 3 | Author | the existing delete transaction | the survey remains, without a schema; the next build creates it again from the preview answers |
+
+**The schema goes first** so that neither failure leaves an orphan. In the other order, a drop
+that failed after the row was gone would leave a schema nothing names.
+
+Author has no address for the preview Survey today: the two share the `author` database and
+nothing else. Step 2 needs a new Author property for it (in compose, `http://author-survey:8080`)
+and a client with timeouts.
+
+**Considered and not proposed:** a `SECURITY DEFINER` function owned by `elicit_owner` that Author
+calls inside its own transaction. It would make the drop and the delete atomic and need no HTTP
+call, but it would put a schema-dropping function within reach of `survey_user` on every site,
+the role the respondent-facing application connects as.
+
+**Today this is a no-op.** The preview runs with `elicit.etl.enabled=false`
+(`Author/docker-compose.yml:267`), so no survey in `author` has a schema and step 1 always
+continues at step 3. The preview's ETL stays off for now (Q-11, the user's, 2026-10-02) and is
+expected to be turned on when the reporting work starts, because that work needs the preview to
+model what a site builds. The drop is built with the rest of this change so that it is already in
+place on that day.
+
+**Sites.** Admin has no survey deletion (no use case and no code, searched 2026-10-02), so
+nothing at a site calls the endpoint. It is still present on every Survey, because the preview is
+the same image, and Survey's REST endpoints are unauthenticated
+(`ETLBuildResource.java:39-45`). The build endpoint's defense, that it can do nothing a restart
+would not, does not hold for a drop: the next build regenerates the schema, but with new
+surrogate ids (3.5). Q-12.
+
 ## 4. Admin changes
 
 | What | Where | Change |
@@ -362,9 +431,16 @@ released, so there is no such site.
   respondent's pages and nothing in reporting; both are reworded to say that.
 - `db-init/V0.0.4__CREATE_AUTHOR_DATABASE.sql:22-33` keeps creating `surveyreport` (still the
   common schema).
-- The preview Survey can keep `elicit.etl.enabled=false`, but for a new reason: the collision is
-  gone, and the reason left is that a drafts database should not grow one schema per draft. The
-  comment at `ETLService.java:68-73` and in the compose file is updated.
+- **Delete Survey (UC-047, FR-065) drops the survey's schema first (3.7).** `SurveyService.delete`
+  reads `report_schema` and, when it is set, calls the preview Survey's drop before its own
+  transaction; a failed drop refuses the delete. New: the property naming the preview Survey, the
+  client, a business rule in UC-047 beside BR-004, and the message for a refused delete (with
+  `es-419`/`ar` and the translation request). `SurveyDeleteTest` covers both orders of failure.
+- The preview Survey's `elicit.etl.enabled=false` loses its reason: the collision is gone. What
+  is left is that a drafts database grows one schema per previewed draft, and 3.7 bounds that by
+  removing a schema with its survey. The ETL stays off for now and is expected to be turned on
+  when the reporting work starts (Q-11); the comment at `ETLService.java:68-73` and in the
+  compose file is updated to say so.
 
 ## 6. FHHS changes
 
@@ -388,7 +464,7 @@ all four repositories on one line before any of this starts.
 | Document | Change |
 |---|---|
 | `CLAUDE.md` :138-146 | the check `select count(*) from surveyreport.dim_step` becomes a lookup of `report_schema` and a count in that schema; "surveyreport grows from its six skeleton tables" is rewritten |
-| `docs/manual/elicit-installation-manual.tex` :129, :253, :279-316, :549, :572, :1168 | `surveyreport` is now the common schema; survey schemas are created by the application; `dbowner` needs `CREATE` on the database (already granted, now required); the narrowed-owner caution (:285-290) adds "create schemas"; the configuration reference picks up the rename endpoint if it gets a property. `check-properties.sh` keeps the manual honest |
+| `docs/manual/elicit-installation-manual.tex` :129, :253, :279-316, :549, :572, :1168 | `surveyreport` is now the common schema; survey schemas are created by the application; `dbowner` needs `CREATE` on the database (already granted, now required); the narrowed-owner caution (:285-290) adds "create schemas"; the configuration reference picks up the rename endpoint if it gets a property, and the drop endpoint's switch if Q-12 gives it one. `check-properties.sh` keeps the manual honest |
 | `docs/use_cases/UC-005-prepare-the-database-cluster.md:61` | "empty `survey` and `surveyreport` schemas" stays true; add that survey schemas appear after the first build |
 | `DeploymentScript.md` | the upgrade step: what the `migration-v3` migration drops, that the next startup regenerates, and that extracts must be re-pulled |
 | `docs/research/faceted_exploration.md` §5.1 | the two open items (naming key, migrate vs regenerate) are answered here |
@@ -409,6 +485,8 @@ all four repositories on one line before any of this starts.
 | Per-option repeat, `@QuarkusTest` (3.6) | a respondent selects the second and fourth options and finishes: two fact rows, `section_instance` 2 and 4, each with the question and **the option whose text titled that instance at runtime**. This is the test that holds the SQL position rule to the Java one |
 | Reorder across a revision (3.6) | respondent A finishes; the list is reordered and the definition applied again; respondent B selects the same option and finishes. The two rows have different `section_instance` and **the same `item_key`**; a count-driven repeat and a step shown per free-text answer in the same survey carry `-1` in both columns |
 | Regenerate (3.6) | drop the survey schema and rebuild from `survey.answers`: both respondents' rows come back with the same question and option |
+| Drop, Survey `@QuarkusTest` (3.7) | the schema and everything in it are gone and `report_schema` is null; a second call answers 200 and changes nothing; another survey's schema is untouched; the next build creates the schema again |
+| Delete in Author (3.7) | a survey with a schema: after UC-047 neither the row nor the schema exists, and its backup, imported and built, is assigned the same schema name, not `_2`. With the preview Survey unreachable the delete is refused and the survey, its preview answers and its schema are unchanged. A survey with a null `report_schema` deletes without any call |
 | Author e2e and multisite | the preview instance still starts; `DesignerPage.java:38`'s unique-name workaround can stay but is no longer needed |
 
 ## 9. Research questions
@@ -419,8 +497,10 @@ all four repositories on one line before any of this starts.
 2. **Q-2 Transaction boundaries.** Is each per-survey build one transaction (DDL is transactional
    in PostgreSQL), or does the startup log-and-continue per step as today? Prefer one transaction
    per survey, so a half-built schema never exists.
-3. **Q-3 Survey deletion.** Can Admin delete a survey? If so, the survey schema should be dropped
-   or renamed to `retired_<name>`. Find the path before deciding.
+3. **Q-3 Survey deletion.** Answered. Author can delete a survey (UC-047) and its schema is
+   dropped with it (3.7, the sixth decision). Admin cannot: it has no use case and no code that
+   deletes a survey, so a site's schemas are never removed. If Admin gains one, it calls the same
+   endpoint.
 4. **Q-4 Dimension scope.** `dimensions_un` and `ontology_un` are site-wide. With per-survey
    schemas they no longer *need* to be, but making `dimensions` per survey touches `survey` DDL,
    Author and the `.elicit` format. Confirm it can stay out of this change and remain
@@ -444,24 +524,39 @@ all four repositories on one line before any of this starts.
 10. **Q-10 `dim_item.value`.** Tag dimensions hold `lower(trim(coded_value))`. Should `dim_item`
     match that for consistency in the view, with the display text beside it as the label a report
     shows, or lead with the display text? Either way the label is base-language only (C-024).
+11. **Q-11 The preview's ETL.** Answered (the user's, 2026-10-02): `elicit.etl.enabled` stays off
+    for `author-survey` in this change. It is expected to be turned on when the reporting work
+    starts (the default reports, the faceted browser), because that work has to model the real
+    system: the star a site builds from the same definition. Until then 3.7 is a guard that never
+    fires. Once it is on, every previewed draft gets a schema until it is deleted (3.7), and a
+    survey renamed in Author keeps its first slug (3.1); both are to be looked at again then.
+12. **Q-12 Who may call the drop.** The endpoint exists on every Survey and Survey's REST
+    endpoints have no authentication (3.7). Put it behind a property that is off by default and
+    on only for `author-survey`, as `accessCode.autoRegister` is? That adds a Survey property to
+    the installation manual's configuration reference.
+13. **Q-13 A build between the drop and the delete.** After step 2 of 3.7 the survey still exists
+    with a null `report_schema`. A preview respondent finishing in that window is harmless (3.3:
+    no schema, log and return), but a startup or a `POST /api/etl/build` would create the schema
+    again and the delete would then orphan it. Confirm how narrow the window is, or have the
+    drop mark the survey so a build skips it.
 
 ## 10. Plan
 
 All work starts **after `i18n` is merged into `V3`**, on a branch per repository cut from the
 merged line, with one PR per repository. AIUP docs come first in each:
-- **Survey:** UC-008 (rebuild reporting schema) rewritten for per-survey, a new UC for rename, and
-  `entity_model.md`. UC-008 also takes the rule of 3.6, and UC-002 BR-012 a sentence pointing at
-  it.
+- **Survey:** UC-008 (rebuild reporting schema) rewritten for per-survey, a new UC for rename, a
+  new UC for the drop (3.7), and `entity_model.md`. UC-008 also takes the rule of 3.6, and UC-002
+  BR-012 a sentence pointing at it.
 - **Admin:** FR-027 and a new rename UC.
 - **FHHS:** UC-005.
-- **Author:** the reporting UCs.
+- **Author:** the reporting UCs, and UC-047 with FR-065 for the delete (3.7).
 
 | Step | Repo | Content | Done when |
 |---|---|---|---|
-| 1 | Survey | Q-1 fixture; docs; `report_schema` column; ETL parameterized (3.3); schema creation; `fact_respondents` view; greenfield V002/V008 rewrite; `migration-v3` drop migration; build endpoint with `?survey=`; rename endpoint; `dim_question`, `dim_item` and the two `fact_sections` columns with their fill and the three tests of section 8 (3.6, after `feature/multi-select-repeat` is merged) | Survey tests green with two surveys; `buildDockerImages.sh Survey` |
+| 1 | Survey | Q-1 fixture; docs; `report_schema` column; ETL parameterized (3.3); schema creation; `fact_respondents` view; greenfield V002/V008 rewrite; `migration-v3` drop migration; build endpoint with `?survey=`; rename endpoint; drop endpoint (3.7); `dim_question`, `dim_item` and the two `fact_sections` columns with their fill and the three tests of section 8 (3.6, after `feature/multi-select-repeat` is merged) | Survey tests green with two surveys; `buildDockerImages.sh Survey` |
 | 2 | FHHS | schema lookup; readiness; V0.0.6 both tracks; tests | greenfield **and** brownfield reports match |
 | 3 | Admin | rebuild client passes the key; revoke grant; rename action and UC | apply of a second survey builds only it |
-| 4 | Author | drop the `surveyreport.` qualifier and the cross-survey warning; schema-mirror; preview comment; Q-8's outcome, the impact preview and the reworded list-order caution (3.6) | Author build, including the three-way language check |
+| 4 | Author | drop the `surveyreport.` qualifier and the cross-survey warning; schema-mirror; preview comment; Q-8's outcome, the impact preview and the reworded list-order caution (3.6); Delete Survey drops the schema first (3.7) | Author build, including the three-way language check |
 | 5 | Umbrella | `CLAUDE.md`, the manual (gated by `check-properties.sh`), UC-005, `DeploymentScript.md`, the two research docs | `buildDockerImages.sh` incl. `Manual` |
 | 6 | All | greenfield, brownfield, import-order and e2e runs of section 8 | all pass |
 
