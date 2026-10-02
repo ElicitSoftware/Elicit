@@ -8,16 +8,16 @@
 # steps: 6
 # sections: 11
 # steps_sections: 11
-# questions: 25
-# sections_questions: 25
-# relationships: 12
+# questions: 26
+# sections_questions: 26
+# relationships: 13
 # reports: 0
 # post_survey_actions: 0
 # dimensions: 2
 # ontology: 10
 # metadata: 10
-# generated: 2026-09-25T12:45:00Z
-# survey_revision: 2026-09-25T12:45:00Z
+# generated: 2026-10-02T19:00:00Z
+# survey_revision: 2026-10-02T19:00:00Z
 
 surveys: 1|eaa5c9d0-f4b1-596e-add5-18571ca79227|Census Household Survey|2|Census Household Survey|A demonstration survey about census household data. It uses every question type and every rule the Elicit engine supports, exactly once where practical.|0001-0001-0000-0001-0000-0000-0000|||
 select_groups: 1|8514a507-5906-5add-9b0e-956a124c8474|Gender|Gender choices|Text|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
@@ -108,6 +108,7 @@ questions: 22|e4893abe-6574-5d70-88c9-d7b24bdc418e|15|What time do you usually l
 questions: 23|a97b315e-f619-5c14-a6d9-909685b858e8|12|If we need to follow up, what date and time works best?|Follow-up||false|||||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
 questions: 24|872cce3f-b9f9-5519-a8f3-6054192612c6|9|Is there anything else about your household you would like to tell us?|Comments||false||2000|||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
 questions: 25|a8484aac-7d27-5128-af0a-c5da0d0fee98|16|<p>Thank you for completing the Census Household Survey.</p><p>Your answers have been saved. You may close this window.</p>|Thank you||false|||||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 26|1b5ea826-4c9d-5724-9adf-60febb1b50a9|5|{<LANG>\|This language}: about how many people in this home speak it?|Speakers||false|0|20|Please enter a number between 0 and 20.||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
 sections_questions: 1|df00e950-557f-50d1-8923-fd4551f5375b|1|1|1|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
 sections_questions: 2|13ac2077-4855-5702-81cc-5f1bf3a43e3d|2|1|2|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
 sections_questions: 3|1ebd31ce-cd21-5b92-bd67-814876211e18|3|2|1|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
@@ -117,34 +118,36 @@ sections_questions: 6|ab8be653-3b28-56a3-bc1e-7163fcb925ac|6|2|4|0|1970-01-01T00
 sections_questions: 7|e592c2b5-d70d-512a-b694-7984053e304a|7|3|1|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
 sections_questions: 8|562d6dd8-db1c-53c5-95cd-6fb2147a425c|8|3|2|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
 sections_questions: 9|2c28fa46-44bb-53aa-853c-64144e75db24|9|3|3|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
-sections_questions: 10|baa54f86-e2be-50ca-9265-a804c46ab14f|10|4|1|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
-sections_questions: 11|256ead34-21d7-50e2-beac-3d8e6fb0d44d|11|4|2|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
-sections_questions: 12|651ee165-4dab-5fa0-9a1d-70cd4b19133b|12|4|3|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
-sections_questions: 13|3734a87c-ed00-5dbb-88c9-3b574bae53f9|13|5|1|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
-sections_questions: 14|45a17197-fd69-5c8d-8e30-0d0be737b0b1|14|6|1|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
-sections_questions: 15|10014d8b-bdd9-5c25-bee8-d1b1c559a5ca|15|7|1|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
-sections_questions: 16|c08268c1-6be8-526c-aa08-990c3df556af|16|8|1|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
-sections_questions: 17|42fd8e8b-9898-595c-9274-161fb49e1c96|17|8|2|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
-sections_questions: 18|72608d7e-9d53-55a4-b568-031068a84e3b|18|9|1|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
-sections_questions: 19|6171ea1b-b25c-5a30-978a-bbfea0346836|19|9|2|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
-sections_questions: 20|2213fdcf-b3b9-5f74-b447-0b9cda407e3b|20|9|3|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
-sections_questions: 21|b73eabfc-6373-5821-8582-3a44785ced15|21|10|1|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
-sections_questions: 22|f0ba61f8-ec9b-5d6c-8a80-519aac4c3a27|22|10|2|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
-sections_questions: 23|48ef7e26-09cb-5cc8-9286-7587b108a242|23|10|3|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
-sections_questions: 24|1ca4a0b7-1036-58a6-9bf9-9ee42b2b8bfa|24|11|1|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
-sections_questions: 25|21766c35-50b2-5056-af93-9ede17e547ad|25|11|2|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 10|72151d8d-1708-57d9-8bcd-5fdeee563ccd|26|3|4|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 11|baa54f86-e2be-50ca-9265-a804c46ab14f|10|4|1|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 12|256ead34-21d7-50e2-beac-3d8e6fb0d44d|11|4|2|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 13|651ee165-4dab-5fa0-9a1d-70cd4b19133b|12|4|3|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 14|3734a87c-ed00-5dbb-88c9-3b574bae53f9|13|5|1|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 15|45a17197-fd69-5c8d-8e30-0d0be737b0b1|14|6|1|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 16|10014d8b-bdd9-5c25-bee8-d1b1c559a5ca|15|7|1|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 17|c08268c1-6be8-526c-aa08-990c3df556af|16|8|1|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 18|42fd8e8b-9898-595c-9274-161fb49e1c96|17|8|2|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 19|72608d7e-9d53-55a4-b568-031068a84e3b|18|9|1|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 20|6171ea1b-b25c-5a30-978a-bbfea0346836|19|9|2|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 21|2213fdcf-b3b9-5f74-b447-0b9cda407e3b|20|9|3|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 22|b73eabfc-6373-5821-8582-3a44785ced15|21|10|1|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 23|f0ba61f8-ec9b-5d6c-8a80-519aac4c3a27|22|10|2|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 24|48ef7e26-09cb-5cc8-9286-7587b108a242|23|10|3|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 25|1ca4a0b7-1036-58a6-9bf9-9ee42b2b8bfa|24|11|1|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 26|21766c35-50b2-5056-af93-9ede17e547ad|25|11|2|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
 relationships: 1|d50ef748-7058-559e-96a6-d4454be7ec90|1|2|2|||1|1|Show About You once consent is given|||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
 relationships: 2|8a925942-3c87-57b8-918b-99c92a39bd6d||7|||8|6|1|Ask which other race||OTHER|||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
-relationships: 3|5023323a-f324-5290-9deb-cda178d8b218|3|10|3|5||3|1|Show rent details when renting||RENT|||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
-relationships: 4|7c7ad805-8776-5bbb-b4e7-676a741c65c8||10|||12|4|1|Ask about subsidy unless owned||OWN|||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
-relationships: 5|da4c92a4-6824-5517-a943-63cd3ad8228a|3|14|3|7||2|2|Repeat the vehicle section||0|||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
-relationships: 6|ffb61654-2a75-5e65-ae40-4620806c4d6a||16|||17|2|2|Repeat the person name question||0|||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
-relationships: 7|37b8a550-89a4-5f99-8ded-77e034d37e3b|4|17|5|||5|1|Show a step per household member|||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
-relationships: 8|620d79b2-ea75-5076-b343-3b3f4e242fda|4|17|5|||5|3|Fill <NAME> for this member|NAME||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 3|5023323a-f324-5290-9deb-cda178d8b218|3|11|3|5||3|1|Show rent details when renting||RENT|||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 4|7c7ad805-8776-5bbb-b4e7-676a741c65c8||11|||13|4|1|Ask about subsidy unless owned||OWN|||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 5|da4c92a4-6824-5517-a943-63cd3ad8228a|3|15|3|7||2|2|Repeat the vehicle section||0|||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 6|ffb61654-2a75-5e65-ae40-4620806c4d6a||17|||18|2|2|Repeat the person name question||0|||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 7|37b8a550-89a4-5f99-8ded-77e034d37e3b|4|18|5|||5|1|Show a step per household member|||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 8|620d79b2-ea75-5076-b343-3b3f4e242fda|4|18|5|||5|3|Fill <NAME> for this member|NAME||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
 relationships: 9|c8d23653-20c9-59c1-9bb2-68c4c1b3c6c1|2|3|5|||5|3|Fill <PROBAND> with your name|PROBAND||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
 relationships: 10|34a953fc-f73e-50d3-8fa0-28753aeda65a|1|2|3|||1|1|Show Your Home once consent is given|||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
 relationships: 11|42aad0ab-a816-5113-b5b0-3368efae9ad4|1|2|4|||1|1|Show Household Members once consent is given|||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
 relationships: 12|94ee42a3-e764-5af4-8f37-2a046ed3d122|1|2|6|||1|1|Show Finishing Up once consent is given|||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 13|37ea80e9-0349-55d6-ab6b-b1e60c03b821||9|||10|5|2|Repeat the speakers question per language|LANG||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
 dimensions: 1|36a75e92-62ef-5b45-bbfb-8d9bad1e8e7f|age
 dimensions: 2|fbc78c4a-0087-51c7-a6c0-087bd94f5754|gender
 ontology: 1|07f2f80a-f43f-5071-a8ab-9493a4a29c50|census|Age|1
