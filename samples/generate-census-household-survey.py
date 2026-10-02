@@ -133,6 +133,11 @@ Q = [
  ("thanks",   MODAL, "<p>Thank you for completing the Census Household Survey.</p>"
    "<p>Your answers have been saved. You may close this window.</p>", "Thank you",
    False,None,None,None,None,None,None),
+ # Repeated once per language selected in "langs" (rule 13), in that question's own section. The
+ # language's own text fills <LANG>, so the sentence leads with the placeholder and reads the same
+ # for "English" and "Another language". Listed last so the ids of the questions above do not move.
+ ("langspeak",INTEGER, "{<LANG>\u007CThis language}: about how many people in this home speak it?", "Speakers",
+   False,0,20,"Please enter a number between 0 and 20.",None,None,None),
 ]
 qid = {}
 for n,(label,typ,text,short,req,mn,mx,val,grp,ph,var) in enumerate(Q, start=1):
@@ -144,7 +149,7 @@ for n,(label,typ,text,short,req,mn,mx,val,grp,ph,var) in enumerate(Q, start=1):
 ASSIGN = [
  (1, ["welcome","consent"]),
  (2, ["name","age","gender","marital"]),
- (3, ["race","raceother","langs"]),
+ (3, ["race","raceother","langs","langspeak"]),
  (4, ["tenure","movein","subsidy"]),
  (5, ["rent"]),
  (6, ["vehcount"]),
@@ -185,6 +190,14 @@ RULES = [
  (1, sq["consent"],  3, None, None,              BOOLEAN,      SHOW,        "Show Your Home once consent is given",         "", "", ""),
  (1, sq["consent"],  4, None, None,              BOOLEAN,      SHOW,        "Show Household Members once consent is given", "", "", ""),
  (1, sq["consent"],  6, None, None,              BOOLEAN,      SHOW,        "Show Finishing Up once consent is given",      "", "", ""),
+ # REPEAT read from a MULTI_SELECT: one instance of the speakers question per language selected,
+ # rather than 1..N from a count as the two REPEATs above. The instance number is the language's
+ # position in its list (English 1, Spanish 2, ...), so changing the selection never moves an
+ # answer from one language to another, and the rule's token is filled with each language's own
+ # display text (Survey UC-002 BR-012, BR-013). FIELD_EXIST is the operator a selection wants:
+ # GREATER THAN compares numbers and never holds for one. Appended last so the keys of the rules
+ # above, which are derived from their position, do not move.
+ (None, sq["langs"], None, None, sq["langspeak"],FIELD_EXIST,  REPEAT,      "Repeat the speakers question per language", "LANG", "", ""),
 ]
 for n,(us,usq,ds,dss,dsq,op,act,desc,tok,ref,dflt) in enumerate(RULES, start=1):
     add("relationships", n, key(f"rule/{n}"), us, usq, ds, dss, dsq, op, act, desc, tok, ref, dflt, "", *TAIL)
@@ -196,8 +209,9 @@ for n,(us,usq,ds,dss,dsq,op,act,desc,tok,ref,dflt) in enumerate(RULES, start=1):
 # question wherever it appears, and reports the answer (metadata value empty). Only closed-
 # vocabulary and integer questions are tagged (G5); Race (CHECKBOX_GROUP) and Languages
 # (MULTI_SELECT) are deliberately untagged because a multi-choice answer is stored comma-joined
-# and would report every combination as one value (G6); free text, dates, the rent amount and
-# contact details are never tagged (G7). Tag names are Title Case, no hyphens (G10), and the
+# and would report every combination as one value (G6); the per-language speakers count is
+# untagged because it is a question repeated inside one section, several answers to one report
+# column; free text, dates, the rent amount and contact details are never tagged (G7). Tag names are Title Case, no hyphens (G10), and the
 # household member's attributes carry the entity prefix (G12).
 for t in ("dimensions","ontology","metadata"): rows.setdefault(t, [])
 DIMS = ["age","gender"]
@@ -240,7 +254,7 @@ for t in ORDER:
     for r in rows[t]:
         assert len(r) == EXPECTED[t], f"{t}: {len(r)} fields, expected {EXPECTED[t]}: {r}"
 
-now = "2026-09-25T12:45:00Z"
+now = "2026-10-02T19:00:00Z"
 out = ["# ELICIT_SURVEY_EXPORT_V1", "# survey_id: 1", f"# survey_key: {key('survey')}",
        "# survey_name: Census Household Survey"]
 HEADER = ["surveys","select_groups","select_items","steps","sections","steps_sections",

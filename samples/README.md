@@ -39,6 +39,7 @@ cannot collide with another survey's `Welcome` on the same site.
 | Operators | 6/6 — `BOOLEAN`, `GREATER THAN`, `EQUAL`, `NOT_EQUAL`, `FIELD_EXIST`, `CONTAINS` |
 | Actions | 3/3 — `SHOW`, `REPEAT`, `TEXT` |
 | Rule targets | step, section (`downstream_ss_id`), and question (`downstream_sq_id`) |
+| Repeat sources | a count (`INTEGER`, instances 1 to N) and a selection (`MULTI_SELECT`, one instance per selected item) |
 
 Two deliberate omissions:
 
@@ -53,7 +54,7 @@ Two deliberate omissions:
 | Step | Sections | Notable elements and rules |
 | --- | --- | --- |
 | 1 Welcome | Introduction | `HTML` intro + `CHECKBOX` consent. Consent gates step 2 via `BOOLEAN`. |
-| 2 About You | About you; Race and language | `TEXT`, `INTEGER`, `RADIO`, `COMBOBOX`, `CHECKBOX_GROUP`, `MULTI_SELECT`. Race `CONTAINS 'OTHER'` reveals a follow-up in the **same section** (the question-only rule path). |
+| 2 About You | About you; Race and language | `TEXT`, `INTEGER`, `RADIO`, `COMBOBOX`, `CHECKBOX_GROUP`, `MULTI_SELECT`. Race `CONTAINS 'OTHER'` reveals a follow-up in the **same section** (the question-only rule path). The languages `MULTI_SELECT` `REPEAT`s a speakers question **once per language selected**, numbered by the language's position in its list, with the `LANG` token filled by each language's own text. |
 | 3 Your Home | Housing; Rent details; Vehicles; Vehicle | `DATE_PICKER`, `DOUBLE`. Tenure `EQUAL 'RENT'` shows the **Rent details section**; tenure `NOT_EQUAL 'OWN'` shows a question. Vehicle count `REPEAT`s the **Vehicle section**. |
 | 4 Household Members | Household members | Household size `REPEAT`s the person-name **question** in its own section. |
 | 5 `{name\|this person}` | `{name\|this person}` | Shown once per person name via `FIELD_EXIST`; a `TEXT` rule fills the `name` token across the step, its section and its questions. |
@@ -84,9 +85,16 @@ offers no formatting hook for either.
   `{<NAME>'s|this person's}`. A token is written `<NAME>` where it is used --
   upper case, in angle brackets, inside the placeholder's phrase -- so a rule
   fills a reference and never a word that merely reads like one.
-- Only `CHECKBOX`, `HTML`, `RADIO` and `TEXT` answers actually fill a token —
-  `QuestionManager.getKeyValues` switches on type names and falls through for
-  `COMBOBOX`, `INTEGER` and the rest. Both tokens here are fed by `TEXT` questions.
+- What a token holds follows from the question its rule reads (Survey UC-002
+  BR-010): a free-text, date or time answer fills it with the respondent's own
+  words, and a coded, numeric or boolean answer yields to the constant written on
+  the rule. `NAME` and `PROBAND` are both fed by `TEXT` questions.
+- `LANG` is the third case (Survey UC-002 BR-013). Inside an instance that a
+  `REPEAT` builds once per selected item, a token filled from that same
+  `MULTI_SELECT` holds the item's display text, translated where the survey
+  publishes a translation of it. The speakers question leads with its placeholder
+  (`{<LANG>|This language}: about how many...`) so that every item of the list
+  reads well in it.
 - `{Q#}` and `{S#}` are instance counters the runtime fills itself; they are not
   rule tokens and need no rule.
 

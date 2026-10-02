@@ -16,6 +16,11 @@
 >   `survey.answers`, not migrated.**
 > - **The work starts after `i18n` is merged into `V3`**, on branches cut from the merged line.
 >
+> **Added 2026-10-02, a fifth decision:** a section repeated once per selected option of a list
+> reports **which question and which option** each of its rows belongs to, in two new columns of
+> `fact_sections` (section 3.6). It is built as part of this work, not ahead of it, because it
+> lives in the tables and the ETL this document rewrites.
+>
 > Sections 9 and 10 list what is still open.
 
 ## Overview
@@ -93,8 +98,9 @@ problem. Until then it is a dated defect worth recording on its own.
 
 ```
 surveyreport            (common)  dim_date, dim_status
-report_family_history   (survey)  dim_step, dim_section, dim_<tag>…, fact_sections,
-                                  fact_sections_view, fact_respondents (view), fact_respondents_view
+report_family_history   (survey)  dim_step, dim_section, dim_question, dim_item, dim_<tag>…,
+                                  fact_sections, fact_sections_view, fact_respondents (view),
+                                  fact_respondents_view
 report_household        (survey)  … the same set, for another survey
 ```
 
@@ -111,6 +117,9 @@ report_household        (survey)  … the same set, for another survey
   (`GRANT CONNECT, CREATE ON DATABASE survey TO dbowner`, :297).
 - **`survey_id` stays on `fact_sections`.** It is redundant inside a survey schema, but analysts'
   `UNION`s across surveys stay possible.
+- **Two fixed columns are new:** `fact_sections.question_key` and `item_key`, with `dim_question`
+  and `dim_item` behind them (section 3.6). Every other identifier is unchanged, so a query that
+  names its columns is unaffected.
 
 ## 3. Survey changes
 
@@ -179,7 +188,8 @@ A new step, *create survey schema*, runs `CREATE SCHEMA <name> AUTHORIZATION eli
 `USAGE` and default `SELECT` privileges to `surveyreport_user`, and grants `USAGE` plus the
 `fact_sections` `INSERT/SELECT/UPDATE` that `survey_user` holds today. It then creates `dim_step`,
 `dim_section` and `fact_sections` from the V002 definitions, now as Java templates, with the
-generic indexes from Survey V008 and FHHS V0.0.6 (section 6).
+generic indexes from Survey V008 and FHHS V0.0.6 (section 6). `dim_question`, `dim_item` and the
+two `fact_sections` columns that refer to them (3.6) are part of the same templates.
 
 ### 3.4 `fact_respondents` becomes a view
 
@@ -228,10 +238,99 @@ decision). The cost:
   `dim_*.id` must be re-pulled.
 - Answers soft-deleted before Finish were already purged, so nothing reported today is lost.
 
+The two columns of 3.6 add nothing to either track: `fact_sections` and its dimensions are created
+by the ETL's templates, not by a migration, and nothing in the `survey` schema changes for them.
+
 The dropping migration and the regenerating startup are not one transaction. A startup that fails
 after the drop leaves a site with no reporting tables until a successful build. This is acceptable
 because reports are rebuilt from answers, but it must be stated in the upgrade procedure
 (`DeploymentScript.md`).
+
+### 3.6 Which option a repeated section belongs to
+
+**The problem.** A Repeat rule that reads a `MULTI_SELECT` or `CHECKBOX_GROUP` builds one instance
+of its target per option the respondent selected (Survey UC-002 A3b, on
+`feature/multi-select-repeat`, not yet merged). The instance number is the option's **position in
+its list** as of the respondent's snapshot anchor (UC-002 BR-012), which is what keeps a
+respondent's answers with the option they are about when the selection changes. A position is not
+an identity across revisions, though:
+
+- Oklahoma is the second option, so its rows carry `section_instance = 2`.
+- The list is reordered, or an option before it is removed, and the survey is applied again.
+- Respondents who start afterwards get Oklahoma at another position, and `section_instance = 2`
+  is now a different game.
+
+Nothing stored is wrong: earlier respondents keep their rows, and a respondent already answering
+keeps the list as it was. But `fact_sections` has no other column that says which option a row is
+about, so "concession quality by game" can only be grouped by `section_instance`, and after the
+reorder that silently mixes two games.
+
+**The design** (the user's, 2026-10-02): the fact row names the question and the option, by the
+keys that never change.
+
+| Column | Refers to | Filled |
+|---|---|---|
+| `fact_sections.question_key` | `dim_question.id` | the question the Repeat rule reads |
+| `fact_sections.item_key` | `dim_item.id` | the option this instance was built from |
+
+Both follow the convention of every `<tag>_key` column: an integer, `NOT NULL DEFAULT -1`, a
+foreign key to a dimension that carries the `(-1, NULL)` "no value" member.
+
+| Dimension | Natural key | Attributes |
+|---|---|---|
+| `dim_question` | `survey.questions.question_key` (UUID) | `value` = the question's short text |
+| `dim_item` | `survey.select_items.select_item_key` (UUID) | `value` = coded value, plus display text, list name and display order |
+
+The natural keys are the portable element keys: copied forward on every version of the row and
+identical at every site that installed the definition. A dimension row is upserted by that key, as
+`dim_step` is by its durable id, so rewording an option, reordering the list or even changing an
+option's coded value updates one row and moves no fact. The question is there for the *role*: one
+list can serve two questions, and the question says which of them a row answers, which is also what
+gives the column a name a facet can use. `fact_sections_view` exposes both as `question` and
+`item`, joined like any tag.
+
+**Only where it is needed.**
+
+- Filled for a section instance built **from a selected option**. Every other row keeps `-1`.
+- A **count-driven** repeat needs nothing: its instances are 1 to N with no list behind them, so
+  there is no order to alter and the instance number is the identity.
+- A step shown once per repeated **free-text** answer (the Family History Survey's siblings and
+  children) is not touched. Its driving answer is a name, and a name must not reach a reporting
+  table (`faceted_exploration.md` G7).
+- A repeated **question** has no fact row of its own: several answers share one section instance.
+  It stays unreportable per option here, as it is today.
+- When a step can be repeated (`repeating_steps.md`), a step repeated per option fills the same two
+  columns; the instance it reads is then the step instance.
+
+**How the ETL fills them.** From the definition, as of the respondent's anchor, with no new column
+in the `survey` schema. For a fact row with `section_instance > 0`:
+
+1. Find the Repeat rule in effect at `respondents.first_access_dt` whose downstream placement is
+   the row's step and section and whose upstream question is a `MULTI_SELECT` or `CHECKBOX_GROUP`.
+   No such rule: both columns stay `-1`.
+2. `question_key` is that upstream question.
+3. `item_key` is the option at position `section_instance` of the question's list, as of the same
+   anchor, ordered by `display_order` and then `select_item_id`: exactly the order
+   `QuestionManager.repeatItems` builds the instances in.
+
+Deriving, rather than storing the option on the answer when the instance is built, was chosen
+because of what it leaves alone:
+
+- No migration of `survey.answers` in either track, and nothing to back-fill.
+- Admin's answer transfer between sites keeps its record layout.
+- **Regeneration reproduces it.** The upgrade drops and rebuilds every survey schema from
+  `survey.answers` (3.5); a value derived from the definition and the anchor comes back the same.
+
+The cost is that the position rule exists twice, in Java and in SQL. Section 8 has the test that
+holds the two together.
+
+**Brownfield.** A V2 database cannot hold a per-option instance: before UC-002 A3b a Repeat reading
+a multi-select failed on the page. Every regenerated row therefore carries `-1` in both columns, and
+the conversion has nothing to convert. It still gets the brownfield run of section 8.
+
+**No warning in Author.** A warning at export when a list that drives a Repeat is reordered was
+considered as a stopgap for sites on a build without these columns, and dropped: V3 has never been
+released, so there is no such site.
 
 ## 4. Admin changes
 
@@ -253,6 +352,14 @@ because reports are rebuilt from answers, but it must be stated in the upgrade p
   table per site"). The warning becomes obsolete and is removed.
 - The `schema-mirror` test copies of Survey's V002/V004/V008 follow the greenfield rewrite.
   `SchemaMirrorFreshnessTest` enforces this.
+- **The two fixed columns (3.6).** A reporting tag named `Question` or `Item` would produce the
+  column `question_key` or `item_key` and collide with them; nothing reserves a tag name today
+  (`ReportingNames`). Either the names are reserved, with a validation finding, or the columns take
+  another name (Q-8). The dimensional-impact preview (UC-024) lists the two columns and their
+  dimensions for a survey that has a Repeat reading a multi-select.
+- **Wording that goes stale.** The author's manual cautions that "the order of the list is part of
+  the survey", and UC-019 BR-007 says the same. With 3.6 a reorder changes the order of a new
+  respondent's pages and nothing in reporting; both are reworded to say that.
 - `db-init/V0.0.4__CREATE_AUTHOR_DATABASE.sql:22-33` keeps creating `surveyreport` (still the
   common schema).
 - The preview Survey can keep `elicit.etl.enabled=false`, but for a new reason: the collision is
@@ -271,6 +378,7 @@ must follow in the same release.
 | Indexes | `db/migration/V0.0.6__Add_Performance_Indexes.sql`, both tracks | on greenfield `surveyreport.fact_sections` no longer exists, so this migration **would fail**. The greenfield copy is rewritten to the indexes on `survey` tables only (FHHS `db/migration` is unreleased). The upgrade track needs an FHHS migration ordered before Survey's drop, or `IF EXISTS` guards. The fact-table indexes move into Survey's per-schema template (3.3) |
 | The old union view | V0.0.3 / V0.0.7 (`migration-v3`) | unchanged; they create and then drop it before Survey's drop runs |
 | Tests | `db/test/V0.0.0.1__TEST_BOOTSTRAP.sql:55,573-623,710` (and `test-legacy`), `CancerHistoryRepositoryTest.java:31,96`, `ManualSchemaMigratorUpgradeTest.java:124` | the bootstrap creates a survey schema and sets `report_schema`; the test asserts the resolved qualifier |
+| The two new columns (3.6) | `fact_sections_view` gains `question` and `item` | none: FHHS selects its columns by name, and the Family History Survey has no Repeat reading a multi-select, so every one of its rows carries "no value" in both |
 
 FHHS is on `V3` locally while Survey and Admin are on `i18n`. The merge the user plans first puts
 all four repositories on one line before any of this starts.
@@ -285,6 +393,8 @@ all four repositories on one line before any of this starts.
 | `DeploymentScript.md` | the upgrade step: what the `migration-v3` migration drops, that the next startup regenerates, and that extracts must be re-pulled |
 | `docs/research/faceted_exploration.md` §5.1 | the two open items (naming key, migrate vs regenerate) are answered here |
 | `docs/research/default_reports.md` G-3 | points here |
+| `docs/research/faceted_exploration.md` G6, E6 | a section repeated per selected option is one fact row per option with `item` as its value: the multi-select split E6 asks for, for the questions an author chooses to repeat on. G6 gains it as the third way to model a multi-choice |
+| `samples/README.md`, `samples/generate-census-household-survey.py` | the census survey's per-language repeat is a repeated *question*, which 3.6 does not cover; say so where the sample explains why it is untagged |
 
 ## 8. Verification
 
@@ -294,8 +404,11 @@ all four repositories on one line before any of this starts.
 | Rename test | `ALTER SCHEMA` plus the column update; views still answer; an invalid or taken name is refused and nothing changes |
 | `fact_respondents` view | status moves Not Started → In Progress → Finished without any build; a `created_dt` in 2031 still appears |
 | Greenfield (`resetDatabase.sh V3`), import FHHS then a second survey, finish one respondent in each | two schemas; FHHS reports unchanged; the default reports' prerequisite holds |
-| Brownfield (`resetDatabase.sh V2`) | the upgrade drop runs, startup regenerates, FHHS reports match the pre-upgrade output for the same respondents (required: FHHS changes always get a brownfield run) |
+| Brownfield (`resetDatabase.sh V2`) | the upgrade drop runs, startup regenerates, FHHS reports match the pre-upgrade output for the same respondents (required: FHHS changes always get a brownfield run). Every regenerated row carries `-1` in `question_key` and `item_key` (3.6) |
 | Import order | the second survey imported first: FHHS still reports, because nothing depends on id 1 |
+| Per-option repeat, `@QuarkusTest` (3.6) | a respondent selects the second and fourth options and finishes: two fact rows, `section_instance` 2 and 4, each with the question and **the option whose text titled that instance at runtime**. This is the test that holds the SQL position rule to the Java one |
+| Reorder across a revision (3.6) | respondent A finishes; the list is reordered and the definition applied again; respondent B selects the same option and finishes. The two rows have different `section_instance` and **the same `item_key`**; a count-driven repeat and a step shown per free-text answer in the same survey carry `-1` in both columns |
+| Regenerate (3.6) | drop the survey schema and rebuild from `survey.answers`: both respondents' rows come back with the same question and option |
 | Author e2e and multisite | the preview instance still starts; `DesignerPage.java:38`'s unique-name workaround can stay but is no longer needed |
 
 ## 9. Research questions
@@ -322,23 +435,33 @@ all four repositories on one line before any of this starts.
 7. **Q-7 Rename and concurrency.** A rename during a finish: the per-respondent ETL reads
    `report_schema` at the start of its transaction. Confirm the rebuild lock, or a row lock on the
    survey, covers it.
+8. **Q-8 The two column names.** `question_key` and `item_key` are the names agreed, and a tag
+   named `Question` or `Item` would claim the same column (section 5). Reserve the two tag names in
+   Author and in the ETL's identifier check, or name the columns so no tag can produce them?
+9. **Q-9 Two Repeat rules on one section.** Step 1 of 3.6 assumes one Repeat rule reading a
+   multi-select reaches a given placement. Confirm that Author's rules make a second one
+   impossible, or define which wins.
+10. **Q-10 `dim_item.value`.** Tag dimensions hold `lower(trim(coded_value))`. Should `dim_item`
+    match that for consistency in the view, with the display text beside it as the label a report
+    shows, or lead with the display text? Either way the label is base-language only (C-024).
 
 ## 10. Plan
 
 All work starts **after `i18n` is merged into `V3`**, on a branch per repository cut from the
 merged line, with one PR per repository. AIUP docs come first in each:
 - **Survey:** UC-008 (rebuild reporting schema) rewritten for per-survey, a new UC for rename, and
-  `entity_model.md`.
+  `entity_model.md`. UC-008 also takes the rule of 3.6, and UC-002 BR-012 a sentence pointing at
+  it.
 - **Admin:** FR-027 and a new rename UC.
 - **FHHS:** UC-005.
 - **Author:** the reporting UCs.
 
 | Step | Repo | Content | Done when |
 |---|---|---|---|
-| 1 | Survey | Q-1 fixture; docs; `report_schema` column; ETL parameterized (3.3); schema creation; `fact_respondents` view; greenfield V002/V008 rewrite; `migration-v3` drop migration; build endpoint with `?survey=`; rename endpoint | Survey tests green with two surveys; `buildDockerImages.sh Survey` |
+| 1 | Survey | Q-1 fixture; docs; `report_schema` column; ETL parameterized (3.3); schema creation; `fact_respondents` view; greenfield V002/V008 rewrite; `migration-v3` drop migration; build endpoint with `?survey=`; rename endpoint; `dim_question`, `dim_item` and the two `fact_sections` columns with their fill and the three tests of section 8 (3.6, after `feature/multi-select-repeat` is merged) | Survey tests green with two surveys; `buildDockerImages.sh Survey` |
 | 2 | FHHS | schema lookup; readiness; V0.0.6 both tracks; tests | greenfield **and** brownfield reports match |
 | 3 | Admin | rebuild client passes the key; revoke grant; rename action and UC | apply of a second survey builds only it |
-| 4 | Author | drop the `surveyreport.` qualifier and the cross-survey warning; schema-mirror; preview comment | Author build, including the three-way language check |
+| 4 | Author | drop the `surveyreport.` qualifier and the cross-survey warning; schema-mirror; preview comment; Q-8's outcome, the impact preview and the reworded list-order caution (3.6) | Author build, including the three-way language check |
 | 5 | Umbrella | `CLAUDE.md`, the manual (gated by `check-properties.sh`), UC-005, `DeploymentScript.md`, the two research docs | `buildDockerImages.sh` incl. `Manual` |
 | 6 | All | greenfield, brownfield, import-order and e2e runs of section 8 | all pass |
 
