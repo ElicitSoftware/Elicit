@@ -153,10 +153,12 @@ docker exec elicit-db-1 psql -U survey -d survey \
 schema name is site-local (not in the `.elicit`) and can be changed afterwards with
 `POST /api/etl/schema/<key>/rename?name=<new>` on Survey; nothing in Elicit hard-codes it.
 
-FHHS is specific to that survey (FHHS UC-005). Until it is imported, FHHS starts, logs one
-WARN naming the survey key and the import to perform, reports **not-ready** on
-`/q/health/ready`, and answers report requests with 503 carrying the same message. It goes
-healthy by itself on the next probe after the import; nothing needs restarting. Admin
+FHHS is specific to that survey (FHHS UC-005). Until it is imported **and built** (its
+`report_schema` set by the apply), FHHS starts, logs one WARN naming the survey key and what
+to do — the import, or the build if the survey is there but has no schema yet — reports
+**not-ready** on `/q/health/ready`, and answers report requests with 503 carrying the same
+message. It resolves the schema name from `survey.surveys.report_schema` on every request and
+goes healthy by itself on the next probe after the apply; nothing needs restarting. Admin
 depends on FHHS with `service_started`, not `service_healthy`, so Admin comes up either
 way and the import is always reachable. `deploy.sh` (`up -d`, then restart Survey) is only
 needed on a stack whose survey was seeded before this change.
