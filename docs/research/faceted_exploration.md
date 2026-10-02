@@ -205,8 +205,11 @@ platform changes of section 5 (**P**).
   values is navigated by find, not by browsing. **T**.
 - **G6 — Do not tag a MULTI_SELECT or CHECKBOX_GROUP for its answer.** The comma-joined string
   becomes one dimension member per *combination*, in unstable order. Model a multi-choice as one
-  CHECKBOX per option (each a boolean tag), or as a repeating entity. *Why:* section 2.2. **T**
-  (until E6 splits it).
+  CHECKBOX per option (each a boolean tag), as a repeating entity, or — the third way, since
+  2026-10-02 — repeat a *section* once per selected item: each instance is then one `fact_sections`
+  row carrying the item in `item_key` / `fact_sections_view.item` and the question in
+  `question_key` (Survey UC-008 BR-012, `per_survey_reporting_schema.md` 3.6). A repeated
+  *question* gets no such row. *Why:* section 2.2. **T** (until E6 splits the answer itself).
 - **G7 — Never tag free text, dates, email or password questions for their answer.** Free text
   is unbounded (and fails the insert past 255 characters); a password would land a secret in a
   reporting table. Use a constant if the *fact of answering* matters. **T**.
@@ -322,7 +325,10 @@ or regenerated from `survey.answers` by the back-fill (regeneration is far simpl
 for the brownfield `migration-v3` track anyway).
 
 *Answered 2026-10-01 in `per_survey_reporting_schema.md`: a slug stored on `survey.surveys` that a
-site can rename, and regeneration.*
+site can rename, and regeneration. Implemented in Survey on 2026-10-02 (Survey UC-008, UC-010,
+UC-011; V021): the schema is `report_<slug>` on `survey.surveys.report_schema`, `surveyreport`
+keeps only `dim_date` and `dim_status`, and `fact_respondents` became a view rather than an
+ETL-filled table. `survey.dimensions` stays unique site-wide (that doc's Q-4).*
 
 Consumers that move: Survey ETL and its tests; FHHS `CancerHistoryRepository` (reads
 `fact_sections_view` by position) and `V0.0.6__Add_Performance_Indexes.sql`; the authoring tool's
@@ -339,7 +345,7 @@ the grants migration; umbrella `CLAUDE.md`, `DeploymentScript.md`, the installat
 | E3 | **Entity**: `steps.entity`, shared by every step describing the same kind of thing | G1–G2's discipline | the merge grain: all sections of one step instance, and steps sharing an entity, become one row |
 | E4 | `ontology.facet_order` (null = results-only) | G14 | which tags are tabs, in which order; `--tabs` follows |
 | E5 | respondent-level dimensions (department/site) on `fact_respondents` | — | every recordset sliceable per site |
-| E6 | **Multi-select split**: the ETL emits one dimension member per coded value, or the group of E2 | G6 | a CHECKBOX_GROUP becomes a facet group without one CHECKBOX per option |
+| E6 | **Multi-select split**: the ETL emits one dimension member per coded value, or the group of E2. Partly met since 2026-10-02 for the questions an author chooses to repeat a section on: one fact row per selected item with `item` as its value (`per_survey_reporting_schema.md` 3.6) | G6 | a CHECKBOX_GROUP becomes a facet group without one CHECKBOX per option |
 
 (Section 5.5 proposes carrying E1–E4 and E6 as columns of a redesigned role table rather than
 as additions to `ontology` / `dimensions` / `metadata`.) With E1–E4 a generator produces, for

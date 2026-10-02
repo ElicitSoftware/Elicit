@@ -134,17 +134,24 @@ seeded "Testing Department"; the dialog is only seen on a database created after
 change.
 
 The Family History Survey arrives by import: Admin > Apply Survey Definition with
-`FHHS/family-history-survey.elicit`. The apply asks Survey to rebuild the reporting star
-schema (`POST /api/etl/build`), so **no Survey restart is needed** and `surveyreport`
-grows from its six skeleton tables to the full set (18 dimension tables, two fact tables,
-`fact_respondents_view` / `fact_sections_view`) as part of the apply. Confirm with:
+`FHHS/family-history-survey.elicit`. The apply asks Survey to build that survey's reporting
+star schema (`POST /api/etl/build?survey=<key>`), so **no Survey restart is needed**. Every
+survey gets a schema of its own (Survey UC-008): `surveyreport` holds only the shared
+`dim_date` and `dim_status`, and the survey's star — `dim_step`, `dim_section`,
+`dim_question`, `dim_item`, one `dim_<tag>` per reporting tag, `fact_sections`, the
+`fact_respondents` view and the two `*_view`s — is created by the apply in a schema named
+`report_<slug of the survey name>` (`report_family_history_survey` for FHHS) and recorded on
+`survey.surveys.report_schema`. Confirm with:
 
 ```sh
 docker exec elicit-db-1 psql -U survey -d survey \
-  -c "select count(*) from surveyreport.dim_step;"
+  -c "select name, report_schema from survey.surveys;" \
+  -c "select count(*) from report_family_history_survey.dim_step;"
 ```
 
-which must be non-zero (15 for the Family History Survey).
+`report_schema` must be set and the count non-zero (15 for the Family History Survey). The
+schema name is site-local (not in the `.elicit`) and can be changed afterwards with
+`POST /api/etl/schema/<key>/rename?name=<new>` on Survey; nothing in Elicit hard-codes it.
 
 FHHS is specific to that survey (FHHS UC-005). Until it is imported, FHHS starts, logs one
 WARN naming the survey key and the import to perform, reports **not-ready** on

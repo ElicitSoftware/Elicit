@@ -148,13 +148,13 @@ describes the tags as building "the report", section 2.3 proposes renaming them.
 |---|---|---|
 | G-1 | No report mark on any question | Nothing to echo back or to monitor |
 | G-2 | Author exports `reports` with zero rows | An Author-built survey cannot list any report, default or custom |
-| G-3 | `fact_respondents` triggers and ETL filter on `survey_id = 1` (`V002:127,157`, `Sql.java:277,314`) | The star schema cannot be the source for a new survey. Planned in `per_survey_reporting_schema.md` |
+| G-3 | `fact_respondents` triggers and ETL filter on `survey_id = 1` (`V002:127,157`, `Sql.java:277,314`) | The star schema cannot be the source for a new survey. **Fixed in Survey on 2026-10-02** (`per_survey_reporting_schema.md`): every survey has its own `report_<slug>` schema, filled by the ETL for every survey |
 | G-4 | Eager answer rows | "Presented" is only sound for finished respondents |
 | G-5 | Defaulted questions get `saved_dt`; false checkbox is NULL | "Answered" is wrong for both types |
 | G-6 | Deleted rows purged on Finish | Cannot report "shown, then hidden by a changed answer" |
 | G-7 | No last-activity timestamp | Cannot tell an active In Progress respondent from an abandoned one |
 | G-8 | No withdrawn/expired state; `deactivate()` sets `finalized_dt` | A future withdraw would be counted as Finished |
-| G-9 | Two definitions of duration | Admin and the star schema would disagree |
+| G-9 | Two definitions of duration | Admin and the star schema would disagree. **Settled 2026-10-02:** the star schema's `fact_respondents` view uses `finalized_dt - first_access_dt`, the same as `Respondent.getElapsedTime()` (Survey UC-008 BR-010); D-6 should keep to it |
 | G-10 | Admin has no dashboard FR/UC, though Admin `vision.md:42-45` lists "progress monitoring dashboards" as in scope | The administrator report needs requirements before code |
 | G-11 | Author calls the star-schema tags "reporting tags" and their columns "report columns", and tells authors to "tag what the report needs" | Once default reports exist, an author will expect tagging a question to put it on a report (section 2.3) |
 
@@ -377,7 +377,9 @@ It has two outputs:
 
 Both default reports query the OLTP tables (`respondents`, `answers`, `report_items`) directly, not
 the star schema, unlike FHHS (section 1.1). There are three reasons:
-- **G-3:** the ETL fills the star schema only for survey 1, so it is empty for a new survey today.
+- **G-3:** the ETL filled the star schema only for survey 1 when this was written. Fixed on
+  2026-10-02 (`per_survey_reporting_schema.md`): a new survey now gets its own schema on apply.
+  The two reasons below still hold, so the default reports stay on the OLTP tables.
 - **Marks are not tags.** The star schema has a column only for a *tagged* question, while a report
   mark is independent of tagging (section 1.4).
 - **The star schema keeps values, not presentation.** It stores the value or tag constant per

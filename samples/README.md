@@ -27,7 +27,10 @@ role-played by a respondent tag and a household-member tag (`Age` / `Member Age`
 scope and reporting the answer. Race (a CHECKBOX_GROUP) and Languages (a MULTI_SELECT) are
 deliberately untagged — a multi-choice answer is stored comma-joined and would report every
 combination as one value — and free text, dates, the rent amount and contact details are never
-tagged. Step and section `dimension_name`s are set explicitly: `Household Member` for the
+tagged. The speakers question repeated once per language is a repeated *question*, so its
+instances share one fact row and nothing names the language in reporting; only a *section*
+repeated per selected item gets the `question` / `item` columns of
+`docs/research/per_survey_reporting_schema.md` 3.6. Step and section `dimension_name`s are set explicitly: `Household Member` for the
 per-member step, whose display name is a token phrase, and a `Census` prefix on the rest so they
 cannot collide with another survey's `Welcome` on the same site.
 
