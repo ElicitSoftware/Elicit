@@ -208,7 +208,7 @@ platform changes of section 5 (**P**).
   CHECKBOX per option (each a boolean tag), as a repeating entity, or — the third way, since
   2026-10-02 — repeat a *section* once per selected item: each instance is then one `fact_sections`
   row carrying the item in `item_key` / `fact_sections_view.item` and the question in
-  `question_key` (Survey UC-008 BR-012, `per_survey_reporting_schema.md` 3.6). A repeated
+  `question_key` (Survey UC-008 BR-012). A repeated
   *question* gets no such row. *Why:* section 2.2. **T** (until E6 splits the answer itself).
 - **G7 — Never tag free text, dates, email or password questions for their answer.** Free text
   is unbounded (and fails the insert past 255 characters); a password would land a secret in a
@@ -324,7 +324,7 @@ and stored on `survey.surveys` gives both), and whether the existing `surveyrepo
 or regenerated from `survey.answers` by the back-fill (regeneration is far simpler and must exist
 for the brownfield `migration-v3` track anyway).
 
-*Answered 2026-10-01 in `per_survey_reporting_schema.md`: a slug stored on `survey.surveys` that a
+*Answered 2026-10-01, implemented as Survey UC-008 BR-006: a slug stored on `survey.surveys` that a
 site can rename, and regeneration. Implemented in Survey on 2026-10-02 (Survey UC-008, UC-010,
 UC-011; V021): the schema is `report_<slug>` on `survey.surveys.report_schema`, `surveyreport`
 keeps only `dim_date` and `dim_status`, and `fact_respondents` became a view rather than an

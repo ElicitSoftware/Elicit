@@ -173,7 +173,7 @@ describes the tags as building "the report", section 2.3 proposes renaming them.
 |---|---|---|
 | G-1 | No report mark on any question | Nothing to echo back or to monitor |
 | G-2 | Author exports `reports` with zero rows | An Author-built survey cannot list any report, default or custom. The Reports page that closes this (section 2.2) is also where the default row is seeded (section 2.4) |
-| G-3 | `fact_respondents` triggers and ETL filter on `survey_id = 1` (`V002:127,157`, `Sql.java:277,314`) | The star schema cannot be the source for a new survey. **Fixed in Survey on 2026-10-02** (`per_survey_reporting_schema.md`): every survey has its own `report_<slug>` schema, filled by the ETL for every survey |
+| G-3 | `fact_respondents` triggers and ETL filter on `survey_id = 1` (`V002:127,157`, `Sql.java:277,314`) | The star schema cannot be the source for a new survey. **Fixed in Survey on 2026-10-02** (Survey UC-008): every survey has its own `report_<slug>` schema, filled by the ETL for every survey |
 | G-4 | Eager answer rows | "Presented" is only sound for finished respondents |
 | G-5 | Defaulted questions get `saved_dt`; false checkbox is NULL | "Answered" is wrong for both types |
 | G-6 | Deleted rows purged on Finish | Cannot report "shown, then hidden by a changed answer" |
@@ -449,7 +449,7 @@ It has two outputs:
 Both default reports query the OLTP tables (`respondents`, `answers`, `report_items`) directly, not
 the star schema, unlike FHHS (section 1.1). There are three reasons:
 - **G-3:** the ETL filled the star schema only for survey 1 when this was written. Fixed on
-  2026-10-02 (`per_survey_reporting_schema.md`): a new survey now gets its own schema on apply.
+  2026-10-02 (Survey UC-008): a new survey now gets its own schema on apply.
   The two reasons below still hold, so the default reports stay on the OLTP tables.
 - **Marks are not tags.** The star schema has a column only for a *tagged* question, while a report
   mark is independent of tagging (section 1.4).
