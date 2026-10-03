@@ -345,7 +345,7 @@ the grants migration; umbrella `CLAUDE.md`, `DeploymentScript.md`, the installat
 | E3 | **Entity**: `steps.entity`, shared by every step describing the same kind of thing | G1–G2's discipline | the merge grain: all sections of one step instance, and steps sharing an entity, become one row |
 | E4 | `ontology.facet_order` (null = results-only) | G14 | which tags are tabs, in which order; `--tabs` follows |
 | E5 | respondent-level dimensions (department/site) on `fact_respondents` | — | every recordset sliceable per site |
-| E6 | **Multi-select split**: the ETL emits one dimension member per coded value, or the group of E2. Partly met since 2026-10-02 for the questions an author chooses to repeat a section on: one fact row per selected item with `item` as its value (`per_survey_reporting_schema.md` 3.6) | G6 | a CHECKBOX_GROUP becomes a facet group without one CHECKBOX per option |
+| E6 | **Multi-select split**: the ETL emits one dimension member per coded value, or the group of E2. Partly met since 2026-10-02 for the questions an author chooses to repeat a section on: one fact row per selected item with `item` as its value (Survey UC-008 BR-012) | G6 | a CHECKBOX_GROUP becomes a facet group without one CHECKBOX per option |
 
 (Section 5.5 proposes carrying E1–E4 and E6 as columns of a redesigned role table rather than
 as additions to `ontology` / `dimensions` / `metadata`.) With E1–E4 a generator produces, for
