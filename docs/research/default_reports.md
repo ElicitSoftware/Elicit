@@ -21,6 +21,9 @@
 > **Constraint (2026-10-03):** the `.elicit` export keeps its `reports:` lines, one per
 > `survey.reports` row, whatever Author does to model them (section 2.4).
 >
+> **Required (2026-10-03):** a survey with no `survey.reports` rows shows no "Generate PDF" button
+> and sends the respondent straight to its post-survey URL (G-14, D-16, phase 1).
+>
 > **Scope:** the reports are for new, generic surveys. FHHS is out of scope. It appears only as the
 > existing example of a survey-specific report service (section 1.1), and nothing proposed here
 > replaces or changes it.
@@ -212,6 +215,7 @@ describes the tags as building "the report", section 2.3 proposes renaming them.
 | G-10 | Admin has no dashboard FR/UC, though Admin `vision.md:42-45` lists "progress monitoring dashboards" as in scope | The administrator report needs requirements before code |
 | G-11 | Author calls the star-schema tags "reporting tags" and their columns "report columns", and tells authors to "tag what the report needs" | Once default reports exist, an author will expect tagging a question to put it on a report (section 2.3) |
 | G-12 | Applying a survey update never removes a `reports` row whose `report_key` has left the file (`SurveyDefinitionUpdateService.java:74-75`) | An author who drops the default report, or a custom one, and republishes does not remove it from a deployed site. The row keeps running until someone deletes it by SQL (section 2.4, D-13) |
+| G-14 | `ReportView` shows "Generate PDF" whatever the row count (`ReportView.java:100-121`) and shows Next only when `post_survey_url` is set (`:136-142`); Finish (`ReviewView.java:155`) and re-login (`MainView.java:142-158,235-241`) always land on it | A survey with no `survey.reports` rows ends on a page holding a PDF button that produces an empty PDF, and with no post-survey URL a page holding nothing at all. **Required 2026-10-03:** with no rows, hide Generate PDF and send the respondent straight to the post-survey URL (D-16) |
 | G-13 | Admin's `ReportRequest` carries only `id` (`report/ReportRequest.java:56`, `ReportingService.java:267`); Survey's carries `id` and `language` (`ReportView.java:175`) | A default respondent report printed from Admin does not know which language to render. FHHS never read the field (section 2.4, D-14) |
 
 ## 2. How an author marks what to report
@@ -317,7 +321,7 @@ The rename is limited to what people see:
 | The `survey/:id/reporting` route, renamed to `survey/:id/analysis` | the `.elicit` table names |
 | Whether "reporting schema" follows is decision D-11. It is now a user-facing term in three modules: Admin's console (`translations.properties:198,202,536-554`, since f19652a), Admin FR-027 / FR-037 / UC-030, Survey UC-008 / 010 / 011, the installation manual and `DeploymentScript.md:113-154`. Admin's `reporting.error.*` strings are about report services, which is already the right meaning | Survey's `etl` package, `/api/etl/build` and `/api/etl/schema` |
 
-The rename belongs in phase 2 (section 8), before or together with the Reports page. That way the
+The rename belongs in phase 3 (section 8), before or together with the Reports page. That way the
 two meanings of "report" never appear side by side in a release.
 
 ### 2.4 Default reports are rows in `survey.reports`
@@ -344,8 +348,11 @@ default. The consequences:
 - **The author decides.** The seeded rows are a starting point, not a fixture. An author can keep
   them, delete them, move them above or below custom rows, or add rows of their own. *Replacing*
   the default is deleting the seeded row and adding a custom one. *Supplementing* it is keeping
-  both. A survey with nothing marked for the respondent report can simply drop the row, and
-  finishes on the same empty page as today.
+  both. A survey with nothing marked for the respondent report can simply drop the row. **A
+  survey with no `survey.reports` rows has no report page** (required 2026-10-03, G-14, D-16):
+  Finish takes the respondent straight to `surveys.post_survey_url`, and "Generate PDF" is never
+  shown, because there is nothing to put in the PDF. Today the page is shown regardless, with the
+  button and, when the URL is set, a Next button.
 - **Author is the only editor.** The rows are authored content, so there is no Admin page for them.
   A site changes a report by republishing the survey. This keeps one source of truth, and the
   `.elicit` already carries the rows. (An Admin editing page was considered and rejected: it would
@@ -355,7 +362,7 @@ default. The consequences:
   not a gap.
 - **Removal must work.** The one missing piece is G-12: the update leaves a row alone when its key
   has gone from the file, so deleting the default report in Author does not yet delete it on a
-  site. Phase 2 closes this (D-13).
+  site. Phase 3 closes this (D-13).
 - **The built-in service's URL cannot name a host.** FHHS's rows carry an absolute, site-specific
   URL (`http://host.docker.internal:8082/proband/report`) that the deployment procedure patches by
   hand (`DeploymentScript.md:269-273`). A row seeded in Author knows nothing about the site that
@@ -422,6 +429,8 @@ contract:
 Every new survey gets the row: Author seeds it on the Reports page, and the author deletes it if the
 survey has nothing to echo back (section 2.4, D-1). If the row stays with no respondent marks, the
 service renders the title, completion date and closing text only, and D-3 decides whether it says so.
+If the author deletes it and lists no other service, the survey skips the report page altogether and
+Finish goes straight to the post-survey URL (G-14, D-16).
 
 ### 3.4 Disclosure
 
@@ -622,6 +631,7 @@ These need an answer from the code or a prototype before requirements are writte
 | D-13 | A `reports` row whose key has left the republished file | delete / retire with an `effective_to` / leave as today | delete: `reports` is a Type 1 table with no history, and leaving it running is G-12 |
 | D-14 | Which language Admin's print asks the respondent report for | the respondent's answering language (`answers.display_language`) / the administrator's UI language / the survey's base language | the respondent's: Admin sends it in `ReportRequest`, and the service falls back to `display_language` when the field is absent (G-13) |
 | D-15 | Name of the Admin view | "Survey Overview" / "Participation" / "Progress" | "Participation": Admin's FR-020 / UC-020 "View System Overview" already owns "overview" |
+| D-16 | A survey with no `survey.reports` rows (required: no PDF button, straight to the post-survey URL) | the two edge cases: (i) re-login by a finished respondent: redirect again / show a completion notice; (ii) no rows **and** no `post_survey_url`: a completion notice with no buttons / refuse such a survey at apply | (i) redirect again, the same rule on every path to `/report`; (ii) a completion notice, since `post_survey_url` is nullable (`V001:46`) and Author cannot require it. Amend Survey UC-004 (Finish) and UC-005 (View Reports) |
 
 ## 8. Plan
 
@@ -631,16 +641,18 @@ spec in the module it touches.
 | Phase | Work | Modules | Verification |
 |---|---|---|---|
 | 0 | Answer the research questions in section 6; settle the D-table | — | this document updated |
-| 1 | Data capture: `presented_dt`, `last_activity_dt`, default/checkbox semantics (section 5), in both migration tracks | Survey | greenfield and brownfield (`resetDatabase.sh V2`) runs; `report_family_history_survey` unchanged for the Family History Survey |
-| 2 | Rename reporting tags to analysis tags in Author's UI, guide, manual and docs (section 2.3, D-11); model `survey.reports` and `report_items` in Author, with the Reports page seeding the default row (section 2.4); teach the three parsers the table and widen the translations constraint (section 5); `.elicit` round-trip; Admin apply deletes unlisted `reports` rows (D-13); report URL resolution (D-12); Admin sends the language (D-14) | Author, Survey (migration), Admin | export, apply and re-export give identical files; a file without `report_items` still applies; a survey republished without the default row no longer lists it after apply; Author's three-way build check |
-| 3 | Respondent report service in Survey; Author preview through the preview Survey (section 2.2) | Survey, Author | `samples/census-household-survey.elicit` (every type, every rule, a count repeat and a per-item repeat) with marks added through its generator, in en, es-419 and ar (RTL); PDF and card match; TC-001's `CensusMultilingualE2ETest` extended to open the report |
-| 4 | Administrator report v1: participation view (D-15), marked questions, tables, PDF/CSV, suppression | Admin | counts reconcile with direct SQL on a seeded survey; department scoping; k-suppression |
-| 5 | v2: charts, drop-off by step, stalled respondents, time per step | Admin | the same seeded survey with In Progress respondents at known steps |
+| 1 | No `survey.reports` rows: hide "Generate PDF", send Finish and re-login straight to `post_survey_url`, completion notice when there is none (G-14, D-16); amend UC-004 and UC-005 first | Survey | the census sample (no reports) finishes on its post-survey URL; the Family History Survey (three rows) still shows its cards and PDF; a survey with neither shows the notice |
+| 2 | Data capture: `presented_dt`, `last_activity_dt`, default/checkbox semantics (section 5), in both migration tracks | Survey | greenfield and brownfield (`resetDatabase.sh V2`) runs; `report_family_history_survey` unchanged for the Family History Survey |
+| 3 | Rename reporting tags to analysis tags in Author's UI, guide, manual and docs (section 2.3, D-11); model `survey.reports` and `report_items` in Author, with the Reports page seeding the default row (section 2.4); teach the three parsers the table and widen the translations constraint (section 5); `.elicit` round-trip; Admin apply deletes unlisted `reports` rows (D-13); report URL resolution (D-12); Admin sends the language (D-14) | Author, Survey (migration), Admin | export, apply and re-export give identical files; a file without `report_items` still applies; a survey republished without the default row no longer lists it after apply; Author's three-way build check |
+| 4 | Respondent report service in Survey; Author preview through the preview Survey (section 2.2) | Survey, Author | `samples/census-household-survey.elicit` (every type, every rule, a count repeat and a per-item repeat) with marks added through its generator, in en, es-419 and ar (RTL); PDF and card match; TC-001's `CensusMultilingualE2ETest` extended to open the report |
+| 5 | Administrator report v1: participation view (D-15), marked questions, tables, PDF/CSV, suppression | Admin | counts reconcile with direct SQL on a seeded survey; department scoping; k-suppression |
+| 6 | v2: charts, drop-off by step, stalled respondents, time per step | Admin | the same seeded survey with In Progress respondents at known steps |
 
 The phases are ordered so that each one is useful on its own:
-- Phase 2 alone lets an author list a custom report.
-- Phase 3 alone gives every respondent a summary.
-- Phase 4 runs on finished respondents even if phase 1 slips.
+- Phase 1 alone fixes today's dead end for every survey without a report service.
+- Phase 3 alone lets an author list a custom report.
+- Phase 4 alone gives every respondent a summary.
+- Phase 5 runs on finished respondents even if phase 2 slips.
 
 Next free ids on 2026-10-03, so the first phase in each module does not collide: Survey FR-030 /
 NFR-014 / UC-012; Admin FR-038 / NFR-018 / C-018 / UC-031; Author FR-068 / NFR-022 / C-027 /
