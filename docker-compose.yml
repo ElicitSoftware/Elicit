@@ -135,6 +135,12 @@ services:
         condition: service_healthy
       survey:
         condition: service_healthy
+      # After Admin, not beside it: on a fresh database FHHS's V0.0.4 and Admin's first
+      # migration grant on the same tables at the same moment and one of them fails with
+      # "tuple concurrently updated" (seen on 2026-10-03 in the multilingual suite's Mexico
+      # site). Admin needs nothing from FHHS at startup, so the dependency runs this way round.
+      admin:
+        condition: service_healthy
       sftpServer:
         condition: service_started
     # volumes:
@@ -229,8 +235,6 @@ services:
         condition: service_healthy
       survey:
         condition: service_healthy
-      fhhs:
-        condition: service_started  # Changed from service_healthy to service_started
       pedigree:
         condition: service_started
 # Test containers
