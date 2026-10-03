@@ -111,6 +111,52 @@ silently corrupt anything.
   the exact file list. Track this as a real follow-up once the rollout is confirmed
   complete — don't let it get pulled into builds forever out of inertia.
 
+### Upgrading to one reporting schema per survey (Survey V021)
+
+Before V021 the reporting star lived in `surveyreport` and worked for exactly one survey, the
+one whose `survey.surveys.id` was 1. Survey V021 gives every survey a star schema of its own
+(Survey UC-008): `surveyreport` keeps only the shared `dim_date` and `dim_status`, and each
+survey's `dim_step`, `dim_section`, `dim_question`, `dim_item`, `dim_<tag>` tables,
+`fact_sections` and views live in a schema named `report_<slug of the survey name>`, recorded on
+`survey.surveys.report_schema`.
+
+On an existing deployment the upgrade is a **drop and regenerate**, not a migration:
+
+1. Survey's `db/migration-v3/V021__Report_Schema_Per_Survey.sql` runs at Survey's first start on
+   the new release. It drops the two `fact_respondents` triggers and their functions, drops
+   every object in `surveyreport` except `dim_date`, `dim_status` and `dim_status_seq` (the
+   fact tables, both views, `dim_step`, `dim_section`, every `dim_<tag>` and their sequences —
+   FHHS's indexes on `fact_sections` go with the table), and adds `surveys.report_schema`.
+2. The same startup then builds every installed survey: names its schema, creates it, and
+   back-fills `fact_sections` from `survey.answers` for every finalized respondent.
+   `fact_respondents` is a view from now on, so it needs no back-fill and no trigger.
+
+What to expect and to tell the people who use the reporting schema:
+
+- **Surrogate ids change.** `fact_sections.id` and every `dim_*.id` are reassigned by the
+  regeneration. An extract or a BI model keyed on them must be pulled again; one keyed on
+  `respondent_id` and the dimension values is unaffected.
+- **The schema name changes.** Queries and BI connections that read
+  `surveyreport.fact_sections_view` must read `<report_schema>.fact_sections_view` instead —
+  for the Family Health History Survey, `report_family_history_survey`. Look the name up on
+  `survey.surveys.report_schema`; it is site-local and can be renamed afterwards
+  (`POST /api/etl/schema/<key>/rename?name=` on Survey), and nothing inside Elicit hard-codes
+  it (FHHS resolves it at query time).
+- **Two columns are now correct that were not.** `fact_sections.step_key` and `section_key`
+  held display orders; they now hold the dimension ids as of the respondent's first access, so
+  `section` in the view names the right section for every row, not only a step's first.
+- **The drop and the regeneration are not one transaction.** A Survey start that fails after
+  V021 ran (a build error, a crash) leaves the site with no reporting tables until a build
+  succeeds. Nothing is lost — every row is rebuilt from `survey.answers`, and a restart or
+  `POST /api/etl/build` completes it — but report consumers see empty results until then.
+  Take the usual pre-upgrade backup and upgrade outside reporting hours.
+- **Order.** As for the Kimball upgrade above, Survey must finish starting before FHHS and
+  Admin on the shared database. FHHS's greenfield `V0.0.6` no longer creates indexes on
+  `surveyreport.fact_sections`; the fact-table indexes are created per survey schema by Survey.
+- **Preview instances.** An instance running with `elicit.etl.enabled=false` (Author's
+  preview) builds nothing and holds no schema; leave it so.
+- **Rollback**: none. Recovery is the pre-upgrade backup.
+
 ### Upgrading to access codes
 
 The credential a respondent enters to reach a survey used to be called a "token". It is now the

@@ -1,6 +1,21 @@
 # One Reporting Schema per Survey: Removing the Survey-1 Restriction
 
-> **Status (2026-10-01):** Research plan, nothing implemented. The reporting star schema (the
+> **Status (2026-10-02):** **Step 1 (Survey) is implemented** on
+> `Survey:feature/per-survey-reporting-schema` (cea623b, a51d9ad): UC-008 rewritten, UC-010
+> (rename) and UC-011 (drop) new, V021 on both tracks, every `Sql.java` statement a template over
+> the survey's schema, `fact_respondents` a view, the two per-item columns of 3.6, 547 Survey
+> tests green. Steps 2-5 (FHHS a9c6850, Admin f19652a, Author d4fda83, umbrella 606c0d4) were
+> done the same day on branches of the same name, each module's suite green. Step 6, the same
+> day: images rebuilt from the branches; **greenfield** (`Author/resetDatabase.sh V3`, `e2e-tests`
+> 4/4) gave `report_family_history_survey` (22 tables, 15 `dim_step`) and the e2e survey its own
+> schema with no `dim_step_un` warning; **brownfield** (`V2`, `e2e-tests` 4/4) ran V021 on the V2
+> history (FHHS's history was already past V0.0.6, so Q-6's risk did not arise), dropped the
+> triggers and the old star, regenerated 131 fact rows for the 3 pre-upgrade finished respondents
+> with step and section keys resolving to the right names and `-1` in both per-item columns, and
+> FHHS went UP. The two multi-site suites were not run. Nothing is pushed or merged yet. The
+> questions of section 9 that the Survey code decided are marked answered there.
+>
+> **As found on 2026-10-01:** the reporting star schema (the
 > Kimball schema Survey's ETL builds from a survey's reporting tags) works for **exactly one
 > survey: the one whose `survey.surveys.id` is 1**. Every other survey's finished respondents
 > get dimension values but no facts. Their step and section names collide with survey 1's in
@@ -35,12 +50,22 @@
   finds.
 - Two triggers on `survey.respondents` keep `fact_respondents` current.
 
-Supporting several surveys was never designed in. The single-survey assumption survives in four
+Supporting several surveys was never designed in. The single-survey assumption survives in five
 forms:
 1. **Hard-coded guards.** `survey_id = 1` appears in both triggers and in two ETL queries.
 2. **Unscoped queries.** Most ETL statements read every survey's tags and steps.
 3. **Site-wide uniqueness.** `dim_step` and `dim_section` are unique on `value` across the site.
 4. **Shared structure.** One `fact_sections` and one `fact_sections_view` serve the whole site.
+5. **Display orders as keys** (found while implementing, 2026-10-02). `INSERT_MISSING_FACT_SECTION_SQL`
+   wrote `answers.step` and `answers.section` — the step's display order and the section's display
+   order *within the step* — straight into `fact_sections.step_key` and `section_key`, whose foreign
+   keys point at `dim_step.id` and `dim_section.id`. `step_key` was right only while a step's
+   surrogate id equaled its display order (true for a first survey whose steps were inserted in
+   order, never for a second survey, whose ids start where the first one's end). `section_key` was
+   right only for the first section of a step: every other section's row pointed at whatever
+   section held that low id, so `fact_sections_view.section` named the wrong section for them.
+   FHHS never noticed because it reads `step` and the tag columns, not `section`. Survey UC-008
+   BR-011 now resolves both to the dimension ids as of the respondent's anchor.
 
 Removing the guards alone would turn (2)–(4) from latent bugs into live ones. The fix is
 structural: each survey's star lives in its own schema, and every statement names that schema.
@@ -494,9 +519,14 @@ all four repositories on one line before any of this starts.
 1. **Q-1 Multi-survey fixture.** Survey's test data has one survey (`V9005*`, "Library Card
    Registration"). Build a second, small survey fixture with deliberately overlapping names before
    touching `Sql.java`, so the failure is reproduced first.
-2. **Q-2 Transaction boundaries.** Is each per-survey build one transaction (DDL is transactional
-   in PostgreSQL), or does the startup log-and-continue per step as today? Prefer one transaction
-   per survey, so a half-built schema never exists.
+2. **Q-2 Transaction boundaries.** Answered by the Survey code (2026-10-02): each step of a
+   survey's build commits on its own, as before, and the startup and the all-surveys build log a
+   failed survey and continue with the next (UC-008 A2, A7). A half-built schema can therefore
+   exist, but every step only creates what is missing, so the next build completes it; the
+   schema's creation itself (schema, grants, fixed tables) is one `IF NOT EXISTS` script in one
+   transaction. One transaction per survey was not done: the step methods are the
+   `@Transactional` units the rebuild lock serializes, and a failure message per step is what an
+   operator acts on.
 3. **Q-3 Survey deletion.** Answered. Author can delete a survey (UC-047) and its schema is
    dropped with it (3.7, the sixth decision). Admin cannot: it has no use case and no code that
    deletes a survey, so a site's schemas are never removed. If Admin gains one, it calls the same
@@ -505,35 +535,47 @@ all four repositories on one line before any of this starts.
    schemas they no longer *need* to be, but making `dimensions` per survey touches `survey` DDL,
    Author and the `.elicit` format. Confirm it can stay out of this change and remain
    `faceted_exploration.md` §5.5 work.
-5. **Q-5 `dim_date`.** Extend it to 2100 in the common schema, or generate missing years on
-   demand during a build? Either way, the `LEFT JOIN` in 3.4 stops a missing year from hiding a
-   respondent.
+5. **Q-5 `dim_date`.** Answered for now (2026-10-02): `dim_date` is not extended; the
+   `fact_respondents_view` of every survey joins it with `LEFT JOIN` (UC-008 BR-010), so a date
+   outside 2020-2029 gives a null label and never hides a respondent, and the triggers that failed
+   on it are gone. Extending the table to 2100 remains open as a small follow-up in the common
+   schema.
 6. **Q-6 Flyway ordering across modules.** Survey, Admin and FHHS each run their own history
    table against the same database at startup. Admin's revoke and FHHS's index migration must not
    run after Survey's drop and fail on a missing table. Verify with `IF EXISTS` everywhere, or
    make Survey's upgrade migration tolerate dependents.
-7. **Q-7 Rename and concurrency.** A rename during a finish: the per-respondent ETL reads
-   `report_schema` at the start of its transaction. Confirm the rebuild lock, or a row lock on the
-   survey, covers it.
-8. **Q-8 The two column names.** `question_key` and `item_key` are the names agreed, and a tag
-   named `Question` or `Item` would claim the same column (section 5). Reserve the two tag names in
-   Author and in the ETL's identifier check, or name the columns so no tag can produce them?
-9. **Q-9 Two Repeat rules on one section.** Step 1 of 3.6 assumes one Repeat rule reading a
-   multi-select reaches a given placement. Confirm that Author's rules make a second one
-   impossible, or define which wins.
-10. **Q-10 `dim_item.value`.** Tag dimensions hold `lower(trim(coded_value))`. Should `dim_item`
-    match that for consistency in the view, with the display text beside it as the label a report
-    shows, or lead with the display text? Either way the label is base-language only (C-024).
+7. **Q-7 Rename and concurrency.** Answered (2026-10-02): the rename, the drop and every build
+   take the same in-process rebuild lock (UC-008 BR-005, UC-010 step 2, UC-011 BR-002). The
+   finalize-time load does not take it; it reads `report_schema` at the start of its own
+   transaction, so a load that started before a rename finishes against the old name
+   (PostgreSQL resolves the rename by object id, so the writes land) and the next one sees the
+   new name (UC-010 Notes).
+8. **Q-8 The two column names.** Answered (2026-10-02): the names stay `question_key` and
+   `item_key`, and the tag names are reserved. Survey's build refuses a survey whose ontology has a
+   tag that would produce `step_key`, `section_key`, `question_key` or `item_key` (UC-008 BR-012,
+   `Sql.FIND_RESERVED_TAGS_SQL`), failing with the tag named rather than silently reusing a fixed
+   column. Author should report the same four names as a validation finding before export (step
+   4).
+9. **Q-9 Two Repeat rules on one section.** Answered in the ETL (2026-10-02): the fill query
+   takes one rule per fact row (`SELECT DISTINCT ON (fact_id)`, the first by fact id), so a second
+   Repeat reading another multi-select onto the same placement never produces two values and
+   never fails the build. Which of the two wins is not defined; whether Author forbids the second
+   rule is still Author's to confirm (step 4).
+10. **Q-10 `dim_item.value`.** Answered (2026-10-02): `dim_item.value` is
+    `lower(trim(coded_value))`, as every tag dimension's value is, so `fact_sections_view.item`
+    reads like the tag columns beside it; `display_text` (base language only, C-024),
+    `list_name` and `display_order` sit beside it as attributes for a report to show.
 11. **Q-11 The preview's ETL.** Answered (the user's, 2026-10-02): `elicit.etl.enabled` stays off
     for `author-survey` in this change. It is expected to be turned on when the reporting work
     starts (the default reports, the faceted browser), because that work has to model the real
     system: the star a site builds from the same definition. Until then 3.7 is a guard that never
     fires. Once it is on, every previewed draft gets a schema until it is deleted (3.7), and a
     survey renamed in Author keeps its first slug (3.1); both are to be looked at again then.
-12. **Q-12 Who may call the drop.** The endpoint exists on every Survey and Survey's REST
-    endpoints have no authentication (3.7). Put it behind a property that is off by default and
-    on only for `author-survey`, as `accessCode.autoRegister` is? That adds a Survey property to
-    the installation manual's configuration reference.
+12. **Q-12 Who may call the drop.** Answered (2026-10-02): `elicit.etl.drop.enabled`, a Survey
+    property, `false` by default; `DELETE /api/etl/schema/<key>` answers 403 while it is off
+    (UC-011 BR-001, A2). The Author stack's compose sets it `true` on `author-survey`. The
+    installation manual's configuration reference lists it with the advice to leave it off at a
+    site.
 13. **Q-13 A build between the drop and the delete.** After step 2 of 3.7 the survey still exists
     with a null `report_schema`. A preview respondent finishing in that window is harmless (3.3:
     no schema, log and return), but a startup or a `POST /api/etl/build` would create the schema

@@ -125,9 +125,10 @@ reach it.
 \subsection{What they share}
 
 \begin{itemize}
-  \item \textbf{One PostgreSQL cluster.} A site's survey database carries two schemas,
-        \val{survey} and \val{surveyreport}. Survey, Admin and FHHS all connect
-        to it.
+  \item \textbf{One PostgreSQL cluster.} A site's survey database carries the
+        \val{survey} schema, the common reporting schema \val{surveyreport}, and one
+        reporting schema per installed survey, which Survey creates itself. Survey, Admin
+        and FHHS all connect to it.
   \item \textbf{One identity provider.} Admin authenticates against its own OIDC client.
         Survey authenticates no one — a respondent enters an access code, which is not a
         credential in the identity provider.
@@ -285,13 +286,20 @@ GRANT dbuser TO surveyreport_user;
 \begin{elicitcaution}[The schema owner is a superuser here]
 The role script creates \val{elicit_owner} as a superuser because that is the role the
 modules' migrations are tested against. A site whose policy forbids a superuser login role
-can narrow it — the migrations need to create and alter objects in the two schemas, and
-nothing outside them — but a narrowed role is yours to verify against your release.
+can narrow it — the migrations need to create and alter objects in the \val{survey} and
+\val{surveyreport} schemas, and Survey needs to create one schema per installed survey in
+the database (which is why \val{CREATE ON DATABASE} below is required, not a courtesy) and
+to own and alter what it puts there — but a narrowed role is yours to verify against your
+release.
 \end{elicitcaution}
 
 \subsection{The site's survey database}
 
-Create the database, then run this inside it.
+Create the database, then run this inside it. \val{surveyreport} is the common reporting
+schema: it holds only the date and status dimensions every survey shares. Each survey's own
+star schema (named \val{report\_\ldots} after the survey, recorded on
+\val{survey.surveys.report\_schema}) is created by Survey when the survey is first built, not
+here; the \val{CREATE ON DATABASE} grant is what lets it.
 
 \begin{elicitsql}
 GRANT CONNECT, CREATE ON DATABASE survey TO dbowner;
@@ -545,9 +553,13 @@ Surveys arrive by import. There is no seeded survey to find.
         \file{FHHS/family-history-survey.elicit}.
   \item The console installs the survey the first time and updates it in place afterwards,
         matching elements by their keys.
-  \item As part of the apply, the console asks Survey to rebuild the reporting star schema.
-        The \val{surveyreport} schema grows from its six skeleton tables to the full set of
-        dimension tables, fact tables and views.
+  \item As part of the apply, the console asks Survey to build the reporting star schema
+        of the survey just applied. Survey creates a schema of the survey's own, named
+        \val{report\_} followed by the survey's name in lower case (for the Family Health
+        History Survey, \val{report\_family\_history\_survey}), records the name on
+        \val{survey.surveys.report\_schema}, and fills it with the dimension tables, the fact
+        table and the views. \val{surveyreport} itself keeps only the shared date and status
+        dimensions.
 \end{enumerate}
 
 \begin{elicitnote}[No Survey restart is needed]
@@ -569,11 +581,16 @@ that the reporting schema was rebuilt — which is why no Survey restart is need
 
 \begin{elicitcmd}
 docker exec elicit-db-1 psql -U survey -d survey \
-  -c "select count(*) from surveyreport.dim_step;"
+  -c "select name, report_schema from survey.surveys;" \
+  -c "select count(*) from report_family_history_survey.dim_step;"
 \end{elicitcmd}
 
-The count must be non-zero. The fact tables stay empty until respondents exist; they fill
-through triggers on \val{survey.respondents} as respondents progress.
+\val{report\_schema} must be set and the count non-zero. The fact table stays empty until
+respondents finish; \val{fact\_respondents} is a view over \val{survey.respondents}, so it
+follows every respondent as they progress. The schema name is site-local — it is never
+carried in a definition file — and a site may change it afterwards with
+\val{POST /api/etl/schema/<survey key>/rename?name=<new name>} on Survey; queries outside
+Elicit that name the old schema then have to change, nothing inside Elicit does.
 
 If your site runs FHHS, it has been reporting not-ready and answering report requests with
 \val{503} until now, naming the survey it is waiting for. It goes healthy by itself on its
@@ -684,8 +701,13 @@ metrics and traces. \\
 than only one the console issued. The compose file sets \val{true} for evaluation. A site
 delivering real surveys must leave it \val{false}. \\
 \opt{elicit.etl.enabled} & \val{true} & \chgmay & Whether this instance builds the reporting
-star schema at startup and updates it when a respondent finalizes. Set \val{false} only on an
-instance that merely renders surveys and that nothing reports on. \\
+star schema of every installed survey at startup and updates it when a respondent finalizes.
+Set \val{false} only on an instance that merely renders surveys and that nothing reports
+on. \\
+\opt{elicit.etl.drop.enabled} & \val{false} & \chgmay & Whether \val{DELETE
+/api/etl/schema/<key>} may drop a survey's reporting schema. Leave it \val{false} at a site:
+the next build would regenerate the schema with new surrogate ids, which breaks any extract
+keyed on them. Only a database that holds no reporting anyone depends on turns it on. \\
 \opt{elicit.diagnostics.startup.enabled} & \val{true} & \chgmay & Whether the startup
 diagnostics report is written to the log. \\
 \opt{elicit.diagnostics.startup.delay} & \val{10s} & \chgmay & How long after startup that
@@ -1164,8 +1186,9 @@ In order, because each check depends on the one before it.
         Survey this is what says its migrations finished.
   \item \textbf{The schema exists.} The \val{survey} schema carries tables, and both
         migration histories are present.
-  \item \textbf{The reporting schema is built.} After a definition is applied,
-        \val{surveyreport.dim_step} is non-zero (Chapter~\ref{sec:definition}).
+  \item \textbf{The reporting schema is built.} After a definition is applied, the survey's
+        \val{report\_schema} is set and \val{dim\_step} in that schema is non-zero
+        (Chapter~\ref{sec:definition}).
   \item \textbf{Sign-in works.} Sign in to Admin. A redirect that fails here is almost always
         the identity provider's issuer address (Chapter~\ref{sec:oidc}).
   \item \textbf{The console agrees.} Admin's \ui{System} section reports on the database,

@@ -211,7 +211,8 @@ for n,(us,usq,ds,dss,dsq,op,act,desc,tok,ref,dflt) in enumerate(RULES, start=1):
 # (MULTI_SELECT) are deliberately untagged because a multi-choice answer is stored comma-joined
 # and would report every combination as one value (G6); the per-language speakers count is
 # untagged because it is a question repeated inside one section, several answers to one report
-# column; free text, dates, the rent amount and contact details are never tagged (G7). Tag names are Title Case, no hyphens (G10), and the
+# column — and, being a repeated question rather than a repeated section, it gets no per-item
+# question/item columns either (per_survey_reporting_schema.md 3.6); free text, dates, the rent amount and contact details are never tagged (G7). Tag names are Title Case, no hyphens (G10), and the
 # household member's attributes carry the entity prefix (G12).
 for t in ("dimensions","ontology","metadata"): rows.setdefault(t, [])
 DIMS = ["age","gender"]

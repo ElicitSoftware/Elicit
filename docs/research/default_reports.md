@@ -1,6 +1,6 @@
 # Default Reports: The Respondent Summary and the Administrator Report
 
-> **Status (2026-10-01):** Research plan. Today a survey has **no reports unless somebody writes a
+> **Status (2026-10-02):** Research plan. Today a survey has **no reports unless somebody writes a
 > report service for it**. Every report a respondent or an administrator sees comes from an external
 > HTTP service listed in `survey.reports`, and the only such services that exist are FHHS's, written
 > for the Family History Survey. A new survey built in Author therefore finishes on a page holding
@@ -9,8 +9,13 @@
 > code: a **respondent report**, which echoes back the answers the author marked for it, and an
 > **administrator report**, which counts registered, started and finished respondents and shows,
 > for the questions the author marked, how many respondents were presented each question and how
-> many answered it. Section 4.3 suggests further metrics. Nothing here is implemented, and the
-> decisions listed in section 7 are open.
+> many answered it. Section 4.3 suggests further metrics. Nothing here is implemented, and most of
+> the decisions listed in section 7 are open.
+>
+> **Decided 2026-10-02 (section 2.4):** the respondent report is an ordinary row in `survey.reports`,
+> the same table a custom report service is listed in. Author seeds the standard row(s) into every
+> new survey, and the author can keep, remove, reorder or supplement them with custom services. The
+> administrator report is not such a row, because the report contract is per-respondent.
 >
 > **Scope:** the reports are for new, generic surveys. FHHS is out of scope. It appears only as the
 > existing example of a survey-specific report service (section 1.1), and nothing proposed here
@@ -64,13 +69,33 @@ FHHS plugs in by being listed in `survey.reports`: `/pedigree/report`, `/proband
 answers: `CancerHistoryRepository` selects tag columns from `surveyreport.fact_sections_view` for
 the respondent. That works because `finalize()` runs the per-respondent ETL before `ReportView`
 calls the services, and because FHHS is survey 1, the only survey the ETL handles (G-3). **A
-default report should plug in the same way**, through the contract. Section 4.4 explains why it
-should not read the star schema. It then needs no new rendering, PDF or Admin wiring, and an
-operator can list it, reorder it or remove it alongside a custom one.
+default report plugs in the same way**, through the contract (decided 2026-10-02, section 2.4).
+Section 4.4 explains why it should not read the star schema. It then needs no new rendering, PDF
+or Admin wiring, and an author can list it, reorder it or remove it alongside a custom one.
 
-Author does not model `reports` or `post_survey_actions` yet. Its exporter writes both tables with
-zero rows (`Author/docs/requirements.md:207-210`). An Author-built survey therefore cannot even
-*list* a report today. This is a prerequisite for both reports.
+How the rows are managed today:
+- **No module has a screen for them.** Nothing in Survey, Admin or Author lists, edits, reorders or
+  deletes a `survey.reports` row. Rows arrive only by `.elicit` import (Admin
+  `SurveyDefinitionImportService.insertReport`, `:914-930`) or by SQL. The only documented edit is
+  the manual `UPDATE survey.reports SET url = …` that fixes the host after a deployment
+  (`DeploymentScript.md:268-274`).
+- **Update is an upsert by `report_key`.** Applying a new version of a survey matches rows by key,
+  updates `name`, `description`, `url` and `display_order` in place, and inserts unknown keys
+  (`SurveyDefinitionUpdateService.upsertReport`, `:1203-1236`). The file wins for every row it
+  carries.
+- **Update never deletes.** A row whose key is no longer in the file is left alone (class comment,
+  `:73-74`); `reports` is a Type 1 table with no `effective_to`, so the retire path does not apply
+  either. Removing a report in Author therefore does not remove it from a site that already has it
+  (G-12).
+- **Both callers order by `display_order`** (Survey `Survey.java:90-92`, Admin `Survey.java:195-197`)
+  and the card heading is the row's `name`, translated by `report_key`
+  (`ContentTranslator.java:285`), not the `title` the service returns.
+
+Author does not model `reports` or `post_survey_actions` yet. Its exporter and importer pass the
+rows through as raw SQL (`SurveyDefinitionExporter.java:95-96`, `SurveyDefinitionImporter.java:488-507`),
+so an imported FHHS file round-trips its three rows, but an Author-built survey always exports zero
+rows (`Author/docs/requirements.md:207-210`). An Author-built survey therefore cannot even *list* a
+report today. This is a prerequisite for both reports.
 
 ### 1.2 The respondent lifecycle
 
@@ -147,16 +172,17 @@ describes the tags as building "the report", section 2.3 proposes renaming them.
 | # | Gap | Effect on the reports |
 |---|---|---|
 | G-1 | No report mark on any question | Nothing to echo back or to monitor |
-| G-2 | Author exports `reports` with zero rows | An Author-built survey cannot list any report, default or custom |
-| G-3 | `fact_respondents` triggers and ETL filter on `survey_id = 1` (`V002:127,157`, `Sql.java:277,314`) | The star schema cannot be the source for a new survey. Planned in `per_survey_reporting_schema.md` |
+| G-2 | Author exports `reports` with zero rows | An Author-built survey cannot list any report, default or custom. The Reports page that closes this (section 2.2) is also where the default row is seeded (section 2.4) |
+| G-3 | `fact_respondents` triggers and ETL filter on `survey_id = 1` (`V002:127,157`, `Sql.java:277,314`) | The star schema cannot be the source for a new survey. **Fixed in Survey on 2026-10-02** (`per_survey_reporting_schema.md`): every survey has its own `report_<slug>` schema, filled by the ETL for every survey |
 | G-4 | Eager answer rows | "Presented" is only sound for finished respondents |
 | G-5 | Defaulted questions get `saved_dt`; false checkbox is NULL | "Answered" is wrong for both types |
 | G-6 | Deleted rows purged on Finish | Cannot report "shown, then hidden by a changed answer" |
 | G-7 | No last-activity timestamp | Cannot tell an active In Progress respondent from an abandoned one |
 | G-8 | No withdrawn/expired state; `deactivate()` sets `finalized_dt` | A future withdraw would be counted as Finished |
-| G-9 | Two definitions of duration | Admin and the star schema would disagree |
+| G-9 | Two definitions of duration | Admin and the star schema would disagree. **Settled 2026-10-02:** the star schema's `fact_respondents` view uses `finalized_dt - first_access_dt`, the same as `Respondent.getElapsedTime()` (Survey UC-008 BR-010); D-6 should keep to it |
 | G-10 | Admin has no dashboard FR/UC, though Admin `vision.md:42-45` lists "progress monitoring dashboards" as in scope | The administrator report needs requirements before code |
 | G-11 | Author calls the star-schema tags "reporting tags" and their columns "report columns", and tells authors to "tag what the report needs" | Once default reports exist, an author will expect tagging a question to put it on a report (section 2.3) |
+| G-12 | Applying a survey update never removes a `reports` row whose `report_key` has left the file (`SurveyDefinitionUpdateService.java:73-74`) | An author who drops the default report, or a custom one, and republishes does not remove it from a deployed site. The row keeps running until someone deletes it by SQL (section 2.4, D-13) |
 
 ## 2. How an author marks what to report
 
@@ -201,7 +227,10 @@ The UI follows the reporting-tags pattern rather than inventing a new one:
 - A mark glyph on `QuestionRow` beside the `TagBadge`, with a menu entry to mark or unmark the item
   for either report.
 - The same page models the `survey.reports` rows themselves (closes G-2): name, description, URL,
-  and display order. Each default report is one row whose URL points at the built-in service.
+  and display order, in one list that can be dragged to reorder. A new survey starts with the
+  standard row(s) already in the list (section 2.4). A default row is badged as built-in so an
+  author can tell it from a service somebody wrote, but it is edited, moved and removed like any
+  other row. Adding a row with a custom URL is how a site-specific service such as FHHS's is listed.
 - A preview, rendered from `questions.sample`, so an author sees the summary before publishing.
 
 ### 2.3 Rename reporting tags to analysis tags
@@ -240,6 +269,45 @@ The rename is limited to what people see:
 
 The rename belongs in phase 2 (section 8), before or together with the Reports page. That way the
 two meanings of "report" never appear side by side in a release.
+
+### 2.4 Default reports are rows in `survey.reports`
+
+Decided 2026-10-02. A default report differs from FHHS's report services only in who wrote the
+service. It is listed in the same table, called through the same `ReportRequest`/`ReportResponse`
+contract, ordered by the same `display_order`, named by the same translated `name`, and printed by
+Admin through the same loop. Nothing in `ReportView` or `ReportingService` knows that a row is a
+default. The consequences:
+
+- **Seeding.** Author's Reports page (section 2.2) pre-populates the standard row(s) when a survey
+  is created. Today that is one row, the respondent report of section 3; a future standard
+  per-respondent report would be a second seeded row. The rows travel in the `.elicit` like every
+  other authored table and are inserted by Admin's apply.
+- **The author decides.** The seeded rows are a starting point, not a fixture. An author can keep
+  them, delete them, move them above or below custom rows, or add rows of their own. *Replacing*
+  the default is deleting the seeded row and adding a custom one. *Supplementing* it is keeping
+  both. A survey with nothing marked for the respondent report can simply drop the row, and
+  finishes on the same empty page as today.
+- **Author is the only editor.** The rows are authored content, so there is no Admin page for them.
+  A site changes a report by republishing the survey. This keeps one source of truth, and the
+  `.elicit` already carries the rows. (An Admin editing page was considered and rejected: it would
+  make the rows site-local and force a merge rule on every re-apply.)
+- **The file wins on re-apply.** Admin's update already upserts by `report_key` (section 1.1), so
+  a republished survey restores the authored name, URL and order. This is the intended behavior,
+  not a gap.
+- **Removal must work.** The one missing piece is G-12: the update leaves a row alone when its key
+  has gone from the file, so deleting the default report in Author does not yet delete it on a
+  site. Phase 2 closes this (D-13).
+- **The built-in service's URL cannot name a host.** FHHS's rows carry an absolute, site-specific
+  URL (`http://host.docker.internal:8082/proband/report`) that the deployment procedure patches by
+  hand. A row seeded in Author knows nothing about the site that will apply it, and the default
+  service lives in Survey itself. How the row expresses that is D-12; the leaning is a relative
+  path that each caller resolves against Survey's base URL, which Admin already has as
+  `elicit.survey.url`.
+
+The administrator report (section 4) is **not** a `survey.reports` row. The contract posts one
+respondent's id (`ReportView.java:175`, `ReportingService.java:267`) and both callers run for one
+finished respondent, so a survey-wide aggregate does not fit it. It stays an Admin view (section
+4.4).
 
 ## 3. The respondent report
 
@@ -282,8 +350,9 @@ contract:
 - C-009 forbids *analytics dashboards* in Survey. A per-respondent echo of their own answers is not
   one.
 
-The open question is whether every survey gets the row automatically, or whether Author adds it when
-the survey has at least one respondent mark (D-1).
+Every new survey gets the row: Author seeds it on the Reports page, and the author deletes it if the
+survey has nothing to echo back (section 2.4, D-1). If the row stays with no respondent marks, the
+service renders the title, completion date and closing text only, and D-3 decides whether it says so.
 
 ### 3.4 Disclosure
 
@@ -361,7 +430,9 @@ star schema and BinaryFilter work in `faceted_exploration.md`.
 
 ### 4.4 Where it runs
 
-The administrator report runs **in Admin**, for three reasons:
+The administrator report runs **in Admin**, as a view of its own and not as a `survey.reports` row.
+The report contract is per-respondent (section 2.4), so there is nothing for a survey-wide report to
+plug into. Beyond that, three reasons put it in Admin:
 - Admin's vision already names progress monitoring as in scope (G-10).
 - Admin has department scoping.
 - Admin is the console the coordinator uses.
@@ -377,7 +448,9 @@ It has two outputs:
 
 Both default reports query the OLTP tables (`respondents`, `answers`, `report_items`) directly, not
 the star schema, unlike FHHS (section 1.1). There are three reasons:
-- **G-3:** the ETL fills the star schema only for survey 1, so it is empty for a new survey today.
+- **G-3:** the ETL filled the star schema only for survey 1 when this was written. Fixed on
+  2026-10-02 (`per_survey_reporting_schema.md`): a new survey now gets its own schema on apply.
+  The two reasons below still hold, so the default reports stay on the OLTP tables.
 - **Marks are not tags.** The star schema has a column only for a *tagged* question, while a report
   mark is independent of tagging (section 1.4).
 - **The star schema keeps values, not presentation.** It stores the value or tag constant per
@@ -409,7 +482,9 @@ are small (counts grouped by status, question and option), and an index on
 | Store an explicit `false` for CHECKBOX | Survey | G-5 | A data-semantics change. Check ETL and FHHS readers for `IS NULL` assumptions first |
 | A withdrawn/expired state that does not set `finalized_dt` | Survey + Admin | G-8 | Only needed when a withdraw feature is built. Record the constraint now |
 | Keep deleted rows (or log the event) instead of purging on Finish | Survey | G-6 | Optional; storage cost versus the "answer changed" metric |
-| Model `reports` and `report_items` in Author and the `.elicit` format | Author, Survey (migration), Admin (apply) | G-1, G-2 | Format stays `ELICIT_SURVEY_EXPORT_V1` if the importer tolerates an unknown trailing table. Verify that before choosing |
+| Model `reports` and `report_items` in Author and the `.elicit` format; the Reports page seeds the default row into every new survey | Author, Survey (migration), Admin (apply) | G-1, G-2 | Format stays `ELICIT_SURVEY_EXPORT_V1` if the importer tolerates an unknown trailing table. Verify that before choosing |
+| Remove a `reports` row on update when its `report_key` has left the file | Admin | G-12 | Delete or retire per D-13. Today's update never deletes (`SurveyDefinitionUpdateService.java:73-74`) |
+| Resolve a relative report URL against Survey's base URL in both callers | Survey, Admin | — | Needed by D-12 if the relative-path option is chosen; Admin has `elicit.survey.url` already, Survey needs its own base URL |
 
 ## 6. Research questions
 
@@ -438,7 +513,7 @@ These need an answer from the code or a prototype before requirements are writte
 
 | # | Decision | Options | Leaning |
 |---|---|---|---|
-| D-1 | Is the respondent report on by default? | every survey gets the row / added when the first respondent mark exists | added when marked: a survey with nothing marked shows nothing, as today |
+| D-1 | Is the respondent report on by default? | every survey gets the row / added when the first respondent mark exists | **Settled 2026-10-02:** every new survey gets the standard row(s) from Author's Reports page; the author deletes, reorders or supplements them (section 2.4) |
 | D-2 | One mark table or two? | `report_items` with `report_type` / separate tables | one table |
 | D-3 | Unanswered marked item on the summary | "Not answered" / omit | configurable per survey, default omit |
 | D-4 | Repeat counting | per respondent / per instance | show both; per-instance as the primary figure |
@@ -449,6 +524,8 @@ These need an answer from the code or a prototype before requirements are writte
 | D-9 | Drill-down from a count to respondents | v1 / later | later, with NFR-005 logging |
 | D-10 | Small-cell threshold | fixed 5 / configurable | configurable, default 5 |
 | D-11 | User-facing name for star-schema tags | keep "reporting tags" / "analysis tags" / "data tags" | "analysis tags", changing only user-facing text (section 2.3) |
+| D-12 | How the seeded row names the built-in service | absolute URL patched per site after apply (as FHHS, `DeploymentScript.md:268-274`) / a relative path such as `/api/reports/respondent-summary` that `ReportView` and `ReportingService` resolve against Survey's base URL / a `builtin:` scheme dispatched in-process | relative path: Admin has `elicit.survey.url`, Survey needs one base-URL setting, and custom rows keep working unchanged |
+| D-13 | A `reports` row whose key has left the republished file | delete / retire with an `effective_to` / leave as today | delete: `reports` is a Type 1 table with no history, and leaving it running is G-12 |
 
 ## 8. Plan
 
@@ -459,7 +536,7 @@ spec in the module it touches.
 |---|---|---|---|
 | 0 | Answer the research questions in section 6; settle the D-table | — | this document updated |
 | 1 | Data capture: `presented_dt`, `last_activity_dt`, default/checkbox semantics (section 5) | Survey | greenfield and brownfield (`resetDatabase.sh V2`) runs, ETL output unchanged for survey 1 |
-| 2 | Rename reporting tags to analysis tags in Author's UI, guide, manual and docs (section 2.3); model `survey.reports` and `report_items` in Author; `.elicit` round-trip; Admin apply | Author, Survey (migration), Admin | export, apply and re-export give identical files; Author's three-way build check |
+| 2 | Rename reporting tags to analysis tags in Author's UI, guide, manual and docs (section 2.3); model `survey.reports` and `report_items` in Author, with the Reports page seeding the default row (section 2.4); `.elicit` round-trip; Admin apply deletes unlisted `reports` rows (D-13); report URL resolution (D-12) | Author, Survey (migration), Admin | export, apply and re-export give identical files; a survey republished without the default row no longer lists it after apply; Author's three-way build check |
 | 3 | Respondent report service in Survey; Author preview | Survey, Author | a new test survey with marks in every question type, in en, es-419 and ar (RTL); PDF and card match |
 | 4 | Administrator report v1: participation, marked questions, tables, PDF/CSV, suppression | Admin | counts reconcile with direct SQL on a seeded survey; department scoping; k-suppression |
 | 5 | v2: charts, drop-off by step, stalled respondents, time per step | Admin | the same seeded survey with In Progress respondents at known steps |

@@ -134,22 +134,31 @@ seeded "Testing Department"; the dialog is only seen on a database created after
 change.
 
 The Family History Survey arrives by import: Admin > Apply Survey Definition with
-`FHHS/family-history-survey.elicit`. The apply asks Survey to rebuild the reporting star
-schema (`POST /api/etl/build`), so **no Survey restart is needed** and `surveyreport`
-grows from its six skeleton tables to the full set (18 dimension tables, two fact tables,
-`fact_respondents_view` / `fact_sections_view`) as part of the apply. Confirm with:
+`FHHS/family-history-survey.elicit`. The apply asks Survey to build that survey's reporting
+star schema (`POST /api/etl/build?survey=<key>`), so **no Survey restart is needed**. Every
+survey gets a schema of its own (Survey UC-008): `surveyreport` holds only the shared
+`dim_date` and `dim_status`, and the survey's star — `dim_step`, `dim_section`,
+`dim_question`, `dim_item`, one `dim_<tag>` per reporting tag, `fact_sections`, the
+`fact_respondents` view and the two `*_view`s — is created by the apply in a schema named
+`report_<slug of the survey name>` (`report_family_history_survey` for FHHS) and recorded on
+`survey.surveys.report_schema`. Confirm with:
 
 ```sh
 docker exec elicit-db-1 psql -U survey -d survey \
-  -c "select count(*) from surveyreport.dim_step;"
+  -c "select name, report_schema from survey.surveys;" \
+  -c "select count(*) from report_family_history_survey.dim_step;"
 ```
 
-which must be non-zero (15 for the Family History Survey).
+`report_schema` must be set and the count non-zero (15 for the Family History Survey). The
+schema name is site-local (not in the `.elicit`) and can be changed afterwards with
+`POST /api/etl/schema/<key>/rename?name=<new>` on Survey; nothing in Elicit hard-codes it.
 
-FHHS is specific to that survey (FHHS UC-005). Until it is imported, FHHS starts, logs one
-WARN naming the survey key and the import to perform, reports **not-ready** on
-`/q/health/ready`, and answers report requests with 503 carrying the same message. It goes
-healthy by itself on the next probe after the import; nothing needs restarting. Admin
+FHHS is specific to that survey (FHHS UC-005). Until it is imported **and built** (its
+`report_schema` set by the apply), FHHS starts, logs one WARN naming the survey key and what
+to do — the import, or the build if the survey is there but has no schema yet — reports
+**not-ready** on `/q/health/ready`, and answers report requests with 503 carrying the same
+message. It resolves the schema name from `survey.surveys.report_schema` on every request and
+goes healthy by itself on the next probe after the apply; nothing needs restarting. Admin
 depends on FHHS with `service_started`, not `service_healthy`, so Admin comes up either
 way and the import is always reachable. `deploy.sh` (`up -d`, then restart Survey) is only
 needed on a stack whose survey was seeded before this change.

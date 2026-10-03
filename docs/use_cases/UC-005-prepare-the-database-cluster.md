@@ -58,7 +58,7 @@
 
 ### Success Postconditions
 
-- The cluster carries the login roles with site passwords and the site's survey database, with an empty `survey` and `surveyreport` schema owned by the schema owner.
+- The cluster carries the login roles with site passwords and the site's survey database, with an empty `survey` and `surveyreport` schema owned by the schema owner. The schema owner holds `CREATE` on the database: each survey's own reporting schema (`report_<slug>`, Survey UC-008) is not created here but by Survey, the first time the survey is built after it is applied.
 
 ### Failure Postconditions
 
