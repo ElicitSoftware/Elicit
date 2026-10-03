@@ -16,8 +16,8 @@ mount, translations ship inside the release: a site chooses among them rather th
   `survey.translations`, are written in Author against a particular survey, and travel to a site
   inside its definition file rather than in the image. The two meet at the runtime: a respondent
   is offered a content language only when the survey publishes it and the site also offers that
-  language for the chrome, so no one reads translated questions between English buttons. See
-  `Survey/docs/research/i18n_survey.md`.
+  language for the chrome, so no one reads translated questions between English buttons (Survey
+  UC-009; Author UC-043).
 - Text direction is right-to-left or left-to-right only; vertical writing modes are not
   supported.
 
