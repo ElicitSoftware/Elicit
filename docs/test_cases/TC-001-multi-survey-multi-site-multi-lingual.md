@@ -1,0 +1,58 @@
+# Test Case: One Platform, Several Surveys, Several Sites, Several Languages
+
+## Overview
+
+**ID:** TC-001  
+**Goal:** Three sites install the same release; one survey is translated once at the master and read in three languages at three sites, and a second, untranslated survey runs beside it at one site — verifying end-to-end that the platform is multi-site, multi-lingual and multi-survey at once, with every respondent reported in their own survey's schema.  
+**Priority:** Critical  
+**Status:** Draft
+
+## Roles
+
+- Deployment Operator (installs the three sites and chooses each site's languages)
+- Survey Author (imports, translates and exports the Census Household Survey at the master)
+- Site Administrator (applies definitions and registers subjects at each site)
+- Respondent (answers a survey in the language the site serves)
+
+## Preconditions
+
+- The five application images are built from the current branches (`buildDockerImages.sh`, `Author/buildDockerImage.sh`).
+- The three site stacks of `Author/e2e_multisite_multilingual` are defined: USA (master, Survey 8080, Admin 8081, Author 8084, offers `en`), Mexico (Survey 8030, Admin 8031, FHHS 8032, offers `en` and `es-419`), Arabia (Survey 7980, Admin 7981, offers `en` and `ar`); Mexico and Arabia share USA's identity provider and mail catcher. Their data directories are empty (`reset.sh all`).
+- The Census Household Survey definition, `Author/e2e_multisite_multilingual/census-household-survey.elicit` (a copy of `samples/census-household-survey.elicit` with one deliberate rule fault the author corrects).
+- The Family History Survey definition, `FHHS/family-history-survey.elicit`, which publishes no translation.
+- The identity provider holds the accounts `admin`/`admin` (every site's console) and `author`/`author` (the master's Author).
+
+## Flow
+
+| Step | Name                              | Description                                                                                                                                                                                                                                              | Test Data                                                                                       | Use Case                                                                   |
+|------|-----------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------|
+| 1    | Install three sites               | The operator brings up the three stacks side by side, each with its own database and brand, Mexico with FHHS and Pedigree beside Survey and Admin                                                                                                        | USA, Mexico, Arabia                                                                             | [UC-007](../use_cases/UC-007-install-with-docker-compose.md)              |
+| 2    | Choose each site's languages      | The operator sets the languages each site offers; the master offers English only, Mexico adds Latin American Spanish, Arabia adds Arabic                                                                                                                 | USA `en`; Mexico `en,es-419`; Arabia `en,ar`                                                    | [UC-015](../use_cases/UC-015-choose-the-languages-a-site-offers.md)       |
+| 3    | Verify the sites are up           | Every site's Survey and Admin answer ready; Mexico's FHHS answers not-ready, saying the Family History Survey is not in its database yet                                                                                                                 | -                                                                                               | -                                                                          |
+| 4    | Author and translate the survey   | At the master, the author imports the Census definition, corrects the backwards rule, publishes Spanish and Arabic, translates every string but one option, and exports revision 1                                                                       | Census Household Survey; `es-419`, `ar`; one option left in English                              | Author UC-005, UC-033, UC-043, UC-008 (in `Author/docs/use_cases`)        |
+| 5    | Install the survey at every site  | Each site's administrator creates the site's department and applies revision 1; the apply builds the survey's own reporting schema at that site                                                                                                           | USA Clinic / USA; Mexico Clinic / MEX; Arabia Clinic / ARB                                      | [UC-010](../use_cases/UC-010-install-a-survey-definition.md)              |
+| 6    | Verify one schema per site        | Each site's Export Survey Definition page lists the Census survey with the reporting schema `report_census_household_survey`                                                                                                                             | -                                                                                               | -                                                                          |
+| 7    | Respondents in three languages    | Three subjects are registered at each site; one finishes, one pauses in progress, one never starts. USA reads English, Mexico Spanish, Arabia Arabic right to left, with the untranslated option shown in English amid Arabic                             | usa1–usa3, mex1–mex3, arb1–arb3; the Race question answered                                     | Survey UC-009 (in `Survey/docs/use_cases`)                                 |
+| 8    | Verify respondent status per site | Each site's search shows Finished, In Progress and Not Started for its three subjects                                                                                                                                                                    | -                                                                                               | -                                                                          |
+| 9    | Reword, retranslate, re-apply     | The author rewords the Race question, which stales both translations; retranslates them; exports revision 2; the master applies it, then the remote sites do. Respondents in flight keep revision 1's wording; new ones read revision 2                  | revision 2 of the Census survey                                                                 | [UC-010](../use_cases/UC-010-install-a-survey-definition.md)              |
+| 10   | Gather every respondent           | Each remote site exports its respondents and the master imports them all                                                                                                                                                                                 | mex1–mex3, arb1–arb3 into USA                                                                   | Admin UC-011, UC-012 (in `Admin/docs/use_cases`)                            |
+| 11   | Install a second survey at Mexico | Mexico's administrator applies the Family History Survey definition; FHHS at Mexico goes ready by itself, and Mexico's Export Survey Definition page lists two surveys with two reporting schemas while USA and Arabia still list one                     | `FHHS/family-history-survey.elicit`; `report_family_history_survey`                              | [UC-010](../use_cases/UC-010-install-a-survey-definition.md)              |
+| 12   | A Mexico respondent on each       | A new subject at Mexico is registered for the Family History Survey and finishes it: the console and the buttons are Spanish, the survey's content English because it publishes no Spanish; the report view shows the family-history reports afterwards | mexfh1; the proband and relatives of the Family History Survey walk                              | Survey UC-009, UC-004, UC-005 (in `Survey/docs/use_cases`)                 |
+| 13   | Verify the installation           | Mexico's search shows the Census respondents and the Family History respondent each under their survey with the right status; each survey's reporting schema holds its own respondents' facts and none of the other's                                   | -                                                                                               | [UC-018](../use_cases/UC-018-verify-the-installation.md)                  |
+
+## Validation
+
+1. **Three sites, one definition**: the same exported file installed the Census survey at all three sites; each site's administrator worked in its own console with its own department and its own brand.
+2. **Three languages from one translation**: `usa1` read English, `mex1` Spanish and `arb1` Arabic (right to left) of the same survey revision, and the one untranslated option appeared in English at Arabia; after the reword, in-flight respondents kept revision 1's wording and new ones got revision 2's in their language.
+3. **Two surveys at one site**: Mexico's Export Survey Definition page lists the Census survey and the Family History Survey with distinct reporting schemas (`report_census_household_survey`, `report_family_history_survey`); USA's and Arabia's list only the Census survey.
+4. **A second survey needs nothing restarted**: FHHS at Mexico reported not-ready until the Family History Survey was applied and ready afterwards without anyone restarting it.
+5. **Content falls back, chrome does not**: the Family History respondent at Mexico saw `Siguiente` beside English question text.
+6. **Each survey reports in its own schema**: at Mexico, `report_census_household_survey.fact_respondents` counts the Census respondents and `report_family_history_survey.fact_respondents` the Family History respondent; the Family History respondent's fact rows are in the Family History schema only.
+7. **Every respondent reaches the master**: USA's search lists the six remote respondents after the import, with their statuses.
+
+## Postconditions
+
+- At USA: the Census survey at revision 2 with its schema; department USA Clinic; respondents usa1–usa3 and the six imported ones; the author's working copy, translations and two exported revisions in Author's database.
+- At Mexico: the Census survey at revision 2 and the Family History Survey at revision 1, each with its schema; department Mexico Clinic; respondents mex1–mex3 and mexfh1 with their answers and fact rows.
+- At Arabia: the Census survey at revision 2 with its schema; department Arabia Clinic; respondents arb1–arb3.
+- The journey is run on empty data directories and leaves them populated; `Author/e2e_multisite_multilingual/reset.sh all` removes everything it created. No seeded data is involved, so nothing has to be deleted in a particular order.
