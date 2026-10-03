@@ -5,7 +5,7 @@
 **ID:** TC-001  
 **Goal:** Three sites install the same release; one survey is translated once at the master and read in three languages at three sites, and a second, untranslated survey runs beside it at one site — verifying end-to-end that the platform is multi-site, multi-lingual and multi-survey at once, with every respondent reported in their own survey's schema.  
 **Priority:** Critical  
-**Status:** Draft
+**Status:** Automated — `Author/e2e_multisite_multilingual` (`CensusMultilingualE2ETest`, phases 1–19; steps 1–3 are its `reset.sh`/`up.sh` and phase 17's readiness check, steps 4–10 phases 1–16, steps 11–13 phases 17–19). First green run 2026-10-03, 19/19 in 823 s, after it found and Survey #138 fixed a site-wide-dimension defect that failed step 12.
 
 ## Roles
 
