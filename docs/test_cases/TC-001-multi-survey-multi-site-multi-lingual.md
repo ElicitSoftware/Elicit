@@ -17,7 +17,7 @@
 ## Preconditions
 
 - The five application images are built from the current branches (`buildDockerImages.sh`, `Author/buildDockerImage.sh`).
-- The three site stacks of `Author/e2e_multisite_multilingual` are defined: USA (master, Survey 8080, Admin 8081, Author 8084, offers `en`), Mexico (Survey 8030, Admin 8031, FHHS 8032, offers `en` and `es-419`), Arabia (Survey 7980, Admin 7981, offers `en` and `ar`); Mexico and Arabia share USA's identity provider and mail catcher. Their data directories are empty (`reset.sh all`).
+- The three site stacks of `Author/e2e_multisite_multilingual` are defined: USA (master, Survey 8080, Admin 8081, Author 8084, offers `en`), Mexico (Survey 8030, Admin 8031, FHHS 8082 and Pedigree 8033 — FHHS keeps the port the definition's report addresses name, offers `en` and `es-419`), Arabia (Survey 7980, Admin 7981, offers `en` and `ar`); Mexico and Arabia share USA's identity provider and mail catcher. Their data directories are empty (`reset.sh all`).
 - The Census Household Survey definition, `Author/e2e_multisite_multilingual/census-household-survey.elicit` (a copy of `samples/census-household-survey.elicit` with one deliberate rule fault the author corrects).
 - The Family History Survey definition, `FHHS/family-history-survey.elicit`, which publishes no translation.
 - The identity provider holds the accounts `admin`/`admin` (every site's console) and `author`/`author` (the master's Author).

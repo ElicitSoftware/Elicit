@@ -158,9 +158,11 @@ FHHS is specific to that survey (FHHS UC-005). Until it is imported **and built*
 to do — the import, or the build if the survey is there but has no schema yet — reports
 **not-ready** on `/q/health/ready`, and answers report requests with 503 carrying the same
 message. It resolves the schema name from `survey.surveys.report_schema` on every request and
-goes healthy by itself on the next probe after the apply; nothing needs restarting. Admin
-depends on FHHS with `service_started`, not `service_healthy`, so Admin comes up either
-way and the import is always reachable. `deploy.sh` (`up -d`, then restart Survey) is only
+goes healthy by itself on the next probe after the apply; nothing needs restarting. FHHS
+starts after Admin is healthy (not the other way round): on a fresh database the two
+modules' first migrations grant on the same tables and collide with "tuple concurrently
+updated" when they run together, and Admin needs nothing from FHHS to come up, so the
+import is always reachable. `deploy.sh` (`up -d`, then restart Survey) is only
 needed on a stack whose survey was seeded before this change.
 
 The fact tables stay empty until respondents exist; they fill through the
