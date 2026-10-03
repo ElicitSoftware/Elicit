@@ -60,18 +60,17 @@ directory instead (`localized` block in `brand-config.json`, see `elicit-brand/R
 
 ### Upgrading an existing deployment to Kimball Type 2 SCD (V3.0.0)
 
-Survey's V3.0.0 release (see `Survey/research/Kimball_type_2.md`) versions every structural
+Survey's V3.0.0 release (Survey UC-002 BR-009; the `scd` spec tests are its executable record) versions every structural
 survey table (questions, sections, steps, relationships, etc.) with durable keys and
 effective-dated rows. It creates several new Postgres sequences
 (`survey.questions_durable_seq` and seven others) that two *other* apps' own future
 migrations depend on:
 
-- Admin's `V0.0.12__Add_Kimball_Durable_Seq_Grants.sql` (see
-  `Admin/docs/research/Kimball_type2.md`) grants `${surveyadmin_user}` access to those
-  sequences.
+- Admin's `V0.0.12__Add_Kimball_Durable_Seq_Grants.sql` grants `${surveyadmin_user}` access to
+  those sequences.
 - FHHS's `V0.0.8__REORDER_CANCER_QUESTIONS_DURABLE.sql`, a durable-key rewrite of
-  `V0.0.5__UPDATE_CANCER_QUESTONS.sql`'s hardcoded surrogate ids (see
-  `FHHS/research/Kimball_type2.md`), looks up a durable `section_id` this migration produces.
+  `V0.0.5__UPDATE_CANCER_QUESTONS.sql`'s hardcoded surrogate ids, looks up a durable
+  `section_id` this migration produces.
 
 **Both migrations are now implemented, on each repo's own `V3.0.0_Kimball_Type2_SDC` branch
 — not yet merged to `main`.** FHHS's `V0.0.8` has been staging-verified against a real
