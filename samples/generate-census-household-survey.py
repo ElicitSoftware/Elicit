@@ -68,12 +68,15 @@ SECTIONS = [("Introduction","Census Introduction"),("About you","Census About Yo
             ("Rent details","Census Rent Details"),("Vehicles","Census Vehicles"),
             ("Vehicle","Vehicle"),("Household members","Census Household Members"),
             ("{<NAME>\u007Cthis person}","Household Member"),("Contact","Census Contact"),
-            ("Anything else","Census Anything Else")]
+            ("Anything else","Census Anything Else"),
+            # Repeated once per language selected (rule 13); the language's text fills <LANG>.
+            # Appended last so the keys of the sections above do not move.
+            ("Speakers of {<LANG>\u007Cthis language}","Census Speakers")]
 for n,(name,dim) in enumerate(SECTIONS, start=1):
     add("sections", n, key(f"section/{n}"), n, name, dim, f"{name} section", *TAIL)
 
 # ---------------- steps_sections (step -> sections mounted in it) ----------------
-MOUNTS = [(1,[1]), (2,[2,3]), (3,[4,5,6,7]), (4,[8]), (5,[9]), (6,[10,11])]
+MOUNTS = [(1,[1]), (2,[2,3,12]), (3,[4,5,6,7]), (4,[8]), (5,[9]), (6,[10,11])]
 ss = {}   # (step, section) -> steps_sections source_id
 n = 0
 for step, secs in MOUNTS:
@@ -133,7 +136,7 @@ Q = [
  ("thanks",   MODAL, "<p>Thank you for completing the Census Household Survey.</p>"
    "<p>Your answers have been saved. You may close this window.</p>", "Thank you",
    False,None,None,None,None,None,None),
- # Repeated once per language selected in "langs" (rule 13), in that question's own section. The
+ # Inside the Speakers section, which rule 13 repeats once per language selected in "langs". The
  # language's own text fills <LANG>, so the sentence leads with the placeholder and reads the same
  # for "English" and "Another language". Listed last so the ids of the questions above do not move.
  ("langspeak",INTEGER, "{<LANG>\u007CThis language}: about how many people in this home speak it?", "Speakers",
@@ -149,7 +152,7 @@ for n,(label,typ,text,short,req,mn,mx,val,grp,ph,var) in enumerate(Q, start=1):
 ASSIGN = [
  (1, ["welcome","consent"]),
  (2, ["name","age","gender","marital"]),
- (3, ["race","raceother","langs","langspeak"]),
+ (3, ["race","raceother","langs"]),
  (4, ["tenure","movein","subsidy"]),
  (5, ["rent"]),
  (6, ["vehcount"]),
@@ -158,6 +161,7 @@ ASSIGN = [
  (9, ["personage","persongen","personrel"]),
  (10,["email","leave","followup"]),
  (11,["comments","thanks"]),
+ (12,["langspeak"]),
 ]
 sq = {}   # label -> sections_questions source_id
 n = 0
@@ -190,14 +194,15 @@ RULES = [
  (1, sq["consent"],  3, None, None,              BOOLEAN,      SHOW,        "Show Your Home once consent is given",         "", "", ""),
  (1, sq["consent"],  4, None, None,              BOOLEAN,      SHOW,        "Show Household Members once consent is given", "", "", ""),
  (1, sq["consent"],  6, None, None,              BOOLEAN,      SHOW,        "Show Finishing Up once consent is given",      "", "", ""),
- # REPEAT read from a MULTI_SELECT: one instance of the speakers question per language selected,
+ # REPEAT read from a MULTI_SELECT: one instance of the Speakers section per language selected,
  # rather than 1..N from a count as the two REPEATs above. The instance number is the language's
  # position in its list (English 1, Spanish 2, ...), so changing the selection never moves an
  # answer from one language to another, and the rule's token is filled with each language's own
  # display text (Survey UC-002 BR-012, BR-013). FIELD_EXIST is the operator a selection wants:
- # GREATER THAN compares numbers and never holds for one. Appended last so the keys of the rules
- # above, which are derived from their position, do not move.
- (None, sq["langs"], None, None, sq["langspeak"],FIELD_EXIST,  REPEAT,      "Repeat the speakers question per language", "LANG", "", ""),
+ # GREATER THAN compares numbers and never holds for one. The target is a section, not the
+ # question alone, so each instance is a fact row that names its language (Survey UC-008 BR-012).
+ # Appended last so the keys of the rules above, which are derived from their position, do not move.
+ (2, sq["langs"],    2, ss[(2,12)], None,        FIELD_EXIST,  REPEAT,      "Repeat the speakers section per language", "LANG", "", ""),
 ]
 for n,(us,usq,ds,dss,dsq,op,act,desc,tok,ref,dflt) in enumerate(RULES, start=1):
     add("relationships", n, key(f"rule/{n}"), us, usq, ds, dss, dsq, op, act, desc, tok, ref, dflt, "", *TAIL)
@@ -209,11 +214,11 @@ for n,(us,usq,ds,dss,dsq,op,act,desc,tok,ref,dflt) in enumerate(RULES, start=1):
 # question wherever it appears, and reports the answer (metadata value empty). Only closed-
 # vocabulary and integer questions are tagged (G5); Race (CHECKBOX_GROUP) and Languages
 # (MULTI_SELECT) are deliberately untagged because a multi-choice answer is stored comma-joined
-# and would report every combination as one value (G6); the per-language speakers count is
-# untagged because it is a question repeated inside one section, several answers to one report
-# column — and, being a repeated question rather than a repeated section, it gets no per-item
-# question/item columns either (Survey UC-008 BR-012); free text, dates, the rent amount and contact details are never tagged (G7). Tag names are Title Case, no hyphens (G10), and the
-# household member's attributes carry the entity prefix (G12).
+# and would report every combination as one value (G6) — but the per-language speakers count IS
+# tagged: it sits in a section repeated once per language, so each instance is its own fact row
+# whose question_key/item_key name the language it is about (Survey UC-008 BR-012); free text,
+# dates, the rent amount and contact details are never tagged (G7). Tag names are Title Case, no
+# hyphens (G10), and the household member's attributes carry the entity prefix (G12).
 for t in ("dimensions","ontology","metadata"): rows.setdefault(t, [])
 DIMS = ["age","gender"]
 did = {}
@@ -233,6 +238,7 @@ TAGS = [
  ("Member Age",          "age",    "personage"),
  ("Member Gender",       "gender", "persongen"),
  ("Member Relationship", None,     "personrel"),
+ ("Speakers",            None,     "langspeak"),    # one row per language instance (BR-012)
 ]
 for n,(tag,dim,label) in enumerate(TAGS, start=1):
     add("ontology", n, key(f"tag/{tag}"), NAMESPACE, tag, did[dim] if dim else None)
