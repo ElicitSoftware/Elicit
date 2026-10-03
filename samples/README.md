@@ -27,10 +27,9 @@ role-played by a respondent tag and a household-member tag (`Age` / `Member Age`
 scope and reporting the answer. Race (a CHECKBOX_GROUP) and Languages (a MULTI_SELECT) are
 deliberately untagged — a multi-choice answer is stored comma-joined and would report every
 combination as one value — and free text, dates, the rent amount and contact details are never
-tagged. The speakers question repeated once per language is a repeated *question*, so its
-instances share one fact row and nothing names the language in reporting; only a *section*
-repeated per selected item gets the `question` / `item` columns of
-`docs/research/per_survey_reporting_schema.md` 3.6. Step and section `dimension_name`s are set explicitly: `Household Member` for the
+tagged. The speakers question sits in a *section* repeated once per language selected, so each
+instance is its own fact row and the `question` / `item` columns name the language it is about
+(Survey UC-008 BR-012); it is tagged `Speakers` for that reason. Step and section `dimension_name`s are set explicitly: `Household Member` for the
 per-member step, whose display name is a token phrase, and a `Census` prefix on the rest so they
 cannot collide with another survey's `Welcome` on the same site.
 
@@ -57,7 +56,7 @@ Two deliberate omissions:
 | Step | Sections | Notable elements and rules |
 | --- | --- | --- |
 | 1 Welcome | Introduction | `HTML` intro + `CHECKBOX` consent. Consent gates step 2 via `BOOLEAN`. |
-| 2 About You | About you; Race and language | `TEXT`, `INTEGER`, `RADIO`, `COMBOBOX`, `CHECKBOX_GROUP`, `MULTI_SELECT`. Race `CONTAINS 'OTHER'` reveals a follow-up in the **same section** (the question-only rule path). The languages `MULTI_SELECT` `REPEAT`s a speakers question **once per language selected**, numbered by the language's position in its list, with the `LANG` token filled by each language's own text. |
+| 2 About You | About you; Race and language; Speakers of {<LANG>\|this language} | `TEXT`, `INTEGER`, `RADIO`, `COMBOBOX`, `CHECKBOX_GROUP`, `MULTI_SELECT`. Race `CONTAINS 'OTHER'` reveals a follow-up in the **same section** (the question-only rule path). The languages `MULTI_SELECT` `REPEAT`s the **Speakers section once per language selected**, numbered by the language's position in its list, with the `LANG` token filled by each language's own text in the section's title and its one question. |
 | 3 Your Home | Housing; Rent details; Vehicles; Vehicle | `DATE_PICKER`, `DOUBLE`. Tenure `EQUAL 'RENT'` shows the **Rent details section**; tenure `NOT_EQUAL 'OWN'` shows a question. Vehicle count `REPEAT`s the **Vehicle section**. |
 | 4 Household Members | Household members | Household size `REPEAT`s the person-name **question** in its own section. |
 | 5 `{name\|this person}` | `{name\|this person}` | Shown once per person name via `FIELD_EXIST`; a `TEXT` rule fills the `name` token across the step, its section and its questions. |
