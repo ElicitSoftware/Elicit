@@ -4,8 +4,15 @@
 > `Survey:feature/per-survey-reporting-schema` (cea623b, a51d9ad): UC-008 rewritten, UC-010
 > (rename) and UC-011 (drop) new, V021 on both tracks, every `Sql.java` statement a template over
 > the survey's schema, `fact_respondents` a view, the two per-item columns of 3.6, 547 Survey
-> tests green. Steps 2-5 (FHHS, Admin, Author, umbrella docs) were started the same day on
-> branches of the same name; step 6 (greenfield, brownfield and e2e runs) is not done. The
+> tests green. Steps 2-5 (FHHS a9c6850, Admin f19652a, Author d4fda83, umbrella 606c0d4) were
+> done the same day on branches of the same name, each module's suite green. Step 6, the same
+> day: images rebuilt from the branches; **greenfield** (`Author/resetDatabase.sh V3`, `e2e-tests`
+> 4/4) gave `report_family_history_survey` (22 tables, 15 `dim_step`) and the e2e survey its own
+> schema with no `dim_step_un` warning; **brownfield** (`V2`, `e2e-tests` 4/4) ran V021 on the V2
+> history (FHHS's history was already past V0.0.6, so Q-6's risk did not arise), dropped the
+> triggers and the old star, regenerated 131 fact rows for the 3 pre-upgrade finished respondents
+> with step and section keys resolving to the right names and `-1` in both per-item columns, and
+> FHHS went UP. The two multi-site suites were not run. Nothing is pushed or merged yet. The
 > questions of section 9 that the Survey code decided are marked answered there.
 >
 > **As found on 2026-10-01:** the reporting star schema (the
