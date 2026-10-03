@@ -1,7 +1,8 @@
 # Default Reports: The Respondent Summary and the Administrator Report
 
-> **Status (2026-10-02):** Research plan. Today a survey has **no reports unless somebody writes a
-> report service for it**. Every report a respondent or an administrator sees comes from an external
+> **Status (2026-10-03):** Research plan, re-verified against the code on 2026-10-03 (Survey `V3`
+> ac602ab, Admin `V3` 990e62a, FHHS `V3` 8fb433c, Author `main`). Today a survey has **no reports
+> unless somebody writes a report service for it**. Every report a respondent or an administrator sees comes from an external
 > HTTP service listed in `survey.reports`, and the only such services that exist are FHHS's, written
 > for the Family History Survey. A new survey built in Author therefore finishes on a page holding
 > nothing but a "Generate PDF" button, and the Admin console cannot say how many respondents have
@@ -17,6 +18,9 @@
 > new survey, and the author can keep, remove, reorder or supplement them with custom services. The
 > administrator report is not such a row, because the report contract is per-respondent.
 >
+> **Constraint (2026-10-03):** the `.elicit` export keeps its `reports:` lines, one per
+> `survey.reports` row, whatever Author does to model them (section 2.4).
+>
 > **Scope:** the reports are for new, generic surveys. FHHS is out of scope. It appears only as the
 > existing example of a survey-specific report service (section 1.1), and nothing proposed here
 > replaces or changes it.
@@ -24,10 +28,11 @@
 ## Overview
 
 The plumbing for reports already exists and works. Survey's `ReportView` and Admin's
-`ReportingService` both loop over `survey.reports`, POST a `ReportRequest{id, language}` to each
-URL, and render the `ReportResponse{title, innerHTML, pdf}` that comes back. Both apps can then
-merge the responses into one PDF. What is missing is **content**: there is no report service that
-works for an arbitrary survey, and no way for an author to say which questions matter.
+`ReportingService` both loop over `survey.reports`, POST a `ReportRequest` to each URL, and render
+the `ReportResponse{title, innerHTML, pdf}` that comes back. Survey's request carries
+`{id, language}`; Admin's carries `{id}` only (G-13). Both apps can then merge the responses into
+one PDF. What is missing is **content**: there is no report service that works for an arbitrary
+survey, and no way for an author to say which questions matter.
 
 Most of what the two reports need is already in the `survey` schema:
 - `survey.respondents` records who was registered, when they first logged in and when they finished.
@@ -40,8 +45,7 @@ Four things are missing:
 - **A clean definition of "presented"** for respondents who have not finished, because answer rows
   are created before the page is shown (section 1.3).
 - **A clean definition of "answered"** for defaulted questions and false checkboxes (section 1.3).
-- **A home for the code.** C-009 keeps analytics dashboards out of Survey, and the reporting star
-  schema still hard-codes `survey_id = 1` (section 1.5).
+- **A home for the code.** C-009 keeps analytics dashboards out of Survey (section 4.4).
 
 Terminology used in this document:
 - A **default report** is one Elicit ships and every survey can use without a custom service.
@@ -58,17 +62,19 @@ Terminology used in this document:
 
 | Piece | Where | What it does |
 |---|---|---|
-| `survey.reports(id, survey_id, name, description, url, display_order, report_key)` | Survey `V001:814`, `report_key` in `V015:25` | One row per report service, listed per survey |
-| `ReportView` (`/report`) | Survey `flow/ReportView.java:56,126,173-180` | Shown after Finish, and on re-login by an inactive respondent (`MainView.java:143-158`). One `ReportCard` per report, a "Generate PDF" button, and Next → `surveys.post_survey_url` |
-| `ReportingService.printReports` | Admin `service/ReportingService.java:185` | The same loop, run from the search grid for a respondent whose status is Finished |
+| `survey.reports(id, survey_id, name, description, url, display_order, report_key)` | Survey `V001:816` (V2 upgrade track `migration-v3/V001:467`), `report_key` in `V015:25` of both tracks; unchanged since | One row per report service, listed per survey. `url` is nullable; `(survey_id, name)` is unique |
+| `ReportView` (`/report`) | Survey `flow/ReportView.java:56,100-121,126-133,136-142,173-230` | Shown after Finish, and on re-login by an inactive respondent (`MainView.java:142-145,155-158`, and the fresh-login path `:235-241`). One `ReportCard` per report, a "Generate PDF" button, and Next → `surveys.post_survey_url`. Sends `ReportRequest(id, language)` (`:175`) and hands `rpt.url` to `new URI(...)` unchanged (`:177-179`): no base URL, no timeout |
+| `ReportingService.printReports` | Admin `service/ReportingService.java:185,194,267` | The same loop, run from the search grid for a respondent whose status is Finished (`SearchView.java:682-683`). Sends `ReportRequest(id)` only (`report/ReportRequest.java:56`); no timeout either |
 | `PDFService`, `/api/pdf/download` | both apps | Merge each report's `PDFDocument` into one PDF |
 | `survey.post_survey_actions`, `respondent_psa` | Survey `V001:834,850` | Fire-and-retry POSTs of `{"id"}` after Finish. These are not reports |
 
 FHHS plugs in by being listed in `survey.reports`: `/pedigree/report`, `/proband/report` and
 `/casummary/report` each return the contract above. They read the **star schema**, not the
-answers: `CancerHistoryRepository` selects tag columns from `surveyreport.fact_sections_view` for
-the respondent. That works because `finalize()` runs the per-respondent ETL before `ReportView`
-calls the services, and because FHHS is survey 1, the only survey the ETL handles (G-3). **A
+answers: `CancerHistoryRepository` selects tag columns from `<report_schema>.fact_sections_view`
+for the respondent (`:199-202`), resolving the schema name from `survey.surveys.report_schema` on
+every request (`FamilyHistorySurveyCheck.java:70-78`, FHHS UC-005 BR-006). That works because
+`finalize()` runs the per-respondent ETL before `ReportView` calls the services. FHHS's request
+type has only `id`; it ignores the language Survey sends. **A
 default report plugs in the same way**, through the contract (decided 2026-10-02, section 2.4).
 Section 4.4 explains why it should not read the star schema. It then needs no new rendering, PDF
 or Admin wiring, and an author can list it, reorder it or remove it alongside a custom one.
@@ -78,31 +84,37 @@ How the rows are managed today:
   deletes a `survey.reports` row. Rows arrive only by `.elicit` import (Admin
   `SurveyDefinitionImportService.insertReport`, `:914-930`) or by SQL. The only documented edit is
   the manual `UPDATE survey.reports SET url = …` that fixes the host after a deployment
-  (`DeploymentScript.md:268-274`).
+  (`DeploymentScript.md:269-273`).
 - **Update is an upsert by `report_key`.** Applying a new version of a survey matches rows by key,
   updates `name`, `description`, `url` and `display_order` in place, and inserts unknown keys
   (`SurveyDefinitionUpdateService.upsertReport`, `:1203-1236`). The file wins for every row it
   carries.
 - **Update never deletes.** A row whose key is no longer in the file is left alone (class comment,
-  `:73-74`); `reports` is a Type 1 table with no `effective_to`, so the retire path does not apply
+  `:74-75`); `reports` is a Type 1 table with no `effective_to`, so the retire path does not apply
   either. Removing a report in Author therefore does not remove it from a site that already has it
   (G-12).
-- **Both callers order by `display_order`** (Survey `Survey.java:90-92`, Admin `Survey.java:195-197`)
+- **Both callers order by `display_order`** (Survey `Survey.java:91-92`, Admin `Survey.java:196-198`)
   and the card heading is the row's `name`, translated by `report_key`
   (`ContentTranslator.java:285`), not the `title` the service returns.
 
 Author does not model `reports` or `post_survey_actions` yet. Its exporter and importer pass the
-rows through as raw SQL (`SurveyDefinitionExporter.java:95-96`, `SurveyDefinitionImporter.java:488-507`),
+rows through as raw SQL (`SurveyDefinitionExporter.java:95-96`, `SurveyDefinitionImporter.java:487-515`),
 so an imported FHHS file round-trips its three rows, but an Author-built survey always exports zero
-rows (`Author/docs/requirements.md:207-210`). An Author-built survey therefore cannot even *list* a
-report today. This is a prerequisite for both reports.
+rows. (`Author/docs/requirements.md:209-212` and `entity_model.md:386` say the tables are "exported
+with zero records", which is true only of an Author-built survey; the wording goes when the tables
+are modeled.) The only other code that knows the table is `SurveyService.java:208`, which deletes
+the rows with the survey, and `TranslatableFields.java:44`, which already lists a report's name and
+description as translatable; `TranslationService.java:379` notes that "Author has no report
+entity". An Author-built survey therefore cannot even *list* a report today. This is a prerequisite
+for both reports.
 
 ### 1.2 The respondent lifecycle
 
 `survey.respondents` (`V001:61-77`) carries `created_dt`, `first_access_dt`, `finalized_dt`,
 `active` and a `logins` counter. There is no last-activity timestamp and no session or login
-history. Status is derived the same way in three places: the `fact_respondents` trigger, ETL
-`Sql.java:327-345`, and Admin's `survey.status` view.
+history (nothing like `presented_dt`, `last_activity` or a page-view stamp exists anywhere in
+Survey). Status is derived the same way in three places: the `fact_respondents` trigger, the ETL's
+`fact_respondents` view (`Sql.java:829-842`), and Admin's `survey.status` view (`V0.0.7:28-47`).
 
 | Status | Rule |
 |---|---|
@@ -114,10 +126,12 @@ There are two consequences for the reports:
 - **"Registered" is not a status of its own.** Every row is registered, so Registered = Not
   Started + In Progress + Finished. The funnel the administrator report needs is
   registered → started → finished.
-- **There is no withdrawn or expired state.** `deactivate()` sets `finalized_dt` as well as
-  `active=false` (`AccessCodeService.java:272-280`). It is only reached from Finish today, but any
-  future "withdraw" built on it would be counted as Finished. Admin's `Status.java:236` javadoc
-  already promises "invited/started/completed/expired", which do not exist.
+- **There is no withdrawn or expired state.** Finish runs `ReviewView:153` →
+  `QuestionService.finalize` (`:255`) → `setActiveFalse` (`:275-281`), a native UPDATE that sets
+  `active = false, finalized_dt = CURRENT_TIMESTAMP` without checking whether `finalized_dt` was
+  already set. (`AccessCodeService.deactivate()`, `:272-285`, does the same but is called only by
+  a test.) Any future "withdraw" built on either would be counted as Finished. Admin's
+  `Status.java:239` javadoc already promises "invited/started/completed/expired", which do not exist.
 
 There are also **two definitions of duration**: SQL uses `finalized − created`, while
 `Respondent.getElapsedTime()` uses `finalized − first_access`. The report must pick one (section 7,
@@ -127,16 +141,18 @@ D-6).
 
 Answer rows are created **eagerly**. `QuestionManager.init` builds a row for every unconditional
 question in the survey on first entry, and again on each Next/Previous
-(`QuestionManager.java:335-345, 692-711`). Rule-gated questions get a row only when a SHOW or
-REPEAT rule fires (`:797-840`). From this follows:
+(`QuestionManager.java:336-346`, `buildInitialAnswers :698-719`; called through
+`QuestionService.init` from `MainView:232`, `SectionView:662,717` and `ReviewView:188`).
+Rule-gated questions get a row only when a SHOW or REPEAT rule fires (`buildDownstreamQuestions
+:803`, SHOW `:822-853`, REPEAT `:855-872`). From this follows:
 
 | Fact | Meaning |
 |---|---|
 | Row exists, `deleted = false` | The question was **eligible** under the rules. This does not prove the page was shown |
-| `text_value` not null, `saved_dt` set | Saved a value, **except**: a question with a `default_value` gets `saved_dt` at creation (`Answer.java:450-454`), so it looks answered whether or not the respondent touched it |
-| `text_value` null | Unanswered, **except**: a CHECKBOX set to false is stored as NULL (`QuestionService.java:301-306`), so "no" and "no answer" are indistinguishable |
+| `text_value` not null, `saved_dt` set | Saved a value, **except**: a question with a `default_value` gets `saved_dt` at creation (`Answer.java:451-455`), so it looks answered whether or not the respondent touched it |
+| `text_value` null | Unanswered, **except**: a CHECKBOX set to false is stored as NULL (`QuestionService.java:304-309`) **and still gets `saved_dt`** (`:302`), so for a checkbox neither column separates "no" from "no answer" |
 | No row | Hidden by the rules |
-| `deleted = true` | Was eligible and then hidden by a changed upstream answer. These rows are **purged on Finish** (`removeDeleted`, `:2250-2256`), so no trace remains |
+| `deleted = true` | Was eligible and then hidden by a changed upstream answer. These rows are **purged on Finish** (`removeDeleted`, `:2379-2388`, from `QuestionService.finalize:258`), so no trace remains |
 
 For a **Finished** respondent, eligible equals presented, because finishing requires passing through
 every page and the review. The per-question metrics are therefore sound if they are computed over
@@ -144,15 +160,28 @@ finished respondents only. For **In Progress** respondents, the rows for pages t
 already exist, so eligible overstates presented. Section 5 proposes the fix.
 
 Section and step header rows have `question_id` null and carry the section or step name in
-`display_text`. They are the natural headings for the respondent report.
+`display_text` (`QuestionManager:743`), with any token already filled. They are the natural
+headings for the respondent report.
 `display_text_local` and `display_language` (`V019:123-124`) mean the report can be rendered in the
-language the respondent answered in. Select-type answers store `select_items.coded_value`, so the
-report must map the code back to the item's (translated) `display_text`.
+language the respondent answered in. Select-type answers store `select_items.coded_value`,
+comma-joined for multi-selects (`SectionView:222,263,300,317`), so the report must map each code
+back to the item's (translated) `display_text`.
+
+Repeats come in two kinds since 2026-10-02 (Survey #135). A **count** repeat numbers its instances
+1..N. A **per-item** repeat, driven by a MULTI_SELECT or CHECKBOX_GROUP, numbers each instance by
+the selected item's 1-based position in its select list (`QuestionManager:1441-1455`), so the
+instances are **not contiguous**: selecting the 2nd and 5th items gives {2, 5}, and deselecting one
+removes only that instance (`:1916-1928`). A section repeat stamps the instance on the header row
+and on every question row of that copy (`section_instance`); a question repeat stamps
+`question_instance`. `repeatedItem()` (`:1464`) maps an instance back to its item. The respondent
+report must therefore group by instance as found, never by 1..n, and head each instance by its own
+header row or item text.
 
 ### 1.4 Reporting tags are not report marks
 
 Author's reporting tags are `survey.dimensions`, `ontology` and `metadata`, edited at
-`survey/:id/reporting` (Author FR-023..026, UC-021..024). They attach a tag to a question, a section
+`survey/:id/reporting` (`ReportingView.java:66`; Author FR-023..026 "Assign / Reassign Ontology
+Tag", "Create Ontology & Dimension Entries", "Preview Dimensional Impact", UC-021..024). They attach a tag to a question, a section
 placement or a steps_sections placement, and Survey's ETL turns each tag into a `dim_*` table and a
 `<tag>_key` column on `fact_sections`. They answer "which columns does the analytic star schema
 have". They do **not** answer "what should a respondent see on their summary" or "which questions
@@ -173,16 +202,17 @@ describes the tags as building "the report", section 2.3 proposes renaming them.
 |---|---|---|
 | G-1 | No report mark on any question | Nothing to echo back or to monitor |
 | G-2 | Author exports `reports` with zero rows | An Author-built survey cannot list any report, default or custom. The Reports page that closes this (section 2.2) is also where the default row is seeded (section 2.4) |
-| G-3 | `fact_respondents` triggers and ETL filter on `survey_id = 1` (`V002:127,157`, `Sql.java:277,314`) | The star schema cannot be the source for a new survey. **Fixed in Survey on 2026-10-02** (Survey UC-008): every survey has its own `report_<slug>` schema, filled by the ETL for every survey |
+| G-3 | `fact_respondents` triggers and ETL filtered on `survey_id = 1` | **Fixed in Survey on 2026-10-02** (Survey #136, UC-008, FR-029): every survey has its own schema, `report_<slug of the survey name>` (`etl/ReportSchemaNames.java:38`), recorded on `surveys.report_schema` (`V021:22-33`), built by `POST /api/etl/build?survey=<key>`, renamed by `POST /api/etl/schema/<key>/rename` and dropped by `DELETE /api/etl/schema/<key>` (behind `elicit.etl.drop.enabled`). No `survey_id = 1` literal remains; `fact_respondents` is a view (`Sql.java:829`); `fact_sections` gained `question_key`/`item_key` (`:154-160`) for per-item repeats |
 | G-4 | Eager answer rows | "Presented" is only sound for finished respondents |
-| G-5 | Defaulted questions get `saved_dt`; false checkbox is NULL | "Answered" is wrong for both types |
+| G-5 | Defaulted questions get `saved_dt`; a false checkbox is NULL and also gets `saved_dt` | "Answered" is wrong for both types, and no column at all distinguishes an unchecked box from an untouched one |
 | G-6 | Deleted rows purged on Finish | Cannot report "shown, then hidden by a changed answer" |
 | G-7 | No last-activity timestamp | Cannot tell an active In Progress respondent from an abandoned one |
-| G-8 | No withdrawn/expired state; `deactivate()` sets `finalized_dt` | A future withdraw would be counted as Finished |
-| G-9 | Two definitions of duration | Admin and the star schema would disagree. **Settled 2026-10-02:** the star schema's `fact_respondents` view uses `finalized_dt - first_access_dt`, the same as `Respondent.getElapsedTime()` (Survey UC-008 BR-010); D-6 should keep to it |
+| G-8 | No withdrawn/expired state; `setActiveFalse()` sets `finalized_dt` unconditionally | A future withdraw would be counted as Finished |
+| G-9 | Two definitions of duration | Admin and the star schema would disagree. **Settled 2026-10-02:** the star schema's `fact_respondents` view uses `finalized_dt - first_access_dt` (`Sql.java:840-842`), the same as `Respondent.getElapsedTime()` (`Respondent.java:104-106`; Survey UC-008 BR-010); D-6 should keep to it |
 | G-10 | Admin has no dashboard FR/UC, though Admin `vision.md:42-45` lists "progress monitoring dashboards" as in scope | The administrator report needs requirements before code |
 | G-11 | Author calls the star-schema tags "reporting tags" and their columns "report columns", and tells authors to "tag what the report needs" | Once default reports exist, an author will expect tagging a question to put it on a report (section 2.3) |
-| G-12 | Applying a survey update never removes a `reports` row whose `report_key` has left the file (`SurveyDefinitionUpdateService.java:73-74`) | An author who drops the default report, or a custom one, and republishes does not remove it from a deployed site. The row keeps running until someone deletes it by SQL (section 2.4, D-13) |
+| G-12 | Applying a survey update never removes a `reports` row whose `report_key` has left the file (`SurveyDefinitionUpdateService.java:74-75`) | An author who drops the default report, or a custom one, and republishes does not remove it from a deployed site. The row keeps running until someone deletes it by SQL (section 2.4, D-13) |
+| G-13 | Admin's `ReportRequest` carries only `id` (`report/ReportRequest.java:56`, `ReportingService.java:267`); Survey's carries `id` and `language` (`ReportView.java:175`) | A default respondent report printed from Admin does not know which language to render. FHHS never read the field (section 2.4, D-14) |
 
 ## 2. How an author marks what to report
 
@@ -204,7 +234,9 @@ The design reasons:
 - **The same placement choice as `metadata`.** A question marked at `question_id` is reported
   wherever it appears. One marked at `sections_question_id` is reported only at that placement. A
   `steps_sections_id` mark reports a whole section, which is the short way to say "echo this entire
-  page".
+  page". Author's `Metadata` entity (`Metadata.java:44-67`) is the model: exactly one of the three
+  columns set (UC-021 BR-001, not enforced by a constraint), exported as seven fields without
+  `survey_id` (`SurveyDefinitionExporter.java:99`). `report_items` follows it field for field.
 - **Two report types, not one flag.** What a respondent should see back and what a coordinator
   monitors overlap but are not the same set. A consent question is monitored but not echoed. A
   "your goals" free-text field is echoed but not monitored, because its content cannot be
@@ -231,7 +263,11 @@ The UI follows the reporting-tags pattern rather than inventing a new one:
   standard row(s) already in the list (section 2.4). A default row is badged as built-in so an
   author can tell it from a service somebody wrote, but it is edited, moved and removed like any
   other row. Adding a row with a custom URL is how a site-specific service such as FHHS's is listed.
-- A preview, rendered from `questions.sample`, so an author sees the summary before publishing.
+- A preview. Author already runs a preview Survey (`author.preview.survey.url`,
+  `PreviewSurveyClient`) whose respondents and answers are deleted with the survey, so the preview
+  is the real built-in service (section 3.3) rendered for a preview respondent, opened from the
+  Reports page. There is no second renderer from `questions.sample`; that column is authoring-only
+  (UC-011 BR-005) and feeds the token samples, not a report.
 
 ### 2.3 Rename reporting tags to analysis tags
 
@@ -240,15 +276,29 @@ exists, "report" would mean two unrelated things in the same tool:
 - Tagging a question for the star schema, and
 - marking a question for the respondent or administrator report.
 
-The wording that causes the confusion is in `Author/src/main/resources/vaadin-i18n/translations.properties`:
+The wording that causes the confusion is in `Author/src/main/resources/vaadin-i18n/translations.properties`
+(line numbers as of 2026-10-03):
 
 | Key | Today |
 |---|---|
-| `reportingView.intro` (:406) | "A reporting tag names a column of **the site's report**." |
-| `guideView.reportingTags.p1` (:181) | "names a column of **the report a site builds**" |
-| `guideView.designing.p2` (:179) | "**tag what the report needs**". This is the most misleading: under this plan, what a report needs is a report mark |
-| `reportingView.grid.reportColumn` (:412) | "Report column" |
-| `surveyEditorView.reporting` (:58), `designer.menu.reportingTags` (:199), `reportingView.pageTitle` / `.heading` (:400-401), `tagBadge.title` (:296), `elementView.fact.reportingTags` (:386), `guideView.*reportingTags*` (:175-176, :180) | "Reporting…", "Reporting tags…", "Reporting tags" |
+| `reportingView.intro` (:487) | "A reporting tag names a column of **the site's report**." Unchanged by d4fda83, which reworded the impact strings to "the survey's own reporting schema" |
+| `guideView.reportingTags.p1` (:262) | "names a column of **the report a site builds**" |
+| `guideView.designing.p2` (:260) | "**tag what the report needs**". This is the most misleading: under this plan, what a report needs is a report mark |
+| `reportingView.grid.reportColumn` (:493), `elementTagsDialog.grid.reportColumn` (:533) | "Report column" |
+| `surveyEditorView.reporting` (:59), `designer.menu.reportingTags` (:280), `reportingView.pageTitle` / `.heading` (:481-482), `tagBadge.title` (:377), `elementView.fact.reportingTags` (:467), `guideView.designing.reportingTags.term` / `.desc` (:256-257), `guideView.reportingTags.h` (:261) | "Reporting…", "Reporting tags…", "Reporting tags" |
+
+Those are the headline strings. The word runs through whole families of keys that a rename must
+sweep together, each with its `translations.context.properties` entry and its `es-419` and `ar`
+row: the rest of the `reportingView.*` block (:483-526, including `impact.reportColumns` and the
+new `impact.perItemColumn(s)`), `elementTagsDialog.*`, `tagAssignmentDialog.*` (`.reportedValue`,
+`.impact.text`), `tagDialog.*` (`.preview.text`), `elementDialog.*` (:595-601),
+`validation.tag.*` (:126-144), `reporting.scope.*` / `.value.*` / `.where.*` (:977-982),
+`error.tag.column.*` (:995-997), `exportDialog.retroactiveReminder` (:170) and
+`aiDraftView.whatComesBack.p2` (:206). Outside the bundle: the manual section "Tagging for
+reporting" (`docs/manual/elicit-author-manual.tex:432-458`), the in-app guide
+(`SurveyModelGuideView.java:94-99`) and `docs/ai/AUTHORING_FROM_AI.md:206`.
+`i18n/TRANSLATION_REQUEST.md` is regenerated by `TranslationRequestGeneratorTest`, which fails on
+drift and says what to copy.
 
 The star schema exists for **analysis**: statisticians, downstream tools, and the BinaryFilter
 faceted browser (`faceted_exploration.md`). The proposal is:
@@ -262,10 +312,10 @@ The rename is limited to what people see:
 | Change | Leave |
 |---|---|
 | The strings above and their `es-419` and `ar` translations, which means regenerating the translation request | `survey.dimensions` / `ontology` / `metadata` |
-| The Author guide and the Author manual's chapter on tags | the `surveyreport` schema: deployed databases, grants and FHHS's queries name it |
+| The Author guide and the Author manual's chapter on tags | the schema names: `surveyreport` (shared `dim_date`/`dim_status`), the `report_` prefix of each survey's own schema and `surveys.report_schema`; deployed databases, grants and FHHS's queries name them |
 | Author FR-023..026 and UC-021..024 titles and prose | `ReportingNames` and other class names that authors never see |
 | The `survey/:id/reporting` route, renamed to `survey/:id/analysis` | the `.elicit` table names |
-| Admin FR-027's title "Rebuild Reporting Schema", in Admin's docs only. The console shows no such label, and Admin's `reporting.error.*` strings are about report services, which is already the right meaning | Survey's `etl` package and `/api/etl/build` |
+| Whether "reporting schema" follows is decision D-11. It is now a user-facing term in three modules: Admin's console (`translations.properties:198,202,536-554`, since f19652a), Admin FR-027 / FR-037 / UC-030, Survey UC-008 / 010 / 011, the installation manual and `DeploymentScript.md:113-154`. Admin's `reporting.error.*` strings are about report services, which is already the right meaning | Survey's `etl` package, `/api/etl/build` and `/api/etl/schema` |
 
 The rename belongs in phase 2 (section 8), before or together with the Reports page. That way the
 two meanings of "report" never appear side by side in a release.
@@ -278,6 +328,15 @@ contract, ordered by the same `display_order`, named by the same translated `nam
 Admin through the same loop. Nothing in `ReportView` or `ReportingService` knows that a row is a
 default. The consequences:
 
+- **The `reports:` lines stay in the `.elicit`.** The export keeps carrying one `reports:` line per
+  `survey.reports` row, with the six fields `id, report_key, name, description, url, display_order`
+  that Author writes (`ElicitFormat.java:94`) and Admin's `insertReport` reads (`:914-930`): the
+  FHHS file's three, a new survey's seeded default, and any custom service. Modeling the table in
+  Author changes where the rows come from, not the lines. Today the exporter passes them through
+  untouched (`SurveyDefinitionExporter.java:95-96`), which is why an imported survey round-trips
+  its report services; once they are entities the exporter must still write every row, so a survey
+  imported into Author, edited and re-exported never loses a report. `report_items` is an added
+  table, not a change to `reports`.
 - **Seeding.** Author's Reports page (section 2.2) pre-populates the standard row(s) when a survey
   is created. Today that is one row, the respondent report of section 3; a future standard
   per-respondent report would be a second seeded row. The rows travel in the `.elicit` like every
@@ -299,10 +358,16 @@ default. The consequences:
   site. Phase 2 closes this (D-13).
 - **The built-in service's URL cannot name a host.** FHHS's rows carry an absolute, site-specific
   URL (`http://host.docker.internal:8082/proband/report`) that the deployment procedure patches by
-  hand. A row seeded in Author knows nothing about the site that will apply it, and the default
-  service lives in Survey itself. How the row expresses that is D-12; the leaning is a relative
-  path that each caller resolves against Survey's base URL, which Admin already has as
-  `elicit.survey.url`.
+  hand (`DeploymentScript.md:269-273`). A row seeded in Author knows nothing about the site that
+  will apply it, and the default service lives in Survey itself. How the row expresses that is
+  D-12; the leaning is a relative path that each caller resolves against Survey's base URL. Admin
+  has that already as `elicit.survey.url` (`application.properties:44`, used by
+  `ReportingSchemaRebuildClient.java:99-123` and probed by Connection Checks); Survey has no
+  base-URL setting, and `ReportView.java:177-179` hands `rpt.url` to `new URI(...)` unchanged.
+  Neither caller sets a connect or read timeout (research question 9).
+- **Admin's print carries no language.** Survey sends `ReportRequest(id, language)`; Admin sends
+  `ReportRequest(id)` (G-13). FHHS never looked at the field, but the respondent report must know
+  which language to render. Decision D-14.
 
 The administrator report (section 4) is **not** a `survey.reports` row. The contract posts one
 respondent's id (`ReportView.java:175`, `ReportingService.java:267`) and both callers run for one
@@ -318,7 +383,7 @@ finished respondent, so a survey-wide aggregate does not fit it. It stays an Adm
 | Title, survey name, completion date | `surveys`, `respondents.finalized_dt`, in the respondent's language |
 | Brand header | the mounted brand, as the rest of Survey |
 | Body: marked items grouped by step then section, in survey order | `report_items` joined to the respondent's non-deleted `answers` |
-| Repeat instances (e.g. one block per household member) | `section_instance` / `question_instance`, headed by the instance's own section header row |
+| Repeat instances (e.g. one block per household member, or one per language selected) | `section_instance` / `question_instance` as found, which are non-contiguous for a per-item repeat (section 1.3); a section instance is headed by its own header row, whose `display_text` already carries the filled token; a question instance by its own `display_text` |
 | Value | `text_value` mapped by type (section 3.2) |
 | Optional closing text | an author-written HTML block per survey, translated |
 
@@ -347,6 +412,10 @@ contract:
   to cross a module boundary.
 - It produces `innerHTML` for the `ReportCard` and a `PDFDocument` for the merged PDF.
 - Admin's "print reports" picks it up automatically, because it walks the same `survey.reports` rows.
+  Admin prints only a Finished respondent (`SearchView.java:682-683`) and today sends no language
+  (G-13, D-14), so the service must fall back to the respondent's `display_language` when none
+  arrives.
+- Whether `ReportView` reaches it over HTTP to itself or in-process is research question 9 (D-12).
 - C-009 forbids *analytics dashboards* in Survey. A per-respondent echo of their own answers is not
   one.
 
@@ -356,11 +425,11 @@ service renders the title, completion date and closing text only, and D-3 decide
 
 ### 3.4 Disclosure
 
-The summary is reachable again by logging in with the access code (`MainView.java:143-158`), so the
-summary is exactly as private as the access code. Marking a sensitive question is therefore an
-authoring decision with a consequence. The Author UI should say so when marking a question in the
-Respondent report. Every generation is a PHI read and must be logged (Admin NFR-005 sets the
-precedent).
+The summary is reachable again by logging in with the access code (`MainView.java:142-158,235-241`),
+so the summary is exactly as private as the access code. Marking a sensitive question is therefore
+an authoring decision with a consequence. The Author UI should say so when marking a question in
+the Respondent report. Every generation is a PHI read and must be logged. Admin NFR-005 (PHI Access
+Auditing) states the requirement; it is still Open, so there is no implemented precedent to copy.
 
 ## 4. The administrator report
 
@@ -438,8 +507,9 @@ plug into. Beyond that, three reasons put it in Admin:
 - Admin is the console the coordinator uses.
 
 It has two outputs:
-1. **A Survey Overview view** (new route, for example `survey-overview`), with a survey picker, a
-   department filter, and a date range. It shows the participation tiles and funnel (4.1), the
+1. **A participation view** (new route; not "overview", which Admin already uses for FR-020 /
+   UC-020 "View System Overview"; the name is D-15), with a survey picker, a department filter, and
+   a date range. It shows the participation tiles and funnel (4.1), the
    timeline, and one card per marked question (4.2). Admin has no charting dependency. A small set of
    charts (funnel bar, cumulative line, per-option bar) is the decision in D-7.
 2. **An exportable form**: a PDF of the same content through Admin's existing `PDFService`, and a
@@ -447,18 +517,20 @@ It has two outputs:
    `ELICIT_EXPORT_V2`.
 
 Both default reports query the OLTP tables (`respondents`, `answers`, `report_items`) directly, not
-the star schema, unlike FHHS (section 1.1). There are three reasons:
-- **G-3:** the ETL filled the star schema only for survey 1 when this was written. Fixed on
-  2026-10-02 (Survey UC-008): a new survey now gets its own schema on apply.
-  The two reasons below still hold, so the default reports stay on the OLTP tables.
+the star schema, unlike FHHS (section 1.1). G-3 was the first reason when this was written; it was
+fixed on 2026-10-02 (Survey UC-008) and a new survey now gets its own schema on apply. Three
+reasons remain:
 - **Marks are not tags.** The star schema has a column only for a *tagged* question, while a report
   mark is independent of tagging (section 1.4).
 - **The star schema keeps values, not presentation.** It stores the value or tag constant per
   step/section instance. It does not keep the question text, the option labels in the respondent's
-  language, rows that were presented but left unanswered, or display order, and every one of those
-  is something the reports need.
+  language, or display order, and every one of those is something the reports need.
+- **The star schema holds only answered rows of finished respondents.** The ETL's row filter is
+  `saved_dt IS NOT NULL AND text_value IS NOT NULL AND finalized_dt IS NOT NULL` and `deleted != true`
+  (`Sql.java:423-458`), so a question that was presented and left blank is not there at all, and
+  neither is an In Progress respondent. "Presented" cannot be computed from it.
 
-Once G-3 is fixed, the star schema becomes a reasonable second source for cross-respondent
+With G-3 fixed, the star schema is a reasonable second source for cross-respondent
 analysis of tagged questions, but not for these two reports. The aggregate queries
 are small (counts grouped by status, question and option), and an index on
 `answers(question_id, respondent_id)` should be measured before anything heavier is considered
@@ -474,6 +546,9 @@ are small (counts grouped by status, question and option), and an index on
 
 ## 5. Data the plan needs captured first
 
+Every Survey migration below goes in both migration tracks, `db/migration` and the V2 upgrade
+track `db/migration-v3`, or the upgrade path fails on the pending migration.
+
 | Change | Module | Closes | Notes |
 |---|---|---|---|
 | `answers.presented_dt`: set when the page holding the row is first rendered | Survey | G-4 | Makes "presented" exact for In Progress respondents and gives drop-off and time-per-step. Pre-existing rows of finished respondents can be back-filled from `created_dt` |
@@ -482,8 +557,12 @@ are small (counts grouped by status, question and option), and an index on
 | Store an explicit `false` for CHECKBOX | Survey | G-5 | A data-semantics change. Check ETL and FHHS readers for `IS NULL` assumptions first |
 | A withdrawn/expired state that does not set `finalized_dt` | Survey + Admin | G-8 | Only needed when a withdraw feature is built. Record the constraint now |
 | Keep deleted rows (or log the event) instead of purging on Finish | Survey | G-6 | Optional; storage cost versus the "answer changed" metric |
-| Model `reports` and `report_items` in Author and the `.elicit` format; the Reports page seeds the default row into every new survey | Author, Survey (migration), Admin (apply) | G-1, G-2 | Format stays `ELICIT_SURVEY_EXPORT_V1` if the importer tolerates an unknown trailing table. Verify that before choosing |
-| Remove a `reports` row on update when its `report_key` has left the file | Admin | G-12 | Delete or retire per D-13. Today's update never deletes (`SurveyDefinitionUpdateService.java:73-74`) |
+| Model `reports` and `report_items` in Author and the `.elicit` format; the Reports page seeds the default row into every new survey | Author, Survey (migration), Admin (apply) | G-1, G-2 | The `reports:` lines keep their six fields and every row is exported (section 2.4). Format stays `ELICIT_SURVEY_EXPORT_V1` (`SurveyDefinitionFileFields.java:48` says additions never bump it). `report_items` exports like `metadata` (section 2.1) and goes into `ElicitFormat.TABLES` after `metadata`, before `translations` |
+| Teach the three `.elicit` parsers the `report_items` table | Admin (import and update), Author (import) | question 7 | None of them skips an unknown table (section 6); a file carrying `report_items` fails on an older build. No shim: V3 has never been released |
+| Widen `translations_element_type_ck` for `report_items` labels | Survey | question 8 | Both tracks. The closing text can be a new `field` on the existing `reports` type with no migration |
+| Send `language` in Admin's `ReportRequest` | Admin | G-13 | Per D-14. `ReportRequest.java:56` has `id` only; Survey's has had `language` since V019 |
+| Correct Author's "exported with zero records" wording (`requirements.md:209-212`, `entity_model.md:386`) and `AUTHORING_FROM_AI.md:206` ("omit the last five tables") | Author | G-2 | Falls out of modeling the tables |
+| Remove a `reports` row on update when its `report_key` has left the file | Admin | G-12 | Delete or retire per D-13. Today's update never deletes (`SurveyDefinitionUpdateService.java:74-75`) |
 | Resolve a relative report URL against Survey's base URL in both callers | Survey, Admin | — | Needed by D-12 if the relative-path option is chosen; Admin has `elicit.survey.url` already, Survey needs its own base URL |
 
 ## 6. Research questions
@@ -496,7 +575,11 @@ These need an answer from the code or a prototype before requirements are writte
 2. **Default values.** Which existing surveys rely on `saved_dt` being set for defaulted questions
    (review, validation, the ETL `saved_dt IS NOT NULL` filter at `Sql.java:282-325`)?
 3. **Checkbox false.** Which readers (ETL, FHHS, Admin export) treat NULL as false? Changing the
-   storage is a migration plus a reader audit.
+   storage is a migration plus a reader audit. *FHHS audited 2026-10-03:* its readers compare the
+   string to `"true"` (`FamilyManager.java:85-87`, `RowConverter.java:67-159`,
+   `FamilyMember.java:247,518-669,702-750`), so a stored `"false"` reads as false and nothing breaks.
+   The open risk is the ETL: its `text_value IS NOT NULL` filter (`Sql.java:423-458`) would start
+   emitting fact rows for unchecked tagged checkboxes. ETL and Admin export still to audit.
 4. **Repeats.** For a question inside a REPEAT section, is "presented" counted per respondent or per
    instance? Prototype both on a household-style survey and see which one a coordinator reads
    correctly.
@@ -504,10 +587,21 @@ These need an answer from the code or a prototype before requirements are writte
    the dev database before deciding between live queries and a materialized summary.
 6. **Charts in Admin.** Vaadin Charts is commercial. Weigh it against a lightweight SVG renderer for
    three chart types, rendered server-side so the PDF and the screen match.
-7. **The `.elicit` format.** Does the V1 importer skip an unknown table, or does `report_items` need
-   a format version bump?
-8. **Translations.** Confirm `survey.translations` can carry a new `element_type` for report labels
-   and the closing text without a Survey migration beyond the check constraint.
+7. **The `.elicit` format.** *Answered 2026-10-03: no parser skips an unknown table.* Admin's
+   import and update each dispatch on a hard-coded `switch (tableName)` whose `default` records
+   `definition.unknownTable` and fails the apply (`SurveyDefinitionImportService.java:442-443,459-460`,
+   `SurveyDefinitionUpdateService.java:424-425,447-448`); Author's importer fails with
+   `error.import.unknownRecord` (`SurveyDefinitionImporter.java:160`). The format stays
+   `ELICIT_SURVEY_EXPORT_V1` and all three parsers learn the table in the same release (section 5).
+8. **Translations.** *Answered 2026-10-03.* `translations_element_type_ck` (`V019:74`, v3 track
+   `:78`) allows `surveys, steps, sections, questions, select_items, relationships, reports`;
+   `field` is an unconstrained `varchar(32)`. A label on `report_items` needs a migration that
+   widens the constraint, in both tracks; the closing text rides on the existing `reports` type as
+   a new field with no migration.
+9. **Self-call or in-process.** `ReportView` would POST to Survey's own built-in service. Survey has
+   no base-URL setting, neither report client sets a timeout, and a dev-mode Survey parks requests
+   to itself while it restarts. Decide between resolving a relative path to a real HTTP call and
+   dispatching a `builtin:` row in-process (D-12), and prototype the one chosen under dev mode.
 
 ## 7. Decisions to make
 
@@ -523,9 +617,11 @@ These need an answer from the code or a prototype before requirements are writte
 | D-8 | Freshness | live query / nightly materialized | live, if question 5 confirms the cost |
 | D-9 | Drill-down from a count to respondents | v1 / later | later, with NFR-005 logging |
 | D-10 | Small-cell threshold | fixed 5 / configurable | configurable, default 5 |
-| D-11 | User-facing name for star-schema tags | keep "reporting tags" / "analysis tags" / "data tags" | "analysis tags", changing only user-facing text (section 2.3) |
-| D-12 | How the seeded row names the built-in service | absolute URL patched per site after apply (as FHHS, `DeploymentScript.md:268-274`) / a relative path such as `/api/reports/respondent-summary` that `ReportView` and `ReportingService` resolve against Survey's base URL / a `builtin:` scheme dispatched in-process | relative path: Admin has `elicit.survey.url`, Survey needs one base-URL setting, and custom rows keep working unchanged |
+| D-11 | User-facing name for star-schema tags, and whether "reporting schema" follows | keep "reporting tags" / "analysis tags" / "data tags"; and (a) rename the tags only or (b) also call the schema the "analysis schema" in Admin's console, Survey UC-008/010/011, the manuals and `DeploymentScript.md` | "analysis tags", and (a): "reporting schema" names a database object (`report_<slug>`) operators see literally, and Author's tag strings already say "the survey's reporting schema" (section 2.3) |
+| D-12 | How the seeded row names the built-in service | absolute URL patched per site after apply (as FHHS, `DeploymentScript.md:269-273`) / a relative path such as `/api/reports/respondent-summary` that `ReportView` and `ReportingService` resolve against Survey's base URL / a `builtin:` scheme dispatched in-process | relative path: Admin has `elicit.survey.url`, Survey needs one base-URL setting, and custom rows keep working unchanged. `builtin:` avoids Survey calling itself over HTTP with no timeout (question 9); revisit if the prototype parks in dev mode |
 | D-13 | A `reports` row whose key has left the republished file | delete / retire with an `effective_to` / leave as today | delete: `reports` is a Type 1 table with no history, and leaving it running is G-12 |
+| D-14 | Which language Admin's print asks the respondent report for | the respondent's answering language (`answers.display_language`) / the administrator's UI language / the survey's base language | the respondent's: Admin sends it in `ReportRequest`, and the service falls back to `display_language` when the field is absent (G-13) |
+| D-15 | Name of the Admin view | "Survey Overview" / "Participation" / "Progress" | "Participation": Admin's FR-020 / UC-020 "View System Overview" already owns "overview" |
 
 ## 8. Plan
 
@@ -535,13 +631,19 @@ spec in the module it touches.
 | Phase | Work | Modules | Verification |
 |---|---|---|---|
 | 0 | Answer the research questions in section 6; settle the D-table | — | this document updated |
-| 1 | Data capture: `presented_dt`, `last_activity_dt`, default/checkbox semantics (section 5) | Survey | greenfield and brownfield (`resetDatabase.sh V2`) runs, ETL output unchanged for survey 1 |
-| 2 | Rename reporting tags to analysis tags in Author's UI, guide, manual and docs (section 2.3); model `survey.reports` and `report_items` in Author, with the Reports page seeding the default row (section 2.4); `.elicit` round-trip; Admin apply deletes unlisted `reports` rows (D-13); report URL resolution (D-12) | Author, Survey (migration), Admin | export, apply and re-export give identical files; a survey republished without the default row no longer lists it after apply; Author's three-way build check |
-| 3 | Respondent report service in Survey; Author preview | Survey, Author | a new test survey with marks in every question type, in en, es-419 and ar (RTL); PDF and card match |
-| 4 | Administrator report v1: participation, marked questions, tables, PDF/CSV, suppression | Admin | counts reconcile with direct SQL on a seeded survey; department scoping; k-suppression |
+| 1 | Data capture: `presented_dt`, `last_activity_dt`, default/checkbox semantics (section 5), in both migration tracks | Survey | greenfield and brownfield (`resetDatabase.sh V2`) runs; `report_family_history_survey` unchanged for the Family History Survey |
+| 2 | Rename reporting tags to analysis tags in Author's UI, guide, manual and docs (section 2.3, D-11); model `survey.reports` and `report_items` in Author, with the Reports page seeding the default row (section 2.4); teach the three parsers the table and widen the translations constraint (section 5); `.elicit` round-trip; Admin apply deletes unlisted `reports` rows (D-13); report URL resolution (D-12); Admin sends the language (D-14) | Author, Survey (migration), Admin | export, apply and re-export give identical files; a file without `report_items` still applies; a survey republished without the default row no longer lists it after apply; Author's three-way build check |
+| 3 | Respondent report service in Survey; Author preview through the preview Survey (section 2.2) | Survey, Author | `samples/census-household-survey.elicit` (every type, every rule, a count repeat and a per-item repeat) with marks added through its generator, in en, es-419 and ar (RTL); PDF and card match; TC-001's `CensusMultilingualE2ETest` extended to open the report |
+| 4 | Administrator report v1: participation view (D-15), marked questions, tables, PDF/CSV, suppression | Admin | counts reconcile with direct SQL on a seeded survey; department scoping; k-suppression |
 | 5 | v2: charts, drop-off by step, stalled respondents, time per step | Admin | the same seeded survey with In Progress respondents at known steps |
 
 The phases are ordered so that each one is useful on its own:
 - Phase 2 alone lets an author list a custom report.
 - Phase 3 alone gives every respondent a summary.
 - Phase 4 runs on finished respondents even if phase 1 slips.
+
+Next free ids on 2026-10-03, so the first phase in each module does not collide: Survey FR-030 /
+NFR-014 / UC-012; Admin FR-038 / NFR-018 / C-018 / UC-031; Author FR-068 / NFR-022 / C-027 /
+UC-048 (NFR-020 and NFR-021 are spoken for by `Author/docs/research/i18n_survey.md:650-651`).
+Author's `CLAUDE.md:157-163` requires the FR row, `use_cases.puml` and the UC spec (validated
+with `validate_use_case.py --strict`) before any code; Survey and Admin follow the same AIUP order.
