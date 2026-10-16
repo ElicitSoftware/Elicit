@@ -156,6 +156,20 @@ What to expect and to tell the people who use the reporting schema:
   preview) builds nothing and holds no schema; leave it so.
 - **Rollback**: none. Recovery is the pre-upgrade backup.
 
+### Upgrading to respondent progress stamps (Survey V022)
+
+Survey V022 (Survey UC-012) adds two nullable columns, `survey.answers.presented_dt` (when the
+page holding the row was first rendered) and `survey.respondents.last_activity_dt` (the
+respondent's latest page render or save), and changes what `answers.saved_dt` means: from this
+release it is set only when the respondent changes a value, never for a question's default.
+The migration runs on both tracks at Survey's first start and back-fills what the database can
+prove: every answer row of a **finished** respondent gets `presented_dt` from its `created_dt`,
+because finishing passed every page, and everyone who has logged in gets `last_activity_dt`
+from their finalization, latest save or first access. Rows of respondents still in progress are
+left unstamped, and existing `saved_dt` values are left as they are. Nothing else changes:
+no reporting schema is touched, and the respondent export and import (Admin UC-011/UC-012)
+carry the two columns as a trailing field, so a file exported before this release still imports.
+
 ### Upgrading to access codes
 
 The credential a respondent enters to reach a survey used to be called a "token". It is now the

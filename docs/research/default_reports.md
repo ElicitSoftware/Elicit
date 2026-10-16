@@ -10,8 +10,10 @@
 > code: a **respondent report**, which echoes back the answers the author marked for it, and an
 > **administrator report**, which counts registered, started and finished respondents and shows,
 > for the questions the author marked, how many respondents were presented each question and how
-> many answered it. Section 4.3 suggests further metrics. Phase 1 of the plan is implemented
-> (Survey #140, merged 2026-10-16: FR-030, UC-004 and UC-005 amended); nothing else is, and most of
+> many answered it. Section 4.3 suggests further metrics. Phases 1 and 2 of the plan are
+> implemented: phase 1 in Survey #140 (merged 2026-10-16: FR-030, UC-004 and UC-005 amended), phase 2
+> in Survey #141 (UC-012, FR-031..033, V022) and Admin #109 (export and import carry the columns),
+> both open on 2026-10-16. Nothing else is, and most of
 > the decisions listed in section 7 are open. Research questions 1, 2 and 3 were answered from the
 > code on 2026-10-16 (section 6) and settled D-17 and D-18.
 >
@@ -692,7 +694,7 @@ spec in the module it touches.
 |---|---|---|---|
 | 0 | Answer the research questions in section 6; settle the D-table. Questions 1-3 answered 2026-10-16; 4 and 5 gate phase 5, 6 gates phase 6, 9 gates phase 4 | — | this document updated |
 | 1 | **Done 2026-10-16** (Survey #140, FR-030). No `survey.reports` rows: hide "Generate PDF", send Finish and re-login straight to `post_survey_url`, completion notice when there is none (G-14, D-16); amend UC-004 and UC-005 first | Survey | the census sample (no reports) finishes on its post-survey URL; the Family History Survey (three rows) still shows its cards and PDF; a survey with neither shows the notice |
-| 2 | Data capture: `presented_dt` stamped in `getAnswersBySection` (question 1), `last_activity_dt`, `saved_dt` only on change (D-18), no stored `false` (D-17), in both migration tracks; Admin's respondent export and import carry the two new columns (section 5) | Survey, Admin | greenfield and brownfield (`resetDatabase.sh V2`) runs; `report_family_history_survey` unchanged for the Family History Survey |
+| 2 | **Done 2026-10-16** (Survey #141: UC-012, FR-031..033, V022; Admin #109). Data capture: `presented_dt` stamped in `getAnswersBySection` (question 1), `last_activity_dt`, `saved_dt` only on change (D-18), no stored `false` (D-17), in both migration tracks; Admin's respondent export and import carry the two new columns (section 5). `last_activity_dt` is stamped in a transaction that joins the caller's, not inside the render's REQUIRES_NEW one: session restore logs in and renders inside one transaction that has flushed the respondent's row, and a nested update waited on it until the transaction timed out (UC-012 BR-004) | Survey, Admin | greenfield and brownfield (`resetDatabase.sh V2`) runs; `report_family_history_survey` unchanged for the Family History Survey |
 | 3 | Rename reporting tags to analysis tags in Author's UI, guide, manual and docs (section 2.3, D-11); model `survey.reports` and `report_items` in Author, with the Reports page seeding the default row (section 2.4); teach the three parsers the table and widen the translations constraint (section 5); `.elicit` round-trip; Admin apply deletes unlisted `reports` rows (D-13); report URL resolution (D-12); Admin sends the language (D-14) | Author, Survey (migration), Admin | export, apply and re-export give identical files; a file without `report_items` still applies; a survey republished without the default row no longer lists it after apply; Author's three-way build check |
 | 4 | Respondent report service in Survey; Author preview through the preview Survey (section 2.2) | Survey, Author | `samples/census-household-survey.elicit` (every type, every rule, a count repeat and a per-item repeat) with marks added through its generator, in en, es-419 and ar (RTL); PDF and card match; TC-001's `CensusMultilingualE2ETest` extended to open the report |
 | 5 | Administrator report v1: participation view (D-15), marked questions, tables, PDF/CSV, suppression | Admin | counts reconcile with direct SQL on a seeded survey; department scoping; k-suppression |
