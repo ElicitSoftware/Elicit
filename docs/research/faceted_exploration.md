@@ -210,6 +210,11 @@ platform changes of section 5 (**P**).
   row carrying the item in `item_key` / `fact_sections_view.item` and the question in
   `question_key` (Survey UC-008 BR-012). A repeated
   *question* gets no such row. *Why:* section 2.2. **T** (until E6 splits the answer itself).
+  A boolean tag on a CHECKBOX must carry **no metadata value**: the ETL's dimension queries have no
+  `text_value` filter and emit a tag's metadata value whenever the answer row exists
+  (`Sql.java:317-400,493-613`), so a valued tag would count the unchecked boxes too. Left without a
+  value, the tag falls back to the stored `true`, and an unchecked box stays `-1`
+  (`default_reports.md` G-15, 2026-10-16).
 - **G7 — Never tag free text, dates, email or password questions for their answer.** Free text
   is unbounded (and fails the insert past 255 characters); a password would land a secret in a
   reporting table. Use a constant if the *fact of answering* matters. **T**.
