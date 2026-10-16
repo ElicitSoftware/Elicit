@@ -1,0 +1,66 @@
+# Gates the umbrella on every pull request into main or V3 and every push to one. The
+# umbrella holds no application source, so what it can check are the cross-module
+# invariants and the installation manual (UC-001, UC-002):
+#
+#   checkLanguages.sh               Survey and Admin carry and declare the same languages
+#   docs/manual/check-properties.sh the configuration reference matches the modules'
+#                                   @ConfigProperty declarations and defaults (NFR-004/005)
+#   docker compose config           the compose file parses
+#   docs/manual/build-manual.sh     the manual typesets, stamped with the modules' version
+#
+# Three of those read the Survey and Admin sources, which are independent clones and not
+# part of this repository (see CLAUDE.md), so the job clones each at the branch this run
+# targets: the pull request's base branch, or the branch that was pushed to.
+#
+# The job name is the status check the branch ruleset on main and V3 requires; rename both
+# together.
+
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - V3
+  pull_request:
+    branches:
+      - main
+      - V3
+
+jobs:
+  gate:
+    name: Cross-module checks and manual
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v7
+
+      - name: Clone Survey and Admin at the matching branch
+        env:
+          BRANCH: ${{ github.base_ref || github.ref_name }}
+        run: |
+          for m in Survey Admin; do
+            git clone --quiet --depth 1 --branch "$BRANCH" "https://github.com/ElicitSoftware/$m.git" "$m"
+            echo "$m: $(git -C "$m" log -1 --format='%h %s')"
+          done
+
+      - name: Languages agree across Survey and Admin
+        run: ./checkLanguages.sh
+
+      - name: Configuration reference matches the code
+        run: docs/manual/check-properties.sh
+
+      - name: Compose file parses
+        run: docker compose config --quiet
+
+      - name: Build the installation manual
+        run: docs/manual/build-manual.sh
+
+      - name: Keep the manual
+        uses: actions/upload-artifact@v7
+        with:
+          name: elicit-installation-manual
+          path: docs/manual/elicit-installation-manual.pdf
+          if-no-files-found: error
