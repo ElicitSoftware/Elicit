@@ -283,6 +283,25 @@ use-case IDs are unrelated to these.
 - `docs/metrics/OBSERVABILITY_IMPLEMENTATION_GUIDE.md`,
   `docs/metrics/PROMETHEUS_QUERIES.md`
 
+## Git Workflow
+
+- `main` and `V3` (and `main` in Pedigree and Author) change only through a pull request
+  whose CI check passed. A ruleset on each repository enforces it on the server (umbrella
+  C-016), and `.claude/hooks/branch-guard.py`, wired as a `PreToolUse` hook in each repo's
+  `.claude/settings.json`, refuses `git commit`, `git cherry-pick`, `git revert` and any
+  `git push` that would land on `main`, `master`, `V2` or `V3`. It resolves `git -C <dir>`
+  and `cd <dir> &&` chains, so module repos are guarded from the umbrella too.
+- Every change starts from an issue in the repo that owns the code; a cross-cutting change
+  gets a tracking issue here with one PR per module repo that references it. Branch from the
+  integration branch (`V3`, or `main` for Pedigree and Author) as `<type>/<issue>-<slug>`,
+  with `<type>` one of `feature`, `fix`, `docs`, `chore`.
+- The hook's override, `ELICIT_ALLOW_PROTECTED=1`, is for a human at the keyboard. Never
+  set it yourself; if the guard stops you, make a branch.
+- CI per repository: Survey, Admin and Author run the Maven suite (`ci.yml`), FHHS runs it
+  from `maven.yml`, Pedigree builds its image and smoke-tests `/healthz` and `/svg`, and the
+  umbrella runs `checkLanguages.sh`, `check-properties.sh`, `docker compose config` and the
+  manual build against fresh clones of Survey and Admin at the target branch.
+
 ## Git Commits
 
 - Never append a `Co-Authored-By: Claude` (or similar AI co-author) trailer to
