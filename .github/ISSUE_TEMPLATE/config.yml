@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: A bug or change in one module
+    url: https://github.com/orgs/ElicitSoftware/repositories
+    about: Survey, Admin, FHHS, Pedigree and Author each take their own issues. Open the issue there; this repository is for the platform as a whole and for changes that span modules.
