@@ -245,6 +245,29 @@ for n,(tag,dim,label) in enumerate(TAGS, start=1):
     # metadata: source_id|element_key|steps_sections_id|question_id|sections_question_id|ontology_id|value
     add("metadata", n, key(f"metadata/{label}"), None, qid[label], None, n, None)
 
+# ---------------- reports and report marks ----------------
+# The built-in respondent report Author seeds into every new survey (Author UC-048 BR-001), and
+# the marks that say what it and the administrator report show (Survey UC-013, UC-014): one mark
+# of each scope for the respondent report -- a question wherever it appears, a question in one
+# placement, a whole section as mounted in a step -- and two for the administrator report.
+rows.setdefault("reports", []); rows.setdefault("report_items", [])
+# reports: id|report_key|name|description|url|display_order
+add("reports", 1, key("report/respondent-summary"), "Summary of your answers",
+    "The answers you gave, as you finished the survey.", "/api/reports/respondent-summary", 1)
+# report_items: id|report_item_key|report_type|steps_sections_id|question_id|sections_question_id|label|display_order
+MARKS = [
+ ("RESPONDENT",    None,        qid["name"],   None,          "Your name",             1),
+ ("RESPONDENT",    None,        qid["age"],    None,          None,                    2),
+ ("RESPONDENT",    None,        None,          sq["gender"],  "Gender",                3),
+ ("RESPONDENT",    ss[(3,4)],   None,          None,          None,                    4),   # Housing in Your Home
+ ("RESPONDENT",    None,        qid["langs"],  None,          "Languages spoken",      5),
+ ("RESPONDENT",    ss[(5,9)],   None,          None,          None,                    6),   # each household member
+ ("ADMINISTRATOR", None,        qid["consent"], None,         None,                    1),
+ ("ADMINISTRATOR", ss[(2,2)],   None,          None,          None,                    2),   # About you in About You
+]
+for n,(kind,ssid,q,sqid,label,order) in enumerate(MARKS, start=1):
+    add("report_items", n, key(f"mark/{kind}/{n}"), kind, ssid, q, sqid, label, order)
+
 # ---------------- survey ----------------
 add("surveys", 1, key("survey"), "Census Household Survey", 2, "Census Household Survey",
     "A demonstration survey about census household data. It uses every question type and every "
@@ -253,20 +276,21 @@ add("surveys", 1, key("survey"), "Census Household Survey", 2, "Census Household
 
 # ---------------- emit ----------------
 ORDER = ["surveys","select_groups","select_items","steps","sections","steps_sections",
-         "questions","sections_questions","relationships","dimensions","ontology","metadata"]
+         "questions","sections_questions","relationships","reports","dimensions","ontology","metadata",
+         "report_items"]
 EXPECTED = {"surveys":10,"select_groups":10,"select_items":11,"steps":11,"sections":11,
             "steps_sections":12,"questions":20,"sections_questions":10,"relationships":19,
-            "dimensions":3,"ontology":5,"metadata":7}
+            "reports":6,"dimensions":3,"ontology":5,"metadata":7,"report_items":8}
 for t in ORDER:
     for r in rows[t]:
         assert len(r) == EXPECTED[t], f"{t}: {len(r)} fields, expected {EXPECTED[t]}: {r}"
 
-now = "2026-10-02T19:00:00Z"
+now = "2026-10-19T19:00:00Z"
 out = ["# ELICIT_SURVEY_EXPORT_V1", "# survey_id: 1", f"# survey_key: {key('survey')}",
        "# survey_name: Census Household Survey"]
 HEADER = ["surveys","select_groups","select_items","steps","sections","steps_sections",
           "questions","sections_questions","relationships","reports","post_survey_actions",
-          "dimensions","ontology","metadata"]
+          "dimensions","ontology","metadata","report_items"]
 for t in HEADER:
     out.append(f"# {t}: {len(rows.get(t, []))}")
 out += [f"# generated: {now}", f"# survey_revision: {now}", ""]

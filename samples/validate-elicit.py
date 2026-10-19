@@ -4,10 +4,11 @@ import sys, re, collections
 
 COUNTS = {"surveys":10,"select_groups":10,"select_items":11,"steps":11,"sections":11,
           "steps_sections":12,"questions":20,"sections_questions":10,"relationships":19,
-          "reports":6,"post_survey_actions":6,"dimensions":3,"ontology":5,"metadata":7}
+          "reports":6,"post_survey_actions":6,"dimensions":3,"ontology":5,"metadata":7,
+          "report_items":8}
 ORDER = ["surveys","select_groups","select_items","steps","sections","steps_sections",
          "questions","sections_questions","relationships","reports","post_survey_actions",
-         "dimensions","ontology","metadata"]
+         "dimensions","ontology","metadata","report_items"]
 CHOICE_TYPES = {7,3,10,11}          # RADIO, COMBOBOX, MULTI_SELECT, CHECKBOX_GROUP
 PLACEHOLDER = re.compile(r"\{([^{}|]+)(?:\|([^{}]*))?}")
 BUILTIN = {"Q#","S#"}

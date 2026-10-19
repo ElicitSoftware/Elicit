@@ -11,13 +11,14 @@
 # questions: 26
 # sections_questions: 26
 # relationships: 13
-# reports: 0
+# reports: 1
 # post_survey_actions: 0
 # dimensions: 2
 # ontology: 11
 # metadata: 11
-# generated: 2026-10-02T19:00:00Z
-# survey_revision: 2026-10-02T19:00:00Z
+# report_items: 8
+# generated: 2026-10-19T19:00:00Z
+# survey_revision: 2026-10-19T19:00:00Z
 
 surveys: 1|eaa5c9d0-f4b1-596e-add5-18571ca79227|Census Household Survey|2|Census Household Survey|A demonstration survey about census household data. It uses every question type and every rule the Elicit engine supports, exactly once where practical.|0001-0001-0000-0001-0000-0000-0000|||
 select_groups: 1|8514a507-5906-5add-9b0e-956a124c8474|Gender|Gender choices|Text|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
@@ -150,6 +151,7 @@ relationships: 10|34a953fc-f73e-50d3-8fa0-28753aeda65a|1|2|3|||1|1|Show Your Hom
 relationships: 11|42aad0ab-a816-5113-b5b0-3368efae9ad4|1|2|4|||1|1|Show Household Members once consent is given|||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
 relationships: 12|94ee42a3-e764-5af4-8f37-2a046ed3d122|1|2|6|||1|1|Show Finishing Up once consent is given|||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
 relationships: 13|37ea80e9-0349-55d6-ab6b-b1e60c03b821|2|9|2|4||5|2|Repeat the speakers section per language|LANG||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+reports: 1|9a4342f6-ff98-52cd-93a3-07db6a9b105c|Summary of your answers|The answers you gave, as you finished the survey.|/api/reports/respondent-summary|1
 dimensions: 1|36a75e92-62ef-5b45-bbfb-8d9bad1e8e7f|age
 dimensions: 2|fbc78c4a-0087-51c7-a6c0-087bd94f5754|gender
 ontology: 1|07f2f80a-f43f-5071-a8ab-9493a4a29c50|census|Age|1
@@ -174,3 +176,11 @@ metadata: 8|7529f0c7-08ac-56bb-abc8-860b7f3a98ac||18||8|
 metadata: 9|0c22a7ec-6960-5185-b973-17ecc4787705||19||9|
 metadata: 10|c84b9584-24aa-5187-816a-179f21a10493||20||10|
 metadata: 11|f8d2d3d5-093a-53f9-950d-d9ad786586e2||26||11|
+report_items: 1|8e3952a7-5435-51c3-9742-039be599c0f8|RESPONDENT||3||Your name|1
+report_items: 2|2a1cae34-379d-57fb-8411-60fabd0bff3e|RESPONDENT||4|||2
+report_items: 3|a927776d-543f-5945-9324-79b58d9f70df|RESPONDENT|||5|Gender|3
+report_items: 4|5c843796-cc1b-554e-bd91-7ae8446a28c6|RESPONDENT|5||||4
+report_items: 5|cfec03a9-f5fa-51cd-9de4-8a181a93c284|RESPONDENT||9||Languages spoken|5
+report_items: 6|639aa61d-fb0c-564a-8aed-6eb51aefd2ba|RESPONDENT|10||||6
+report_items: 7|55c93eb3-7664-5745-b2c7-3859c1f7cd5e|ADMINISTRATOR||2|||1
+report_items: 8|289ab18d-6163-54c5-aebc-1ebad27c72f4|ADMINISTRATOR|2||||2
