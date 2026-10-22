@@ -739,6 +739,9 @@ send may take before it is abandoned. \\
 CSV and PDF, a count from 1 to one below this value is shown as ``< \textit{k}'' (\textit{k} being this value) and the rates built on it
 are withheld, so that a narrow filter cannot single out a respondent. \val{1} turns suppression
 off. Environment: \opt{ELICIT_PARTICIPATION_SMALL_CELL}. \\
+\opt{elicit.participation.stalled-days} & \val{14} & \chgmay & On the Participation page and in its
+exports, a respondent in progress who has not opened a page or saved an answer for this many days
+is counted as stalled. Environment: \opt{ELICIT_PARTICIPATION_STALLED_DAYS}. \\
 \opt{elicit.debug.reveal-tokens} & \val{false} & \chgkeep & Shows OIDC and bearer tokens
 unmasked on the diagnostics screen. A development aid. This concerns identity tokens, not
 respondent access codes. \\
