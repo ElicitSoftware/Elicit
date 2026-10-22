@@ -735,6 +735,10 @@ name. Environment: \opt{ELICIT_SURVEY_URL}. \\
 all. Environment: \opt{ELICIT_SURVEY_ETL_BUILD_ENABLED}. \\
 \opt{elicit.mailer.send-timeout-seconds} & \val{30} & \chgmay & How long a single message
 send may take before it is abandoned. \\
+\opt{elicit.participation.small-cell} & \val{5} & \chgmay & On the Participation page and in its
+CSV and PDF, a count from 1 to one below this value is shown as ``< \textit{k}'' (\textit{k} being this value) and the rates built on it
+are withheld, so that a narrow filter cannot single out a respondent. \val{1} turns suppression
+off. Environment: \opt{ELICIT_PARTICIPATION_SMALL_CELL}. \\
 \opt{elicit.debug.reveal-tokens} & \val{false} & \chgkeep & Shows OIDC and bearer tokens
 unmasked on the diagnostics screen. A development aid. This concerns identity tokens, not
 respondent access codes. \\
