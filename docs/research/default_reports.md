@@ -1,6 +1,6 @@
 # Default Reports: The Respondent Summary and the Administrator Report
 
-> **Status (2026-10-03):** Research plan, re-verified against the code on 2026-10-03 (Survey `V3`
+> **Status (2026-10-16):** Research plan, re-verified against the code on 2026-10-03 (Survey `V3`
 > ac602ab, Admin `V3` 990e62a, FHHS `V3` 8fb433c, Author `main`). Today a survey has **no reports
 > unless somebody writes a report service for it**. Every report a respondent or an administrator sees comes from an external
 > HTTP service listed in `survey.reports`, and the only such services that exist are FHHS's, written
@@ -10,8 +10,12 @@
 > code: a **respondent report**, which echoes back the answers the author marked for it, and an
 > **administrator report**, which counts registered, started and finished respondents and shows,
 > for the questions the author marked, how many respondents were presented each question and how
-> many answered it. Section 4.3 suggests further metrics. Nothing here is implemented, and most of
-> the decisions listed in section 7 are open.
+> many answered it. Section 4.3 suggests further metrics. Phases 1 and 2 of the plan are
+> implemented: phase 1 in Survey #140 (merged 2026-10-16: FR-030, UC-004 and UC-005 amended), phase 2
+> in Survey #141 (UC-012, FR-031..033, V022) and Admin #109 (export and import carry the columns),
+> both open on 2026-10-16. Nothing else is, and most of
+> the decisions listed in section 7 are open. Research questions 1, 2 and 3 were answered from the
+> code on 2026-10-16 (section 6) and settled D-17 and D-18.
 >
 > **Decided 2026-10-02 (section 2.4):** the respondent report is an ordinary row in `survey.reports`,
 > the same table a custom report service is listed in. Author seeds the standard row(s) into every
@@ -219,7 +223,7 @@ describes the tags as building "the report", section 2.3 proposes renaming them.
 | G-2 | Author exports `reports` with zero rows | An Author-built survey cannot list any report, default or custom. The Reports page that closes this (section 2.2) is also where the default row is seeded (section 2.4) |
 | G-3 | `fact_respondents` triggers and ETL filtered on `survey_id = 1` | **Fixed in Survey on 2026-10-02** (Survey #136, UC-008, FR-029): every survey has its own schema, `report_<slug of the survey name>` (`etl/ReportSchemaNames.java:38`), recorded on `surveys.report_schema` (`V021:22-33`), built by `POST /api/etl/build?survey=<key>`, renamed by `POST /api/etl/schema/<key>/rename` and dropped by `DELETE /api/etl/schema/<key>` (behind `elicit.etl.drop.enabled`). No `survey_id = 1` literal remains; `fact_respondents` is a view (`Sql.java:829`); `fact_sections` gained `question_key`/`item_key` (`:154-160`) for per-item repeats |
 | G-4 | Eager answer rows | "Presented" is only sound for finished respondents |
-| G-5 | Defaulted questions get `saved_dt`; a false checkbox is NULL and also gets `saved_dt` | "Answered" is wrong for both types, and no column at all distinguishes an unchecked box from an untouched one |
+| G-5 | Defaulted questions get `saved_dt`; a false checkbox is NULL and also gets `saved_dt` | "Answered" is wrong for both types, and no column at all distinguishes an unchecked box from an untouched one. **Resolved 2026-10-16 by D-17 and D-18:** `saved_dt` becomes a change stamp, and a presented checkbox with a NULL value reads as No; no explicit `false` is stored |
 | G-6 | Deleted rows purged on Finish | Cannot report "shown, then hidden by a changed answer" |
 | G-7 | No last-activity timestamp | Cannot tell an active In Progress respondent from an abandoned one |
 | G-8 | No withdrawn/expired state; `setActiveFalse()` sets `finalized_dt` unconditionally | A future withdraw would be counted as Finished |
@@ -227,8 +231,9 @@ describes the tags as building "the report", section 2.3 proposes renaming them.
 | G-10 | Admin has no dashboard FR/UC, though Admin `vision.md:42-45` lists "progress monitoring dashboards" as in scope | The administrator report needs requirements before code |
 | G-11 | Author calls the star-schema tags "reporting tags" and their columns "report columns", and tells authors to "tag what the report needs" | Once default reports exist, an author will expect tagging a question to put it on a report (section 2.3) |
 | G-12 | Applying a survey update never removes a `reports` row whose `report_key` has left the file (`SurveyDefinitionUpdateService.java:74-75`) | An author who drops the default report, or a custom one, and republishes does not remove it from a deployed site. The row keeps running until someone deletes it by SQL (section 2.4, D-13) |
-| G-14 | `ReportView` shows "Generate PDF" whatever the row count (`ReportView.java:100-121`) and shows Next only when `post_survey_url` is set (`:136-142`); Finish (`ReviewView.java:155`) and re-login (`MainView.java:142-158,235-241`) always land on it | A survey with no `survey.reports` rows ends on a page holding a PDF button that produces an empty PDF, and with no post-survey URL a page holding nothing at all. **Required 2026-10-03:** with no rows, hide Generate PDF and send the respondent straight to the post-survey URL (D-16) |
+| G-14 | `ReportView` shows "Generate PDF" whatever the row count (`ReportView.java:100-121`) and shows Next only when `post_survey_url` is set (`:136-142`); Finish (`ReviewView.java:155`) and re-login (`MainView.java:142-158,235-241`) always land on it | A survey with no `survey.reports` rows ends on a page holding a PDF button that produces an empty PDF, and with no post-survey URL a page holding nothing at all. **Required 2026-10-03:** with no rows, hide Generate PDF and send the respondent straight to the post-survey URL (D-16). **Fixed in Survey on 2026-10-16** (Survey #140, FR-030; UC-004 and UC-005 amended) |
 | G-13 | Admin's `ReportRequest` carries only `id` (`report/ReportRequest.java:56`, `ReportingService.java:267`); Survey's carries `id` and `language` (`ReportView.java:175`) | A default respondent report printed from Admin does not know which language to render. FHHS never read the field (section 2.4, D-14) |
+| G-15 | The ETL's dimension queries emit a tag's metadata value whenever the answer row exists, with no `text_value` or `deleted` filter (`Sql.java:317-400,493-613`) | Harmless for the rule-gated age questions the Family History Survey uses metadata values on, where the row's existence is the meaning; a metadata value on a CHECKBOX would count unchecked boxes (question 3). Record it in `faceted_exploration.md` G6 |
 
 ## 2. How an author marks what to report
 
@@ -574,8 +579,9 @@ track `db/migration-v3`, or the upgrade path fails on the pending migration.
 |---|---|---|---|
 | `answers.presented_dt`: set when the page holding the row is first rendered | Survey | G-4 | Makes "presented" exact for In Progress respondents and gives drop-off and time-per-step. Pre-existing rows of finished respondents can be back-filled from `created_dt` |
 | `respondents.last_activity_dt`: set on each save or navigation | Survey | G-7 | Cheap; one column |
-| Distinguish a saved value from a default | Survey | G-5 | For example, set `saved_dt` only on an explicit save, and render the default without stamping |
-| Store an explicit `false` for CHECKBOX | Survey | G-5 | A data-semantics change. Check ETL and FHHS readers for `IS NULL` assumptions first |
+| Carry `presented_dt` and `last_activity_dt` in the respondent export and import | Admin | G-4, G-7 | The answer and respondent records list their columns by hand (BR-099; question 1), so a transferred respondent would otherwise lose both |
+| Stop stamping `saved_dt` at row creation (`Answer.java:453`), so that it means "the respondent changed the value" | Survey | G-5 | D-18. No reader depends on the creation stamp (question 2). The ETL's `saved_dt is not null` (`Sql.java:458`) is redundant with `text_value IS NOT NULL` and stays, so an accepted default still reaches the star schema |
+| ~~Store an explicit `false` for CHECKBOX~~ Derive No from `presented_dt` set and `text_value` NULL | Survey | G-5 | D-17. Storing `false` would change rules, the review page and the Family History Survey's star schema (question 3) |
 | A withdrawn/expired state that does not set `finalized_dt` | Survey + Admin | G-8 | Only needed when a withdraw feature is built. Record the constraint now |
 | Keep deleted rows (or log the event) instead of purging on Finish | Survey | G-6 | Optional; storage cost versus the "answer changed" metric |
 | Model `reports` and `report_items` in Author and the `.elicit` format; the Reports page seeds the default row into every new survey | Author, Survey (migration), Admin (apply) | G-1, G-2 | The `reports:` lines keep their six fields and every row is exported (section 2.4). Format stays `ELICIT_SURVEY_EXPORT_V1` (`SurveyDefinitionFileFields.java:48` says additions never bump it). `report_items` exports like `metadata` (section 2.1) and goes into `ElicitFormat.TABLES` after `metadata`, before `translations` |
@@ -592,15 +598,59 @@ These need an answer from the code or a prototype before requirements are writte
 
 1. **Does `presented_dt` belong on the row or the page?** Rows are rebuilt on each Next/Previous
    (`QuestionManager.init`). Find the one place a page is rendered for the first time and confirm it
-   can stamp only its own rows.
+   can stamp only its own rows. *Answered 2026-10-16: on the row, stamped by the page render.* A
+   page is one section instance, and every render of one goes through `QuestionManager.navigate`
+   (`:456`) → `getAnswersBySection` (`:506-525`), whose `Answer.findBySectionDisplaykey`
+   (`Answer.java:72`) returns exactly that page's non-deleted rows. `navigate` has two callers,
+   `QuestionService.init` (`:155`: first entry, Next, Previous and the review's Edit) and
+   `saveAnswer` (`:324`, after every save), both transactional, so setting `presentedDt` where it
+   is null on the returned rows persists on flush and is idempotent across the re-render each save
+   causes. Rows a SHOW rule adds to the current page inside `saveAnswer` come back from the same
+   `navigate` call and are stamped at their first display. `QuestionManager.init` (`:336`) builds
+   the other pages' rows without passing through `navigate`, so they stay unstamped, and the review
+   page (`QuestionService.review`, `:192`) reads every row by its own SQL and stamps nothing.
+   Admin's respondent export and import list the answer columns by hand
+   (`RespondentExportService.java:149-171,281-287`, `RespondentImportService.java:411-431`,
+   BR-099), so the new columns go there too (section 5).
 2. **Default values.** Which existing surveys rely on `saved_dt` being set for defaulted questions
    (review, validation, the ETL `saved_dt IS NOT NULL` filter at `Sql.java:282-325`)?
+   *Answered 2026-10-16: none.* `savedDt` is written in two places, the constructor when a value
+   (a default) is supplied (`Answer.java:451-455`) and `saveAnswer` (`QuestionService.java:302`),
+   and read by exactly one query in the platform: the ETL's fact insert (`Sql.java:458`), where it
+   is redundant with the `text_value IS NOT NULL` on the line above, because every row with a value
+   carries the stamp. Validation, rules, navigation and the review SQL
+   (`QuestionService.java:78-121`) test `text_value`, never `saved_dt`; Admin's export and import
+   copy the column without reading it; FHHS and Author never mention it. Dropping the stamp from
+   the constructor (D-18) changes no behavior, and `saveAnswer`'s unchanged-value short-circuit
+   (`:298`) keeps it off when a field re-submits the default, so a set `saved_dt` means the
+   respondent changed the value.
 3. **Checkbox false.** Which readers (ETL, FHHS, Admin export) treat NULL as false? Changing the
    storage is a migration plus a reader audit. *FHHS audited 2026-10-03:* its readers compare the
    string to `"true"` (`FamilyManager.java:85-87`, `RowConverter.java:67-159`,
    `FamilyMember.java:247,518-669,702-750`), so a stored `"false"` reads as false and nothing breaks.
    The open risk is the ETL: its `text_value IS NOT NULL` filter (`Sql.java:423-458`) would start
-   emitting fact rows for unchecked tagged checkboxes. ETL and Admin export still to audit.
+   emitting fact rows for unchecked tagged checkboxes. *ETL, Admin and Survey audited
+   2026-10-16; answered: do not store `false` (D-17).* Admin's export and import copy `text_value`
+   verbatim (`RespondentExportService.java:166`, `RespondentImportService.java:431`) and nothing
+   else in Admin reads it. Survey's own readers parse the string (`ElicitCheckbox.java:56`,
+   `Relationship.java:288` BOOLEAN, `QuestionService.java:306`) and would cope, but two things
+   would change: an EQUAL or NOT_EQUAL rule on a checkbox (`Relationship.java:339-348`) is inert
+   on the NULL today and would start firing on `"false"`, and the review page
+   (`QuestionService.java:78-121`, `text_value IS NOT NULL`) would print a `false` line for every
+   unchecked box. The ETL would change in three places: the fact insert (`Sql.java:457`) gains a
+   row for a section whose only values are unchecked boxes, and the dimension-value and
+   key-resolution queries (`:317-400`, `:493-613`) fall back to `text_value` when the tag has no
+   metadata value, so every `dim_<tag>` on a checkbox gains a `false` member and the fact keys that
+   are `-1` today point at it. The Family History Survey's nineteen cancer checkboxes (section 14,
+   ontology 7-26) are tagged exactly that way, so `report_family_history_survey` would change,
+   which phase 2's verification forbids, and `SqlDimensionResolutionTest.java:79-84` pins the
+   `true` fallback. None of it is needed: once `presented_dt` exists, a presented checkbox with a
+   NULL value *is* No, because the control has no unanswered state. *Side finding (G-15):* both
+   dimension queries have no `text_value` or `deleted` filter, and their CASE (`:322`, `:498`)
+   emits a tag's metadata value whenever the answer row exists, so a metadata value on a CHECKBOX
+   would tag the row, not the tick. The Family History Survey has none (its metadata values sit on
+   the rule-gated age questions, ontology 5 Alive/Deceased, where the row's existence is the
+   meaning), so nothing is wrong today.
 4. **Repeats.** For a question inside a REPEAT section, is "presented" counted per respondent or per
    instance? Prototype both on a household-style survey and see which one a coordinator reads
    correctly.
@@ -643,7 +693,9 @@ These need an answer from the code or a prototype before requirements are writte
 | D-13 | A `reports` row whose key has left the republished file | delete / retire with an `effective_to` / leave as today | delete: `reports` is a Type 1 table with no history, and leaving it running is G-12 |
 | D-14 | Which language Admin's print asks the respondent report for | the respondent's answering language (`answers.display_language`) / the administrator's UI language / the survey's base language | the respondent's: Admin sends it in `ReportRequest`, and the service falls back to `display_language` when the field is absent (G-13) |
 | D-15 | Name of the Admin view | "Survey Overview" / "Participation" / "Progress" | "Participation": Admin's FR-020 / UC-020 "View System Overview" already owns "overview" |
-| D-16 | A survey with no `survey.reports` rows (required: no PDF button, straight to the post-survey URL) | the two edge cases: (i) re-login by a finished respondent: redirect again / show a completion notice; (ii) no rows **and** no `post_survey_url`: a completion notice with no buttons / refuse such a survey at apply | (i) redirect again, the same rule on every path to `/report`; (ii) a completion notice, since `post_survey_url` is nullable (`V001:46`) and Author cannot require it. Amend Survey UC-004 (Finish) and UC-005 (View Reports) |
+| D-16 | A survey with no `survey.reports` rows (required: no PDF button, straight to the post-survey URL) | the two edge cases: (i) re-login by a finished respondent: redirect again / show a completion notice; (ii) no rows **and** no `post_survey_url`: a completion notice with no buttons / refuse such a survey at apply | (i) redirect again, the same rule on every path to `/report`; (ii) a completion notice, since `post_survey_url` is nullable (`V001:46`) and Author cannot require it. Amend Survey UC-004 (Finish) and UC-005 (View Reports). **Done 2026-10-16** (Survey #140) |
+| D-17 | An unchecked checkbox | store an explicit `false` / derive No from `presented_dt` set and `text_value` NULL | **Settled 2026-10-16:** derive. Storing `false` would change rules, the review page and the Family History Survey's star schema for no gain (question 3) |
+| D-18 | What `saved_dt` means | stamped at creation for a default, as today / stamped only when the respondent changes the value | **Settled 2026-10-16:** only on change; `Answer.java:453` stops stamping. No reader depends on the creation stamp (question 2). On the administrator report "answered" then means `text_value` set, and "changed from the default" means `saved_dt` set |
 
 ## 8. Plan
 
@@ -652,9 +704,9 @@ spec in the module it touches.
 
 | Phase | Work | Modules | Verification |
 |---|---|---|---|
-| 0 | Answer the research questions in section 6; settle the D-table | — | this document updated |
-| 1 ✓ | No `survey.reports` rows: hide "Generate PDF", send Finish and re-login straight to `post_survey_url`, completion notice when there is none (G-14, D-16); amend UC-004 and UC-005 first | Survey | the census sample (no reports) finishes on its post-survey URL; the Family History Survey (three rows) still shows its cards and PDF; a survey with neither shows the notice |
-| 2 ✓ | Data capture: `presented_dt`, `last_activity_dt`, default/checkbox semantics (section 5), in both migration tracks | Survey | greenfield and brownfield (`resetDatabase.sh V2`) runs; `report_family_history_survey` unchanged for the Family History Survey |
+| 0 | Answer the research questions in section 6; settle the D-table. Questions 1-3 answered 2026-10-16; 4 and 5 gate phase 5, 6 gates phase 6 | — | this document updated |
+| 1 ✓ | Done 2026-10-16 (Survey #140, FR-030). No `survey.reports` rows: hide "Generate PDF", send Finish and re-login straight to `post_survey_url`, completion notice when there is none (G-14, D-16); amend UC-004 and UC-005 first | Survey | the census sample (no reports) finishes on its post-survey URL; the Family History Survey (three rows) still shows its cards and PDF; a survey with neither shows the notice |
+| 2 ✓ | Done 2026-10-16 (Survey #141: UC-012, FR-031..033, V022; Admin #109). Data capture: `presented_dt` stamped in `getAnswersBySection` (question 1), `last_activity_dt`, `saved_dt` only on change (D-18), no stored `false` (D-17), in both migration tracks; Admin's respondent export and import carry the two new columns (section 5). `last_activity_dt` is stamped in a transaction that joins the caller's, not inside the render's REQUIRES_NEW one: session restore logs in and renders inside one transaction that has flushed the respondent's row, and a nested update waited on it until the transaction timed out (UC-012 BR-004) | Survey, Admin | greenfield and brownfield (`resetDatabase.sh V2`) runs; `report_family_history_survey` unchanged for the Family History Survey |
 | 3 ✓ | Rename reporting tags to analysis tags in Author's UI, guide, manual and docs (section 2.3, D-11); model `survey.reports` and `report_items` in Author, with the Reports page seeding the default row (section 2.4); teach the three parsers the table and widen the translations constraint (section 5); `.elicit` round-trip; Admin apply deletes unlisted `reports` rows (D-13); report URL resolution (D-12); Admin sends the language (D-14) | Author, Survey (migration), Admin | export, apply and re-export give identical files; a file without `report_items` still applies; a survey republished without the default row no longer lists it after apply; Author's three-way build check |
 | 4 ✓ | Respondent report service in Survey (Survey UC-014); Author's Reports page links to the preview Survey (section 2.2) | Survey, Author | `samples/census-household-survey.elicit` (every type, every rule, a count repeat and a per-item repeat) with marks added through its generator, in en, es-419 and ar (RTL); PDF and card match; TC-001's `CensusMultilingualE2ETest` extended to open the report |
 | 5 | Administrator report v1: participation view (D-15), marked questions, tables, PDF/CSV, suppression | Admin | counts reconcile with direct SQL on a seeded survey; department scoping; k-suppression |
