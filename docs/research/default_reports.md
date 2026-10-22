@@ -49,7 +49,19 @@
 > suppression is per cell, with no complementary suppression yet). Admin #115 also grants
 > `survey.report_items` and `survey.question_types` to `surveyadmin_user`, which phase 3's apply
 > and the page's cards needed on a real database; Elicit #47 documents the setting in the
-> installation manual. Phase 6 is still to do.
+> installation manual.
+>
+> **Done (2026-10-22):** phase 6, and with it the plan. Admin #119 built Participation v2 (Admin
+> UC-031 BR-129 to BR-133, FR-044, FR-045): four charts beside their tables (the funnel, the weeks,
+> a bar per option on each choice card, and drop-off by step), drawn by Admin as server-side SVG
+> that the page shows and the PDF embeds unchanged; where respondents in progress stopped (the step
+> of their last presented row, "Not recorded" before Survey V022); stalled respondents (no activity
+> for `elicit.participation.stalled-days`, default 14, counted and never named); and time per step
+> for finished respondents, with the whole survey from first access to finish (D-6). **Research
+> question 6 answered** and **D-7 settled**: server-side SVG, because Vaadin Charts needs a
+> commercial subscription to develop with and to build a production image, which would bind every
+> site building Elicit from source. A suppressed count draws no bar. Elicit #50 documents the
+> setting in the installation manual.
 >
 > **Scope:** the reports are for new, generic surveys. FHHS is out of scope. It appears only as the
 > existing example of a survey-specific report service (section 1.1), and nothing proposed here
@@ -668,7 +680,10 @@ These need an answer from the code or a prototype before requirements are writte
 5. **Query cost.** Measure the per-question aggregate over a synthetic 10 000-respondent survey on
    the dev database before deciding between live queries and a materialized summary.
 6. **Charts in Admin.** Vaadin Charts is commercial. Weigh it against a lightweight SVG renderer for
-   three chart types, rendered server-side so the PDF and the screen match.
+   three chart types, rendered server-side so the PDF and the screen match. *Answered 2026-10-22:*
+   server-side SVG (Admin `SvgCharts`, UC-031 BR-129). Vaadin's own documentation for 25.3 says a
+   commercial component needs a license for development and to build a production application;
+   the PDF service already drew SVG through Batik, and gained an inline mode for charts.
 7. **The `.elicit` format.** *Answered 2026-10-03: no parser skips an unknown table.* Admin's
    import and update each dispatch on a hard-coded `switch (tableName)` whose `default` records
    `definition.unknownTable` and fails the apply (`SurveyDefinitionImportService.java:442-443,459-460`,
@@ -695,7 +710,7 @@ These need an answer from the code or a prototype before requirements are writte
 | D-4 | Repeat counting | per respondent / per instance | show both; per-instance as the primary figure |
 | D-5 | Population for per-question metrics | finished only / everyone presented | finished only until `presented_dt` exists |
 | D-6 | Duration | created → finalized / first access → finalized | first access → finalized, and fix the SQL to match |
-| D-7 | Charting | Vaadin Charts / SVG / tables only in v1 | tables in v1, charts in v2 |
+| D-7 | Charting | Vaadin Charts / SVG / tables only in v1 | **Settled 2026-10-22:** tables in v1 (phase 5), server-side SVG charts in v2 (phase 6, research question 6) |
 | D-8 | Freshness | live query / nightly materialized | live, if question 5 confirms the cost |
 | D-9 | Drill-down from a count to respondents | v1 / later | later, with NFR-005 logging |
 | D-10 | Small-cell threshold | fixed 5 / configurable | configurable, default 5 |
@@ -721,7 +736,7 @@ spec in the module it touches.
 | 3 ✓ | Rename reporting tags to analysis tags in Author's UI, guide, manual and docs (section 2.3, D-11); model `survey.reports` and `report_items` in Author, with the Reports page seeding the default row (section 2.4); teach the three parsers the table and widen the translations constraint (section 5); `.elicit` round-trip; Admin apply deletes unlisted `reports` rows (D-13); report URL resolution (D-12); Admin sends the language (D-14) | Author, Survey (migration), Admin | export, apply and re-export give identical files; a file without `report_items` still applies; a survey republished without the default row no longer lists it after apply; Author's three-way build check |
 | 4 ✓ | Respondent report service in Survey (Survey UC-014); Author's Reports page links to the preview Survey (section 2.2) | Survey, Author | `samples/census-household-survey.elicit` (every type, every rule, a count repeat and a per-item repeat) with marks added through its generator, in en, es-419 and ar (RTL); PDF and card match; TC-001's `CensusMultilingualE2ETest` extended to open the report |
 | 5 ✓ | Administrator report v1: participation view (D-15), marked questions, tables, PDF/CSV, suppression | Admin | counts reconcile with direct SQL on a seeded survey; department scoping; k-suppression |
-| 6 | v2: charts, drop-off by step, stalled respondents, time per step | Admin | the same seeded survey with In Progress respondents at known steps |
+| 6 ✓ | v2: charts, drop-off by step, stalled respondents, time per step | Admin | the same seeded survey with In Progress respondents at known steps |
 
 The phases are ordered so that each one is useful on its own:
 - Phase 1 alone fixes today's dead end for every survey without a report service.
