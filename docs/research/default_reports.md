@@ -37,8 +37,19 @@
 > (Survey UC-005 BR-015, UC-014 BR-001, research question 9 answered: never HTTP to itself), Admin's
 > print resolves it under `elicit.survey.url` (Admin UC-005 BR-023). **D-3 settled** as omit, with no
 > per-survey setting yet; **D-14** as proposed. Marks order by `report_type` as a string, so
-> `ADMINISTRATOR` sorts before `RESPONDENT` everywhere. The administrator report (phases 5 and 6)
-> is still to do.
+> `ADMINISTRATOR` sorts before `RESPONDENT` everywhere.
+>
+> **Done (2026-10-22):** phase 5. Admin #115 built the administrator report v1 as the
+> **Participation** page (Admin UC-031, FR-042, FR-043, NFR-018, NFR-019; D-15 settled as
+> "Participation"): participation counts and rates per department and per ISO week, one card per
+> `ADMINISTRATOR` mark among finished respondents, and a CSV and a PDF of the same tables. Settled as
+> leaned: **D-4** per instance as the primary figure with distinct respondents beside it, **D-5**
+> finished respondents only, **D-7** tables only, **D-8** live queries, **D-9** no drill-down,
+> **D-10** configurable (`elicit.participation.small-cell`, default 5; zero is shown, and
+> suppression is per cell, with no complementary suppression yet). Admin #115 also grants
+> `survey.report_items` and `survey.question_types` to `surveyadmin_user`, which phase 3's apply
+> and the page's cards needed on a real database; Elicit #47 documents the setting in the
+> installation manual. Phase 6 is still to do.
 >
 > **Scope:** the reports are for new, generic surveys. FHHS is out of scope. It appears only as the
 > existing example of a survey-specific report service (section 1.1), and nothing proposed here
@@ -709,7 +720,7 @@ spec in the module it touches.
 | 2 ✓ | Done 2026-10-16 (Survey #141: UC-012, FR-031..033, V022; Admin #109). Data capture: `presented_dt` stamped in `getAnswersBySection` (question 1), `last_activity_dt`, `saved_dt` only on change (D-18), no stored `false` (D-17), in both migration tracks; Admin's respondent export and import carry the two new columns (section 5). `last_activity_dt` is stamped in a transaction that joins the caller's, not inside the render's REQUIRES_NEW one: session restore logs in and renders inside one transaction that has flushed the respondent's row, and a nested update waited on it until the transaction timed out (UC-012 BR-004) | Survey, Admin | greenfield and brownfield (`resetDatabase.sh V2`) runs; `report_family_history_survey` unchanged for the Family History Survey |
 | 3 ✓ | Rename reporting tags to analysis tags in Author's UI, guide, manual and docs (section 2.3, D-11); model `survey.reports` and `report_items` in Author, with the Reports page seeding the default row (section 2.4); teach the three parsers the table and widen the translations constraint (section 5); `.elicit` round-trip; Admin apply deletes unlisted `reports` rows (D-13); report URL resolution (D-12); Admin sends the language (D-14) | Author, Survey (migration), Admin | export, apply and re-export give identical files; a file without `report_items` still applies; a survey republished without the default row no longer lists it after apply; Author's three-way build check |
 | 4 ✓ | Respondent report service in Survey (Survey UC-014); Author's Reports page links to the preview Survey (section 2.2) | Survey, Author | `samples/census-household-survey.elicit` (every type, every rule, a count repeat and a per-item repeat) with marks added through its generator, in en, es-419 and ar (RTL); PDF and card match; TC-001's `CensusMultilingualE2ETest` extended to open the report |
-| 5 | Administrator report v1: participation view (D-15), marked questions, tables, PDF/CSV, suppression | Admin | counts reconcile with direct SQL on a seeded survey; department scoping; k-suppression |
+| 5 ✓ | Administrator report v1: participation view (D-15), marked questions, tables, PDF/CSV, suppression | Admin | counts reconcile with direct SQL on a seeded survey; department scoping; k-suppression |
 | 6 | v2: charts, drop-off by step, stalled respondents, time per step | Admin | the same seeded survey with In Progress respondents at known steps |
 
 The phases are ordered so that each one is useful on its own:
