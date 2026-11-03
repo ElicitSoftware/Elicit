@@ -29,9 +29,11 @@
 # Manual is not a module and produces no image: it is the installation manual
 # (umbrella UC-002), typeset from docs/manual/ by a TeX Live container into
 # docs/manual/elicit-installation-manual.pdf. Unlike the administrator's manual --
-# which Admin's own buildDockerImage.sh typesets into the image it is about to
-# build -- this PDF is a release artifact of the umbrella repo, read before there
-# is an Elicit site to serve it from. It belongs in this run anyway:
+# which Admin's own buildDockerImage.sh packages into the image it is about to
+# build, typeset once and reused until BUILD_MANUAL=1 asks for a fresh one, with
+# Admin's release workflow typesetting it anew for every published image -- this
+# PDF is a release artifact of the umbrella repo, read before there is an Elicit
+# site to serve it from. It belongs in this run anyway:
 # it stamps the version Survey and Admin agree on, so it is only truthful
 # when built from the same tree as the images. It contends with nothing the module
 # builds use (no Maven, no target/, no test port), and finishes in well under a
