@@ -10,15 +10,32 @@ The docker-compose.yml has many properties defined for a local development envir
 Examine these properties and adjust them for your unique installation requirements. 
 Refer to the Quarkus.io documentation for explanations of properties (https://quarkus.io/guides/all-config).
 
+Three settings have no usable default from 3.0.0 and must be set by every deployment:
+
+- **Database passwords.** Survey and FHHS ship without them. Set `ELICIT_DB_PASSWORD` and
+  `ELICIT_OWNER_DB_PASSWORD` (or `quarkus.datasource.password` and
+  `quarkus.datasource.owner.password`). A module started without them logs
+  `no password was provided`, retries for about eight minutes and exits.
+- **Survey's address for Admin.** Admin calls Survey to build reporting schemas and print the
+  built-in respondent summary. Set `elicit.survey.url` to an address Admin can reach; the default,
+  `http://survey:8080`, resolves only inside docker compose. Those `/api` paths on Survey are for
+  Admin only, so do not publish them: a public Survey host should refuse every `/api` path except
+  `/api/pdf/download`.
+- **Trusted certificates.** Outbound HTTPS is verified (`quarkus.tls.trust-all` is no longer set).
+  If a report service, post-survey action or identity provider uses a certificate from a private
+  CA, add that CA with `quarkus.tls.trust-store.pem.certs`.
+
 ### Start the modules in this order to insure the database is properly setup and configured. 
 We use Flyway for database setup and migration (https://www.red-gate.com/products/flyway/community/).
 To insure the database populates please start the modules in this order. 
+Wait for each module to report ready on `/q/health/ready` before starting the next.
 1) Start Survey
    This will install most of the tables needed for a survey but no survey
-2) Start FHHS
-   This installs FHHS's own tables, grants and indexes. It no longer installs the Family History Survey: FHHS starts, reports not-ready on `/q/health/ready` and refuses report requests until the survey has been imported (step 5). A failed start can simply be started again once the cause is fixed.
-3) Start Admin
+2) Start Admin
    This will install all the tables needed for the Admin app. No department is created: the first administrator to sign in is asked to create one (it is assigned to them), and a user with no department can only log out.
+3) Start FHHS
+   This installs FHHS's own tables, grants and indexes. It no longer installs the Family History Survey: FHHS starts, reports not-ready on `/q/health/ready` and refuses report requests until the survey has been imported (step 5). A failed start can simply be started again once the cause is fixed.
+   Start it after Admin, not beside it: on a fresh database the two modules' first migrations grant on the same tables, and run together one of them fails with "tuple concurrently updated".
 4) Start Pedigree
    This is the module for generating a visual pedigree.
 5) Import the Family History Survey
@@ -72,20 +89,18 @@ migrations depend on:
   `V0.0.5__UPDATE_CANCER_QUESTONS.sql`'s hardcoded surrogate ids, looks up a durable
   `section_id` this migration produces.
 
-**Both migrations are now implemented, on each repo's own `V3.0.0_Kimball_Type2_SDC` branch
-— not yet merged to `main`.** FHHS's `V0.0.8` has been staging-verified against a real
-Survey-Kimball-migrated database and is idempotent. Admin's `V0.0.12` is a straightforward
-grant. Until these branches are merged, deploying a `main`-based Admin or FHHS build does
-not yet exercise this ordering dependency; once merged, whoever cuts the release must still
-ensure they run *after* Survey's Kimball migration has completed on the shared database, or
-they will fail outright (the sequences/columns they reference won't exist yet) rather than
-silently corrupt anything.
+Both migrations ship in 3.0.0. FHHS's `V0.0.8` has been verified against a real
+Survey-Kimball-migrated database and is idempotent; Admin's `V0.0.12` is a straightforward
+grant. They must run *after* Survey's Kimball migration has completed on the shared database,
+or they fail outright (the sequences and columns they reference do not exist yet) rather than
+silently corrupt anything. FHHS's `V0.0.9` (durable-sequence sync) is applied on FHHS's second
+start after an upgrade; the first start is already healthy, and nothing needs doing.
 
 - **docker-compose deployments**: already safe as long as `survey`, `admin`, and `fhhs` are
-  upgraded together in the same `docker compose pull && docker compose up -d` — both `admin`
-  and `fhhs` declare `depends_on: survey: condition: service_healthy`, and Quarkus's
-  `/q/health/ready` only reports healthy after Survey's own Flyway migration
-  (`ManualSchemaMigrator`) has finished. **The one unsafe case**: upgrading Admin's or
+  upgraded together in the same `docker compose pull && docker compose up -d` — `admin`
+  declares `depends_on: survey: condition: service_healthy`, `fhhs` depends on both `survey`
+  and `admin` being healthy, and Quarkus's `/q/health/ready` only reports healthy after
+  Survey's own Flyway migration (`ManualSchemaMigrator`) has finished. **The one unsafe case**: upgrading Admin's or
   FHHS's image tag independently of Survey's (e.g. `docker compose up -d admin` alone)
   while Survey is still running an older, pre-Kimball image — `depends_on` only orders
   *startup*, it does not re-validate an already-running dependency. Always upgrade all
@@ -282,7 +297,14 @@ After starting a new Elicit system you will need to alter some of the template d
     Or if you would like to use it then you will need to adjust the host of the URL of the action. 
     UPDATE survey.post_survey_actions set url = 'http://host.docker.internal:8082/familyhistory/generate' where id = 1;
     
-    You will also have to update the sftp properties. 
+    You will also have to update the sftp properties. From 3.0.0 delivery is off unless
+    enabled, and the server's host key is verified: FHHS refuses to connect until
+    family.history.sftp.knownHosts holds the server's known_hosts lines (the output of
+    `ssh-keyscan -p <port> <host>`) or the path of a known_hosts file. Setting
+    family.history.sftp.strictHostKeyChecking=false skips the check; use it only for a local
+    development server.
+      - family.history.sftp.enabled=true
+      - family.history.sftp.knownHosts=<known_hosts lines or file path>
       - family.history.sftp.host=sftpServer
       - family.history.sftp.username=fhhs_user
       - family.history.sftp.password=pass
