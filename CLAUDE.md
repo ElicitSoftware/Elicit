@@ -207,7 +207,7 @@ to start cleanly on 2026-09-20.
 - `deploy.sh` — bring up an initialized stack.
 - `resetDatabase.sh V2|V3` — reset `postgresql/PGDATA` to the V2 copy (brownfield)
   or delete it (greenfield); stops the stack first.
-- `status.sh` — container status plus an HTTP probe of each service.
+- `status.sh` — container status plus a probe of each service's health endpoint (`/q/health/ready` for Survey, Admin and FHHS, printing why one is not ready; `/healthz` for Pedigree).
 - `generateGithubTemplates.py` — regenerate the pull request template and issue forms of
   all six repositories from one table; commit the result in each.
 
