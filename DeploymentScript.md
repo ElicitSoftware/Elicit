@@ -98,6 +98,20 @@ silently corrupt anything.
 - **Rollback**: none of the three apps ships a Flyway down-migration for their Kimball
   work (see each repo's own research doc) — recovery from a bad rollout is an operational
   pre-upgrade database backup/restore, not a code-level rollback.
+- **Collation version after a host change**: if the database moves to a host or image with a
+  different glibc during the upgrade (a new base image, a restore onto another server),
+  PostgreSQL warns `database "survey" has a collation version mismatch` on every connection,
+  and indexes on text columns may order differently until rebuilt. Before starting the
+  applications, in each database the warning names (usually `survey`, `postgres` and
+  `template1`), as a superuser:
+
+  ```sql
+  REINDEX DATABASE survey;
+  ALTER DATABASE survey REFRESH COLLATION VERSION;
+  ```
+
+  `resetDatabase.sh V2` does the same to the `PGDATA_v2` test copy, which was made under
+  glibc 2.41 while the `elicit_db` image provides 2.36.
 - **Temporary upgrade-path scaffolding — remove once the V2→V3 rollout is complete.** Both
   Survey and FHHS implement the V2.x→V3 upgrade via a `com.elicitsoftware.flyway.
   ManualSchemaMigrator` class that routes each boot to either `db/migration` (the current,
