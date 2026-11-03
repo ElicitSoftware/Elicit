@@ -78,7 +78,10 @@ OIDC/Bearer token. Never call the respondent credential a token.
 Applications: `survey`, `admin`, `fhhs` and `pedigree`. Supporting services:
 `db` (PostgreSQL), `keycloak` (OIDC), `mailpit` (SMTP), `sftpServer`, and
 `jaeger` (OpenTelemetry). All app images are built locally as
-`elicitsoftware/<name>:latest`.
+`elicitsoftware/<name>:latest`, and the compose file pulls the four application images
+at one tag, `${ELICIT_TAG:-latest}`, so `ELICIT_TAG=3.0.0-beta.1 docker compose up -d` (or a
+`.env` line, ignored by git) runs a published release as a matched set. `elicit_db` is not on
+the tag. Author's compose file uses the same variable.
 
 | Port    | Service                                    |
 | ------- | ------------------------------------------ |
