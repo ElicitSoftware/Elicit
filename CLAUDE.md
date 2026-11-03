@@ -201,9 +201,10 @@ to start cleanly on 2026-09-20.
   is pulled, not built. Ctrl-C stops the module builds too (Bash would otherwise leave them
   running as orphans that hold `target/` and the test ports while the lock is released),
   and the script warns about listeners on ports 8080-8083 and 8089-8091 before it starts:
-  a dev-mode Survey on 8080 hangs the Survey test suite, because the test data points
-  post-survey-action and report URLs at `localhost:8080`, dev mode parks requests while
-  it restarts, and neither Survey HTTP client sets a timeout.
+  a dev-mode Survey on 8080 stalls the Survey test suite, because the test data points
+  post-survey-action and report URLs at `localhost:8080` and dev mode parks requests while
+  it restarts, so each such call waits out the Survey clients' 60-second answer timeout
+  before it fails.
 - `deploy.sh` — bring up an initialized stack.
 - `resetDatabase.sh V2|V3` — reset `postgresql/PGDATA` to the V2 copy (brownfield)
   or delete it (greenfield); stops the stack first.

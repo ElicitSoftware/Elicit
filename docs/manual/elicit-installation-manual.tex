@@ -767,15 +767,16 @@ parameters below & \chgset & The application connection. The host names the comp
 service. \\
 \opt{quarkus.datasource.username} & per app & \chgset & \val{survey_user} for Survey,
 \val{surveyadmin_user} for Admin. \\
-\opt{quarkus.datasource.password} & per app & \chgset & See Section~\ref{sec:secrets}. \\
+\opt{quarkus.datasource.password} & none & \chgset & No value is shipped. Environment:
+\opt{ELICIT_DB_PASSWORD}. See Section~\ref{sec:secrets}. \\
 \opt{quarkus.datasource.jdbc.min-size} & \val{5} & \chgmay & \\
 \opt{quarkus.datasource.jdbc.max-size} & \val{20} & \chgmay & \\
 \opt{quarkus.datasource.jdbc.leak-detection-interval} & \val{10m} & \chgmay & \\
 \opt{quarkus.datasource.owner.jdbc.url} & as above & \chgset & The migrating connection, as
 which every module's Flyway migrations run. \\
 \opt{quarkus.datasource.owner.username} & \val{elicit_owner} & \chgkeep & The schema owner. \\
-\opt{quarkus.datasource.owner.password} & per app & \chgset & See
-Section~\ref{sec:secrets}. \\
+\opt{quarkus.datasource.owner.password} & none & \chgset & No value is shipped.
+Environment: \opt{ELICIT_OWNER_DB_PASSWORD}. See Section~\ref{sec:secrets}. \\
 \end{settings}
 
 The shipped connection URLs carry four parameters that the host and database name above
@@ -810,17 +811,18 @@ Survey defaults to \val{http://localhost:8080}. Each application is served same-
 its own interface, so a site normally needs nothing here. \\
 \opt{quarkus.http.limits.max-body-size} & \val{25M} & \chgmay & Admin only. Bounds a CSV or
 definition-file upload. \\
-\opt{quarkus.tls.trust-all} & \val{true} & \chgset & Survey and Admin. See the caution
-below. \\
+\opt{quarkus.tls.trust-all} & \val{false} & \chgkeep & Survey and Admin verify the
+certificate of every service they call over TLS. See the note below. \\
 \end{settings}
 
-\begin{elicitsecurity}[Outbound TLS verification is disabled]
-\opt{quarkus.tls.trust-all}\val{=true} turns off certificate verification for \emph{all}
-outbound TLS from Survey and Admin. Admin's configuration file records this as a deliberate,
-signed-off decision from a 2026-09 audit rather than an oversight. It is nevertheless an
-accepted risk that each site should re-confirm for itself, and it is the one entry in these
-tables whose shipped value is a security decision rather than a convenience.
-\end{elicitsecurity}
+\begin{elicitnote}[Services signed by a private certificate authority]
+Survey and Admin verify outbound TLS --- the identity provider, the mail relay, report
+services and each other --- against the Java runtime's trust store. Releases before 3.0.0
+shipped \opt{quarkus.tls.trust-all}\val{=true}, which turned that verification off; a site
+that carried the setting forward should remove it. A service whose certificate is issued by a
+private authority is trusted by adding that authority, for example
+\opt{quarkus.tls.trust-store.pem.certs} naming its PEM file, not by turning verification off.
+\end{elicitnote}
 
 \begin{settings}{tab:quarkus-flyway}{Migrations — Survey and Admin}
 \opt{quarkus.flyway.owner.schemas} & \val{survey} & \chgkeep & \\
@@ -890,10 +892,11 @@ is running with a credential anyone can read.
 \end{elicitsecurity}
 
 \begin{plaintable}{tab:secrets}{Development credentials that must be replaced}{@{}>{\raggedright\arraybackslash}p{0.29\linewidth} >{\raggedright\arraybackslash}p{0.21\linewidth} >{\raggedright\arraybackslash}p{0.43\linewidth}@{}}{\thead{What} & \thead{Shipped value} & \thead{Where it comes from}}
-Schema owner password & \val{SURVEYPW} & The database image's role script; Survey's
-configuration file; \opt{ELICIT_OWNER_DB_PASSWORD} in the compose file. \\
+Schema owner password & \val{SURVEYPW} & The database image's role script;
+\opt{ELICIT_OWNER_DB_PASSWORD} in the compose file, for every module. \\
 \addlinespace
-Survey's connection password & \val{SURVEYPW} & As above. \\
+Survey's connection password & \val{SURVEYPW} & The database image's role script;
+\opt{ELICIT_DB_PASSWORD} on the \val{survey} and \val{fhhs} services in the compose file. \\
 \addlinespace
 Admin's connection password & \val{SAOWNERPW} & The database image's role script;
 \opt{ELICIT_DB_PASSWORD} in the compose file. \\
@@ -915,17 +918,22 @@ SFTP account & \val{fhhs_user}/\val{pass} & The bundled SFTP service, for FHHS r
 delivery. \\
 \end{plaintable}
 
-\begin{elicitcaution}[Changing the two compose variables is not enough]
-Only Admin reads its database passwords from \opt{ELICIT_DB_PASSWORD} and
-\opt{ELICIT_OWNER_DB_PASSWORD}. Survey and FHHS carry the literal \val{SURVEYPW} in their own
-shipped configuration, so a site that changes only the two compose variables leaves those two
-modules still presenting the published password. Override
-\opt{quarkus.datasource.password} and \opt{quarkus.datasource.owner.password} on them
-directly.
+\begin{elicitcaution}[Every module needs both variables]
+Survey, Admin and FHHS all read their database passwords from \opt{ELICIT_DB_PASSWORD} and
+\opt{ELICIT_OWNER_DB_PASSWORD}, and none of them ships a value, so a module started without
+them never connects with a published password. It does not stop at once, though: the
+database refuses it, the module logs \val{no password was provided} and retries
+\opt{quarkus.flyway.owner.connect-retries} times with waits that double up to two minutes,
+reporting itself not ready meanwhile, and only then exits with
+\val{Failed to start application} --- about eight minutes after it started, at the shipped
+ten retries. A module that sits unhealthy after an upgrade with that message in its log is
+missing these variables. Before 3.0.0 Survey and FHHS carried the literal \val{SURVEYPW}; a site upgrading must now set both variables on them
+(or \opt{quarkus.datasource.password} and \opt{quarkus.datasource.owner.password}, which take
+precedence).
 \end{elicitcaution}
 
 \begin{elicitnote}[The two Admin variables read backwards, and are correct]
-The compose file sets \opt{ELICIT_DB_PASSWORD}\val{=SAOWNERPW} and
+On the \val{admin} service the compose file sets \opt{ELICIT_DB_PASSWORD}\val{=SAOWNERPW} and
 \opt{ELICIT_OWNER_DB_PASSWORD}\val{=SURVEYPW}. That is right: Admin's application connection
 is \val{surveyadmin_user}, whose password is \val{SAOWNERPW}, and its migrating connection is
 \val{elicit_owner}, whose password is \val{SURVEYPW}. The names simply do not read that way.
