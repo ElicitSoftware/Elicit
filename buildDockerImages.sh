@@ -21,10 +21,10 @@
 #
 # A module running in dev mode is not compatible with building it: dev mode holds
 # target/ and the compiled classes, and Survey's test data points its post-survey
-# action and report URLs at localhost:8080, so a dev-mode Survey on that port turns
-# Survey's test suite into an indefinite hang (dev mode parks incoming requests
-# while it restarts, and the Survey clients set no timeouts). The port check below
-# warns about both cases before anything starts.
+# action and report URLs at localhost:8080, so a dev-mode Survey on that port stalls
+# Survey's test suite: dev mode parks incoming requests while it restarts, and each
+# such call waits out the Survey clients' 60-second answer timeout before it fails.
+# The port check below warns about both cases before anything starts.
 #
 # Manual is not a module and produces no image: it is the installation manual
 # (umbrella UC-002), typeset from docs/manual/ by a TeX Live container into
@@ -92,7 +92,7 @@ if [ -n "$building_a_module" ] && command -v lsof >/dev/null 2>&1; then
         pids=$(lsof -nP -iTCP:"$port" -sTCP:LISTEN -t 2>/dev/null | sort -u | tr '\n' ' ')
         [ -n "$pids" ] || continue
         case $port in
-            8080) why="Survey's tests call localhost:8080 and will hang on a dev-mode Survey" ;;
+            8080) why="Survey's tests call localhost:8080 and will stall on a dev-mode Survey" ;;
             808[1-3]) why="looks like a dev-mode instance; stop it before building that module" ;;
             *) why="a Quarkus test port; that module's tests cannot bind it" ;;
         esac
