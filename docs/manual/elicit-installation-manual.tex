@@ -410,7 +410,10 @@ are a working site and a worked example, together with the curated translations 
 Four application services — \val{survey}, \val{admin}, \val{fhhs} and \val{pedigree} — and
 five supporting services bundled for evaluation: \val{db}, \val{keycloak}, \val{mailpit},
 \val{sftpServer} and \val{jaeger}. Every application image is
-\file{elicitsoftware/<name>:latest}.
+\file{elicitsoftware/<name>} at one tag, \val{${ELICIT_TAG:-latest}}: the four applications
+always run as a matched set from one release. The tag defaults to \val{latest}; a published
+release is run by naming its version (Section~\ref{sec:compose-up}). The database image,
+\file{elicitsoftware/elicit_db}, is versioned on its own and is not on the tag.
 
 \subsection{Before bringing it up}
 
@@ -431,11 +434,23 @@ five supporting services bundled for evaluation: \val{db}, \val{keycloak}, \val{
 \end{enumerate}
 
 \subsection{Bringing it up}
+\label{sec:compose-up}
 
 \begin{elicitcmd}
-docker compose up -d
+ELICIT_TAG=3.0.0-beta.1 docker compose up -d
 ./status.sh
 \end{elicitcmd}
+
+Name the release you are installing in \val{ELICIT_TAG}, either on the command line as above
+or once, in a \file{.env} file beside the compose file:
+
+\begin{elicitcmd}
+ELICIT_TAG=3.0.0-beta.1
+\end{elicitcmd}
+
+A pre-release (\val{3.0.0-beta.1}, \val{3.0.0-rc.1}) is published under its exact version
+only; \val{latest} and the \val{3.0} tag move only when a final version ships. Left unset, the
+tag is \val{latest}, which is what a local build produces.
 
 That is the whole procedure. The database starts and becomes healthy, Survey creates and
 migrates the shared schema, and the remaining services start as their dependencies become
