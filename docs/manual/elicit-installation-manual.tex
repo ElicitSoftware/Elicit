@@ -92,8 +92,9 @@ begins.
 \markboth{What Elicit is made of}{}
 
 Elicit is a modular survey platform: separate applications that share one database, one
-identity provider and one brand directory. Each also carries its own translations, built into
-the image rather than provisioned by a site (Chapter~\ref{sec:i18n}). A \term{site} is one
+identity provider and one brand directory, and can share one translations directory. Each
+image carries its own texts in English only; every other language is a file the site mounts
+(Chapter~\ref{sec:i18n}). A \term{site} is one
 such installation. This chapter names the pieces so that you can decide which of them your
 site runs before you install anything.
 
@@ -135,10 +136,10 @@ reach it.
   \item \textbf{One brand directory,} mounted read-only into Survey and Admin.
 \end{itemize}
 
-Translations are not on this list. Survey and Admin each ship a complete set of their own —
-today English, Latin American Spanish (\val{es-419}) and Arabic (\val{ar}) — built into the
-image at release time. A site provisions nothing for them; it only chooses which of the
-shipped languages to offer, with one property (Chapter~\ref{sec:i18n}).
+Translations are optional. Survey and Admin carry English in the image. Latin American Spanish
+(\val{es-419}) and Arabic (\val{ar}) come in a curated translations directory that
+ElicitSoftware maintains beside each release, which a site mounts read-only, along with any
+files of its own. A site that mounts nothing offers English only (Chapter~\ref{sec:i18n}).
 
 \subsection{The order of the first start}
 
@@ -211,9 +212,8 @@ cheaper to find now.
         reachable at \emph{one} address from both the browser and the application containers.
   \item[An SMTP relay] for Admin's invitations and reminders. Admin is the only module that
         sends mail.
-  \item[A directory for the brand,] readable by every module that mounts it. There is nothing
-        to prepare for translations — each image carries its own
-        (Chapter~\ref{sec:i18n}).
+  \item[A directory for the brand,] readable by every module that mounts it, and the same for
+        translations if the site offers any language besides English (Chapter~\ref{sec:i18n}).
   \item[Free host ports] for the modules you will run (Table~\ref{tab:ports}).
 \end{description}
 
@@ -401,7 +401,8 @@ must match the console's user records.
 \markboth{Installing with Docker Compose}{}
 
 The umbrella repository carries \file{docker-compose.yml} and the default brand. Together they
-are a working site and a worked example. It carries no translations: each image brings its own
+are a working site and a worked example, together with the curated translations directory,
+\file{elicit-i18n/}, which the file mounts read-only at \file{/opt/i18n} on Survey and Admin
 (Chapter~\ref{sec:i18n}).
 
 \subsection{What the file defines}
@@ -419,9 +420,10 @@ five supporting services bundled for evaluation: \val{db}, \val{keycloak}, \val{
         \val{true} so that an evaluator can type any access code; on a site that delivers
         real surveys that would let anyone in.
   \item Point the brand volume at your own directory, if you have one
-        (Chapter~\ref{sec:brand}). There is no translations volume to point anywhere — narrow
-        \opt{i18n.bundled.locales} instead, on any application that should offer fewer
-        languages than it ships with (Chapter~\ref{sec:i18n}).
+        (Chapter~\ref{sec:brand}). Point the translations volume at your own directory too,
+        if you have one, or remove it for an English-only site. Set
+        \opt{i18n.offered.locales} on any application that should offer fewer languages than are
+        mounted (Chapter~\ref{sec:i18n}).
   \item Remove any bundled service your site replaces with its own, and point the
         applications at yours using the settings in Chapter~\ref{sec:config}.
   \item Remove \val{fhhs} and \val{pedigree}, and Admin's dependency on them, if your site
@@ -486,10 +488,10 @@ module again.
 
 \subsection{Running more than one instance}
 
-Instances of the same module must agree on their datasource and their brand path. If your site
-narrows \opt{i18n.bundled.locales}, set it the same on every instance of that module too —
-instances of Survey behind a load balancer that disagree would offer a different set of
-languages depending on which one answered. The proxy-forwarding settings must be on, or
+Instances of the same module must agree on their datasource, their brand path and their
+translations: mount the same directory and set the same \opt{i18n.offered.locales} on every
+instance of that module. Instances of Survey behind a load balancer that disagree would offer a
+different set of languages depending on which one answered. The proxy-forwarding settings must be on, or
 sign-in redirects are built with the container's address instead of the site's.
 
 %% ================================================================== 7
@@ -669,23 +671,29 @@ The \textbf{Change} column says what the setting is to you:
 compose file sets \val{/opt/brand}. See Chapter~\ref{sec:brand}. \\
 \opt{brand.local.path} & \val{brand} & \chgkeep & A brand directory beside the running
 application, searched between the mount and the embedded default. \\
-\opt{i18n.bundled.locales} & \val{en,ar,es-419} & \chgmay & The languages this image carries
-and, narrowed, the ones this site offers. Classpath resources cannot be enumerated, so this is
-the only way the application knows which translation bundles it holds; a site narrows it to
-offer fewer — the selector hides the rest, a \opt{?lang=} naming one is refused, and survey
-content is not served in it either, because content is only offered in a language the site
-also offers for the chrome. It cannot add a language beyond what the image carries. See
+\opt{i18n.file.system.path} & \val{/i18n} & \chgmay & The mounted translations directory. Each
+application reads its own sub-directory of it (\opt{i18n.app.name}). The compose file mounts
+\file{elicit-i18n/} at \val{/opt/i18n} and sets this to match. A directory that does not exist is
+logged and the application offers English only. See Chapter~\ref{sec:i18n}. \\
+\opt{i18n.app.name} & per app & \chgkeep & This application's sub-directory of the translations
+directory: \val{survey} or \val{admin}. Must be a plain directory name. \\
+\opt{i18n.offered.locales} & --- & \chgmay & The languages this application offers, when it
+should offer fewer than are mounted: a comma-separated list of tags. Unset offers every mounted
+language. English is always offered. A listed tag with no mounted file is logged and not
+offered, so this cannot add a language. A language left out is hidden from the selector, a
+\opt{?lang=} naming it is refused, and survey content is not served in it either, because
+content is only offered in a language the site also offers for the chrome. See
 Chapter~\ref{sec:i18n}. \\
-\optlit{i18n.direction.<tag>} & --- & \chgmay & Overrides the classpath manifest
-(\file{META-INF/i18n/i18n-config.json}) for one language tag: \val{rtl} or \val{ltr}. The
-shipped manifest declares \val{ar} right-to-left; every other bundled language is left-to-right
-by inference. A property rather than a file, because there is no longer a mounted directory to
-put one in. Any other value is logged and ignored. See Section~\ref{sec:direction}. \\
-\optlit{i18n.font-scale.<tag>} & --- & \chgmay & Overrides the manifest's \val{fontScale} for one
-tag, multiplying the root font size on pages shown in that language. The shipped manifest scales
-\val{ar} to \val{1.15}; every other bundled language is \val{1.0}. Must be a number from
-\val{0.75} to \val{2.0} — a value outside that range is logged and dropped rather than clamped.
-See Section~\ref{sec:direction}. \\
+\optlit{i18n.direction.<tag>} & --- & \chgmay & Overrides both manifests (the image's
+\file{META-INF/i18n/i18n-config.json} and the \file{i18n-config.json} at the root of the
+translations directory) for one language tag: \val{rtl} or \val{ltr}. Both manifests declare
+\val{ar} right-to-left; every other language is inferred from its tag. Any other value is logged
+and ignored. See Section~\ref{sec:direction}. \\
+\optlit{i18n.font-scale.<tag>} & --- & \chgmay & Overrides both manifests' \val{fontScale} for
+one tag, multiplying the root font size on pages shown in that language. Both manifests scale
+\val{ar} to \val{1.15}; every other language is \val{1.0}. Must be a number from \val{0.75} to
+\val{2.0} — a value outside that range is logged and dropped rather than clamped. See
+Section~\ref{sec:direction}. \\
 \opt{i18n.pseudo-locale.enabled} & \val{false} & \chgkeep & Renders every text as a marker.
 A test aid; never enable it on a site. \\
 \opt{quarkus.application.name} & per app & \chgkeep & The name this instance reports in
@@ -1025,95 +1033,106 @@ per asset, whether it came from the mount or from the embedded default.}
 \label{sec:i18n}
 \markboth{Translations}{}
 
-Survey and Admin each carry their own translations of their chrome inside the image —
-today English, Latin American Spanish (\val{es-419}) and Arabic (\val{ar}), in both of
-them. A site provisions nothing to get them; it chooses which of the shipped languages to
-offer with one property, \opt{i18n.bundled.locales} (Table~\ref{tab:common}). The language
-selector appears in the header only once more than one language is offered, so a site narrowed
-to \val{en} never shows it.
+Survey and Admin each carry their own chrome in English inside the image, and nothing else.
+Every other language is a file the site supplies in a translations directory mounted
+read-only. ElicitSoftware maintains a curated directory beside each release,
+\file{elicit-i18n/} in the umbrella repository, which today holds Latin American Spanish
+(\val{es-419}) and Arabic (\val{ar}) for both applications. The compose file mounts it. The
+languages an application offers are English plus whatever is mounted for it, narrowed by
+\opt{i18n.offered.locales} where that is set (Table~\ref{tab:common}). The language selector
+appears in the header only once more than one language is offered, so a site that mounts
+nothing never shows it.
 
 \begin{elicitcaution}[Survey content is translated separately]
-This mechanism translates the applications' own chrome — buttons, labels, page titles,
-notifications, validation messages, PDF headers. Survey content stored in the database —
-question text, answer options, step and section names, tooltips, validation messages — is
-translated too, but not from here: those translations are written against a particular survey
-in the authoring tool and arrive at a site inside its definition file. A respondent is offered a
-content language only when the survey publishes it \emph{and} this site also offers that
-language for its own chrome — the same \opt{i18n.bundled.locales} that governs the interface
-governs which content languages can reach a respondent. Message templates and the body of an
-external report service are outside both mechanisms and appear in the language they were
-authored in.
+This mechanism translates the applications' own chrome: buttons, labels, page titles,
+notifications, validation messages and PDF headers. Survey content stored in the database is
+translated too, but not from here. That content covers:
+\begin{itemize}
+  \item question text and answer options;
+  \item step and section names;
+  \item tooltips and validation messages.
+\end{itemize}
+Those translations are written against a particular survey in the authoring tool and arrive at
+a site inside its definition file. A respondent is offered a content language only when the
+survey publishes it \emph{and} this site also offers that language for its own chrome. So the
+mount and \opt{i18n.offered.locales}, which govern the interface, also govern which content
+languages can reach a respondent. Message templates and the body of an external report service
+are outside both mechanisms and appear in the language they were authored in.
 \end{elicitcaution}
 
-\subsection{What ships, and what a site narrows}
+\subsection{The translations directory}
 
-Each module's translated bundles are built from the English text authored in
-\file{src/main/resources/vaadin-i18n/translations.properties}, received back from a translator
-as \file{translations\_<tag>.properties}, and packaged onto the classpath beside the English
-bundle when the module is built. Nothing is mounted and nothing is read from beside the running
-application — the classpath is the only source, so a released image renders exactly the
-translations it was built and tested with.
+One directory serves both applications. Each reads only its own sub-directory,
+\file{<i18n.file.system.path>/<i18n.app.name>/}, which is \file{/i18n/survey/} and
+\file{/i18n/admin/} by default:
 
-\opt{i18n.bundled.locales} is the one property this chapter is about, and it does two jobs.
-Classpath resources cannot be enumerated, so the application has no other way to know which
-bundles the jar holds — the set has to be declared, and this is that declaration. Narrowing it
-is also a site's only lever: the excluded languages stay in the image but become unreachable —
-the selector hides them, a \opt{?lang=} naming one is refused, and survey content is not served
-in one either, because content is only offered in a language the site also offers for the
-chrome. Widening the property past what the image actually carries does nothing, because there
-is no bundle behind it to find; a site cannot make itself more multilingual than its release
-shipped (Section~\ref{sec:commission}).
+\begin{elicitfile}
+elicit-i18n/                     mounted read-only at /opt/i18n
+  i18n-config.json               text direction and size per language
+  survey/
+    translations_es_419.properties
+    translations_ar.properties
+  admin/
+    translations_es_419.properties
+    translations_ar.properties
+\end{elicitfile}
+
+Each \file{translations\_<tag>.properties} file adds its language to that application. The
+applications read the directory server-side only; nothing in it is served over HTTP, and nothing
+is written to it.
+
+The curated directory is the wording a release was built and tested with, and it is versioned
+with the release, so mount the one that matches the version you run. A site may mount it whole,
+mount only some of its files, or mount files of its own (Section~\ref{sec:commission}). Whatever
+a site mounts beyond the curated files is the site's to maintain.
 
 \screenshot{18-language-selector}{The selector, open on an application offering all three
-shipped languages. Each row is labeled in its own language. The selector appears only when
-there is something to select, so a site narrowed to \val{en} never sees it.}
+languages of the curated directory. Each row is labeled in its own language. The selector appears
+only when there is something to select, so a site offering only \val{en} never sees it.}
 
 \subsection{How a text is resolved}
 
-Per \emph{key}: the exact locale's bundle, then the language alone, then English. A translated
-bundle needs only the keys that differ from English — a key it does not carry falls through to
-the base language rather than rendering blank. A key missing from every bundle renders as
-\val{!key!} and is logged once.
-
-The languages offered are exactly the ones \opt{i18n.bundled.locales} names — not simply every
-bundle present on the classpath. A bundle the property leaves out is still in the jar and is
-never offered; there is no other tier left to discover a language from.
+Per \emph{key}: the exact locale's file, then the language alone, then English. A mounted file
+needs only the keys that differ from English, and a key it does not carry falls through to
+English rather than rendering blank. A file holding a single corrected text is therefore a
+valid way to change one wording. A key missing everywhere renders as \val{!key!} and is logged
+once.
 
 \subsection{Choosing which languages to offer}
 \label{sec:language}
 
 \begin{enumerate}
-  \item Decide which of the shipped languages this site should offer. \val{en,ar,es-419} is
-        what every image carries by default (Table~\ref{tab:common}).
-  \item Set \opt{i18n.bundled.locales} to that comma-separated list on Survey and Admin —
-        set it on each application that should change; leaving one at the shipped default
-        still offers everything it carries.
-  \item Restart the module. The list is read at startup.
+  \item Mount the translations directory on Survey and Admin, and set
+        \opt{i18n.file.system.path} to the mount point. The compose file already mounts
+        \file{elicit-i18n/} at \val{/opt/i18n}. Outside containers, the directory is any one the
+        service account can read. Leave it unmounted for an English-only site.
+  \item If an application should offer fewer languages than are mounted, set
+        \opt{i18n.offered.locales} on it to a comma-separated list, for example
+        \val{en,es-419}. Leave it unset to offer everything mounted.
+  \item Restart the module. The directory and the list are read at startup.
 \end{enumerate}
 
-A tag left out is not offered anywhere: the selector hides it, a \opt{?lang=} naming it is
-refused, and survey content is not served in it, because content follows the interface
-language (see above). A tag that is not in the image to begin with has no effect either way —
-this property narrows what a site offers, it does not add to what a release built.
+A language that is not offered is not offered anywhere: the selector hides it, a \opt{?lang=}
+naming it is refused, and survey content is not served in it, because content follows the
+interface language (see above). \opt{i18n.offered.locales} cannot add a language. A tag it lists
+with no file behind it is logged at startup and ignored.
 
-\begin{elicitcaution}[The tag is punctuated with a hyphen]
+\begin{elicitcaution}[The tag is punctuated with a hyphen; the file name with an underscore]
 A language tag is written with a hyphen everywhere an operator sets one — \val{es-419},
-\val{ar} — including \opt{i18n.bundled.locales}, \optlit{i18n.direction.<tag>},
-\optlit{i18n.font-scale.<tag>} and a \opt{?lang=} parameter. The file names inside each module's
-\file{i18n/} directory use an underscore instead (\file{translations\_es\_419.properties}),
-which is a build-time detail and not something a site writes.
+\val{ar}. That covers \opt{i18n.offered.locales}, \optlit{i18n.direction.<tag>},
+\optlit{i18n.font-scale.<tag>} and a \opt{?lang=} parameter. The file names in the
+translations directory use an underscore instead (\file{translations\_es\_419.properties}). A
+file named with a hyphen is not recognized as a language.
 \end{elicitcaution}
 
-\opt{i18n.bundled.locales} is set once per application instance, not once per site: Survey
-and Admin each read their own copy, and narrowing Admin's does not narrow Survey's.
+The mount and \opt{i18n.offered.locales} are set once per application instance, not once per
+site. Survey and Admin each read their own sub-directory and their own setting, so narrowing
+Admin does not narrow Survey. If Admin's sub-directory lacks a language that Survey's has, the
+console does not offer it.
 
 \begin{elicitnote}[Managing this from inside the applications is specified, not yet built]
-Admin UC-027 specifies a \ui{Languages} screen for choosing the offered languages through the
-application rather than a startup property. It is not implemented in this release. Earlier
-versions of that use case described uploading a translation file through the screen against a
-writable mount; that no longer applies now that translations ship inside the image, so a
-future \ui{Languages} screen edits the offered-language list against a mutable store of its
-own, not a file or a mount.
+Admin UC-027 specifies a \ui{Languages} screen for managing languages through the application
+rather than the mounted directory and a startup property. It is not implemented in this release.
 \end{elicitnote}
 
 \subsection{Text direction and text size}
@@ -1121,19 +1140,22 @@ own, not a file or a mount.
 
 Arabic, Hebrew, Persian, Urdu, Pashto, Sindhi, Uyghur, Yiddish, Dhivehi and Kurdish (Sorani)
 are right-to-left by default, and every language is shown at the reader's own text size unless
-the image says otherwise. Each image ships a classpath manifest naming both per language it
-carries, \file{META-INF/i18n/i18n-config.json}; today that manifest declares only \val{ar},
-right-to-left at a \opt{fontScale} of \val{1.15}:
+something declares otherwise. Three places can, each winning over the one before:
+\begin{enumerate}
+  \item The image's own manifest, \file{META-INF/i18n/i18n-config.json}.
+  \item \file{i18n-config.json} at the root of the translations directory.
+  \item A property for one tag on one application: \optlit{i18n.direction.<tag>} or
+        \optlit{i18n.font-scale.<tag>} (Table~\ref{tab:common}).
+\end{enumerate}
+Both manifests declare \val{ar} right-to-left at a \opt{fontScale} of \val{1.15}:
 
 \begin{elicitfile}
 { "locales": [ { "tag": "ar", "direction": "rtl", "fontScale": 1.15 } ] }
 \end{elicitfile}
 
-A site overrides either value for one tag with a property instead of a file —
-\optlit{i18n.direction.<tag>} and \optlit{i18n.font-scale.<tag>} (Table~\ref{tab:common}), which win
-over the manifest. They are properties, not a file to replace, because there is no longer a
-mounted directory to put one in; without them a site could adjust a shipped language's
-typography only by waiting for a new release.
+A site that mounts a language whose direction does not follow from its tag declares it in the
+mounted \file{i18n-config.json}. It uses a property instead when the change should apply to one
+application only.
 
 Only right-to-left and left-to-right are supported for \opt{direction}. The applications'
 stylesheets use logical properties, so a mirrored layout needs no per-language stylesheet.
@@ -1145,16 +1167,20 @@ cramped in Arabic. The whole page scales in proportion --- text, spacing and con
 so nothing is clipped, and a reader who has enlarged text in their browser keeps that enlargement
 on top of the scale.
 
-Set \optlit{i18n.font-scale.ar} to raise or lower the scale, or leave it unset to keep the shipped
-\val{1.15}; the change takes effect on the next restart of each module that carries the
-language.
+Set \optlit{i18n.font-scale.ar}, or edit the mounted manifest, to raise or lower the scale. The
+change takes effect on the next restart of each module that offers the language.
 
-\begin{elicitnote}[Both properties are optional, and a bad value is ignored]
-A tag needs neither override, either, or both; anything not overridden falls back to the
-manifest, and a language absent from the manifest too renders exactly as it did before either
-existed. A \opt{fontScale} that is not a number, or that falls outside \val{0.75} to \val{2.0},
-is written to the log and dropped --- that language is then shown unscaled. It is never clamped
-into range: a size the deployer did not ask for is worse than none.
+\begin{elicitnote}[Every entry is optional, and a bad value is ignored]
+Each value is resolved on its own:
+\begin{itemize}
+  \item An entry or property may set the direction, the scale, or both.
+  \item Anything a layer does not declare falls back to the layer below.
+  \item A language no layer mentions renders exactly as it did before any of them existed.
+  \item A malformed mounted manifest is logged and the image's own stands.
+  \item A \opt{fontScale} that is not a number, or that falls outside \val{0.75} to \val{2.0},
+        is written to the log and dropped, and that language is then shown unscaled. It is
+        never clamped into range: a size the deployer did not ask for is worse than none.
+\end{itemize}
 \end{elicitnote}
 
 \subsection{Which language a reader gets}
@@ -1165,24 +1191,37 @@ then the language chosen earlier in the browser session, then the browser's own
 is ignored. The choice lives in the session only — nothing is stored against a respondent or a
 user.
 
-\subsection{A language this site does not carry yet}
+\subsection{A language the curated directory does not have}
 \label{sec:commission}
 
-A language your site needs but no image currently ships is a release request, not local
-configuration — there is no directory left to drop a file into. Each module generates its own
-translation request document, \file{i18n/TRANSLATION_REQUEST.md}: the application's purpose and
-audience, a glossary of terms that must stay consistent or untranslated, the placeholder and
-markup rules, and every key with its English text, where it appears, its maximum length and any
-flags, together with the return format — one \file{translations\_<tag>.properties}, the same
-keys, in the same order.
+There are two routes:
+\begin{itemize}
+  \item Ask ElicitSoftware to add the language to the curated directory. It then arrives
+        reviewed and versioned with a later release.
+  \item Supply the language yourself, and have it from the next restart.
+\end{itemize}
+Either way the translation starts from the same document. Each module generates its own
+translation request, \file{i18n/TRANSLATION_REQUEST.md}, which contains:
+\begin{itemize}
+  \item the application's purpose and audience;
+  \item a glossary of terms that must stay consistent or untranslated;
+  \item the placeholder and markup rules;
+  \item every key with its English text, where it appears, its maximum length and any flags;
+  \item the return format: one \file{translations\_<tag>.properties}, with the same keys in the
+        same order.
+\end{itemize}
 
-Turning that into a language a site can offer is the same three steps in each of Survey and
-Admin: hand its \file{TRANSLATION_REQUEST.md} to a translator (or an AI agent), place the
-returned file in that module's own \file{i18n/} directory, and add the tag to the module's
-shipped \opt{i18n.bundled.locales} default so the built image declares what it now carries.
-Doing this in both modules and releasing them is what makes a language available to choose in
-Section~\ref{sec:language}; this manual describes the site side of that choice, not how to
-produce the release.
+To supply a language yourself, do this for each of Survey and Admin:
+\begin{enumerate}
+  \item Take that module's \file{TRANSLATION_REQUEST.md} from the version you run.
+  \item Hand it to a translator or an AI agent.
+  \item Place the returned file in that module's sub-directory of your translations directory.
+  \item Restart.
+\end{enumerate}
+A document from another version lacks or misnames the texts that version changed, and those then
+appear in English. A file you supply, or a curated file you edit, is invisible to everyone
+supporting your site, so keep it with your site's configuration and send corrections to
+ElicitSoftware, so that the curated directory carries them too.
 
 %% ================================================================== 12
 \section{Verifying the installation}
@@ -1271,9 +1310,17 @@ create one (Chapter~\ref{sec:firstsignin}). \\
 A signed-in user can only log out. & They belong to no department. & Assign them one in
 \ui{Users}. \\
 \addlinespace
-A shipped language is never offered. & It is missing from \opt{i18n.bundled.locales} on that
-application, or the module has not been restarted since the property changed. & Check the
-property (Section~\ref{sec:language}) and restart. \\
+A mounted language is never offered. & Any one of these:
+\begin{itemize}
+  \item The directory is not mounted on that application, or \opt{i18n.file.system.path} does
+        not name the mount point.
+  \item The file is in the other application's sub-directory, or its name uses a hyphen
+        (\file{translations\_es-419.properties}).
+  \item The tag is missing from \opt{i18n.offered.locales}.
+  \item The module has not been restarted since the change.
+\end{itemize}
+& The application logs a directory it found nothing in, and each listed tag with no file. Fix
+the cause (Section~\ref{sec:language}) and restart. \\
 \end{plaintable}
 
 \subsection{Upgrading an existing site}

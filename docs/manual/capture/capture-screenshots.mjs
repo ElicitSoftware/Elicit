@@ -215,14 +215,14 @@ async function main() {
     await goto(SURVEY);
   });
 
-  // Open, so the figure shows the languages this image offers rather than repeating figure 17.
+  // Open, so the figure shows the languages this site offers rather than repeating figure 17.
   // The overlay's items render after it opens; at 900 ms the figure caught them blank.
   await tryShot('18-language-selector', async () => {
     const selector = page.locator('#language-switcher').first();
     if (!(await selector.isVisible().catch(() => false))) {
       throw new Error(
-        'the selector is not in the header, so only one language is offered — widen ' +
-          'i18n.bundled.locales on Survey and re-run'
+        'the selector is not in the header, so only one language is offered — mount ' +
+          'elicit-i18n on Survey (and unset i18n.offered.locales) and re-run'
       );
     }
     await selector.click();

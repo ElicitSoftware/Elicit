@@ -6,13 +6,13 @@
 **Use Case Name:** Commission a Translation  
 **Primary Actor:** Deployment Operator  
 **Secondary Actor:** Translator (person or AI agent)  
-**Goal:** Hand a translator everything needed to produce a language file for one application, and receive back a file that can be packaged into the application without editing it.  
+**Goal:** Hand a translator everything needed to produce a language file for one application, and receive back a file that can be mounted for the application without editing it.  
 **Status:** Open  
 **Requirements:** [FR-030](../requirements.md)
 
 ## Preconditions
 
-- The language has been asked for and is being prepared for a release (UC-016).
+- The language is wanted at a site, either for ElicitSoftware's curated set or as the site's own file (UC-016).
 - The site has decided which language it needs and which applications it needs it for.
 
 ## Main Success Scenario
@@ -24,7 +24,7 @@
 5. The operator chooses the language tag, writing it with a hyphen — `es-419`, `pt-BR` — and tells the translator that the returned file name carries the same tag with underscores.
 6. The operator tells the translator what the document deliberately leaves out: the organization name and the brand description, which are translated in the brand directory instead (UC-014 BR-005), and the survey content held in the database, which this mechanism does not translate at all (UC-015 BR-004).
 7. The translator returns one file, and the operator checks it against the document's own rules — the keys unchanged, the placeholders matching, no lone apostrophe in a text that takes parameters, and the maximum lengths respected.
-8. The operator deploys the file (UC-016) and reviews the rendered pages, paying particular attention to the texts the document gave a maximum length and, for a right-to-left language, to the mirrored layout.
+8. The operator places the file in that application's sub-directory of the translations mount, restarts (UC-015), and reviews the rendered pages, paying particular attention to the texts the document gave a maximum length and, for a right-to-left language, to the mirrored layout.
 9. The operator keeps the returned file with the site's configuration, so that it survives a reinstallation or an upgrade (UC-011).
 
 ## Alternative Flows
@@ -70,14 +70,14 @@
 **Trigger:** The commissioned language is Arabic, Hebrew, Persian, Urdu or another right-to-left language (step 5)  
 **Flow:**
 
-1. The manual states that the translator writes the text naturally and adds no markers: direction is a property of the deployment, declared where it is not already the default (UC-016 step 5), not a property of the file.
+1. The manual states that the translator writes the text naturally and adds no markers: direction is a property of the deployment, declared in the mount's `i18n-config.json` or by property where it is not already the default (UC-015 A4), not a property of the file.
 2. Use case continues at step 6.
 
 ## Postconditions
 
 ### Success Postconditions
 
-- There is one translation file per application for the language, each checked against the request document's rules and ready to be committed to that application's `i18n/` directory (UC-016).
+- There is one translation file per application for the language, each checked against the request document's rules and ready to be mounted in that application's sub-directory of the translations directory, or added to the curated `elicit-i18n/` (UC-016).
 
 ### Failure Postconditions
 
@@ -103,8 +103,8 @@ The keys are the application's own identifiers. A translation adds none, removes
 
 ### BR-005: Brand text is not in the document
 
-The organization name and the brand description belong to the mounted brand and are translated there. Putting them in an application's translation file would place the same text in two places and make the brand's own value unreachable. The brand is still supplied by the deployment; only the applications' own texts moved into the images.
+The organization name and the brand description belong to the mounted brand and are translated there. Putting them in an application's translation file would place the same text in two places and make the brand's own value unreachable. Both the brand and the translations are supplied by the deployment, in separate directories.
 
 ### BR-006: A returned file is deployment data
 
-The commissioned file belongs in the application's own `i18n/` directory, where the build packages it onto the classpath. There is no deployment-side location for it: a language reaches a site by upgrading to a release that carries it (UC-016), which is what keeps a translation and the code that renders it at the same version.
+The commissioned file belongs in the application's sub-directory of the translations mount (`<i18n.file.system.path>/<app>/`), and nothing is built into an image. A site keeps it with its configuration so that it survives a reinstallation or an upgrade. When the next release adds texts, they appear in English until the file is updated from that release's request document. A language added to ElicitSoftware's curated `elicit-i18n/` instead travels beside each release (UC-016).
