@@ -35,16 +35,16 @@ REPOS = {
         checks=["Flyway migration added to **both** `db/migration` and `db/migration-v3`, and the brownfield "
                 "track verified with `resetDatabase.sh V2` from the umbrella",
                 "A reporting (star schema) change keeps `report_<slug>` building from the apply, and FHHS still reads it",
-                I18N := "New user-facing text has its key in `translations.properties`, "
-                "`i18n/translations_es_419.properties` and `i18n/translations_ar.properties`, a context note, "
-                "and `i18n/TRANSLATION_REQUEST.md` regenerated",
+                I18N_MOUNT := "New user-facing text has its key in `translations.properties` and in the umbrella's "
+                "`elicit-i18n/<app>/translations_es_419.properties` and `translations_ar.properties` (a branch "
+                "of the same name there), a context note, and `i18n/TRANSLATION_REQUEST.md` regenerated",
                 "Respondent credential is called the **access code**, never a token"],
     ),
     "Admin": dict(
         base="V3", aiup=True,
         aiup_extra=["The administrator's manual under `docs/manual/` updated when a screen changed"],
         checks=["Flyway migration added under `db/migration` (Admin's tables only; the `survey` schema is Survey's)",
-                I18N,
+                I18N_MOUNT,
                 "Respondent credential is called the **access code**, never a token"],
     ),
     "FHHS": dict(
@@ -73,7 +73,9 @@ REPOS = {
                 "`scripts/sync-survey-schema.sh` run when Survey's migrations changed, so the schema mirror "
                 "is fresh",
                 "A new rule, control or token form was added to the golden census survey",
-                I18N],
+                "New user-facing text has its key in `translations.properties`, "
+                "`i18n/translations_es_419.properties` and `i18n/translations_ar.properties`, a context note, "
+                "and `i18n/TRANSLATION_REQUEST.md` regenerated"],
     ),
 }
 

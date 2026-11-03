@@ -19,9 +19,11 @@
 
 ## Overview
 
-Elicit offers three languages — English, Latin American Spanish (`es-419`) and Arabic (`ar`) —
-declared in `i18n.bundled.locales` in each module's `application.properties` (Survey `:21`, Admin
-`:140`, Author `:124`) and held to one set by `checkLanguages.sh`. A reader chooses among them per
+Elicit offers three languages — English, Latin American Spanish (`es-419`) and Arabic (`ar`).
+*(Updated for Elicit#62: Survey and Admin now carry English in the image and read the other two
+from the curated translations mount, `elicit-i18n/`, narrowed by `i18n.offered.locales`;
+`checkLanguages.sh` holds the mount's `survey/` and `admin/` to one set. Author still declared them
+in `i18n.bundled.locales` when this was written, see Author#79.)* A reader chooses among them per
 session, and the choice reaches the page as a locale, a text direction and a font scale. None of
 that reaches a manual. All three manuals are LuaLaTeX documents typeset from committed `.tex`
 sources and committed PNG screenshots, and each pipeline is monolingual by construction: one output

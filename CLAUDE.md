@@ -185,6 +185,8 @@ to start cleanly on 2026-09-20.
 ## Scripts
 
 - `cloneAllProjects.sh` — clone the five module repos.
+- `checkLanguages.sh` — the images carry English only, and `elicit-i18n/` gives Survey and
+  Admin the same languages; run by `buildDockerImages.sh` before it builds anything.
 - `buildDockerImages.sh [Target ...]` — build the module images in parallel
   (all five by default, or just the named ones), one log per target under
   `build-logs/`, with a summary and a non-zero exit if any build failed. The
@@ -224,34 +226,49 @@ See `docs/BRAND_SYSTEM_IMPLEMENTATION_GUIDE.md`.
 
 ## Translations (i18n)
 
-Each app ships its own interface text for every language it supports, packaged inside the image.
-The English bundle is authored at `src/main/resources/vaadin-i18n/translations.properties`, Vaadin's
-standard location; the translated ones are received from a translator, kept in the module's own
-`i18n/` directory and copied to the same classpath location by a `<resource>` block in its `pom.xml`.
-Both ship English, Latin American Spanish (`es-419`) and Arabic (`ar`).
+**The images carry English only.** The English bundle is authored at
+`src/main/resources/vaadin-i18n/translations.properties`, Vaadin's standard location. Every other
+language is a `translations_<tag>.properties` file the deployment mounts at
+`<i18n.file.system.path>/<i18n.app.name>/` (`/opt/i18n/survey/` and `/opt/i18n/admin/` here). A
+mounted file overlays English key by key, so it may be partial, and a missing key falls back to
+English. Nothing mounted means English only and no language selector.
 
-**There is no translations mount.** Languages are curated by ElicitSoftware and arrive in a
-release: a deployment can neither add one nor patch one, so a released image renders the
-translation it was built and tested with. `i18n.file.system.path`, `i18n.local.path` and
-`i18n.app.name` no longer exist, and the module language tests no longer need this umbrella
-checkout.
+`elicit-i18n/` in this repo is the **curated set** ElicitSoftware maintains beside each release:
+`survey/` and `admin/`, each with Latin American Spanish (`es_419`) and Arabic (`ar`), plus
+`i18n-config.json`. `docker-compose.yml` mounts it read-only. The module tests read it from
+`../elicit-i18n` (`%dev` and `%test` profiles), and their CI fetches it from the umbrella branch
+with the **same name** as the module branch. A change to translations or to English keys therefore
+needs a branch of the same name here.
 
-What a site controls is one setting, `i18n.bundled.locales`. It both declares what the image
-carries — classpath resources cannot be listed, so nothing can discover which bundles are in the
-jar — and lets a site offer fewer than it carries. A language left out is unreachable: hidden from
-the switcher, refused by `?lang=`, and not served for survey content either.
+What a site controls:
 
-`checkLanguages.sh` holds Survey and Admin to the same set, and `buildDockerImages.sh` runs it
-before building anything: a language one app has and another lacks cannot be served. The
-authoring tool is the third party to that invariant — it declares which languages a survey's
-*content* may be published in (`author.content.languages`) — and it is not cloned here, so
-**Author's own build runs the authoritative three-way check**. When an Author checkout
-happens to be sitting here this script reports a mismatch, but only as a warning: a private
-repository must never be able to fail the public build.
+- **What it mounts:** the curated set, a subset of it, or files of its own.
+- **`i18n.offered.locales`:** offers fewer languages than are mounted. A language left out is
+  unreachable: hidden from the switcher, refused by `?lang=`, and not served for survey content
+  either. English is always offered, and a listed tag with no mounted file is not offered.
+- **`i18n.bundled.locales` is retired.**
 
-Direction (RTL/LTR) follows the language. `META-INF/i18n/i18n-config.json` on each app's classpath
-declares what the release ships (`ar` is `rtl` at `fontScale` 1.15), and a site overrides either for
-one tag with `i18n.direction.<tag>` or `i18n.font-scale.<tag>`. The scale multiplies the root font
+`checkLanguages.sh` runs before `buildDockerImages.sh` builds anything. It fails when:
+
+- a translated bundle has crept back into an image;
+- a module still sets `i18n.bundled.locales`;
+- `elicit-i18n/survey` and `elicit-i18n/admin` hold different languages. A language one app has and
+  another lacks cannot be served.
+
+The authoring tool is the third party to that invariant: it declares which languages a survey's
+*content* may be published in (`author.content.languages`). It still packages its own languages
+(Author#79) and is not cloned here, so when an Author checkout happens to be sitting here, a
+mismatch is reported only as a warning. A private repository must never be able to fail the public
+build.
+
+Direction (RTL/LTR) follows the language. It and the font scale are layered, each layer winning
+over the one before:
+
+1. `META-INF/i18n/i18n-config.json` on each app's classpath (`ar` is `rtl` at `fontScale` 1.15);
+2. `i18n-config.json` at the mount root;
+3. `i18n.direction.<tag>` or `i18n.font-scale.<tag>` for one tag.
+
+ The scale multiplies the root font
 size through `--elicit-font-scale` and one `html { font-size: … }` rule in each app's `styles.css`,
 so it grows the whole page for that language. Brand names are translated in the brand's own
 `localized` block, never in the app bundles. Survey content in the database is translated by a

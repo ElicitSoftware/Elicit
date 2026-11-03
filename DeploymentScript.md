@@ -26,37 +26,60 @@ To insure the database populates please start the modules in this order.
 
 ### Choosing which languages a site offers
 
-Survey and Admin carry their own user-interface texts in every language Elicit supports —
-English, Latin American Spanish (`es-419`) and Arabic (`ar`) — packaged inside the images. There is
-nothing to mount and nothing to supply: a released image renders the translation it was built and
-tested with, and the header shows a language selector once more than one language is available.
+The Survey and Admin images carry their user-interface texts in **English only**. Every other
+language is a translation file the site mounts. ElicitSoftware maintains a curated set beside each
+release in this repository's `elicit-i18n/`: Latin American Spanish (`es-419`) and Arabic (`ar`)
+for both applications, plus `i18n-config.json` for text direction and size. With nothing mounted, a
+site offers English only and shows no language selector.
 
-A site that should offer fewer sets one property per service:
+To offer the curated languages, mount `elicit-i18n/` read-only into both services and point them at
+it:
 
 ```
-i18n.bundled.locales=en           # English only; no language selector
-i18n.bundled.locales=en,es-419    # English and Latin American Spanish
-i18n.bundled.locales=en,ar        # English and Arabic, laid out right to left
+volumes:
+  - ./elicit-i18n/:/opt/i18n:ro
+environment:
+  i18n.file.system.path: /opt/i18n   # Survey reads /opt/i18n/survey/, Admin /opt/i18n/admin/
 ```
 
-Set it through any Quarkus configuration source — an environment entry in the compose file, a
-system property, `application.properties` on the classpath. A language left out stays in the image
-but is unreachable: absent from the selector, refused in a `?lang=` link, and not served for survey
-content either, because a survey's content is only served in a language the site also offers for the
-interface.
+Without Docker, copy the directory to the server and set `i18n.file.system.path` to its location.
+Use the set from the same release as the images: each application's tests check the files against
+that version's English texts.
 
-Adjusting typography for one language, where the shipped default does not suit a deployment's
-displays:
+To offer fewer languages than are mounted, set one property per service:
+
+```
+i18n.offered.locales=en,es-419    # English and Latin American Spanish; a mounted Arabic is ignored
+i18n.offered.locales=en,ar        # English and Arabic, laid out right to left
+```
+
+Set it through any Quarkus configuration source, such as an environment entry in the compose file,
+a system property, or `application.properties`. A language left out is unreachable: it is absent
+from the selector, refused in a `?lang=` link, and not served for survey content either, because a
+survey's content is only served in a language the site also offers for the interface. English is
+always offered. A tag listed with no mounted file is not offered, and the service logs a warning.
+`i18n.bundled.locales`, which earlier 3.0.0 builds used, no longer exists.
+
+A site may also supply its own translations:
+
+- **Add a language:** put `translations_<tag>.properties` in both `survey/` and `admin/` (file names
+  use underscores, as in `translations_pt_BR.properties`). Each module's `i18n/TRANSLATION_REQUEST.md`
+  is the document to hand a translator or an AI agent to produce one.
+- **Change some texts:** a file needs only the keys it changes; every missing key falls back to
+  English.
+
+Restart the services after changing the mount.
+
+Adjusting typography for one language: declare it in the mount's `i18n-config.json`, which applies
+to both applications, or override it for one service by property:
 
 ```
 i18n.font-scale.ar=1.2            # Arabic ships at 1.15
 i18n.direction.<tag>=rtl|ltr      # only for a language whose script the release does not know
 ```
 
-A new language is a release, not a deployment step: ElicitSoftware translates it and it arrives in
-the next version. Each module's `i18n/TRANSLATION_REQUEST.md` is the document handed to a translator
-or an AI agent to produce one. The organization name shown in the header is translated in the brand
-directory instead (`localized` block in `brand-config.json`, see `elicit-brand/README.md`).
+The organization name shown in the header is translated in the brand directory instead
+(`localized` block in `brand-config.json`, see `elicit-brand/README.md`).
 
 ### Upgrading an existing deployment to Kimball Type 2 SCD (V3.0.0)
 

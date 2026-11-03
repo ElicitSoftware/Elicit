@@ -41,10 +41,10 @@
 # SKIP_MANUAL=1 skips the manual; so does naming targets without it. SKIP_PROPERTY_CHECK=1
 # typesets without the gate.
 #
-# checkLanguages.sh runs first, before any target: it checks that Survey and Admin ship the same
-# set of translated bundles and that each declares them in i18n.bundled.locales. A disagreement
-# fails the run without building anything. The authoring tool is the third party to that
-# invariant and is not cloned here; Author's own build runs the authoritative three-way check.
+# checkLanguages.sh runs first, before any target: it checks that the Survey and Admin images will
+# carry English only and that the curated translations in elicit-i18n/ give both the same set of
+# languages. A failure stops the run without building anything. The authoring tool is the third
+# party to that invariant and is not cloned here; Author's own build runs the authoritative check.
 #
 # PREMM5 is not cloned by cloneAllProjects.sh and is commented out of
 # docker-compose.yml; add it to MODULES if you restore that module. The
@@ -100,13 +100,12 @@ if [ -n "$building_a_module" ] && command -v lsof >/dev/null 2>&1; then
     done
 fi
 
-# Survey and Admin must agree on which languages Elicit carries, and each must declare the
-# bundles it actually ships. Nothing at runtime can reconcile that -- classpath resources cannot
-# be enumerated -- and a mismatch is silent. Checked before anything is built, unconditionally,
-# because it reads files and starts no JVM. A run that builds only the manual still gets it: the
-# manual documents these settings.
+# The images must carry English only, and the curated translations must give Survey and Admin the
+# same languages; both failures are silent at runtime. Checked before anything is built,
+# unconditionally, because it reads files and starts no JVM. A run that builds only the manual
+# still gets it: the manual documents these settings.
 if ! ./checkLanguages.sh; then
-    echo "Refusing to build: the modules disagree about which languages Elicit carries." >&2
+    echo "Refusing to build: the language check failed (see above)." >&2
     exit 1
 fi
 
