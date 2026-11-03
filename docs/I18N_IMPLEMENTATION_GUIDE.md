@@ -48,10 +48,13 @@ elicit-i18n/                            # mounted at /opt/i18n; i18n.file.system
   admin/
     translations_es_419.properties
     translations_ar.properties
+  author/                               # read by the authoring tool, mounted by its own compose file
+    translations_es_419.properties
+    translations_ar.properties
 ```
 
 Each application reads only its own sub-directory, `<i18n.file.system.path>/<i18n.app.name>/`
-(`/i18n/survey/` and `/i18n/admin/` by default), so one host directory serves both. The file
+(`/i18n/survey/` and `/i18n/admin/` by default), so one host directory serves them all. The file
 name spells the tag with underscores (`es_419`); every property and runtime comparison uses
 hyphens (`es-419`).
 
@@ -76,8 +79,8 @@ it, and the mount is read server-side only.
 Adding a language to the curated set is a step for ElicitSoftware:
 
 1. Hand each module's `TRANSLATION_REQUEST.md` to a translator.
-2. Put the returned files in `elicit-i18n/survey/` and `elicit-i18n/admin/`.
-3. Run `checkLanguages.sh`. It fails the build if the two sub-directories hold different languages.
+2. Put the returned files in `elicit-i18n/survey/`, `elicit-i18n/admin/` and `elicit-i18n/author/`.
+3. Run `checkLanguages.sh`. It fails the build if the three sub-directories hold different languages.
 
 Managing languages from the Admin console (`elicit_admin`) is specified but not built (Admin UC-027).
 
@@ -106,8 +109,8 @@ A language that is not offered is hidden by the switcher, refused by `LocaleSele
 when a `?lang=` names it, and not served for survey content either, because content follows the
 chrome (`Survey UC-009 BR-009`).
 
-`checkLanguages.sh` in the umbrella root fails the build when the curated set's `survey/` and
-`admin/` hold different languages.
+`checkLanguages.sh` in the umbrella root fails the build when the curated set's `survey/`,
+`admin/` and `author/` hold different languages.
 
 ## Choosing the language (`LocaleInitializer`, `LocaleSelection`, `LanguageSwitcher`)
 
@@ -237,4 +240,4 @@ definition file.
 
 Survey content rendered by the views (question components, review and report cards, authored
 survey text on the About page) is marked with `data-i18n-content` so the sweep skips it.
-| `checkLanguages.sh` (umbrella) | The curated set holds the same languages for Survey and Admin; run by `buildDockerImages.sh` before anything is built |
+| `checkLanguages.sh` (umbrella) | The curated set holds the same languages for Survey, Admin and Author; run by `buildDockerImages.sh` before anything is built |

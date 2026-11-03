@@ -31,9 +31,10 @@ and is not part of this open-source project: it is not cloned, not built, and
 not in the compose file. A developer who has access still checks it out at
 `Elicit/Author/`, where `.gitignore` hides it, because Author's own
 `docker-compose.yml` and its end-to-end suites read `../elicit-brand`,
-`../sftp_ssh` and `../../FHHS/family-history-survey.elicit` from here. Shared
-assets live in this repo once; what is Author's alone (its Keycloak realm, the
-`author` database script, the three e2e suites) lives in Author.
+`../elicit-i18n`, `../sftp_ssh` and `../../FHHS/family-history-survey.elicit`
+from here. Shared assets live in this repo once — Author's Spanish and Arabic
+bundles are `elicit-i18n/author/`; what is Author's alone (its Keycloak realm,
+the `author` database script, the three e2e suites) lives in Author.
 
 ### Working Across Modules
 
@@ -188,8 +189,9 @@ to start cleanly on 2026-09-20.
 ## Scripts
 
 - `cloneAllProjects.sh` — clone the five module repos.
-- `checkLanguages.sh` — the images carry English only, and `elicit-i18n/` gives Survey and
-  Admin the same languages; run by `buildDockerImages.sh` before it builds anything.
+- `checkLanguages.sh` — the Survey and Admin images carry English only, and `elicit-i18n/`
+  gives Survey, Admin and Author the same languages; an Author checkout beside this one is
+  only warned about. Run by `buildDockerImages.sh` before it builds anything.
 - `buildDockerImages.sh [Target ...]` — build the module images in parallel
   (all five by default, or just the named ones), one log per target under
   `build-logs/`, with a summary and a non-zero exit if any build failed. The
@@ -237,8 +239,9 @@ mounted file overlays English key by key, so it may be partial, and a missing ke
 English. Nothing mounted means English only and no language selector.
 
 `elicit-i18n/` in this repo is the **curated set** ElicitSoftware maintains beside each release:
-`survey/` and `admin/`, each with Latin American Spanish (`es_419`) and Arabic (`ar`), plus
-`i18n-config.json`. `docker-compose.yml` mounts it read-only. The module tests read it from
+`survey/`, `admin/` and `author/`, each with Latin American Spanish (`es_419`) and Arabic (`ar`),
+plus `i18n-config.json`. `docker-compose.yml` mounts it read-only into Survey and Admin; Author's
+own compose file mounts the same directory. The module tests read it from
 `../elicit-i18n` (`%dev` and `%test` profiles), and their CI fetches it from the umbrella branch
 with the **same name** as the module branch. A change to translations or to English keys therefore
 needs a branch of the same name here.
@@ -255,14 +258,16 @@ What a site controls:
 
 - a translated bundle has crept back into an image;
 - a module still sets `i18n.bundled.locales`;
-- `elicit-i18n/survey` and `elicit-i18n/admin` hold different languages. A language one app has and
-  another lacks cannot be served.
+- `elicit-i18n/survey`, `elicit-i18n/admin` and `elicit-i18n/author` hold different languages. A
+  language one app has and another lacks cannot be served.
 
-The authoring tool is the third party to that invariant: it declares which languages a survey's
-*content* may be published in (`author.content.languages`). It still packages its own languages
-(Author#79) and is not cloned here, so when an Author checkout happens to be sitting here, a
-mismatch is reported only as a warning. A private repository must never be able to fail the public
-build.
+The authoring tool reads `elicit-i18n/author/` from the same mount (Author#79) and is the third party
+to that invariant: it still declares which languages a survey's *content* may be published in
+(`author.content.languages`). Its bundles are umbrella content, so the check compares all three
+`elicit-i18n/` directories as a real error; the Author checkout itself — a leftover bundle on its
+classpath, a lingering `i18n.bundled.locales`, content languages that differ from the mount — is
+only warned about, because Author is private and not cloned here, and a private repository must
+never be able to fail the public build. Author's own build enforces those.
 
 Direction (RTL/LTR) follows the language. It and the font scale are layered, each layer winning
 over the one before:
