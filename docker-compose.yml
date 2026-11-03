@@ -43,6 +43,10 @@ services:
       # Remove this for production, the default is false.
       accessCode.autoRegister: true
       brand.file.system.path: /opt/brand
+      # Survey's connection is survey_user and its migrating connection elicit_owner; both
+      # passwords are SURVEYPW in the database image's role script.
+      ELICIT_DB_PASSWORD: SURVEYPW
+      ELICIT_OWNER_DB_PASSWORD: SURVEYPW
       # OpenTelemetry configuration
       quarkus.application.name: survey
       quarkus.otel.enabled: true
@@ -83,6 +87,9 @@ services:
     environment:
       TZ: America/Detroit
       pedigree.url: http://pedigree:8080/svg
+      # FHHS connects as survey_user and migrates as elicit_owner, like Survey.
+      ELICIT_DB_PASSWORD: SURVEYPW
+      ELICIT_OWNER_DB_PASSWORD: SURVEYPW
       family.history.sftp.enabled: false
       # family.history.sftp.enabled: true
       # family.history.sftp.host: sftpServer
@@ -104,6 +111,9 @@ services:
       # #   -----END RSA PRIVATE KEY-----
       # family.history.sftp.path: /upload/reports
       # family.history.sftp.port: 22
+      # # The bundled sftpServer makes a new host key each start, so there is none to pin.
+      # # A real server needs family.history.sftp.knownHosts instead (ssh-keyscan output).
+      # family.history.sftp.strictHostKeyChecking: false
       # family.history.upload.psa.id: 1
       # family.history.sftp.xml.template: |+
       #   <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
