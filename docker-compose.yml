@@ -31,9 +31,24 @@
 # The application will be available at the following URL: http://localhost:8080
 #
 
+# Image tag (release). Every Elicit application image -- survey, admin, fhhs, pedigree -- is
+# pulled at the one tag in ELICIT_TAG, so a site runs a matched set and never mixes releases.
+# It defaults to `latest`, which is what the local builds (buildDockerImages.sh) are tagged with.
+# To run a published release, set the tag to its version, either for one command
+#
+#   ELICIT_TAG=3.0.0-beta.1 docker compose up -d
+#
+# or once, in a `.env` file beside this one (ignored by git):
+#
+#   ELICIT_TAG=3.0.0-beta.1
+#
+# A pre-release (3.0.0-beta.1, 3.0.0-rc.1) is published under its exact version only; `latest`
+# and `3.0` move only when a final version ships, so a beta is reachable only by naming it.
+# The database image, elicitsoftware/elicit_db, is versioned on its own and is not covered.
+
 services:
   survey:
-    image: elicitsoftware/survey:latest
+    image: elicitsoftware/survey:${ELICIT_TAG:-latest}
     ports:
       - 8080:8080
     environment:
@@ -78,7 +93,7 @@ services:
       db:
         condition: service_healthy
   fhhs:
-    image: elicitsoftware/fhhs:latest
+    image: elicitsoftware/fhhs:${ELICIT_TAG:-latest}
     #open this port for local testing. It is not needed for inter container communication.
     ports:
       - 8082:8080
@@ -164,7 +179,7 @@ services:
   # other service here, not the published one. 8084 and 8085 are unused in this file now, but
   # they are the authoring tool's ports in its own compose file, so 8086 stays the clearer choice.
   # premm5:
-  #   image: elicitsoftware/premm5:latest
+  #   image: elicitsoftware/premm5:${ELICIT_TAG:-latest}
   #   #open this port for local testing. It is not needed for inter container communication.
   #   ports:
   #     - 8086:8080
@@ -195,12 +210,12 @@ services:
   #   volumes:
   #     - ./PREMM5/PREMM5.license:/license/PREMM5.license:ro
   pedigree:
-    image: elicitsoftware/pedigree:latest
+    image: elicitsoftware/pedigree:${ELICIT_TAG:-latest}
     #open this port for local testing. It is not needed for inter container communication.
     ports:
       - 8083:8080
   admin:
-    image: elicitsoftware/admin:latest
+    image: elicitsoftware/admin:${ELICIT_TAG:-latest}
     ports:
       - 8081:8080
     healthcheck:
@@ -260,6 +275,7 @@ services:
 # They are not needed for production or will be replaced by non containerized applications.
 ## Postgres Database
   db:
+    # Not on ELICIT_TAG: the database image has its own release cadence (see the header).
     image: elicitsoftware/elicit_db:latest
     # Setup the directories to persist data between starts.
     # if you need to reset your database you can delete the PGDATA directory and restart the containers

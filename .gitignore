@@ -25,6 +25,8 @@ TEMP.sql
 .DS_Store
 .vscode
 /build-logs/
+# A site's local image tag pin (ELICIT_TAG=...), read by docker compose.
+.env
 
 # The installation manual's generated files (docs/manual/README.md).
 # The .tex sources and elicit-brand.sty are committed; the stamp, LaTeX's working

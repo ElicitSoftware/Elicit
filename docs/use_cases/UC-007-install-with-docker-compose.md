@@ -19,11 +19,12 @@
 1. The operator reads the compose chapter, which names every service the file defines, the host port each publishes, the volumes each mounts and what each depends on.
 2. The system distinguishes the application services from the supporting services the file bundles for evaluation — the database, the identity provider, the mail catcher, the file-transfer server and the trace collector.
 3. The operator edits the compose file for the site: the database passwords and the client secret (UC-013), the brand directory (UC-014), the languages this site offers (UC-015) and any setting from the configuration reference (UC-011).
-4. The operator brings the stack up in one command.
-5. The system starts the database, waits for it to become healthy, then starts the survey application, which creates and migrates the shared schema.
-6. The system starts the remaining services as their dependencies become healthy: the console, and the two optional services if the site runs them.
-7. The operator watches the services become healthy and reads the status script's output.
-8. The operator proceeds to the first sign-in (UC-009).
+4. The operator chooses the release to run: the compose file pulls every application image at one tag, taken from one variable, so that the site runs a matched set (BR-005). Left unset, the tag is the one the local build produces; a published release is run by naming its version.
+5. The operator brings the stack up in one command.
+6. The system starts the database, waits for it to become healthy, then starts the survey application, which creates and migrates the shared schema.
+7. The system starts the remaining services as their dependencies become healthy: the console, and the two optional services if the site runs them.
+8. The operator watches the services become healthy and reads the status script's output.
+9. The operator proceeds to the first sign-in (UC-009).
 
 ## Alternative Flows
 
@@ -94,3 +95,7 @@ The console depends on the report service having started, not on it being health
 ### BR-004: The compose file is an evaluation starting point
 
 The file is a working site and a worked example. Every value in it that a production site must change is identified in the configuration reference.
+
+### BR-005: One tag for every application image
+
+The compose file names every Elicit application image at the same tag, read from the `ELICIT_TAG` variable and defaulting to `latest`. A site therefore runs the survey application, the console, the report service and the pedigree service from one release and cannot mix two. A pre-release version is published under its exact version only — `latest` moves only for a final version — so a beta or release candidate is run by naming it (`ELICIT_TAG=3.0.0-beta.1`, on the command line or in a `.env` file beside the compose file). The database image is versioned on its own and is not on the tag.
