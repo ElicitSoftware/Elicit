@@ -920,9 +920,14 @@ delivery. \\
 
 \begin{elicitcaution}[Every module needs both variables]
 Survey, Admin and FHHS all read their database passwords from \opt{ELICIT_DB_PASSWORD} and
-\opt{ELICIT_OWNER_DB_PASSWORD}, and none of them ships a value: a module started without
-them fails at startup rather than presenting a published password. Before 3.0.0 Survey and
-FHHS carried the literal \val{SURVEYPW}; a site upgrading must now set both variables on them
+\opt{ELICIT_OWNER_DB_PASSWORD}, and none of them ships a value, so a module started without
+them never connects with a published password. It does not stop at once, though: the
+database refuses it, the module logs \val{no password was provided} and retries
+\opt{quarkus.flyway.owner.connect-retries} times with waits that double up to two minutes,
+reporting itself not ready meanwhile, and only then exits with
+\val{Failed to start application} --- about eight minutes after it started, at the shipped
+ten retries. A module that sits unhealthy after an upgrade with that message in its log is
+missing these variables. Before 3.0.0 Survey and FHHS carried the literal \val{SURVEYPW}; a site upgrading must now set both variables on them
 (or \opt{quarkus.datasource.password} and \opt{quarkus.datasource.owner.password}, which take
 precedence).
 \end{elicitcaution}
