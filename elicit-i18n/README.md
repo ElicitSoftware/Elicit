@@ -4,7 +4,8 @@ This directory is the **curated set of interface translations** for the Elicit a
 maintained by ElicitSoftware beside each release. The Survey and Admin images carry English only;
 every other language reaches them from a directory like this one, mounted read-only and named by
 `i18n.file.system.path`. `docker-compose.yml` mounts this one at `/opt/i18n` in the `survey` and
-`admin` containers.
+`admin` containers. The authoring tool, which is private and not part of this compose file, mounts
+the same directory from its own compose file (`../elicit-i18n`) and reads `author/`.
 
 Each application reads only its own sub-directory (`i18n.app.name`):
 
@@ -14,7 +15,10 @@ elicit-i18n/
 ├── survey/                              # Elicit Survey
 │   ├── translations_es_419.properties   # Latin American Spanish
 │   └── translations_ar.properties       # Arabic
-└── admin/                               # Elicit Admin
+├── admin/                               # Elicit Admin
+│   ├── translations_es_419.properties
+│   └── translations_ar.properties
+└── author/                              # Elicit Author (mounted by Author's own compose file)
     ├── translations_es_419.properties
     └── translations_ar.properties
 ```
@@ -34,8 +38,9 @@ There is no `translations.properties` here: English is inside each image at
 - **Add a language:** put `translations_<tag>.properties` in each application's sub-directory and
   restart the containers.
   - Tags use underscores in file names (`es_419`, `pt_BR`) and hyphens everywhere else.
-  - Add it for Survey and Admin together. A survey's content is served only in a language the
-    Survey interface also offers.
+  - Add it for Survey, Admin and Author together. A survey's content is served only in a language
+    the Survey interface also offers; which content languages a survey may be published in is
+    Author's `author.content.languages`.
 - **Override a text:** a mounted file only needs the keys you want to change. Every other key falls
   back to English.
 - **Right-to-left and text size:** `i18n-config.json` declares a language's direction and font
@@ -53,7 +58,7 @@ There is no `translations.properties` here: English is inside each image at
 ## Keeping it consistent
 
 - **Before every build:** `checkLanguages.sh` (run by `buildDockerImages.sh`) fails when:
-  - `survey/` and `admin/` hold different languages;
+  - `survey/`, `admin/` and `author/` hold different languages;
   - a translated bundle has crept back into an image;
   - a module still sets the retired `i18n.bundled.locales`.
 - **In each module's tests:** `TranslationBundleConsistencyTest` reads `../elicit-i18n/<app>/`. It
