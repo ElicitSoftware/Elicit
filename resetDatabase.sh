@@ -14,6 +14,15 @@
 # every entry of pg_tblspc and pg_replslot as data, so the V2 mode recreates the
 # directories in the copy instead.
 #
+# PGDATA_v2 was also initialised on a host whose glibc (2.41) is newer than the one in the
+# elicitsoftware/elicit_db image (2.36), so PostgreSQL warns of a collation version
+# mismatch on every connection, and an index on a text column built under one glibc can
+# order differently under the other. The V2 mode therefore starts the database once,
+# rebuilds the indexes of every database whose recorded collation version differs from
+# the image's, records the new version (PostgreSQL's documented remedy), and stops it
+# again. A real site whose database host's glibc changes needs the same two statements;
+# see DeploymentScript.md.
+#
 # If the first start after a reset dies with
 #   FATAL:  data directory "/var/lib/postgresql/data/pgdata" has wrong ownership
 # that is a Docker Desktop for Mac VirtioFS glitch, not a problem with the copy: bind
@@ -45,6 +54,28 @@ EMPTY_CLUSTER_DIRS=(
     pg_wal/summaries
 )
 
+# REINDEX, then REFRESH COLLATION VERSION, for each database whose recorded collation
+# version differs from the one the running image provides. Run against a started db.
+refresh_collation_versions() {
+    local mismatched db
+    mismatched=$(db_psql postgres "select datname from pg_database
+        where datallowconn
+          and datcollversion is distinct from pg_database_collation_actual_version(oid)")
+    for db in $mismatched; do
+        echo "  $db: rebuilding indexes and refreshing the collation version"
+        db_psql "$db" "REINDEX DATABASE \"$db\""
+        db_psql postgres "ALTER DATABASE \"$db\" REFRESH COLLATION VERSION"
+    done
+}
+
+# psql against the db service. The collation mismatch warning PostgreSQL prints on every
+# connection is the condition being fixed, so its three lines are dropped; anything else,
+# errors included, is shown, and a failing statement fails the script (pipefail).
+db_psql() {
+    docker compose exec -T db psql -U survey -d "$1" -v ON_ERROR_STOP=1 -X -q -At -c "$2" 2>&1 |
+        { grep -vE '^(WARNING:  database ".*" has a collation version mismatch|DETAIL:  The database was created using collation version|HINT:  Rebuild all objects in this database)' || true; }
+}
+
 usage() {
     echo "Usage: $0 V2|V3" >&2
     echo "  V3  delete $PGDATA_DIR (greenfield: next start initializes a fresh database)" >&2
@@ -75,6 +106,10 @@ case "$MODE" in
             mkdir -p "$PGDATA_DIR/pgdata/$d"
             chmod 700 "$PGDATA_DIR/pgdata/$d"
         done
+        echo "Matching the copy's collation version to the database image"
+        docker compose up -d --wait db
+        refresh_collation_versions
+        docker compose stop db
         echo "Done. 'docker compose up -d' will run the V2 -> V3 upgrade (brownfield) path."
         ;;
     *)
