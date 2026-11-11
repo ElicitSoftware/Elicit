@@ -27,6 +27,7 @@ Closes #
 
 - [ ] `docker compose config` and `status.sh` still work when `docker-compose.yml` or a script changed
 - [ ] `checkLanguages.sh` still passes when anything about languages changed
-- [ ] A change to `samples/census-household-survey.elicit` was made in the generator, appended at the end, and the twin in Author's multilingual e2e suite refreshed
+- [ ] A change to `samples/census-household-survey.elicit` was made in the generator, appended at the end, and the twin in `e2e_multisite_multilingual/` refreshed
+- [ ] The end-to-end suites still compile, and pass when the change is in a journey they drive
 - [ ] Cross-module change: the tracking issue in `ElicitSoftware/Elicit` and the sibling PRs are linked above
 - [ ] No AI co-author trailer in any commit message
