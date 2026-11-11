@@ -59,7 +59,7 @@
 **Trigger:** The operator reaches the end of the installation (step 7)  
 **Flow:**
 
-1. The manual names the administrator's manual (Admin UC-029) and the author's manual (Author UC-039) and stops.
+1. The manual names the administrator's manual (Admin UC-029), the author's manual (Author UC-039) and the Author installation manual (C-004), and stops.
 2. Use case ends.
 
 ## Postconditions

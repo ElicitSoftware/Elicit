@@ -51,6 +51,12 @@
       <li>The Admin application is used by survey administrators to register subjects, view survey progress, and view final reports.</li>
       </ul>
     </li>
+    <li><a href="https://github.com/ElicitSoftware/Author/">Author</a><br/>
+      <ul>
+        <li>The authoring tool: survey authors design steps, sections, questions, rules, reports and translations, preview them, and export a survey definition file (<code>.elicit</code>).</li>
+        <li>Sites that only deliver surveys do not need it; it has its own installation manual.</li>
+      </ul>
+    </li>
     <li><a href="https://github.com/ElicitSoftware/Survey/">Survey</a><br/>
       <ul>
         <li>The subject-facing application that presents questions, guides users through the decision tree, records answers, and produces final reports.</li>
@@ -73,9 +79,8 @@
       </ul>
     </li>
     </ul>
-    Surveys themselves are designed in Elicit's authoring tool, which is distributed separately. It
-    exports a survey definition file (<code>.elicit</code>) that the Admin application applies to a
-    site. The Family Health History Survey and the sample under <code>samples/</code> are two such
+    Surveys themselves are designed in Author, which exports a survey definition file
+    (<code>.elicit</code>) that the Admin application applies to a site. The Family Health History Survey and the sample under <code>samples/</code> are two such
     definitions, ready to apply.
   </p>
 
@@ -106,7 +111,8 @@ The easiest way to see Elicit Software in action is to check out the <a href="ht
 The **installation manual** takes a deployment operator from an empty machine to a
 running, verified Elicit site, and is the single reference for every setting that
 site is configured with. It covers the Survey and Admin applications, both
-installation paths, external branding and translations.
+installation paths, external branding and translations. Not every site authors
+surveys, so Author is installed from a manual of its own, in the Author repository.
 
 ```bash
 docs/manual/build-manual.sh   # writes docs/manual/elicit-installation-manual.pdf

@@ -18,23 +18,21 @@ GitHub repo, dropped into this directory and excluded from this repo via
 | Directory     | Repo                         | What it is                                     |
 | ------------- | ---------------------------- | ---------------------------------------------- |
 | `Survey/`     | `ElicitSoftware/Survey`      | Subject-facing survey app (Quarkus + Vaadin)    |
+| `Author/`     | `ElicitSoftware/Author`      | Authoring tool; exports `.elicit` definitions   |
 | `Admin/`      | `ElicitSoftware/Admin`       | Administrator app (Quarkus + Vaadin)            |
 | `FHHS/`       | `ElicitSoftware/FHHS`        | Family Health History Survey; headless REST     |
 | `Pedigree/`   | `ElicitSoftware/Pedigree`    | R/Kinship2 pedigree-drawing service (plumber)   |
 | `Prometheus/` | *tracked here*               | Prometheus config; not a repo, not in compose   |
 | `postgresql/` | *not tracked, not a repo*    | Local `PGDATA` volume only                      |
 
-`cloneAllProjects.sh` bootstraps all four module clones.
+`cloneAllProjects.sh` bootstraps all five module clones.
 
-**Author is not here.** The authoring tool is a separate **private** repository
-and is not part of this open-source project: it is not cloned, not built, and
-not in the compose file. A developer who has access still checks it out at
-`Elicit/Author/`, where `.gitignore` hides it, because Author's own
-`docker-compose.yml` and its end-to-end suites read `../elicit-brand`,
-`../elicit-i18n`, `../sftp_ssh` and `../../FHHS/family-history-survey.elicit`
-from here. Shared assets live in this repo once — Author's Spanish and Arabic
-bundles are `elicit-i18n/author/`; what is Author's alone (its Keycloak realm,
-the `author` database script, the three e2e suites) lives in Author.
+Author was a private repository from 2026-09-29 until Elicit#72 released it with the
+other modules. Everything it shares with the platform lives here once: the stack
+(`docker-compose.yml`), the Keycloak realm (with the `elicit-author` client), the
+`author` database script (`db-init/`), the curated translations
+(`elicit-i18n/author/`) and the three end-to-end suites. Author's integration branch is
+`main`, like Pedigree's; it has no `V3`.
 
 ### Working Across Modules
 
@@ -46,8 +44,8 @@ the `author` database script, the three e2e suites) lives in Author.
 - A cross-cutting change (a schema change touching Survey + Admin + FHHS, say)
   needs a branch and a commit per repo. Confirm the branch/PR strategy with
   the user before committing across repos.
-- The four Java modules each carry their own `CLAUDE.md` and `AGENTS.md` with
-  the conventions that govern them. Those take precedence inside their
+- The four Java modules (Survey, Admin, FHHS, Author) each carry their own
+  `CLAUDE.md` and `AGENTS.md` with the conventions that govern them. Those take precedence inside their
   subtree. `Pedigree/` and `Prometheus/` have no such file.
 
 ## Terminology: Access Code vs. Token
@@ -76,13 +74,14 @@ OIDC/Bearer token. Never call the respondent credential a token.
 
 ## Local Stack (`docker-compose.yml`)
 
-Applications: `survey`, `admin`, `fhhs` and `pedigree`. Supporting services:
+Applications: `survey`, `admin`, `fhhs`, `pedigree`, `author` and `author-survey` (a
+second Survey on the `author` database, Author's respondent preview). Supporting services:
 `db` (PostgreSQL), `keycloak` (OIDC), `mailpit` (SMTP), `sftpServer`, and
 `jaeger` (OpenTelemetry). All app images are built locally as
-`elicitsoftware/<name>:latest`, and the compose file pulls the four application images
+`elicitsoftware/<name>:latest`, and the compose file pulls every application image
 at one tag, `${ELICIT_TAG:-latest}`, so `ELICIT_TAG=3.0.0-beta.1 docker compose up -d` (or a
 `.env` line, ignored by git) runs a published release as a matched set. `elicit_db` is not on
-the tag. Author's compose file uses the same variable.
+the tag.
 
 | Port    | Service                                    |
 | ------- | ------------------------------------------ |
@@ -90,6 +89,8 @@ the tag. Author's compose file uses the same variable.
 | `8081`  | Admin                                      |
 | `8082`  | FHHS                                       |
 | `8083`  | Pedigree                                   |
+| `8084`  | Author                                     |
+| `8085`  | Author preview (`author-survey`)           |
 | `8180`  | Keycloak (admin/admin)                     |
 | `8025`  | Mailpit web UI                             |
 | `16686` | Jaeger UI                                  |
@@ -98,10 +99,11 @@ the tag. Author's compose file uses the same variable.
 Healthchecks target the **container-internal** port `8080`, not the published
 host port. Every service exports OTLP traces/metrics/logs to `jaeger:4317`.
 
-Ports `8084` and `8085` are unused here now. Author's own compose file publishes
-them, and publishes every other port in this table at the same values, so the two
-stacks cannot run at once — not because of 8084/8085, but because they collide on
-8080 downwards.
+Author works in a database of its own, `author`, in the same cluster; `db` creates it
+from `db-init/V0.0.4__CREATE_AUTHOR_DATABASE.sql` on first initialization only, so an
+existing `PGDATA` needs that script run once by hand (see its header). For Author in
+dev mode on 8084, start what it calls: `docker compose up -d db keycloak author-survey`.
+Authoring needs none of the site applications.
 
 `PREMM5` is commented out in the compose file and is not cloned by
 `cloneAllProjects.sh`.
@@ -189,9 +191,10 @@ to start cleanly on 2026-09-20.
 ## Scripts
 
 - `cloneAllProjects.sh` — clone the five module repos.
-- `checkLanguages.sh` — the Survey and Admin images carry English only, and `elicit-i18n/`
-  gives Survey, Admin and Author the same languages; an Author checkout beside this one is
-  only warned about. Run by `buildDockerImages.sh` before it builds anything.
+- `checkLanguages.sh` — the Survey, Admin and Author images carry English only,
+  `elicit-i18n/` gives all three the same languages, and Author's
+  `author.content.languages` is exactly that set. Run by `buildDockerImages.sh` before it
+  builds anything.
 - `buildDockerImages.sh [Target ...]` — build the module images in parallel
   (all five by default, or just the named ones), one log per target under
   `build-logs/`, with a summary and a non-zero exit if any build failed. The
@@ -202,12 +205,12 @@ to start cleanly on 2026-09-20.
   target; `SKIP_PROPERTY_CHECK=1` typesets without the gate; a `Manual`-only run
   prints no port warnings). There
   is no build-time dependency between the images; each module's tests use a
-  distinct Quarkus test port (Survey 8089, Admin 8090, FHHS 8091).
+  distinct Quarkus test port (Survey 8089, Admin 8090, FHHS 8091, Author 8092).
   PREMM5 is not built (that module is not cloned and is commented out of
   compose), and there is no `postgresql/` build step — `elicitsoftware/elicit_db`
   is pulled, not built. Ctrl-C stops the module builds too (Bash would otherwise leave them
   running as orphans that hold `target/` and the test ports while the lock is released),
-  and the script warns about listeners on ports 8080-8083 and 8089-8091 before it starts:
+  and the script warns about listeners on ports 8080-8084 and 8089-8092 before it starts:
   a dev-mode Survey on 8080 stalls the Survey test suite, because the test data points
   post-survey-action and report URLs at `localhost:8080` and dev mode parks requests while
   it restarts, so each such call waits out the Survey clients' 60-second answer timeout
@@ -216,10 +219,25 @@ to start cleanly on 2026-09-20.
 - `resetDatabase.sh V2|V3` — reset `postgresql/PGDATA` to the V2 copy (brownfield)
   or delete it (greenfield); stops the stack first.
 - `status.sh` — container status plus a probe of each service's health endpoint:
-  `/q/health/ready` for Survey, Admin and FHHS (printing why one is not ready),
-  `/healthz` for Pedigree, the front page for Keycloak and Mailpit.
+  `/q/health/ready` for Survey, Admin, FHHS, Author and its preview (printing why one is
+  not ready), `/healthz` for Pedigree, the front page for Keycloak and Mailpit.
 - `generateGithubTemplates.py` — regenerate the pull request template and issue forms of
   all six repositories from one table; commit the result in each.
+
+## End-to-End Suites
+
+`e2e-tests/`, `e2e_multisite/` and `e2e_multisite_multilingual/` are standalone Maven
+projects (no parent pom) holding the platform's Playwright tests. They drive Author, Admin
+and Survey together, and the two multi-site suites compile the page objects out of
+`e2e-tests/src/test/java` by relative path, so the three stay siblings.
+
+- They run through `mvn`, not the Quarkus Dev MCP tools: each suite's `run.sh` calls
+  `mvn -DskipTests=false test` against a stack that is already running. `skipTests`
+  defaults to true.
+- They need the images first (`./buildDockerImages.sh`, Author included).
+- `e2e-tests/` runs against this directory's `docker-compose.yml`. The multi-site suites
+  bring up stacks of their own (`up.sh`/`down.sh`) on the same host ports, so only one of
+  the three stacks runs at a time.
 
 ## Branding
 
@@ -240,8 +258,8 @@ English. Nothing mounted means English only and no language selector.
 
 `elicit-i18n/` in this repo is the **curated set** ElicitSoftware maintains beside each release:
 `survey/`, `admin/` and `author/`, each with Latin American Spanish (`es_419`) and Arabic (`ar`),
-plus `i18n-config.json`. `docker-compose.yml` mounts it read-only into Survey and Admin; Author's
-own compose file mounts the same directory. The module tests read it from
+plus `i18n-config.json`. `docker-compose.yml` mounts it read-only into Survey, Admin, Author and
+the preview Survey. The module tests read it from
 `../elicit-i18n` (`%dev` and `%test` profiles), and their CI fetches it from the umbrella branch
 with the **same name** as the module branch. A change to translations or to English keys therefore
 needs a branch of the same name here.
@@ -262,12 +280,9 @@ What a site controls:
   language one app has and another lacks cannot be served.
 
 The authoring tool reads `elicit-i18n/author/` from the same mount (Author#79) and is the third party
-to that invariant: it still declares which languages a survey's *content* may be published in
-(`author.content.languages`). Its bundles are umbrella content, so the check compares all three
-`elicit-i18n/` directories as a real error; the Author checkout itself — a leftover bundle on its
-classpath, a lingering `i18n.bundled.locales`, content languages that differ from the mount — is
-only warned about, because Author is private and not cloned here, and a private repository must
-never be able to fail the public build. Author's own build enforces those.
+to that invariant: it also declares which languages a survey's *content* may be published in
+(`author.content.languages`). The check holds Author to the same rules as Survey and Admin, and a
+content language set that differs from the mount fails the build too.
 
 Direction (RTL/LTR) follows the language. It and the font scale are layered, each layer winning
 over the one before:
@@ -335,7 +350,8 @@ use-case IDs are unrelated to these.
 - CI per repository: Survey, Admin and Author run the Maven suite (`ci.yml`), FHHS runs it
   from `maven.yml`, Pedigree builds its image and smoke-tests `/healthz` and `/svg`, and the
   umbrella runs `checkLanguages.sh`, `check-properties.sh`, `docker compose config` and the
-  manual build against fresh clones of Survey and Admin at the target branch.
+  manual build against fresh clones of Survey, Admin and Author at the target branch (Author
+  at `main`).
 
 ## Git Commits
 
