@@ -23,7 +23,7 @@ repository and nothing more. Publish the PDF with the release.
 | Path | Committed? | What it is |
 | --- | --- | --- |
 | `elicit-installation-manual.tex` | yes | the manual |
-| `elicit-brand.sty` | yes | the Elicit default brand as LaTeX: the shared manual design plus the settings tables, the copy-safe verbatim environments and `\elicitProduct` |
+| `elicit-brand.sty` | yes | the Elicit default brand as LaTeX: the shared manual design plus the settings tables, the copy-safe verbatim environments and `\elicitProduct`. The one copy: Author's two manuals read it from here too (Author C-028) |
 | `images/` | yes | the 18 captured figures, plus `elicit-logo.png` for the title page |
 | `capture/` | yes | `capture-screenshots.mjs` and its own `package.json`; regenerates `images/` from a freshly installed stack |
 | `build-manual.sh` | yes | typesets the PDF |
@@ -73,6 +73,17 @@ Run it before a release, and after any change to a module's
 2. every Elicit key the manual documents that nothing reads any more;
 3. every documented default that disagrees with the module's own sources
    (NFR-005).
+
+The same script checks Author's installation manual against Author alone, so the
+rules have one copy; Author's `docs/manual/build-manual.sh` runs it that way
+before typesetting (Author UC-051 A3):
+
+```bash
+docs/manual/check-properties.sh --manual Author/docs/manual/elicit-author-installation-manual.tex --modules Author
+```
+
+It also counts the settings Author's System overview requires
+(`new Required("key", ...)` in `RequiredConfigCheck`) as read.
 
 It exits non-zero on any of the three, so it can gate a release. It resolves
 `${VAR:default}` expressions to their defaults, because that is what the manual

@@ -318,7 +318,10 @@ use-case IDs are unrelated to these.
   service exists. `docs/manual/check-properties.sh` gates the configuration
   reference against the modules' `@ConfigProperty` declarations and
   `application.properties`; `buildDockerImages.sh` runs it before typesetting, so
-  a drifted reference fails the build rather than reaching a release.
+  a drifted reference fails the build rather than reaching a release. Author's
+  installation manual is separate (in Author, not built here), but its build runs
+  this same script with `--manual … --modules Author`, and Author's two manuals
+  read `elicit-brand.sty` from here: keep both working for Author.
 - `DeploymentScript.md` — non-Docker deployment, plus the procedure for
   upgrading an existing deployment to Kimball Type 2 SCD (V3.0.0). Upgrade
   procedures stay here and are deliberately **not** in the installation manual,
