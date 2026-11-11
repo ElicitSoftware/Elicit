@@ -30,7 +30,7 @@ echo -e "${BLUE}Service Health Check:${NC}"
 echo "===================="
 
 # Check each service where it reports its health (port|name|path|kind):
-#   quarkus  Survey, Admin, FHHS: /q/health/ready. A 503 names the checks that are down and why,
+#   quarkus  Survey, Admin, FHHS, Author and its preview: /q/health/ready. A 503 names the checks that are down and why,
 #            e.g. FHHS before the Family History Survey is imported and built.
 #   ok       Pedigree: /healthz answers 200 when the R service is up.
 #   page     Keycloak, Mailpit: the front page; a redirect or sign-in prompt is a live service.
@@ -39,6 +39,8 @@ services=(
     "8081|Admin Dashboard|/q/health/ready|quarkus"
     "8082|Family History|/q/health/ready|quarkus"
     "8083|Pedigree|/healthz|ok"
+    "8084|Author|/q/health/ready|quarkus"
+    "8085|Author Preview|/q/health/ready|quarkus"
     "8180|Keycloak Auth|/|page"
     "8025|Email Testing|/|page"
 )

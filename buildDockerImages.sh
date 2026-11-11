@@ -15,8 +15,8 @@
 #
 # Nothing forces an order: no image is built FROM another, no pom depends on
 # another module's artifact, each module has its own target/ and node_modules/,
-# and the Quarkus test ports are distinct (Survey 8089, Admin 8090, FHHS 8091).
-# The only shared resource is ~/.m2, which Maven 3.9 handles
+# and the Quarkus test ports are distinct (Survey 8089, Admin 8090, FHHS 8091,
+# Author 8092). The only shared resource is ~/.m2, which Maven 3.9 handles
 # concurrently; on a cold cache a rare download collision is fixed by rerunning.
 #
 # A module running in dev mode is not compatible with building it: dev mode holds
@@ -43,10 +43,11 @@
 # SKIP_MANUAL=1 skips the manual; so does naming targets without it. SKIP_PROPERTY_CHECK=1
 # typesets without the gate.
 #
-# checkLanguages.sh runs first, before any target: it checks that the Survey and Admin images will
-# carry English only and that the curated translations in elicit-i18n/ give both the same set of
-# languages. A failure stops the run without building anything. The authoring tool is the third
-# party to that invariant and is not cloned here; Author's own build runs the authoritative check.
+# checkLanguages.sh runs first, before any target: it checks that the Survey, Admin and Author
+# images will carry English only, that the curated translations in elicit-i18n/ give all three the
+# same set of languages, and that Author publishes content in exactly that set. A failure stops the run without building anything. Author's own
+# buildDockerImage.sh runs the same check, so the run below sets SKIP_LANGUAGE_CHECK=1 for it
+# rather than checking twice.
 #
 # PREMM5 is not cloned by cloneAllProjects.sh and is commented out of
 # docker-compose.yml; add it to MODULES if you restore that module. The
@@ -56,7 +57,7 @@
 set -u
 cd "$(dirname "$0")"
 
-ALL_MODULES=(Survey FHHS Pedigree Admin Manual)
+ALL_MODULES=(Survey FHHS Pedigree Admin Author Manual)
 if [ $# -gt 0 ]; then MODULES=("$@"); else MODULES=("${ALL_MODULES[@]}"); fi
 LOG_DIR=build-logs
 
@@ -83,27 +84,27 @@ for m in "${MODULES[@]}"; do
     done
 done
 
-# Anything listening on a module's dev-mode port (8080-8083) or Quarkus test port
-# (8089-8091) is almost always a dev-mode instance, and the tests will either hang
+# Anything listening on a module's dev-mode port (8080-8084) or Quarkus test port
+# (8089-8092) is almost always a dev-mode instance, and the tests will either hang
 # on it or fail to bind. Warn, naming the process, but leave the decision to the user.
 # A run that builds only the manual runs no tests and binds nothing, so it says nothing.
 building_a_module=
 for m in "${MODULES[@]}"; do [ "$m" = Manual ] || building_a_module=1; done
 if [ -n "$building_a_module" ] && command -v lsof >/dev/null 2>&1; then
-    for port in 8080 8081 8082 8083 8089 8090 8091; do
+    for port in 8080 8081 8082 8083 8084 8089 8090 8091 8092; do
         pids=$(lsof -nP -iTCP:"$port" -sTCP:LISTEN -t 2>/dev/null | sort -u | tr '\n' ' ')
         [ -n "$pids" ] || continue
         case $port in
             8080) why="Survey's tests call localhost:8080 and will stall on a dev-mode Survey" ;;
-            808[1-3]) why="looks like a dev-mode instance; stop it before building that module" ;;
+            808[1-4]) why="looks like a dev-mode instance; stop it before building that module" ;;
             *) why="a Quarkus test port; that module's tests cannot bind it" ;;
         esac
         echo "WARNING: port $port is in use by pid ${pids% }; $why" >&2
     done
 fi
 
-# The images must carry English only, and the curated translations must give Survey and Admin the
-# same languages; both failures are silent at runtime. Checked before anything is built,
+# The images must carry English only, and the curated translations must give Survey, Admin and
+# Author the same languages; both failures are silent at runtime. Checked before anything is built,
 # unconditionally, because it reads files and starts no JVM. A run that builds only the manual
 # still gets it: the manual documents these settings.
 if ! ./checkLanguages.sh; then
@@ -162,7 +163,7 @@ START=$(date +%s)
 for m in "${MODULES[@]}"; do
     (
         t0=$(date +%s)
-        (cd "$(build_dir "$m")" && for script in $(build_scripts "$m"); do "./$script" || exit $?; done)
+        (cd "$(build_dir "$m")" && export SKIP_LANGUAGE_CHECK=1 && for script in $(build_scripts "$m"); do "./$script" || exit $?; done)
         rc=$?
         echo "$rc $(( $(date +%s) - t0 ))" > "$LOG_DIR/$m.status"
     ) > "$LOG_DIR/$m.log" 2>&1 &
