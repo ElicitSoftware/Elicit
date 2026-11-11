@@ -79,14 +79,6 @@
 2. The manual states that the scale multiplies the whole page for that language rather than only its letters, and that a value outside the accepted range is refused rather than applied.
 3. Use case continues at step 11.
 
-### A5: The site installs without containers
-
-**Trigger:** The applications run as JVM services rather than containers (step 4)  
-**Flow:**
-
-1. The manual states that the translations directory is any directory the service account can read, named by `i18n.file.system.path`. Both it and `i18n.offered.locales` are ordinary configuration settings, reached by any Quarkus configuration source.
-2. Use case continues at step 5.
-
 ## Postconditions
 
 ### Success Postconditions

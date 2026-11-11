@@ -6,7 +6,7 @@
 **Use Case Name:** Configure an Application  
 **Primary Actor:** Deployment Operator  
 **Secondary Actor:** SMTP Relay  
-**Goal:** Supply the survey application or the console with the site's own configuration, by one mechanism that is the same for a container and for a JVM service, so that each module runs against the site's resources and no internal default is changed by accident.  
+**Goal:** Supply the survey application or the console with the site's own configuration, by one mechanism that is the same under compose and under the site's own container platform, so that each module runs against the site's resources and no internal default is changed by accident.  
 **Status:** Open  
 **Requirements:** [FR-019, FR-020](../requirements.md)
 
@@ -19,12 +19,12 @@
 ## Main Success Scenario
 
 1. The operator reads the configuration chapter, which opens with the one mechanism both applications share, so that the rules are learned once and then applied per module.
-2. The system gives the ordered list of sources a value may be read from — system properties, environment variables, a `.env` file, a properties file in a `config` directory beside the runnable artifact, and the properties file built into the artifact — and states that a source earlier in that list overrides every source after it.
+2. The system gives the ordered list of sources a value may be read from — system properties, environment variables, a `.env` file, a properties file in a `config` directory under the application's working directory, and the properties file built into the image — and states that a source earlier in that list overrides every source after it.
 3. The system gives the rule that turns a setting's dotted name into an environment variable name, and states that in the container path a setting may equally be written under its dotted name as an environment entry, which is how the shipped compose file writes most of them.
 4. The system explains the profile prefix: a line whose name begins with a profile marker is read only while that profile is active, the prefixed lines in the shipped files serve development and the module test suites, and the chapter states which profile a deployed application actually runs under so that the operator knows which lines apply to a site.
 5. The operator works through the settings marked as ones the site must set: each module's two datasources, the identity provider's address, client identifier and secret, the mail relay, the brand and translations directories, and the addresses by which the modules reach one another.
 6. The operator reads the settings marked as ones the site may set, changes those the site needs, and leaves untouched the settings marked as internal defaults.
-7. The operator writes the chosen values into one source — environment entries in the compose file in the container path, or a properties file or the service manager's environment in the module-by-module path.
+7. The operator writes the chosen values into one source — environment entries in the compose file on the bundled path, or the environment the site's container platform supplies on the module-by-module path.
 8. The operator starts or restarts the module and confirms from its readiness endpoint and from the console's system screens that it reached the resources intended (UC-018).
 
 ## Alternative Flows
@@ -52,7 +52,7 @@
 **Trigger:** Site policy forbids credentials in a file kept under version control (step 7)  
 **Flow:**
 
-1. The manual states that the properties file in a `config` directory beside the runnable artifact, and the environment the service manager supplies, are both read without rebuilding or editing an image, and gives each one's place in the source order.
+1. The manual states that a properties file mounted in a `config` directory under the application's working directory, and the environment the container platform supplies, are both read without rebuilding or editing an image, and gives each one's place in the source order.
 2. Use case continues at step 7.
 
 ### A4: The setting carries a secret
@@ -85,11 +85,11 @@
 
 ### BR-001: One mechanism for both installation paths
 
-A container and a JVM service are configured by the same rules, from the same sources, in the same order. The chapter describes the mechanism once; the installation chapters differ only in which source they find it convenient to use (UC-008 BR-003).
+A module under compose and under the site's own container platform is configured by the same rules, from the same sources, in the same order. The chapter describes the mechanism once; the installation chapters differ only in which source they find it convenient to use (UC-008 BR-003).
 
 ### BR-002: The earlier source wins
 
-A value from a source earlier in the order replaces the same setting from every later source, including the one built into the artifact. A site never has to change a shipped file in order to change a shipped value.
+A value from a source earlier in the order replaces the same setting from every later source, including the one built into the image. A site never has to change a shipped file in order to change a shipped value.
 
 ### BR-003: A profile-prefixed line is not a setting to copy
 

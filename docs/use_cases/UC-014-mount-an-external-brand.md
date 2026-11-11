@@ -63,15 +63,6 @@
 2. The manual gives the two ways to pick the change up: Reload brand on the branding screen, which discards the cache and re-resolves, or a restart of the application.
 3. Use case continues at step 7.
 
-### A5: The site installs without containers
-
-**Trigger:** The applications run as JVM services rather than containers (step 5)  
-**Flow:**
-
-1. The manual states that `brand.file.system.path` is an ordinary configuration setting reached by any Quarkus configuration source, and that it names a directory on the host with the same layout.
-2. The manual states that `brand.local.path`, which defaults to `brand`, names a directory relative to the service's working directory and is consulted between the mount and the embedded default.
-3. Use case continues at step 6.
-
 ## Postconditions
 
 ### Success Postconditions

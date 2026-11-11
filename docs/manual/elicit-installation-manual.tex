@@ -77,7 +77,7 @@ Elicit Software \textperiodcentered\ PolyForm Noncommercial License 1.0.0\par}
 \vfill
 
 \begin{elicitnote}[Who this manual is for]
-Someone comfortable with PostgreSQL, a container runtime or a JVM service manager, and an
+Someone comfortable with PostgreSQL, a container runtime, and an
 OIDC provider, who has not seen Elicit before. It covers \emph{provisioning} a deployment.
 Running the console day to day is the administrator's manual. This one stops where that
 begins.
@@ -161,8 +161,8 @@ that schema, and FHHS adds its grants and indexes on top. So on a \emph{new} dat
 
 \begin{elicitnote}[The order constrains the first start only]
 It exists because of schema creation. Once the schema is migrated the modules may be started
-in any order and may restart independently. In the container path the compose file enforces
-this for you; without containers it is yours to sequence (Chapter~\ref{sec:nodocker}).
+in any order and may restart independently. The compose file enforces
+this for you; without it the order is yours to sequence (Chapter~\ref{sec:nocompose}).
 \end{elicitnote}
 
 \subsection{Ports}
@@ -211,9 +211,9 @@ cheaper to find now.
 
 \begin{description}
   \item[A PostgreSQL 17 cluster] in which you can create roles, databases and schemas.
-  \item[A container runtime and compose,] for the container path (Chapter~\ref{sec:compose});
-        \emph{or} a Java 25 runtime and a service manager, for the module-by-module path
-        (Chapter~\ref{sec:nodocker}).
+  \item[A container runtime,] with compose for the bundled path (Chapter~\ref{sec:compose}),
+        or the container platform your site already runs (Chapter~\ref{sec:nocompose}).
+        Elicit is released as container images only.
   \item[An OIDC provider] in which you can create a confidential client and three roles,
         reachable at \emph{one} address from both the browser and the application containers.
   \item[An SMTP relay] for Admin's invitations and reminders. Admin is the only module that
@@ -482,18 +482,23 @@ identity provider (Section~\ref{sec:oidc}).
 stops the stack and deletes the database's data directory for a clean greenfield attempt.
 
 %% ================================================================== 6
-\section{Installing without Docker}
-\label{sec:nodocker}
-\markboth{Installing without Docker}{}
+\section{Installing without Compose}
+\label{sec:nocompose}
+\markboth{Installing without Compose}{}
 
-One procedure, repeated per module, against your own database
+Elicit is released as container images only, \file{elicitsoftware/<name>} at the release's
+tag; no runnable Java artifact is distributed. A site that runs its containers under
+something other than the bundled compose file (Podman, Kubernetes, a container service)
+starts the same images by one procedure, repeated per module, against your own database
 (Chapter~\ref{sec:database}) and your own identity provider (Chapter~\ref{sec:oidc}).
 
 \begin{enumerate}
-  \item Obtain the module's runnable artifact for the release you are installing.
+  \item Pull the module's image at the tag of the release you are installing. Every module
+        runs at the same tag.
   \item Write its configuration — datasource, identity, mail, the brand path, and anything
-        else your site changes — by the rules in Chapter~\ref{sec:config}.
-  \item Install it as a service under your service manager, with a Java 25 runtime.
+        else your site changes — as environment variables, by the rules in
+        Chapter~\ref{sec:config}, and mount the brand and translations directories read-only.
+  \item Run it under your container platform, publishing its container port \val{8080}.
   \item Start \ui{Survey} first and wait for \opt{/q/health/ready} to report healthy. That is
         what confirms its migrations have completed.
   \item Start \ui{Admin} and wait for its readiness endpoint.
@@ -501,7 +506,7 @@ One procedure, repeated per module, against your own database
 \end{enumerate}
 
 \begin{elicitcaution}[Nothing sequences this for you]
-There is no dependency ordering here as there is in the container path. A module started
+There is no dependency ordering here as there is in the compose file. A module started
 before Survey has migrated a \emph{new} database fails its own migration on an object that
 does not exist yet, and does not start. Nothing is corrupted: let Survey finish and start the
 module again.
@@ -634,9 +639,9 @@ ordinal, highest first:
 System properties, passed on the command line & 400 \\
 Environment variables & 300 \\
 Environment variables from a \file{.env} file in the working directory & 295 \\
-\file{application.properties} in a \file{config} directory, relative to the working directory
-of the runnable artifact & 260 \\
-The \file{application.properties} inside the artifact — the defaults this chapter lists & 250 \\
+\file{application.properties} in a \file{config} directory, relative to the application's
+working directory in its container & 260 \\
+The \file{application.properties} inside the image — the defaults this chapter lists & 250 \\
 \end{plaintable}
 
 Note that a \file{.env} file is an environment-variable source that sits \emph{below} real
@@ -1125,8 +1130,8 @@ once.
 \begin{enumerate}
   \item Mount the translations directory on Survey and Admin, and set
         \opt{i18n.file.system.path} to the mount point. The compose file already mounts
-        \file{elicit-i18n/} at \val{/opt/i18n}. Outside containers, the directory is any one the
-        service account can read. Leave it unmounted for an English-only site.
+        \file{elicit-i18n/} at \val{/opt/i18n}; under your own container platform, mount it
+        read-only at the same point. Leave it unmounted for an English-only site.
   \item If an application should offer fewer languages than are mounted, set
         \opt{i18n.offered.locales} on it to a comma-separated list, for example
         \val{en,es-419}. Leave it unset to offer everything mounted.

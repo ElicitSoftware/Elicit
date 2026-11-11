@@ -49,7 +49,8 @@ with a platform version and a build date and reproduced exactly.
 - The PostgreSQL cluster: roles, schemas, the `survey` database, and the
   grants the migrations assume.
 - The identity provider: the OIDC clients and the roles the applications check.
-- Both installation paths: Docker Compose, and module-by-module without Docker.
+- Both installation paths: Docker Compose, and module-by-module under the site's own
+  container platform. Elicit is released as container images only.
 - The configuration reference for Survey and Admin: every Elicit-specific
   setting with its default, and the Quarkus settings the images actually set,
   with a pointer to `quarkus.io` for the rest.
@@ -78,7 +79,7 @@ with a platform version and a build date and reproduced exactly.
 ## Audience
 
 The **deployment operator**: someone comfortable with PostgreSQL, a container
-runtime or a JVM service manager, and an OIDC provider, who has not seen Elicit
+runtime, and an OIDC provider, who has not seen Elicit
 before. Not a developer of it, and not a survey administrator.
 
 ## What success looks like
