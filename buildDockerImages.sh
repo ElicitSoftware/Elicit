@@ -45,9 +45,9 @@
 #
 # checkLanguages.sh runs first, before any target: it checks that the Survey, Admin and Author
 # images will carry English only, that the curated translations in elicit-i18n/ give all three the
-# same set of languages, and that Author publishes content in exactly that set. A failure stops the run without building anything. Author's own
-# buildDockerImage.sh runs the same check, so the run below sets SKIP_LANGUAGE_CHECK=1 for it
-# rather than checking twice.
+# same set of languages, and that Author publishes content in exactly that set. A failure stops
+# the run without building anything. Author's own buildDockerImage.sh runs this same script, so
+# the run below sets SKIP_LANGUAGE_CHECK=1 for it rather than checking twice.
 #
 # PREMM5 is not cloned by cloneAllProjects.sh and is commented out of
 # docker-compose.yml; add it to MODULES if you restore that module. The

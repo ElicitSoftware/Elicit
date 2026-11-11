@@ -24,7 +24,7 @@
 #
 # The authoring tool reads the same mount (Author#79) at <mount>/author/, so it is held to 1 and 2
 # like the other two modules, and is the only one that can break 4. Author's own
-# buildDockerImage.sh runs its copy of this check for a build outside this script.
+# buildDockerImage.sh runs this script too, for a build outside buildDockerImages.sh.
 #
 # Run from the umbrella root; buildDockerImages.sh runs it before any image is built. Cheap enough
 # to run unconditionally: it reads files and starts no JVM.
