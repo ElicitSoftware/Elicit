@@ -155,7 +155,7 @@ docker exec elicit-db-1 psql -U survey -d survey \
   -c "select count(*) from report_family_history_survey.dim_step;"
 ```
 
-`report_schema` must be set and the count non-zero (15 for the Family History Survey). The
+`report_schema` must be set and the count non-zero (14 for the Family History Survey). The
 schema name is site-local (not in the `.elicit`) and can be changed afterwards with
 `POST /api/etl/schema/<key>/rename?name=<new>` on Survey; nothing in Elicit hard-codes it.
 
