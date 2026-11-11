@@ -23,6 +23,12 @@
 # again. A real site whose database host's glibc changes needs the same two statements;
 # see DeploymentScript.md.
 #
+# PGDATA_v2 also predates Author's database, and db-init/V0.0.4__CREATE_AUTHOR_DATABASE.sql
+# runs only when a cluster is first initialized, so without it author-survey fails with
+# `database "author" does not exist` and Author never starts. While the database is up for
+# the collation repair, the V2 mode runs that script too, as the script's own header tells
+# an operator to do by hand on an existing cluster.
+#
 # If the first start after a reset dies with
 #   FATAL:  data directory "/var/lib/postgresql/data/pgdata" has wrong ownership
 # that is a Docker Desktop for Mac VirtioFS glitch, not a problem with the copy: bind
@@ -54,6 +60,8 @@ EMPTY_CLUSTER_DIRS=(
     pg_wal/summaries
 )
 
+AUTHOR_DB_SCRIPT=/docker-entrypoint-initdb.d/V0.0.4__CREATE_AUTHOR_DATABASE.sql
+
 # REINDEX, then REFRESH COLLATION VERSION, for each database whose recorded collation
 # version differs from the one the running image provides. Run against a started db.
 refresh_collation_versions() {
@@ -66,6 +74,17 @@ refresh_collation_versions() {
         db_psql "$db" "REINDEX DATABASE \"$db\""
         db_psql postgres "ALTER DATABASE \"$db\" REFRESH COLLATION VERSION"
     done
+}
+
+# Create Author's database from the script compose mounts into the db service, unless the
+# cluster already has one. Run against a started db.
+create_author_database() {
+    if [ -n "$(db_psql postgres "select 1 from pg_database where datname = 'author'")" ]; then
+        echo "  author: already present"
+        return
+    fi
+    echo "  author: creating it from $AUTHOR_DB_SCRIPT"
+    docker compose exec -T db psql -U survey -d survey -v ON_ERROR_STOP=1 -X -q -f "$AUTHOR_DB_SCRIPT"
 }
 
 # psql against the db service. The collation mismatch warning PostgreSQL prints on every
@@ -109,6 +128,8 @@ case "$MODE" in
         echo "Matching the copy's collation version to the database image"
         docker compose up -d --wait db
         refresh_collation_versions
+        echo "Adding Author's database, which the V2 cluster predates"
+        create_author_database
         docker compose stop db
         echo "Done. 'docker compose up -d' will run the V2 -> V3 upgrade (brownfield) path."
         ;;

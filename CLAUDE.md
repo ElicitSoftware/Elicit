@@ -179,6 +179,9 @@ greenfield run. `resetDatabase.sh V2` replaces it with a copy of `PGDATA_v2`, th
 pre-Kimball V2 database, for a brownfield (upgrade) run. `PGDATA_v2` is tracked in
 git, which drops the empty directories PostgreSQL needs (`pg_notify`, `pg_tblspc`
 and eleven more), so the V2 mode recreates them in the copy; never copy it by hand.
+`PGDATA_v2` also predates Author's `author` database, so the V2 mode runs
+`db-init/V0.0.4__CREATE_AUTHOR_DATABASE.sql` while the database is up for the collation
+repair; without it `author-survey` never becomes healthy and Author does not start.
 
 If the db container's first start after a reset fails with `data directory
 "/var/lib/postgresql/data/pgdata" has wrong ownership`, that is a Docker Desktop
