@@ -1,7 +1,7 @@
 #!/bin/bash
 #
-# Checks the languages Elicit offers: the Survey and Admin images carry English only, and the
-# curated translations in elicit-i18n/ give every application the same set of languages.
+# Checks the languages Elicit offers: the Survey, Admin and Author images carry English only, and
+# the curated translations in elicit-i18n/ give every application the same set of languages.
 #
 # The images carry English only (Elicit#62). Every other language is a
 # translations_<tag>.properties file a site mounts at <i18n.file.system.path>/<app>/; elicit-i18n/
@@ -18,19 +18,20 @@
 #      language one application has and another lacks cannot be served, because Survey renders
 #      content only in a language its own chrome has (Survey UC-009 BR-009).
 #
-# The authoring tool reads the same mount (Author#79): its own compose file mounts ../elicit-i18n
-# and it reads <mount>/author/, so elicit-i18n/author/ is content of this repository and is held
-# to the same set as the other two. Author is also the third party to the invariant: it declares
-# which languages a survey's *content* may be published in (author.content.languages). Author
-# itself is a separate private repository that is not cloned here, so when a checkout happens to
-# sit beside this one, what it declares and what it packages are only reported, never failed on.
+#   4. Author's author.content.languages differs from that set. Author declares which languages a
+#      survey's *content* may be published in; a language Author has and Survey lacks lets an
+#      author publish content no respondent can read (Author#40).
+#
+# The authoring tool reads the same mount (Author#79) at <mount>/author/, so it is held to 1 and 2
+# like the other two modules, and is the only one that can break 4. Author's own
+# buildDockerImage.sh runs this script too, for a build outside buildDockerImages.sh.
 #
 # Run from the umbrella root; buildDockerImages.sh runs it before any image is built. Cheap enough
 # to run unconditionally: it reads files and starts no JVM.
 set -uo pipefail
 cd "$(dirname "$0")"
 
-MODULES=(Survey Admin)              # the clones whose images are checked (1 and 2)
+MODULES=(Survey Admin Author)       # the clones whose images are checked (1 and 2)
 APPS=(survey admin author)          # the sub-directories of the mount that must agree (3)
 MOUNT=elicit-i18n
 status=0
@@ -101,8 +102,7 @@ for m in "${MODULES[@]}"; do
 done
 [ "$status" -eq 0 ] || exit 1
 
-# 3. The curated set gives every application the same languages. author/ is checked like the other
-#    two: the directory is content of this repository, whatever state the Author checkout is in.
+# 3. The curated set gives every application the same languages.
 reference=
 reference_app=
 for app in "${APPS[@]}"; do
@@ -126,30 +126,13 @@ for app in "${APPS[@]}"; do
 done
 [ "$status" -eq 0 ] || exit 1
 
-# The authoring tool, when it happens to be checked out beside us. This never fails the build
-# and deliberately does not touch $status. Author is a separate private repository that is not
-# cloned here, so whatever is or is not sitting in ./Author -- a partial clone, a worktree
-# mid-rebase, nothing at all -- must never be able to stop the public build. Since Author#79 its
-# image carries English only too and it reads $MOUNT/author/ from the same mount, so a checkout
-# that still packages a language or still sets i18n.bundled.locales is behind the mount; its
-# content languages are what matter to the invariant. Author's own build is what enforces all
-# three; here they are only reported.
-if [ -d Author ]; then
-    for f in Author/src/main/resources/vaadin-i18n/translations_*.properties Author/i18n/translations_*.properties; do
-        [ -e "$f" ] || continue
-        echo "WARNING: $f would put a translated bundle in the Author image." >&2
-        echo "         Author reads its languages from $MOUNT/author/ since Author#79." >&2
-    done
-    author_bundled=$(tags_from_property Author i18n.bundled.locales)
-    if [ "$author_bundled" != UNSET ] && [ "$author_bundled" != MISSING-FILE ]; then
-        echo "WARNING: the Author checkout beside this one still sets i18n.bundled.locales [$author_bundled]," >&2
-        echo "         which Author stopped reading when it moved to the mount (Author#79)." >&2
-    fi
-    author_content=$(tags_from_property Author author.content.languages)
-    if [ "$author_content" != "$reference" ]; then
-        echo "WARNING: the Author checkout beside this one publishes content in [$author_content]," >&2
-        echo "         while $MOUNT/ gives Survey, Admin and Author [$reference]." >&2
-    fi
+# 4. Author publishes survey content in exactly the languages the mount gives every application.
+author_content=$(tags_from_property Author author.content.languages)
+if [ "$author_content" != "$reference" ]; then
+    echo "ERROR: Author publishes content in [$author_content] (author.content.languages)," >&2
+    echo "       while $MOUNT/ gives Survey, Admin and Author [$reference]. Content in a language" >&2
+    echo "       a site's Survey lacks could never be read by a respondent." >&2
+    status=1
 fi
 
 if [ "$status" -eq 0 ]; then

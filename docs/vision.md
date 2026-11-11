@@ -64,6 +64,8 @@ with a platform version and a build date and reproduced exactly.
 - Running the console day to day (Admin's administrator's manual, Admin UC-029).
 - Building a survey (the author's manual, which ships with the authoring
   tool).
+- Installing the authoring tool. Not every site authors surveys, so Author has
+  an installation manual of its own in its repository; this one names it.
 - FHHS and Pedigree configuration beyond what Survey and Admin need in order
   to reach them. FHHS is specific to one survey and carries its own deployment
   documentation.

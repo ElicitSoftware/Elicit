@@ -114,13 +114,19 @@ Optional. &
 The database, Survey, Pedigree. \\
 \addlinespace
 \ui{Pedigree} & Draws family-tree diagrams for FHHS. Optional. & Nothing. \\
+\addlinespace
+\ui{Author} & The authoring tool: designs surveys and exports the definition files Admin
+applies. Optional, and installed from its own manual. &
+A database of its own, the identity provider, a preview Survey. \\
 \end{plaintable}
 
 \begin{elicitnote}[Optional means optional]
 A site that does not run the Family Health History Survey runs neither \ui{FHHS} nor
 \ui{Pedigree}, and nothing in this manual requires them. FHHS carries its own deployment
 documentation; this manual covers it only where Survey or Admin must be configured to
-reach it.
+reach it. Likewise a site that only delivers surveys, applying definition files written
+elsewhere, runs no \ui{Author}: the authoring tool is provisioned from the Author
+installation manual, which ships with it, and this manual does not cover it.
 \end{elicitnote}
 
 \subsection{What they share}
@@ -1360,6 +1366,8 @@ is already running.
 \begin{description}
   \item[The administrator's manual] Running the console: departments, users, subjects, access
         codes, invitations, reports, and applying survey definitions.
+  \item[The Author installation manual] Provisioning the authoring tool: its database, its
+        identity-provider client and roles, and the preview Survey it runs beside.
   \item[\file{DeploymentScript.md}] Release-specific upgrade procedures, and the post-install
         template data for the Family Health History Survey.
   \item[\file{docs/BRAND_SYSTEM_IMPLEMENTATION_GUIDE.md}] How the brand system is built, for

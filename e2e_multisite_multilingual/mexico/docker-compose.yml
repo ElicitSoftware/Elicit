@@ -1,0 +1,181 @@
+# Mexico - a remote site of the multilingual multi-site e2e test (see ../README.md).
+#
+# The site stack only (survey, admin, db) on host ports 50 below USA's, with its own project name
+# and data directories under ../data/mexico. It has no Author, no Keycloak and no Mailpit of its
+# own:
+#   - Admin authenticates against USA's Keycloak through the image default
+#     http://host.docker.internal:8180/realms/elicit/ (same admin/admin user)
+#   - Admin sends mail to USA's Mailpit: the admin service also joins USA's compose network, so the
+#     service name `mailpit` resolves there and SMTP stays unpublished.
+#     Being on both networks makes the shared service names `survey` and `db` ambiguous for Admin
+#     (Docker DNS answers with whichever it likes -- confirmed against ../../e2e_multisite), so this
+#     site's survey and db carry the aliases `mexico-survey` / `mexico-db` and Admin is pointed at
+#     those.
+# USA must therefore be up before this stack starts (../up.sh enforces that).
+#
+# This is also the one site that runs a second survey: FHHS and Pedigree are here, and phases 17-19
+# of the journey apply the Family History Survey beside the Census survey (multi-survey, Survey
+# UC-008: each survey reports in a schema of its own). FHHS is published on the host's 8082, not
+# on the "USA minus 50" port, because the Family History Survey's definition names its report and
+# post-survey-action services as http://host.docker.internal:8082/... and an apply installs those
+# addresses as they are; no other site runs FHHS, so the port is free. Until the survey is applied
+# FHHS reports not-ready (FHHS UC-005), which is what phase 17 checks first.
+#
+# The images carry English only; every site mounts the curated ../../elicit-i18n, and this
+# site offers en,es-419 of it (i18n.offered.locales).
+# English and Latin American Spanish.
+#
+name: elicit-ml-mexico
+
+networks:
+  usa:
+    external: true
+    name: elicit-ml-usa_default
+
+services:
+  survey:
+    image: elicitsoftware/survey:latest
+    networks:
+      default:
+        aliases:
+          - mexico-survey
+    ports:
+      - 8030:8080
+    environment:
+      TZ: America/Detroit
+      accessCode.autoRegister: true
+      LOG_LEVEL: INFO
+      brand.file.system.path: /opt/brand
+      # Survey's connection is survey_user and its migrating connection elicit_owner; both
+      # passwords are SURVEYPW in the database image's role script.
+      ELICIT_DB_PASSWORD: SURVEYPW
+      ELICIT_OWNER_DB_PASSWORD: SURVEYPW
+      # The image carries English only; the other languages are read from <this path>/<app>/,
+      # the curated set every site here mounts. Of those, this site offers only these
+      # (English is always offered).
+      i18n.file.system.path: /opt/i18n
+      i18n.offered.locales: en,es-419
+      CORS_ORIGINS: http://localhost:8030
+      # A site holds a survey's translations for elicit.content.translations-ttl (5 minutes by
+      # default) before reloading them, so an Admin apply surfaces "within this window without
+      # a restart" -- which means a respondent who logs in just after an apply reads the base
+      # language for every string whose translation changed in it. The journey applies a
+      # revision and sends a respondent in seconds later, so it turns the window down rather
+      # than sleeping through it. A real deployment keeps the default.
+      elicit.content.translations-ttl: PT5S
+      quarkus.application.name: survey
+      # quarkus.otel.enabled is a build-time property: the runtime switch is this one.
+      quarkus.otel.sdk.disabled: "true"
+    healthcheck:
+      test: ["CMD", "curl", "--head", "-fsS", "http://localhost:8080/q/health/ready"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 60s
+    volumes:
+      - ./mexico_brand/:/opt/brand:ro
+      - ../../elicit-i18n/:/opt/i18n:ro
+    depends_on:
+      db:
+        condition: service_healthy
+  admin:
+    image: elicitsoftware/admin:latest
+    ports:
+      - 8031:8080
+    networks:
+      - default
+      - usa
+    healthcheck:
+      test: ["CMD", "curl", "--head", "-fsS", "http://localhost:8080/q/health/ready"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 60s
+    environment:
+      TZ: America/Detroit
+      quarkus.mailer.from: elicit-mexico@localhost
+      quarkus.mailer.host: mailpit
+      quarkus.mailer.port: 1025
+      quarkus.mailer.tls: false
+      brand.file.system.path: /opt/brand
+      # The image carries English only; the other languages are read from <this path>/<app>/,
+      # the curated set every site here mounts. Of those, this site offers only these
+      # (English is always offered).
+      i18n.file.system.path: /opt/i18n
+      i18n.offered.locales: en,es-419
+      # This site's own Survey (the reporting rebuild after an apply) and database, by their
+      # unambiguous aliases (see the note at the top).
+      ELICIT_SURVEY_URL: http://mexico-survey:8080
+      quarkus.datasource.jdbc.url: jdbc:postgresql://mexico-db:5432/survey?connectTimeout=30&socketTimeout=600&tcpKeepAlive=true&tcpKeepAlivesIdle=60
+      quarkus.datasource.owner.jdbc.url: jdbc:postgresql://mexico-db:5432/survey?connectTimeout=30&socketTimeout=600&tcpKeepAlive=true&tcpKeepAlivesIdle=60
+      ELICIT_DB_PASSWORD: SAOWNERPW
+      ELICIT_OWNER_DB_PASSWORD: SURVEYPW
+      OIDC_CLIENT_SECRET: secret
+      quarkus.application.name: admin
+      # quarkus.otel.enabled is a build-time property: the runtime switch is this one.
+      quarkus.otel.sdk.disabled: "true"
+    volumes:
+      - ./mexico_brand/:/opt/brand:ro
+      - ../../elicit-i18n/:/opt/i18n:ro
+    depends_on:
+      db:
+        condition: service_healthy
+      survey:
+        condition: service_healthy
+  # The second survey's report service (FHHS UC-001..005). Reaches this site's db and survey by
+  # the plain service names: it joins only this site's network, so they are unambiguous here.
+  fhhs:
+    image: elicitsoftware/fhhs:latest
+    ports:
+      - 8082:8080
+    healthcheck:
+      test: ["CMD", "curl", "--head", "-fsS", "http://localhost:8080/q/health/ready"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 90s
+    environment:
+      TZ: America/Detroit
+      pedigree.url: http://pedigree:8080/svg
+      # FHHS connects as survey_user and migrates as elicit_owner, like Survey.
+      ELICIT_DB_PASSWORD: SURVEYPW
+      ELICIT_OWNER_DB_PASSWORD: SURVEYPW
+      # No SFTP server in this suite: the post-survey action still generates the report.
+      family.history.sftp.enabled: false
+      quarkus.application.name: fhhs
+      quarkus.otel.sdk.disabled: "true"
+    depends_on:
+      db:
+        condition: service_healthy
+      survey:
+        condition: service_healthy
+      # Admin's first-boot migration creates and grants survey.post_survey_actions; FHHS's V0.0.4
+      # grants on the same table and, started at the same moment on a fresh database, failed with
+      # "tuple concurrently updated". Admin healthy means its migrations are done.
+      admin:
+        condition: service_healthy
+  pedigree:
+    image: elicitsoftware/pedigree:latest
+    ports:
+      - 8033:8080
+  db:
+    image: elicitsoftware/elicit_db:latest
+    networks:
+      default:
+        aliases:
+          - mexico-db
+    volumes:
+      - ../data/mexico/PGDATA:/var/lib/postgresql/data
+    ports:
+      - 5402:5432
+    environment:
+      TZ: "America/Detroit"
+      POSTGRES_USER: "survey"
+      POSTGRES_PASSWORD: "admin"
+      PGDATA: "/var/lib/postgresql/data/pgdata"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U survey && psql -U survey -d survey -c 'SELECT 1;'"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 60s
