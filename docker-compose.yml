@@ -450,7 +450,7 @@ services:
 # SFTP Server
 # This is a SFTP server that is used for testing the SFTP integration.      
   sftpServer:
-    image: atmoz/sftp:alpine-3.7
+    image: atmoz/sftp:alpine
     ports:
       - "22:22"
     environment:
