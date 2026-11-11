@@ -1,6 +1,11 @@
 # How to Deploy the Elicit System with FHHS Data.
 
-### Follow these steps for deploying in a non-docker system. 
+### Follow these steps for deploying without the bundled compose file.
+
+Elicit is released as container images only (`elicitsoftware/survey`, `admin`, `fhhs`, `pedigree`,
+all at one release tag); no runnable Java artifact is distributed. These steps run those images on
+your own container platform (Podman, Kubernetes, a container service) instead of this repository's
+`docker-compose.yml`, which means you, not `depends_on`, order their start.
 
 ### Create the database schemas
    1) Run the scripts in the postgresql/init_scripts folder. Don't forget to change the passwords! 
@@ -128,7 +133,7 @@ start after an upgrade; the first start is already healthy, and nothing needs do
   while Survey is still running an older, pre-Kimball image — `depends_on` only orders
   *startup*, it does not re-validate an already-running dependency. Always upgrade all
   three together for this release.
-- **Non-docker (manual) deployments**: add "Survey's Kimball Type 2 SCD migration has
+- **Deployments without the bundled compose file**: add "Survey's Kimball Type 2 SCD migration has
   completed" as an explicit precondition before starting/restarting Admin or FHHS on a
   V3.0.0-or-later Survey database — there is no automatic health-check gating here, so this
   is on the operator to sequence correctly, same as the existing Survey → FHHS ordering
@@ -233,8 +238,8 @@ spans Survey, Admin and FHHS, so upgrade all three from the same release.
   `V0.0.17` then renames the `survey.status` view's output column to `access_code`, and FHHS reads
   that view. An Admin or FHHS build from this release fails against a database Survey has not yet
   migrated, and an older Admin or FHHS build fails against one it has. With docker compose,
-  upgrade all three together (`depends_on` orders their startup). Manual deployments must finish
-  Survey's migration before starting Admin and FHHS.
+  upgrade all three together (`depends_on` orders their startup). Deployments without the bundled
+  compose file must finish Survey's migration before starting Admin and FHHS.
 - **Admin edits two applied migrations.** `V0.0.1` and `V0.0.7` now select `r.access_code`, so a
   fresh database can create the `survey.status` view. `quarkus.flyway.owner.repair-at-start=true`
   rewrites their recorded checksums on existing databases; no manual `flyway repair` is needed.
