@@ -34,7 +34,7 @@ rectangle "Elicit Platform — Installation" {
 
     ' Installing (FR-012..FR-015)
     usecase "UC-007\nInstall with Docker Compose" as UC007
-    usecase "UC-008\nInstall without Docker" as UC008
+    usecase "UC-008\nInstall without Compose" as UC008
     usecase "UC-009\nComplete the First Sign-In" as UC009
     usecase "UC-010\nInstall a Survey Definition" as UC010
 

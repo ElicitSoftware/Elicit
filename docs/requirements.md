@@ -13,7 +13,7 @@ requirement IDs are unrelated to the IDs here.
 Roles referenced below:
 
 - **Deployment Operator** — the primary actor; installs and configures an Elicit
-  site. Comfortable with PostgreSQL, containers or a JVM service manager, and an
+  site. Comfortable with PostgreSQL, a container runtime, and an
   OIDC provider; has not seen Elicit before.
 - **Release Engineer** — builds and stamps the manual as part of a release.
 - **Survey Administrator** / **Survey Author** — secondary actors; they take over
@@ -38,7 +38,7 @@ Roles referenced below:
 | FR-004 | Understand the Topology  | As a deployment operator, I want the manual to name every module, what each one is for, which of them I need, and what each one requires so that I can decide what to install before I install it.                                                              | High     | Open   |
 | FR-005 | Understand What Is Shared | As a deployment operator, I want the manual to state which resources the modules share — the database, the identity provider, the brand directory — so that I provision each shared resource once rather than per module. Translations are not among them: every application carries its own.          | High     | Open   |
 | FR-006 | Know the Start Order     | As a deployment operator, I want the manual to give the order in which modules must first be started, and why (Survey creates the shared `survey` schema that Admin and FHHS migrate on top of), so that a first installation does not fail on a missing table. | High     | Open   |
-| FR-007 | Check Prerequisites      | As a deployment operator, I want a checklist of what must exist before I start — PostgreSQL version, container runtime or JVM, an OIDC provider, an SMTP relay, host ports — so that I discover a missing prerequisite before the install and not during it.     | High     | Open   |
+| FR-007 | Check Prerequisites      | As a deployment operator, I want a checklist of what must exist before I start — PostgreSQL version, container runtime, an OIDC provider, an SMTP relay, host ports — so that I discover a missing prerequisite before the install and not during it.     | High     | Open   |
 
 ### Provisioning the Shared Resources
 
@@ -54,7 +54,7 @@ Roles referenced below:
 | ID     | Title                           | User Story                                                                                                                                                                                                                                      | Priority | Status |
 |--------|---------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------|--------|
 | FR-012 | Install with Docker Compose     | As a deployment operator, I want a procedure that brings up a complete site with `docker compose`, naming every service, port and volume and pulling every application image at one release tag, so that I can evaluate or run Elicit without assembling it by hand.                                     | High     | Open   |
-| FR-013 | Install without Docker          | As a deployment operator, I want a procedure that installs each module as a JVM service against my own PostgreSQL and my own identity provider so that Elicit can run under my site's existing service management.                                | High     | Open   |
+| FR-013 | Install without Compose         | As a deployment operator, I want a procedure that runs each module's released image under my own container platform against my own PostgreSQL and my own identity provider so that Elicit can run where my site already runs containers.        | High     | Open   |
 | FR-014 | Complete the First Sign-In      | As a deployment operator, I want the manual to cover the first sign-in — creating the first department, which is required before the console can be used, and renaming the two seeded accounts — so that a fresh installation reaches a usable state. | High     | Open   |
 | FR-015 | Install a Survey Definition     | As a deployment operator, I want the manual to state that a new installation carries no survey and that surveys arrive by applying a `.elicit` definition in the console, so that I do not look for a seeded one that does not exist.              | High     | Open   |
 
@@ -66,7 +66,7 @@ Roles referenced below:
 | FR-017 | Look Up a Quarkus Setting in Use   | As a deployment operator, I want the Quarkus settings the images actually set — datasource, Flyway, OIDC, HTTP, mailer, telemetry — listed with their shipped values so that I know what I am overriding and am not left to diff two properties files.                                   | High     | Open   |
 | FR-018 | Find the Rest of the Quarkus Settings | As a deployment operator, I want a pointer to the Quarkus configuration reference for every setting the manual does not list so that the manual stays a manual rather than a copy of another project's documentation.                                                                 | Medium   | Open   |
 | FR-019 | Know Which Settings to Change      | As a deployment operator, I want each setting marked as one I must set, may set, or should leave alone so that I can configure a site without changing internal defaults by accident.                                                                                                    | High     | Open   |
-| FR-020 | Supply Configuration               | As a deployment operator, I want the manual to state how configuration reaches an application — properties file, environment variable, the name-mangling between them, and profile prefixes — so that I can configure a container and a JVM service by the same rules.                  | High     | Open   |
+| FR-020 | Supply Configuration               | As a deployment operator, I want the manual to state how configuration reaches an application — properties file, environment variable, the name-mangling between them, and profile prefixes — so that I can configure a module the same way under compose and under my own container platform.                  | High     | Open   |
 | FR-021 | Handle Secrets                     | As a deployment operator, I want every setting that carries a secret identified, with the development default it ships with, so that no site runs with a documented password.                                                                                                             | High     | Open   |
 
 ### External Branding
