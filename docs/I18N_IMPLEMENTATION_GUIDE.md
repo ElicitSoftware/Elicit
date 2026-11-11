@@ -48,7 +48,7 @@ elicit-i18n/                            # mounted at /opt/i18n; i18n.file.system
   admin/
     translations_es_419.properties
     translations_ar.properties
-  author/                               # read by the authoring tool, mounted by its own compose file
+  author/                               # read by Author (author container)
     translations_es_419.properties
     translations_ar.properties
 ```

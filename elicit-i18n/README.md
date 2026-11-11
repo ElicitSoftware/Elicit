@@ -1,11 +1,10 @@
 # Elicit translations mount
 
 This directory is the **curated set of interface translations** for the Elicit applications,
-maintained by ElicitSoftware beside each release. The Survey and Admin images carry English only;
-every other language reaches them from a directory like this one, mounted read-only and named by
-`i18n.file.system.path`. `docker-compose.yml` mounts this one at `/opt/i18n` in the `survey` and
-`admin` containers. The authoring tool, which is private and not part of this compose file, mounts
-the same directory from its own compose file (`../elicit-i18n`) and reads `author/`.
+maintained by ElicitSoftware beside each release. The Survey, Admin and Author images carry English
+only; every other language reaches them from a directory like this one, mounted read-only and named
+by `i18n.file.system.path`. `docker-compose.yml` mounts this one at `/opt/i18n` in the `survey`,
+`admin`, `author` and `author-survey` containers.
 
 Each application reads only its own sub-directory (`i18n.app.name`):
 
@@ -18,7 +17,7 @@ elicit-i18n/
 ├── admin/                               # Elicit Admin
 │   ├── translations_es_419.properties
 │   └── translations_ar.properties
-└── author/                              # Elicit Author (mounted by Author's own compose file)
+└── author/                              # Elicit Author
     ├── translations_es_419.properties
     └── translations_ar.properties
 ```

@@ -1,7 +1,7 @@
 # Elicit Default Brand
 
 This directory is the **canonical default brand** for Elicit applications
-(Survey and Admin, and the authoring tool distributed separately). It uses the Ink/Verdigris
+(Survey, Admin and Author). It uses the Ink/Verdigris
 palette drawn from the Elicit clipboard/checkmark mark, a warm Paper
 background, and the system font stack.
 

@@ -102,8 +102,7 @@ for m in "${MODULES[@]}"; do
 done
 [ "$status" -eq 0 ] || exit 1
 
-# 3. The curated set gives every application the same languages. author/ is checked like the other
-#    two: the directory is content of this repository, whatever state the Author checkout is in.
+# 3. The curated set gives every application the same languages.
 reference=
 reference_app=
 for app in "${APPS[@]}"; do
