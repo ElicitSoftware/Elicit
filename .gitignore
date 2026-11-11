@@ -22,6 +22,7 @@ TEMP.sql
 .DS_Store
 .vscode
 /build-logs/
+/test-logs/
 # A site's local image tag pin (ELICIT_TAG=...), read by docker compose.
 .env
 

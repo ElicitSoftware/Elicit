@@ -231,6 +231,13 @@ to start cleanly on 2026-09-20.
 - `status.sh` — container status plus a probe of each service's health endpoint:
   `/q/health/ready` for Survey, Admin, FHHS, Author and its preview (printing why one is
   not ready), `/healthz` for Pedigree, the front page for Keycloak and Mailpit.
+- `fullTest.sh` — the full platform test, stopping at the first failing stage: build the
+  images, a greenfield run (`resetDatabase.sh V3`, then `e2e-tests`), a brownfield run
+  (`resetDatabase.sh V2`, Survey restarted, then `e2e-tests`), and both multi-site suites.
+  One log per stage under `test-logs/` (ignored by git), including the surveys, report
+  schemas and `dim_step` count after each run. `SKIP_BUILD=1` reuses the images already
+  built. The greenfield start waits for every service but FHHS, which is not ready until
+  the suite imports the survey. About 35 minutes.
 - `generateGithubTemplates.py` — regenerate the pull request template and issue forms of
   all six repositories from one table; commit the result in each.
 
