@@ -38,6 +38,7 @@ repository and nothing more. Publish the PDF with the release.
 docs/manual/build-manual.sh                       # version from the modules' pom, date is now
 docs/manual/build-manual.sh 3.0.0 "2026-09-24"    # explicit stamp
 ./buildDockerImages.sh Manual                     # check-properties.sh, then the same build
+./buildManuals.sh                                 # this manual and the Admin and Author ones, fresh
 ```
 
 `buildDockerImages.sh` builds the manual alongside the module images by default,

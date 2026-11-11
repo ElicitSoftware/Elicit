@@ -215,6 +215,13 @@ to start cleanly on 2026-09-20.
   post-survey-action and report URLs at `localhost:8080` and dev mode parks requests while
   it restarts, so each such call waits out the Survey clients' 60-second answer timeout
   before it fails.
+- `buildManuals.sh [Target ...]` — typeset every manual fresh, one after another: `Platform`
+  (the installation manual here, gated by `check-properties.sh`), `Admin`, `Author` (the
+  in-application manuals) and `AuthorInstallation` (gated by the same script). Each runs its own
+  `build-manual.sh` after removing that manual's latexmk `build/` directory. A module that is not
+  cloned is skipped; a failure does not stop the rest, and the run exits non-zero. The module image
+  scripts reuse the PDFs it writes, so `./buildManuals.sh && ./buildDockerImages.sh` gives images
+  carrying manuals stamped by this run.
 - `deploy.sh` — bring up an initialized stack.
 - `resetDatabase.sh V2|V3` — reset `postgresql/PGDATA` to the V2 copy (brownfield)
   or delete it (greenfield); stops the stack first.
