@@ -16,29 +16,50 @@
 #
 # Exit status is 0 when nothing drifted and 1 when something did, so it can gate a release.
 #
-# Usage: docs/manual/check-properties.sh [--quiet]
+# Usage: docs/manual/check-properties.sh [--quiet] [--manual FILE] [--modules A,B]
+#
+# With no options it checks this repository's installation manual against Survey and Admin.
+# Author's installation manual is checked by the same script against Author alone (Author
+# UC-051 A3), so there is one copy of the rules:
+#
+#   ../docs/manual/check-properties.sh --manual docs/manual/elicit-author-installation-manual.tex --modules Author
+#
+# A relative --manual is resolved against the directory the script is run from.
 
 set -euo pipefail
 
 MANUAL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_DIR="$(cd "${MANUAL_DIR}/../.." && pwd)"
 TEX="${MANUAL_DIR}/elicit-installation-manual.tex"
-
+MODULES="Survey,Admin"
 QUIET=0
-[[ "${1:-}" == "--quiet" ]] && QUIET=1
 
-for m in Survey Admin; do
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --quiet)   QUIET=1; shift ;;
+    --manual)  TEX="$(cd "$(dirname "$2")" && pwd)/$(basename "$2")"; shift 2 ;;
+    --modules) MODULES="$2"; shift 2 ;;
+    *) echo "[check] unknown option $1" >&2; exit 2 ;;
+  esac
+done
+
+if [[ ! -f "${TEX}" ]]; then
+  echo "[check] no manual at ${TEX}" >&2
+  exit 1
+fi
+
+for m in ${MODULES//,/ }; do
   if [[ ! -d "${REPO_DIR}/${m}/src/main" ]]; then
     echo "[check] ${m} is not cloned — run cloneAllProjects.sh first." >&2
     exit 1
   fi
 done
 
-python3 - "${REPO_DIR}" "${TEX}" "${QUIET}" <<'PY'
+python3 - "${REPO_DIR}" "${TEX}" "${QUIET}" "${MODULES}" <<'PY'
 import os, re, sys
 
 repo, tex_path, quiet = sys.argv[1], sys.argv[2], sys.argv[3] == "1"
-MODULES = ("Survey", "Admin")
+MODULES = tuple(sys.argv[4].split(","))
 
 # Keys the manual deliberately does not list one by one. Each entry is a prefix.
 # Observability, telemetry and Vaadin plumbing are covered as a group in the manual and
@@ -66,6 +87,9 @@ CONFIGPROP = re.compile(
     r'@ConfigProperty\(\s*name\s*=\s*"([^"]+)"(?:\s*,\s*defaultValue\s*=\s*"([^"]*)")?'
 )
 LOOKUP = re.compile(r'get(?:Optional)?Value\(\s*"([^"]+)"')
+# Author's System overview names the settings it requires as new Required("key", "ENV", ...)
+# (Author RequiredConfigCheck): a read, even when the key is a Quarkus one.
+REQUIRED = re.compile(r'new\s+Required\(\s*"([^"]+)"')
 PROPLINE = re.compile(r'^([A-Za-z][A-Za-z0-9_."\-]*)\s*=\s*(.*)$')
 
 def ignored(key):
@@ -109,7 +133,7 @@ for module in MODULES:
             text = open(os.path.join(dirpath, f), encoding="utf-8", errors="replace").read()
             for key, dflt in CONFIGPROP.findall(text):
                 note(key, module, dflt if dflt != "" else None, is_read=True)
-            for key in LOOKUP.findall(text):
+            for key in LOOKUP.findall(text) + REQUIRED.findall(text):
                 note(key, module, None, is_read=True)
 
     props = os.path.join(repo, module, "src", "main", "resources", "application.properties")
@@ -160,7 +184,7 @@ undocumented = sorted(k for k in required if k not in documented)
 
 # A Quarkus key the images leave at Quarkus's own default is still worth documenting, so an
 # unread key is only a problem when it is one of Elicit's own.
-ELICIT_PREFIXES = ("elicit.", "brand.", "i18n.", "accessCode.", "admin.", "build.")
+ELICIT_PREFIXES = ("elicit.", "brand.", "i18n.", "accessCode.", "admin.", "author.", "build.")
 stale = sorted(
     d for d in documented
     if d not in read
