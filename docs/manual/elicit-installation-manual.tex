@@ -1397,14 +1397,13 @@ keyed by the action's key, and never travels in a definition file:
 
 \begin{plaintable}{tab:psa-credentials}{Credentials for one post-survey action, on Survey}{@{}>{\raggedright\arraybackslash}p{0.47\linewidth} >{\raggedright\arraybackslash}p{0.47\linewidth}@{}}{\thead{Setting} & \thead{What it sends}}
 \optlit{elicit.post-survey-action."<key>".bearer-token} & \texttt{\small Authorization: Bearer <token>}, the token as given. Supply it as an environment variable or a secret, never in a file under version control. \\
-\addlinespace
-\optlit{elicit.post-survey-action."<key>".oidc-client} & The name of an OIDC client configured on Survey (\optlit{quarkus.oidc-client.<name>.*}, typically a client-credentials grant against your identity provider); Survey obtains its access token and sends it the same way, so tokens rotate on their own. \\
 \end{plaintable}
 
 \val{<key>} is the action's key, the second field of its record in the definition file and the
-same at every site. A bearer token wins when both are set; an action with neither is called
-without a credential. Survey's startup diagnostics name the kind of credential each action has,
-never its value.
+same at every site. The token is one the service issued to your site; Survey presents it as
+given and never requests or refreshes one, so when the service retires a token, set the new one
+and restart Survey. An action without a token is called without a credential. Survey's startup
+diagnostics say whether each action has a credential, never its value.
 
 \subsubsection*{When a call fails}
 
@@ -1715,10 +1714,11 @@ lacks; the delivery's \val{error_msg} says which. & Correct the action in Author
 export, or give the subject an External ID. A refused delivery is not retried
 (Section~\ref{sec:psa}). \\
 \addlinespace
-A post-survey action's calls fail with \val{401} or \val{403}. & No credential reached the
-service: the setting's name does not hold the action's key, or the named OIDC client is not
-configured on Survey. & Check the line for the action in Survey's startup diagnostics, which
-names the kind of credential it has (Section~\ref{sec:psa}). \\
+A post-survey action's calls fail with \val{401} or \val{403}. & No token reached the
+service, or the service no longer accepts it: the setting's name does not hold the action's key,
+or the token has expired or been revoked. & Check the line for the action in Survey's startup
+diagnostics, which says whether it has a credential; if it does, ask the service for a new token
+(Section~\ref{sec:psa}). \\
 \addlinespace
 Sign-in redirects fail, or land on the wrong service. & The issuer address does not resolve
 to the same provider from the browser and from inside the container. & Use one address that
@@ -1943,9 +1943,8 @@ delivery gets, the first call included, before Survey stops retrying it. \\
 \end{settings}
 
 A post-survey action's credential is set per action, under a name that holds the action's key:
-\optlit{elicit.post-survey-action."<key>".bearer-token} or
-\optlit{elicit.post-survey-action."<key>".oidc-client} (Section~\ref{sec:psa}). Both are secrets
-or point at one; neither has a default.
+\optlit{elicit.post-survey-action."<key>".bearer-token} (Section~\ref{sec:psa}). It is a
+secret and has no default.
 
 \subsection{Admin}
 
