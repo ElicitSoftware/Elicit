@@ -31,7 +31,7 @@
 **Flow:**
 
 1. The manual states that the report service is specific to that one survey, that it reports not-ready until the survey definition has been installed, and that it becomes ready by itself on the next health probe afterwards.
-2. The manual points at that module's own documentation for its configuration and stops (C-005).
+2. The manual points at the Family History reports chapter, which installs the report service and the pedigree service and lists their settings (UC-021, C-005).
 3. Use case continues at step 7.
 
 ### A2: The operator looks for a metrics stack

@@ -18,7 +18,8 @@
 #
 # Usage: docs/manual/check-properties.sh [--quiet] [--manual FILE] [--modules A,B]
 #
-# With no options it checks this repository's installation manual against Survey and Admin.
+# With no options it checks this repository's installation manual against Survey, Admin and
+# FHHS, whose settings the manual's Family History reports chapter documents (umbrella C-005).
 # Author's installation manual is checked by the same script against Author alone (Author
 # UC-051 A3), so there is one copy of the rules:
 #
@@ -31,7 +32,7 @@ set -euo pipefail
 MANUAL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_DIR="$(cd "${MANUAL_DIR}/../.." && pwd)"
 TEX="${MANUAL_DIR}/elicit-installation-manual.tex"
-MODULES="Survey,Admin"
+MODULES="Survey,Admin,FHHS"
 QUIET=0
 
 while [[ $# -gt 0 ]]; do

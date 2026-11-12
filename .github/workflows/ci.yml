@@ -10,7 +10,7 @@
 #   docker compose config           the compose file parses
 #   docs/manual/build-manual.sh     the manual typesets, stamped with the modules' version
 #
-# Three of those read the Survey, Admin and Author sources, which are independent clones and
+# Three of those read the Survey, Admin, FHHS and Author sources, which are independent clones and
 # not part of this repository (see CLAUDE.md), so the job clones each at the branch this run
 # targets: the pull request's base branch, or the branch that was pushed to. Author has no V3
 # or release line of its own; its integration branch is main, so it is cloned from main
@@ -43,12 +43,12 @@ jobs:
       - name: Check out repo
         uses: actions/checkout@v7
 
-      - name: Clone Survey, Admin and Author at the matching branch
+      - name: Clone Survey, Admin, FHHS and Author at the matching branch
         env:
           HEAD: ${{ github.head_ref }}
           BRANCH: ${{ github.base_ref || github.ref_name }}
         run: |
-          for m in Survey Admin Author; do
+          for m in Survey Admin FHHS Author; do
             url="https://github.com/ElicitSoftware/$m.git"
             ref=$BRANCH
             [ "$m" = Author ] && ref=main

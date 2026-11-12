@@ -3,13 +3,18 @@
 `Installing the Platform` — the printable manual that takes a deployment operator
 from an empty machine to a running, verified Elicit site, and is the single
 reference for every setting that site is configured with. It covers Survey and
-Admin.
+Admin, and — as the worked example of a custom report — FHHS and Pedigree.
+
+It is in five parts: *Getting oriented*, *Installing*, *Customizing* (branding,
+translations, custom reports and the Family History reports), *Running the site*,
+and *Reference*, the configuration appendix.
 
 See [`../use_cases/UC-001-consult-the-installation-manual.md`](../use_cases/UC-001-consult-the-installation-manual.md)
 and [`../use_cases/UC-002-build-the-installation-manual.md`](../use_cases/UC-002-build-the-installation-manual.md)
-for the behavior this implements, and FR-001/FR-002 with NFR-001–NFR-010 in
-[`../requirements.md`](../requirements.md). Its chapters map one to one onto
-umbrella use cases UC-003 to UC-019.
+for the behavior this implements, and FR-001/FR-002 with NFR-001–NFR-013 in
+[`../requirements.md`](../requirements.md). Its chapters map onto umbrella use
+cases UC-003 to UC-021; the custom reports chapters are UC-020 (building a report
+service) and UC-021 (installing FHHS and Pedigree).
 
 ## This manual ships with no image
 
@@ -23,7 +28,7 @@ repository and nothing more. Publish the PDF with the release.
 | Path | Committed? | What it is |
 | --- | --- | --- |
 | `elicit-installation-manual.tex` | yes | the manual |
-| `elicit-brand.sty` | yes | the Elicit default brand as LaTeX: the shared manual design plus the settings tables, the copy-safe verbatim environments and `\elicitProduct`. The one copy: Author's two manuals read it from here too (Author C-028) |
+| `elicit-brand.sty` | yes | the Elicit default brand as LaTeX: the shared manual design — part dividers (`\elicitpart`), disc-numbered procedure steps, the TikZ diagram styles (`elicitdiagram`, NFR-013) — plus the settings tables, the copy-safe verbatim environments and `\elicitProduct`. Admin's manual and Author's two read it from here, in place (Author C-028), so a change here restyles every manual: build Admin's and Author's too |
 | `images/` | yes | the 18 captured figures, plus `elicit-logo.png` for the title page |
 | `capture/` | yes | `capture-screenshots.mjs` and its own `package.json`; regenerates `images/` from a freshly installed stack |
 | `build-manual.sh` | yes | typesets the PDF |
@@ -69,6 +74,8 @@ docs/manual/check-properties.sh
 Run it before a release, and after any change to a module's
 `application.properties` or its `@ConfigProperty` declarations. It reports:
 
+It checks Survey, Admin and FHHS (umbrella C-005).
+
 1. every key a module reads through `@ConfigProperty` or a programmatic
    `getConfig()` lookup that the manual does not document (NFR-004);
 2. every Elicit key the manual documents that nothing reads any more;
@@ -93,7 +100,7 @@ OpenTelemetry, Micrometer, container-image and per-category logging settings —
 are listed as prefixes in `IGNORED_PREFIXES` inside the script; add to that list
 rather than documenting a key one at a time when it genuinely belongs to a group.
 
-The script needs `Survey/` and `Admin/` cloned, and says so if they are not.
+The script needs `Survey/`, `Admin/` and `FHHS/` cloned, and says so if they are not.
 
 ## Regenerating the screenshots
 
