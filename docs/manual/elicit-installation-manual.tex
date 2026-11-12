@@ -1340,7 +1340,9 @@ study coordinator. That is a \term{post-survey action}.
 A survey carries an ordered list of them beside its reports, and like the reports they arrive
 in the definition file. When a respondent finishes, Survey sends each action's address, in
 order, a \val{POST} with the body \texttt{\small\{"id": <respondent id>\}}, waiting 5 seconds to connect
-and 60 for the answer. Any \val{2xx} counts as success.
+and 60 for the answer. Any \val{2xx} counts as success, and the body of the answer is never
+read: unlike a report service, an action returns no HTML and no \val{pdf}, and owes Survey no
+particular response.
 
 \begin{elicitcaution}[Survey does not retry an action]
 A failed action is recorded against the respondent, with the error, in
@@ -1350,8 +1352,11 @@ does the work in the background, and keeps its own record and its own retries, a
 for the documents it files (Section~\ref{sec:fhhs-sftp}).
 \end{elicitcaution}
 
-Author has no screen for post-survey actions yet. They travel in the definition file and are
-kept by every import and export, so a survey that carries one keeps it.
+An author lists a survey's actions on its \ui{Post-survey actions\ldots} page in Author, each a
+name, a description and a full \val{http(s)} address, and drags them into the order Survey calls
+them in. Like the report list, the file's list is the site's list: every apply inserts,
+updates and deletes actions to match it, and an action it deletes takes its delivery records
+in \val{survey.respondent_psa} with it.
 
 %% ================================================================== 13
 \section{The Family History reports}
@@ -1467,10 +1472,9 @@ shipped compose file on a developer's machine and nowhere else.
 
 A real site gives the four addresses the name the applications know FHHS by on their own
 network, for example \val{http://fhhs:8080/proband/report}. Change them in Author, on the
-survey's \ui{Reports\ldots} page, and export the survey, then apply that file instead of the
-shipped one. A change made in the database is undone by the next apply. Author has no screen
-for the post-survey action's address yet; until it does, that line of the definition file is
-the one place to change it.
+survey's \ui{Reports\ldots} page for the three reports and on its \ui{Post-survey actions\ldots}
+page for the action, and export the survey, then apply that file instead of the shipped one.
+A change made in the database is undone by the next apply.
 
 \subsection{FHHS settings}
 
