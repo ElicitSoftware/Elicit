@@ -1356,25 +1356,82 @@ moment a respondent finishes: a document filed in a records system, a message se
 study coordinator. That is a \term{post-survey action}.
 
 A survey carries an ordered list of them beside its reports, and like the reports they arrive
-in the definition file. When a respondent finishes, Survey sends each action's address, in
-order, a \val{POST} with the body \texttt{\small\{"id": <respondent id>\}}, waiting 5 seconds to connect
-and 60 for the answer. Any \val{2xx} counts as success, and the body of the answer is never
-read: unlike a report service, an action returns no HTML and no \val{pdf}, and owes Survey no
-particular response.
+in the definition file. An author lists them on the survey's \ui{Post-survey actions\ldots} page
+in Author: each a name, a description, a method, an address and whether it sends the subject's
+External ID. Like the report list, the file's list is the site's list: every apply inserts,
+updates and deletes actions to match it, and an action it deletes takes its delivery records with
+it.
 
-\begin{elicitcaution}[Survey does not retry an action]
-A failed action is recorded against the respondent, with the error, in
-\val{survey.respondent_psa}, and that is all: the respondent's survey is finished regardless,
-and Survey never calls the action again. A service that must deliver reliably answers at once,
-does the work in the background, and keeps its own record and its own retries, as FHHS does
-for the documents it files (Section~\ref{sec:fhhs-sftp}).
+\subsubsection*{The call}
+
+When a respondent finishes, Survey calls each action in order, waiting 5 seconds to connect and
+60 for the answer:
+
+\begin{description}
+  \item[Method] \val{POST}, \val{GET} or \val{PUT}, as the author chose.
+  \item[Address] As written, after its placeholders are filled and URL-encoded:
+        \texttt{\small\{respondentId\}} with the respondent's id, and, on an action that sends the
+        External ID, \texttt{\small\{externalId\}} with the subject's External ID.
+  \item[Body] For \val{POST} and \val{PUT}, \texttt{\small\{"id": <respondent id>\}}. An action
+        that sends the External ID adds it, and the department's code, because an External ID is
+        unique only within its department:
+        \texttt{\small\{"id": 1042, "externalId": "MRN00123", "departmentCode": "CARD"\}}. A
+        \val{GET} has no body.
+  \item[Answer] Any \val{2xx} is success. The body of the answer is never read: unlike a report
+        service, an action returns no HTML and no \val{pdf}, and owes Survey no particular
+        response.
+\end{description}
+
+\begin{elicitsecurity}[The External ID travels only over https]
+An External ID usually identifies a person in another system, such as a medical record number.
+An action that sends it must use an \val{https} address. Author will not save one at
+\val{http}, Admin refuses a definition file carrying one, and Survey refuses to make the call,
+so even a hand-edited file cannot send it in the clear.
+\end{elicitsecurity}
+
+\subsubsection*{Giving an action a credential}
+
+Unlike a report service, a post-survey action may call a service outside the site, which may
+want a credential. The credential belongs to the site, so it is set in Survey's configuration,
+keyed by the action's key, and never travels in a definition file:
+
+\begin{plaintable}{tab:psa-credentials}{Credentials for one post-survey action, on Survey}{@{}>{\raggedright\arraybackslash}p{0.47\linewidth} >{\raggedright\arraybackslash}p{0.47\linewidth}@{}}{\thead{Setting} & \thead{What it sends}}
+\optlit{elicit.post-survey-action."<key>".bearer-token} & \texttt{\small Authorization: Bearer <token>}, the token as given. Supply it as an environment variable or a secret, never in a file under version control. \\
+\addlinespace
+\optlit{elicit.post-survey-action."<key>".oidc-client} & The name of an OIDC client configured on Survey (\optlit{quarkus.oidc-client.<name>.*}, typically a client-credentials grant against your identity provider); Survey obtains its access token and sends it the same way, so tokens rotate on their own. \\
+\end{plaintable}
+
+\val{<key>} is the action's key, the second field of its record in the definition file and the
+same at every site. A bearer token wins when both are set; an action with neither is called
+without a credential. Survey's startup diagnostics name the kind of credential each action has,
+never its value.
+
+\subsubsection*{When a call fails}
+
+Survey records each delivery in \val{survey.respondent_psa}, and retries a call that failed:
+
+\begin{plaintable}{tab:psa-states}{Delivery states Survey records}{@{}>{\raggedright\arraybackslash}p{0.20\linewidth} >{\raggedright\arraybackslash}p{0.74\linewidth}@{}}{\thead{State} & \thead{Meaning}}
+\val{PENDING}, \val{RESENDING} & Being called, for the first time or again. \\
+\val{DELIVERED} & The service answered \val{2xx}. \\
+\val{CALL_FAILED} & No answer in time, no connection, or another status; retried. \\
+\val{CALL_REFUSED} & Refused before the call: an External-ID action at an \val{http} address, an
+address that needs an External ID the subject does not have, or a placeholder it may not use.
+Never retried, because a retry cannot change the outcome. \\
+\end{plaintable}
+
+Every \opt{elicit.post-survey-action.retry.interval} (15 minutes unless changed), Survey calls
+each \val{CALL_FAILED} delivery again, until it is delivered or has had
+\opt{elicit.post-survey-action.retry.max-attempts} attempts (24, the first included). Each
+retried delivery is claimed first, so several Survey instances never call it twice, and
+\opt{elicit.post-survey-action.retry.enabled} turns the schedule off (Table~\ref{tab:survey}).
+
+\begin{elicitcaution}[Survey retries the call, not the service's work]
+Once a call is answered, what the service does next is its own. If it records its own progress
+on the same delivery, as FHHS does with \val{STARTED}, \val{COMPLETED} and \val{FAILED}, Survey
+never overwrites that and never retries it. A service that must finish reliably answers at once,
+does the work in the background, and keeps its own record and its own retries, as FHHS does for
+the documents it files (Section~\ref{sec:fhhs-sftp}).
 \end{elicitcaution}
-
-An author lists a survey's actions on its \ui{Post-survey actions\ldots} page in Author, each a
-name, a description and a full \val{http(s)} address, and drags them into the order Survey calls
-them in. Like the report list, the file's list is the site's list: every apply inserts,
-updates and deletes actions to match it, and an action it deletes takes its delivery records
-in \val{survey.respondent_psa} with it.
 
 %% ================================================================== 13
 \section{The Family History reports}
@@ -1559,7 +1616,9 @@ replaced from the respondent's record: \val{{RespondentId}}, \val{{Xid}},
 FHHS answers the action at once and does the work in the background. It records every upload
 against the respondent in \val{survey.respondent_psa}, as started, completed or failed, and
 every fifteen minutes retries the failed ones, up to fifty attempts. That is the pattern
-Section~\ref{sec:psa} recommends for any action that must arrive.
+Section~\ref{sec:psa} recommends for any action that must arrive. The two retries never
+overlap: Survey calls FHHS again only when its call never reached FHHS (\val{CALL_FAILED});
+once FHHS has answered, the filing and its retries are FHHS's.
 
 \subsection{Pedigree}
 
@@ -1649,6 +1708,17 @@ containers, or the service is down. & Correct the address in Author and apply th
 A report shows on the respondent's page but is missing from the console's printout. & The
 service answers no \val{pdf}. & Return the printable description as well
 (Chapter~\ref{sec:reports}). \\
+\addlinespace
+A post-survey action's deliveries stay \val{CALL_REFUSED}. & The action sends the External ID
+to an \val{http} address, uses a placeholder it may not, or needs an External ID the subject
+lacks; the delivery's \val{error_msg} says which. & Correct the action in Author and apply the new
+export, or give the subject an External ID. A refused delivery is not retried
+(Section~\ref{sec:psa}). \\
+\addlinespace
+A post-survey action's calls fail with \val{401} or \val{403}. & No credential reached the
+service: the setting's name does not hold the action's key, or the named OIDC client is not
+configured on Survey. & Check the line for the action in Survey's startup diagnostics, which
+names the kind of credential it has (Section~\ref{sec:psa}). \\
 \addlinespace
 Sign-in redirects fail, or land on the wrong service. & The issuer address does not resolve
 to the same provider from the browser and from inside the container. & Use one address that
@@ -1864,7 +1934,18 @@ a restart. See Chapter~\ref{sec:i18n}. \\
 translation whose base text has been edited since it was made. Left \val{false}, such a string
 falls back to the survey's base language, so every language asks the same question; set
 \val{true} only where continuity matters more than that. \\
+\opt{elicit.post-survey-action.retry.enabled} & \val{true} & \chgmay & Whether a post-survey
+action whose call failed is called again on a schedule. See Section~\ref{sec:psa}. \\
+\opt{elicit.post-survey-action.retry.interval} & \val{15m} & \chgmay & How often the retry
+runs, as a duration (\val{15m}, \val{1h}). \\
+\opt{elicit.post-survey-action.retry.max-attempts} & \val{24} & \chgmay & How many attempts a
+delivery gets, the first call included, before Survey stops retrying it. \\
 \end{settings}
+
+A post-survey action's credential is set per action, under a name that holds the action's key:
+\optlit{elicit.post-survey-action."<key>".bearer-token} or
+\optlit{elicit.post-survey-action."<key>".oidc-client} (Section~\ref{sec:psa}). Both are secrets
+or point at one; neither has a default.
 
 \subsection{Admin}
 
