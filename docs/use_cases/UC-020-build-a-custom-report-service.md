@@ -38,8 +38,8 @@
 **Trigger:** The site needs the report filed in another system, not only shown (step 9)  
 **Flow:**
 
-1. The manual states that a survey also carries an ordered list of post-survey actions, each an address Survey calls once, with the respondent's id, at the moment the respondent finishes.
-2. The manual states that an action is independent of the report list, that a failed action is recorded against the respondent and never stops the respondent finishing, and that Survey retries nothing, so a service that must deliver reliably keeps its own record and retries itself.
+1. The manual states that a survey also carries an ordered list of post-survey actions, each called by Survey at the moment the respondent finishes, with the method, address and identifiers its author chose and the credential the site configured for it.
+2. The manual states that an action is independent of the report list, that a failed call is recorded against the respondent, retried by Survey on a schedule up to a limit, and never stops the respondent finishing, and that once a call is answered, what the service does next (such as filing a document) is the service's to record and retry.
 3. The manual names the Family History report service's upload to a records system as the worked example (UC-021).
 4. Use case continues at step 9.
 
@@ -118,9 +118,9 @@ A report service reads the survey's own reporting schema, whose name is on `surv
 
 The report list is carried in the definition file and applied as a whole: an apply replaces the site's list with the file's, removing any entry the file no longer carries. The list is therefore edited in Author, never in the site's database.
 
-### BR-007: Post-survey actions fire once, at finish, and are not retried by Survey
+### BR-007: Post-survey actions are called as configured, and a failed call is retried
 
-When a respondent finishes, Survey calls each post-survey action in execution order with the respondent's id, waiting 5 seconds to connect and 60 for the answer. Any success status counts as delivered. A failure is recorded against the respondent and the action, and Survey neither retries it nor stops the respondent finishing.
+When a respondent finishes, Survey calls each post-survey action in execution order (Survey UC-015). The call uses the action's method (`POST`, `GET` or `PUT`); its address may carry `{respondentId}` and, when the author turned on sending the subject's External ID, `{externalId}`; a `POST` or `PUT` body is `{"id": <respondent id>}`, with `externalId` and `departmentCode` added for such an action, which must use an `https` address. A site gives an action a credential in Survey's configuration, by the action's key: a bearer token or a named OIDC client; nothing secret is in the definition file. Survey waits 5 seconds to connect and 60 for the answer, and any 2xx is delivered. A failed call is recorded and retried on a schedule (`elicit.post-survey-action.retry.*`) until it is delivered or the limit is reached; a call refused before it is made is not retried; a status the service writes itself is never overwritten or retried by Survey. The respondent's finishing is never affected.
 
 ### BR-008: Reachability is checked, never generation
 
