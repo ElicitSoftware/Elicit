@@ -21,7 +21,7 @@
 3. The operator reads the orientation chapters: what the platform is made of, what the modules share, and what must exist before starting (UC-003, UC-004).
 4. The operator follows the provisioning chapters in order: the database cluster (UC-005), the identity provider (UC-006), then one of the two installation paths (UC-007 or UC-008).
 5. The operator completes the first sign-in and installs a survey definition (UC-009, UC-010).
-6. The operator consults the configuration reference for any setting their site needs to change (UC-011, UC-012), the branding chapter for the directory their site mounts (UC-014), and the translations chapter for the languages their site offers (UC-015, UC-016).
+6. The operator turns to the customizing part: the branding chapter for the directory their site mounts (UC-014), the translations chapter for the languages their site offers (UC-015, UC-016), and the custom reports chapters for the reports their surveys deliver, including the Family History reports a site running that survey installs (UC-020, UC-021). For any setting their site needs to change they consult the configuration reference, an appendix (UC-011, UC-012).
 7. The operator verifies the installation against the checks the manual gives (UC-018).
 8. The system repeats the version and the build date in the footer of every page.
 9. The operator holds a running, verified site and knows what every setting it runs with does.

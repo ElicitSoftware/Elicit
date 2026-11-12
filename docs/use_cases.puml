@@ -9,6 +9,7 @@ left to right direction
 
 actor "Deployment Operator" as op
 actor "Release Engineer" as rel
+actor "Report Developer" as dev
 actor "Survey Administrator" as sa
 actor "Survey Author" as au
 
@@ -16,6 +17,7 @@ actor "PostgreSQL Cluster" as db
 actor "Identity Provider\n(OIDC)" as idp
 actor "SMTP Relay" as smtp
 actor "Translator\n(person or AI agent)" as tr
+actor "Records System\n(post-survey target)" as rec
 
 rectangle "Elicit Platform — Installation" {
 
@@ -51,6 +53,10 @@ rectangle "Elicit Platform — Installation" {
     usecase "UC-016\nAsk for a New Language" as UC016
     usecase "UC-017\nCommission a Translation" as UC017
 
+    ' Custom reports (FR-038..FR-042)
+    usecase "UC-020\nBuild a Custom Report Service" as UC020
+    usecase "UC-021\nInstall the Family History Reports" as UC021
+
     ' Verification (FR-032..FR-035)
     usecase "UC-018\nVerify the Installation" as UC018
     usecase "UC-019\nDiagnose a Failed Installation" as UC019
@@ -74,6 +80,8 @@ op --> UC014
 op --> UC015
 op --> UC016
 op --> UC017
+op --> UC021
+dev --> UC020
 op --> UC018
 op --> UC019
 
@@ -82,6 +90,7 @@ UC006 --> idp
 UC009 --> idp
 UC011 --> smtp
 UC017 --> tr
+UC020 --> rec
 
 ' ---------------------------------------------------------------- relationships
 UC002 .> UC001 : <<produces>>
@@ -106,6 +115,10 @@ UC014 ..> UC011 : <<extend>>
 UC015 ..> UC011 : <<extend>>
 UC016 ..> UC015 : <<include>>
 UC017 ..> UC016 : <<extend>>
+
+UC020 ..> UC010 : <<extend>>
+UC021 ..> UC010 : <<extend>>
+UC021 .> UC020 : <<worked example of>>
 
 UC018 ..> UC010 : <<extend>>
 UC019 ..> UC018 : <<extend>>

@@ -1,10 +1,11 @@
 # Elicit Platform — Requirements Catalog (Umbrella)
 
-Source: [`docs/vision.md`](vision.md), the two modules' `application.properties`,
+Source: [`docs/vision.md`](vision.md), the Survey, Admin and FHHS `application.properties`,
 `docker-compose.yml`, `DeploymentScript.md`, the `elicitsoftware/elicit_db` image's
 init scripts, [`docs/BRAND_SYSTEM_IMPLEMENTATION_GUIDE.md`](BRAND_SYSTEM_IMPLEMENTATION_GUIDE.md),
 [`docs/I18N_IMPLEMENTATION_GUIDE.md`](I18N_IMPLEMENTATION_GUIDE.md), and the module
-use cases this manual provisions for (Admin UC-027, UC-028; Survey UC-007).
+use cases this manual provisions for (Admin UC-005, UC-025, UC-027, UC-028; Survey UC-004,
+UC-005, UC-007; FHHS UC-001..UC-005; Author UC-048).
 
 This catalog covers the **umbrella repository only** — the platform as one
 deployable whole. Each module keeps its own catalog for its own behavior; module
@@ -16,6 +17,9 @@ Roles referenced below:
   site. Comfortable with PostgreSQL, a container runtime, and an
   OIDC provider; has not seen Elicit before.
 - **Release Engineer** — builds and stamps the manual as part of a release.
+- **Report Developer** — writes a report service of the site's own: a small web
+  application that Survey and Admin call with a respondent's id and that answers with
+  the report. Reads the custom reports chapter; may be the deployment operator.
 - **Survey Administrator** / **Survey Author** — secondary actors; they take over
   where this manual stops, through their own manuals.
 
@@ -89,6 +93,16 @@ Roles referenced below:
 | FR-030 | Commission a Translation    | As a deployment operator, I want the manual to point at each application's translation request document so that I can hand a translator or an AI agent everything needed for a new language.                                                                      | Medium   | Open   |
 | FR-031 | Know Which Mechanism Translates What | As a deployment operator, I want the manual to state that the mounted translations carry the applications' own chrome while survey content is translated in Author and delivered in the definition file, and that a content language reaches respondents only where the site also offers that language for the chrome, so that I know which of the two is at fault when question text does not change. | High     | Open   |
 
+### Custom Reports
+
+| ID     | Title                       | User Story                                                                                                                                                                                                                                                       | Priority | Status |
+|--------|-----------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------|--------|
+| FR-038 | Understand the Report Contract | As a report developer, I want the manual to state how a report reaches a respondent and an administrator — the survey's ordered list of report services, the JSON `POST` of the respondent's id and language to each address, the timeouts, and the title, HTML fragment and PDF description a service answers with — so that I can write a report service of my own without reading Survey's or Admin's source. | High     | Open   |
+| FR-039 | Read One Respondent's Answers | As a report developer, I want the manual to name the database role a report service connects as, how it finds the survey's reporting schema, and the views that hold one respondent's answers with the column they are filtered on, so that a report reads the star schema rather than the transactional tables. | High     | Open   |
+| FR-040 | Register a Report Service   | As a report developer, I want the manual to state that a report service is added to a survey in Author, travels in the definition file and is replaced as a whole list on every apply, and how the console checks that it answers, so that a service is wired to a survey through the definition and not by hand in the database. | High     | Open   |
+| FR-041 | Act When a Respondent Finishes | As a report developer, I want the manual to state what a post-survey action is called with, when and in what order, and what Survey records about the call, so that a site can deliver a report somewhere else, such as a records system, when a respondent finishes. | Medium   | Open   |
+| FR-042 | Install the Family History Reports | As a deployment operator, I want the manual to install FHHS and Pedigree — the reference report services — with their images, settings, start order, readiness and the report addresses a site must change, so that a site running the Family Health History Survey gets its reports and a report developer has a working example to read. | High     | Open   |
+
 ### Verification
 
 | ID     | Title                        | User Story                                                                                                                                                                                                                       | Priority | Status |
@@ -105,7 +119,7 @@ Roles referenced below:
 | NFR-001 | Manual Version Stamping      | The manual carries a platform version and a build date on the title page and in the footer of every page. A build supplying neither renders both as "unknown" rather than omitting them, so no copy is undated.                          | Maintainability | High     | Open   |
 | NFR-002 | Reproducible Build           | `docs/manual/build-manual.sh` typesets the PDF inside a TeX Live container, so the manual builds on any machine with a container runtime and no TeX installation.                                                                          | Portability     | High     | Open   |
 | NFR-003 | Default Brand Typesetting    | The manual is typeset in the Elicit default brand — its colors, its IBM Plex typefaces and its logo — regardless of which brand a deployment mounts, so one document serves every site.                                                    | Usability       | Medium   | Open   |
-| NFR-004 | Setting Coverage             | Every configuration key read by Survey or Admin through `@ConfigProperty` or a programmatic `getConfig()` lookup appears in the configuration reference with its default value. Verified by `docs/manual/check-properties.sh`.             | Completeness    | High     | Open   |
+| NFR-004 | Setting Coverage             | Every configuration key read by Survey, Admin or FHHS through `@ConfigProperty` or a programmatic `getConfig()` lookup appears in the configuration reference with its default value. Verified by `docs/manual/check-properties.sh`.             | Completeness    | High     | Open   |
 | NFR-005 | Verifiable Defaults          | Every default value printed in the manual is the value in the module's `application.properties` or in the `defaultValue` of its `@ConfigProperty`, not a value restated from prose. Verified by `docs/manual/check-properties.sh`.         | Correctness     | High     | Open   |
 | NFR-006 | Self-Contained Procedures    | Every procedure in the manual is runnable from the manual alone: each references only commands, files and settings the manual has already given. External references are limited to the Quarkus configuration index and this repository.   | Usability       | High     | Open   |
 | NFR-007 | Copy-Safe Listings           | Every command and SQL listing is set in a monospaced environment that introduces no typographic ligatures or smart quotes, so that text copied out of the PDF runs as printed.                                                             | Usability       | Medium   | Open   |
@@ -114,6 +128,7 @@ Roles referenced below:
 | NFR-010 | Stated Currency              | Each chapter documenting behavior that is specified but not yet implemented marks it as such and cites the use case, so that a reader never follows a procedure for a screen that does not exist.                                          | Correctness     | High     | Open   |
 | NFR-011 | Figures Match the Build      | Every screenshot is captured from a running installation of the version the manual is stamped with, at 2x for print, by `docs/manual/capture/capture-screenshots.mjs`. No figure is drawn, mocked or edited.                                | Correctness     | Medium   | Open   |
 | NFR-012 | First-Run Figures Are Authentic | The figures showing a new installation are captured from a database that has never had a department or a survey, in the order an installer meets them, so that they show the real first-run state rather than a reconstruction of it.    | Correctness     | Medium   | Open   |
+| NFR-013 | Diagrams Live in the Source | Every diagram in the manual is drawn in TikZ inside the manual's own LaTeX source, in the shared brand package's diagram styles, so that a diagram changes in the same commit as the text it illustrates and can never go stale as a pasted image. | Maintainability | Medium   | Open   |
 
 ## Constraints
 
@@ -123,7 +138,7 @@ Roles referenced below:
 | C-002 | Typesetting Toolchain         | The manual is written in LaTeX and typeset with LuaLaTeX through `latexmk` inside a TeX Live container, the same toolchain the author's manual is built with.                                                                                | Technical  | High     | Open   |
 | C-003 | Shared Brand Package          | The manual uses the same `elicit-brand.sty` design as the author's manual — the same colors, typefaces, page furniture and call-out boxes — so that the two documents read as one set.                                                      | Technical  | Medium   | Open   |
 | C-004 | Scope Is Provisioning         | The manual covers provisioning a deployment. Operating the console is the administrator's manual (Admin UC-029) and building a survey is the author's manual (Author UC-039); installing Author is the Author installation manual, because not every site authors surveys. The installation manual points at all three and stops.            | Business   | High     | Open   |
-| C-005 | Two Applications              | The configuration reference covers Survey and Admin. FHHS and Pedigree appear only where Survey or Admin must be configured to reach them.                                                                                                   | Business   | High     | Open   |
+| C-005 | Three Configured Applications | The configuration reference covers Survey, Admin and FHHS, and `check-properties.sh` gates all three. Pedigree reads no configuration. FHHS and Pedigree are installed from the custom reports part, as the worked example of a report service, and are optional: a site that does not run the Family Health History Survey runs neither. | Business   | High     | Open   |
 | C-006 | Upgrades Stay in DeploymentScript | Release-specific upgrade procedures stay in `DeploymentScript.md`. The manual points at them and must not restate them, because a stamped manual outlives the release it was built for.                                                 | Business   | High     | Open   |
 | C-007 | Database Platform             | PostgreSQL 17, matching `quarkus.datasource.db-version` in Survey and Admin.                                                                                                                                                                | Technical  | High     | Open   |
 | C-008 | Runtime Platform              | Java 25 and Quarkus 3.40.1 LTS, matching the three Java modules.                                                                                                                                                                            | Technical  | High     | Open   |
