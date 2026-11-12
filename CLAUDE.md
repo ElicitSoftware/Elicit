@@ -320,7 +320,7 @@ See `docs/I18N_IMPLEMENTATION_GUIDE.md`.
 
 The umbrella now carries its own AIUP artifacts — the first ones it has had —
 scoped to the platform as one deployable whole: `docs/vision.md`,
-`docs/requirements.md` (FR-001..042, NFR-001..013, C-001..016),
+`docs/requirements.md` (FR-001..042, NFR-001..013, C-001..017),
 `docs/use_cases.puml` and `docs/use_cases/UC-001..021`. Module requirement and
 use-case IDs are unrelated to these.
 
