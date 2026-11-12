@@ -7,12 +7,12 @@
 **Primary Actor:** Report Developer  
 **Goal:** Give a survey a report of the site's own — shown to the respondent when they finish, and printed by the console for an administrator — by writing a small web service that reads the survey's reporting schema for one respondent and answers with the report, and by registering that service with the survey.  
 **Status:** Draft  
-**Requirements:** [FR-038, FR-039, FR-040, FR-041](../requirements.md)
+**Requirements:** [FR-038, FR-039, FR-040, FR-041, C-017](../requirements.md)
 
 ## Preconditions
 
 - A site is installed and the survey the report is for has been applied, so its reporting schema exists and is named on the survey (UC-010).
-- The developer can run a web service at an address the Survey and Admin applications can reach, and can give it a database connection to the site's survey database.
+- The developer can run a web service on a private network, at an address the Survey and Admin applications can reach and the Internet cannot, and can give it a database connection to the site's survey database.
 - The developer, or a survey author working with them, can edit the survey in Author and export it.
 
 ## Main Success Scenario
@@ -125,3 +125,7 @@ When a respondent finishes, Survey calls each post-survey action in execution or
 ### BR-008: Reachability is checked, never generation
 
 The console's Connections screen sends each report service and post-survey action one read-only request and reports whether anything answered. It never asks for a report and never fires an action, so it is safe at any time.
+
+### BR-009: A report service is headless and reachable only by its callers
+
+A report service has no user interface: no pages, no sign-in, nothing a person opens in a browser. A respondent's browser never calls it; Survey calls it on the respondent's behalf, and Admin on the administrator's. The service therefore runs without exposure to the Internet, on a network or behind a firewall rule that admits only the Survey and Admin hosts (and, for a service another report service calls, as FHHS calls Pedigree, that service). That isolation is why no authentication is needed: neither caller presents a credential and the service checks none (C-017). This rule is for report services; post-survey actions are not bound by it.

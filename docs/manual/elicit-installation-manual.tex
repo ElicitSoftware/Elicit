@@ -1135,11 +1135,28 @@ Credentials & None. & None. \\
 Uses & \val{innerHTML} for the page; \val{pdf} for \ui{Generate PDF}. & \val{pdf} only. \\
 \end{plaintable}
 
-\begin{elicitsecurity}[A report service authenticates nobody]
-Neither caller presents a credential, so anything that can reach a report service's address can
-ask it for any respondent's report. Keep report services on the network the applications share
-and do not publish their ports beyond it. The shipped compose file publishes FHHS and Pedigree
-for local testing only.
+\subsection{Where a report service runs}
+\label{sec:reports-network}
+
+A report service has no user interface. It serves no pages, has no sign-in and offers nothing
+for a person to open in a browser; everything a reader sees of a report is what Survey and Admin
+draw from its answer. A respondent's browser never calls a report service either: Survey calls
+it on the respondent's behalf, and Admin on the administrator's.
+
+So a report service is not exposed to the Internet. Run it on a private network where its
+address answers only the computers running Survey and Admin: the network the containers share
+under Compose, or a firewall rule that admits those hosts and no others. A service that another
+report service calls, as FHHS calls Pedigree, answers only that service.
+
+That isolation is why a report service needs no authentication. Neither caller presents a
+credential, and the service checks none: the network has already decided who may ask. Build the
+service on that assumption rather than adding a sign-in Survey and Admin cannot answer.
+
+\begin{elicitsecurity}[The network is the only lock]
+Anything that can reach a report service's address can ask it for any respondent's report. Never
+publish its port beyond the Survey and Admin hosts, and never route it through the reverse proxy
+that serves Survey to respondents. The shipped compose file publishes FHHS and Pedigree on the
+evaluation host for local testing only; a real site removes those mappings.
 \end{elicitsecurity}
 
 \subsection{The answer}
@@ -1301,7 +1318,8 @@ def report():
 \end{elicitcmd}
 
 Run it beside the applications, on the same network, and give it an address Survey and Admin
-can reach, such as \val{http://relatives:8080/report}.
+can reach and nothing outside that network can (Section~\ref{sec:reports-network}), such as
+\val{http://relatives:8080/report}.
 
 \subsection{Adding the service to a survey}
 
