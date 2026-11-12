@@ -292,7 +292,7 @@ After starting a new Elicit system you will need to alter some of the template d
 3) Update the email message template
    This can be done in the ui under Admin | Message Templates
    Use the placeholder <ACCESS_CODE> wherever the subject's access code belongs, e.g. in the
-   login link: https://<your survey host>/#/login/<ACCESS_CODE>
+   login link: https://<your survey host>/login/<ACCESS_CODE>
 
 4) Post Survey Actions. 
    If you would like to automatically upload the family history report to your system you can use a post survey action. 

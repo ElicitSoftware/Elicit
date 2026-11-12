@@ -1,8 +1,9 @@
 %% elicit-brand.sty — the Elicit default brand, as LaTeX.
 %%
 %% Umbrella copy. It is the same design the other Elicit manuals are typeset in (umbrella
-%% C-003: they read as one set) with three additions the installation manual needs and
-%% an in-application manual does not:
+%% C-003: they read as one set). Every manual gets the part dividers (\elicitpart), the
+%% disc-numbered procedure steps and the diagram styles (elicitdiagram). Three further
+%% additions serve the installation manual chiefly:
 %%
 %%   * \elicitProduct — the product name in the page footer, so one package serves every
 %%     document instead of hard-coding one product's name.
@@ -17,7 +18,7 @@
 %% families brand-typography.css asks for.
 
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{elicit-brand}[2026/09/24 Elicit default brand]
+\ProvidesPackage{elicit-brand}[2026/11/12 Elicit default brand]
 
 \RequirePackage{xcolor}
 \RequirePackage{fontspec}
@@ -34,6 +35,8 @@
 \RequirePackage{array}
 \RequirePackage{fancyvrb}
 \RequirePackage{url}
+\RequirePackage{tikz}
+\usetikzlibrary{positioning, arrows.meta, calc, fit, backgrounds}
 
 %% ---------------------------------------------------------------- product
 %% The document sets this before \begin{document}; the footer reads it.
@@ -109,14 +112,42 @@
 }
 
 %% ---------------------------------------------------------------- headings
+%% A chapter opens with its number in the brand's accent and a ledger rule beneath, so the
+%% start of each chapter is visible when a reader flips through a printed copy.
 \titleformat{\section}
-  {\normalfont\Large\bfseries\color{elicitInkDarkest}}{\thesection}{0.6em}{}
+  {\normalfont\Large\bfseries\color{elicitInkDarkest}}
+  {\textcolor{elicitVerdigris}{\thesection}}{0.6em}{}
+  [\vspace{3pt}{\color{elicitLedger}\titlerule[0.8pt]}]
 \titleformat{\subsection}
   {\normalfont\large\bfseries\color{elicitInkDark}}{\thesubsection}{0.6em}{}
 \titleformat{\subsubsection}
   {\normalfont\normalsize\bfseries\color{elicitSlate}}{}{0em}{}
-\titlespacing*{\section}{0pt}{1.6\baselineskip}{0.7\baselineskip}
+\titlespacing*{\section}{0pt}{1.6\baselineskip}{0.9\baselineskip}
 \titlespacing*{\subsection}{0pt}{1.2\baselineskip}{0.5\baselineskip}
+
+%% The running head is the current chapter's title, set by every \section, so a manual need
+%% not \markboth each chapter by hand.
+\renewcommand{\sectionmark}[1]{\markboth{#1}{}}
+
+%% \elicitpart{Title}{What the part covers} — a part divider on a page of its own: the part
+%% number, its title, and a short paragraph saying what the chapters in it are for. Chapter
+%% numbering runs on across parts, so a cross-reference never needs the part to be found.
+\titleclass{\part}{top}
+\titleformat{\part}[display]
+  {\normalfont\bfseries\color{elicitInkDarkest}}
+  {\normalsize\color{elicitVerdigris}\MakeUppercase{\partname}~\thepart}
+  {6pt}
+  {\Huge}
+  [\vspace{6pt}{\color{elicitVerdigris}\titlerule[2pt]}]
+\titlespacing*{\part}{0pt}{0.28\textheight}{1.4\baselineskip}
+\newcommand{\elicitpart}[2]{%
+  \clearpage
+  \part{#1}%
+  \thispagestyle{plain}%
+  \markboth{#1}{}%
+  {\large\color{elicitSlate}#2\par}%
+  \clearpage
+}
 
 %% ---------------------------------------------------------------- figures
 \captionsetup{
@@ -313,9 +344,49 @@
 %% the end of a line has nowhere to go, and TeX would rather overrun the margin than break
 %% it. Giving the paragraph builder some emergency stretch lets it loosen the line instead.
 \setlength{\emergencystretch}{3em}
+%% ---------------------------------------------------------------- diagrams
+%% Diagrams are drawn in TikZ in the manual's own source, never pasted in as images, so they
+%% change in the same commit as the text they illustrate. These styles keep every diagram in
+%% the brand's palette:
+%%   elicit app     — an Elicit application (Survey, Admin, FHHS …)
+%%   elicit service — something the site provides (the database, the identity provider …)
+%%   elicit person  — a person at a browser
+%%   elicit flow    — a call or a data flow; label it with a node on the edge
+%%   elicit group   — a dashed boundary around the nodes passed to fit
+\tikzset{
+  elicit node/.style = {draw, rounded corners = 2pt, line width = 0.7pt, align = center,
+    inner xsep = 6pt, inner ysep = 5pt, font = \footnotesize\sffamily, minimum height = 2.2em},
+  elicit app/.style = {elicit node, draw = elicitInk, fill = white, text = elicitInkDarkest},
+  elicit service/.style = {elicit node, draw = elicitSlate, fill = elicitLedgerLight,
+    text = elicitCharcoal},
+  elicit person/.style = {elicit node, draw = elicitVerdigris, fill = elicitVerdigrisPale,
+    text = elicitCharcoal, rounded corners = 8pt},
+  elicit flow/.style = {-{Stealth[length = 5pt]}, line width = 0.7pt, draw = elicitSlate},
+  elicit label/.style = {font = \scriptsize\sffamily, text = elicitSlate, fill = elicitPaper,
+    inner sep = 1.5pt, align = center},
+  elicit group/.style = {draw = elicitLedger, dashed, line width = 0.8pt, rounded corners = 4pt,
+    inner sep = 8pt},
+  elicit group label/.style = {font = \scriptsize\sffamily\bfseries, text = elicitSlate,
+    anchor = north west},
+}
+%% \begin{elicitdiagram}{caption} <tikz commands> \end{elicitdiagram}
+%% A diagram as a numbered, captioned figure, centred, on the same page as its text.
+\newenvironment{elicitdiagram}[1]{%
+  \def\elicitdiagramcaption{#1}%
+  \begin{figure}[H]\centering\begin{tikzpicture}
+}{%
+  \end{tikzpicture}\caption[]{\elicitdiagramcaption}\end{figure}%
+}
 
 \setlist[itemize]{leftmargin = 1.2em, itemsep = 2pt, topsep = 4pt}
-\setlist[enumerate]{leftmargin = 1.4em, itemsep = 4pt, topsep = 4pt}
+%% A procedure's steps are numbered in filled discs, so a step reads as an action to take
+%% rather than an item in a list; nested lists keep plain letters.
+\DeclareRobustCommand{\elicitstep}[1]{%
+  \tikz[baseline = (n.base)]\node[circle, fill = elicitVerdigris, text = white,
+    inner sep = 0pt, minimum size = 1.35em, font = \footnotesize\bfseries\sffamily] (n) {#1};}
+\setlist[enumerate, 1]{label = \elicitstep{\arabic*}, leftmargin = 2.1em, labelsep = 0.55em,
+  itemsep = 5pt, topsep = 5pt}
+\setlist[enumerate, 2]{label = \alph*., leftmargin = 1.6em, itemsep = 2pt, topsep = 2pt}
 \setlist[description]{leftmargin = 1.2em, itemsep = 3pt, topsep = 4pt, font = \normalfont\bfseries\color{elicitInkDark}}
 
 \endinput

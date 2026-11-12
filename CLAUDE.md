@@ -320,25 +320,27 @@ See `docs/I18N_IMPLEMENTATION_GUIDE.md`.
 
 The umbrella now carries its own AIUP artifacts — the first ones it has had —
 scoped to the platform as one deployable whole: `docs/vision.md`,
-`docs/requirements.md` (FR-001..037, NFR-001..012, C-001..014),
-`docs/use_cases.puml` and `docs/use_cases/UC-001..019`. Module requirement and
+`docs/requirements.md` (FR-001..042, NFR-001..013, C-001..016),
+`docs/use_cases.puml` and `docs/use_cases/UC-001..021`. Module requirement and
 use-case IDs are unrelated to these.
 
 - `docs/manual/` — the **installation manual** (UC-001), a LaTeX/PDF that covers
-  Survey and Admin: topology, prerequisites, the database roles and
+  Survey and Admin, and FHHS and Pedigree as the worked example of a custom report
+  service (UC-020, UC-021): topology, prerequisites, the database roles and
   schemas, the OIDC clients and roles, both installation paths, the first
-  sign-in, the configuration reference, branding, translations and verification.
+  sign-in, branding, translations, custom reports, verification and the configuration
+  reference.
   Built by `docs/manual/build-manual.sh` through a TeX Live container, stamped
   with the version the two modules agree on, and built alongside the images by
   `buildDockerImages.sh` (target `Manual`). Unlike the in-application manuals it is
   **not** packaged into any image — an operator reads it before any Elicit
   service exists. `docs/manual/check-properties.sh` gates the configuration
-  reference against the modules' `@ConfigProperty` declarations and
+  reference against Survey's, Admin's and FHHS's `@ConfigProperty` declarations and
   `application.properties`; `buildDockerImages.sh` runs it before typesetting, so
   a drifted reference fails the build rather than reaching a release. Author's
   installation manual is separate (in Author, not built here), but its build runs
-  this same script with `--manual … --modules Author`, and Author's two manuals
-  read `elicit-brand.sty` from here: keep both working for Author.
+  this same script with `--manual … --modules Author`, and Admin's manual and
+  Author's two read `elicit-brand.sty` from here: keep all three building.
 - `DeploymentScript.md` — non-Docker deployment, plus the procedure for
   upgrading an existing deployment to Kimball Type 2 SCD (V3.0.0). Upgrade
   procedures stay here and are deliberately **not** in the installation manual,
@@ -370,8 +372,8 @@ use-case IDs are unrelated to these.
 - CI per repository: Survey, Admin and Author run the Maven suite (`ci.yml`), FHHS runs it
   from `maven.yml`, Pedigree builds its image and smoke-tests `/healthz` and `/svg`, and the
   umbrella runs `checkLanguages.sh`, `check-properties.sh`, `docker compose config` and the
-  manual build against fresh clones of Survey, Admin and Author at the target branch (Author
-  at `main`).
+  manual build against fresh clones of Survey, Admin, FHHS and Author at the target branch
+  (Author at `main`).
 
 ## Git Commits
 
