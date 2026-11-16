@@ -10,7 +10,7 @@
 # imports FHHS/family-history-survey.elicit. Brownfield: resetDatabase.sh V2, Survey
 # restarted as deploy.sh does, then e2e-tests against the upgraded V2 database. Each
 # prints the surveys, their report schemas and the Family History Survey's dim_step
-# count to test-logs/db-*.log. The multi-site suites bring up and take down stacks of
+# count to test-logs/db-*.log, and fails if the schema owner or its group is a superuser. The multi-site suites bring up and take down stacks of
 # their own on the same ports, so this script stops the umbrella stack first.
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")" && pwd)"
@@ -37,6 +37,16 @@ db_report() {
         -c "select count(*) from survey.respondents;" > "$LOGS/db-$1.log" 2>&1
 }
 
+# No role Elicit prescribes is a superuser (umbrella C-020): the image creates them that way
+# (greenfield) and resetDatabase.sh V2 narrows the V2 copy's (brownfield).
+owner_not_superuser() {
+    local supers
+    supers=$(docker exec elicit-db-1 psql -U survey -d survey -At \
+        -c "select rolname from pg_roles where rolsuper and rolname in ('elicit_owner', 'dbowner');" 2>&1)
+    echo "superusers among elicit_owner, dbowner: [${supers}]" >> "$LOGS/db-$1.log"
+    [ -z "$supers" ]
+}
+
 if [ -z "${SKIP_BUILD:-}" ]; then
     stage "build images"
     ./buildDockerImages.sh > "$LOGS/build.log" 2>&1 || fail build "$LOGS/build.log"
@@ -53,6 +63,7 @@ stage "greenfield: e2e-tests"
     || fail "greenfield e2e" "$LOGS/e2e-green.log"
 ./status.sh > "$LOGS/status-green-after.log" 2>&1
 db_report green
+owner_not_superuser green || fail "greenfield schema owner is a superuser" "$LOGS/db-green.log"
 
 stage "brownfield: reset V2 and start"
 ./resetDatabase.sh V2 > "$LOGS/reset-brown.log" 2>&1 || fail "reset V2" "$LOGS/reset-brown.log"
@@ -64,6 +75,7 @@ stage "brownfield: e2e-tests"
     || fail "brownfield e2e" "$LOGS/e2e-brown.log"
 ./status.sh > "$LOGS/status-brown-after.log" 2>&1
 db_report brown
+owner_not_superuser brown || fail "brownfield schema owner is a superuser" "$LOGS/db-brown.log"
 docker compose down > /dev/null 2>&1
 
 stage "e2e_multisite"

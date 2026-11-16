@@ -432,7 +432,7 @@ services:
 ## Postgres Database
   db:
     # Not on ELICIT_TAG: the database image has its own release cadence (see the header).
-    image: elicitsoftware/elicit_db:latest
+    image: elicitsoftware/elicit_db:2.0.0
     # Setup the directories to persist data between starts.
     # if you need to reset your database you can delete the PGDATA directory and restart the containers
     # this will cause the database to be recreated.
