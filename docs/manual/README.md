@@ -29,8 +29,9 @@ repository and nothing more. Publish the PDF with the release.
 | Path | Committed? | What it is |
 | --- | --- | --- |
 | `elicit-installation-manual.tex` | yes | the manual |
-| `elicit-brand.sty` | yes | the Elicit default brand as LaTeX: the shared manual design — part dividers (`\elicitpart`), disc-numbered procedure steps, the TikZ diagram styles (`elicitdiagram`, NFR-013) — plus the settings tables, the copy-safe verbatim environments and `\elicitProduct`. Admin's manual and Author's two read it from here, in place (Author C-028), so a change here restyles every manual: build Admin's and Author's too |
-| `images/` | yes | the 18 captured figures, plus `elicit-logo.png` for the title page |
+| `elicit-brand.sty` | yes | the Elicit default brand as LaTeX: the shared manual design — the cover with the mark drawn in TikZ (`\elicitTitlePage`, its accent set by `\elicitAccent`), the contents page (`\elicitContents`), part dividers listing their chapters with an edge tab per part (`\elicitpart`), chapters opening a page, call-outs with icons, labeled command blocks, banded settings and plain tables, screenshots with rounded corners and numbered step markers (`\screenshot`), disc-numbered procedure steps, the TikZ diagram styles (`elicitdiagram`, NFR-013) and `\elicitProduct`. Admin's manual and Author's two read it from here, in place (Author C-028), so a change here restyles every manual: build Admin's and Author's too |
+| `specimen.tex` | yes | every element of `elicit-brand.sty` on ten pages; typeset it (`./buildManuals.sh Specimen`) and look at it after changing the design, before rebuilding the four manuals |
+| `images/` | yes | the 18 captured figures, and the `<figure>.markers.tex` files beside the ones a procedure points into |
 | `capture/` | yes | `capture-screenshots.mjs` and its own `package.json`; regenerates `images/` from a freshly installed stack |
 | `build-manual.sh` | yes | typesets the PDF |
 | `check-properties.sh` | yes | checks the configuration reference against the code (NFR-004, NFR-005) |
@@ -146,6 +147,19 @@ Env: `ADMIN_URL`, `SURVEY_URL`, `KEYCLOAK_URL`, `ADMIN_USER`, `ADMIN_PASSWORD`,
 
 After regenerating, check that every `\screenshot{…}` caption in the `.tex` still
 describes what the figure shows — the caption is part of the instruction.
+
+### Cropping and step markers
+
+The script crops each figure a little below the lowest text, control or image on the screen, so
+a short page does not carry an empty band. A figure a numbered procedure points into is taken
+with `marks`, a list of `[step number, locator]`: the script writes the position of each
+control, as a fraction of the figure's width and height, to `images/<figure>.markers.tex`, and
+`\screenshot` draws a numbered disc there. The markers therefore follow the screen on every
+recapture; a figure taken without marks has its markers file removed. Keep each mark's number
+equal to the step that names the control.
+
+The capture scripts need a working Node 18 or later; `npm --prefix docs/manual/capture run
+capture` uses whichever `node` is first on the `PATH`.
 
 ### Figure 18 is captured with the selector open
 
