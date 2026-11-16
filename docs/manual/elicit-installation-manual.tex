@@ -151,7 +151,8 @@ The database, the identity provider, an SMTP relay. Required. \\
 example of a custom report (Chapter~\ref{sec:fhhs}). Optional. &
 The database, Pedigree. \\
 \addlinespace
-\ui{Pedigree} & Draws the family-tree diagrams FHHS asks for. Optional. & Nothing. \\
+\ui{Pedigree} & Draws the family-tree diagrams FHHS asks for. Optional. & Nothing but the
+service token. \\
 \addlinespace
 \ui{Author} & The authoring tool: designs surveys and exports the definition files Admin
 applies. Optional, and installed from its own manual. &
@@ -176,6 +177,8 @@ authoring tool has an installation manual of its own.
         Survey authenticates no one: a respondent enters an access code, which is not a
         credential in the identity provider.
   \item \textbf{One brand directory,} mounted read-only into Survey and Admin.
+  \item \textbf{One service token,} a secret of the site's own that every module presents when
+        it calls another (Chapter~\ref{sec:service-token}).
 \end{itemize}
 
 Translations are optional. Survey and Admin carry English in the image. Latin American Spanish
@@ -212,7 +215,8 @@ below are what the shipped compose file publishes.
 \begin{plaintable}{tab:ports}{Published host ports in the shipped compose file}{@{}>{\raggedright\arraybackslash}p{0.13\linewidth} >{\raggedright\arraybackslash}p{0.28\linewidth} >{\raggedright\arraybackslash}p{0.49\linewidth}@{}}{\thead{Host port} & \thead{Service} & \thead{Reached by}}
 \val{8080} & Survey & Respondents, in a browser. \\
 \val{8081} & Admin & Administrators, in a browser. \\
-\val{8082} & FHHS & Survey and Admin, for reports. Published for local testing only. \\
+\val{8082} & FHHS & Survey and Admin, for reports. The shipped Family History definition
+names FHHS at this port (Chapter~\ref{sec:fhhs}). \\
 \val{8083} & Pedigree & FHHS. Published for local testing only. \\
 \val{8084} & Author & Survey authors, in a browser. See the Author installation manual. \\
 \val{8085} & Author's preview Survey & Survey authors, in a browser. \\
@@ -285,7 +289,8 @@ are for development and evaluation: a real site uses none of them, and none of t
 passwords they ship with (Chapter~\ref{sec:secrets}).
 
 \elicitpart{Installing}{From an empty database cluster to a site with its first survey: the
-database, the identity provider, the secrets, the bundled stack for evaluating Elicit and the
+database, the identity provider, the secrets, the service token, the bundled stack for
+evaluating Elicit and the
 installation of a real site, the
 first sign-in, and applying a survey definition.}
 
@@ -509,6 +514,12 @@ Author's connection password & \val{SURVEYPW} & \opt{ELICIT_DB_PASSWORD} on the 
 and \val{author-survey} services in the compose file. Author connects as \val{survey_user}, so
 this is Survey's password again; the Author installation manual covers it. \\
 \addlinespace
+Service token & \val{elicit-dev-service-token-not-for-a-real-site} &
+\opt{ELICIT_SERVICE_TOKEN} on every application service in the compose file, unless the
+variable is set in the environment or in \file{.env}. A module running with it warns about it
+in its log at every start. A site generates a value of its own
+(Chapter~\ref{sec:service-token}). \\
+\addlinespace
 SFTP account & \val{fhhs_user}/\val{pass} & The bundled SFTP service, for FHHS report
 delivery. \\
 \addlinespace
@@ -580,9 +591,227 @@ ready, as the caution above describes; nothing is lost, and giving it the new va
 fix. The same two-place rule holds for every other secret (Section~\ref{sec:security-secrets}):
 an OIDC client secret is changed in the identity provider and in \opt{OIDC_CLIENT_SECRET}, an
 SFTP key on the server and in FHHS's settings (Table~\ref{tab:fhhs}), and a post-survey action's
-bearer token at the receiving service and on Survey (Section~\ref{sec:psa}).
+bearer token at the receiving service and on Survey (Section~\ref{sec:psa}). The service token
+has no issuer: it is changed on every module at once (Section~\ref{sec:service-token-rotate}).
 
 %% ================================================================== 6
+\section{The service token}
+\label{sec:service-token}
+
+The modules of a site call each other. Admin asks Survey to build a reporting schema, Survey and
+Admin ask FHHS for a report, FHHS asks Pedigree for a drawing. Every such call carries one secret
+value, the \term{service token}, and the module that is called checks it. Every module of a
+site holds the same value, the value belongs to the site, and no image is shipped with one.
+
+A caller presents the token in a request header, as
+\texttt{\small Authorization: Bearer <token>}. It has nothing to do with a respondent's access
+code, and it never reaches a browser. A module checks it on the paths it serves for other
+modules and on no others:
+
+\begin{plaintable}{tab:service-token-paths}{Where each module requires the service token}{@{}>{\raggedright\arraybackslash}p{0.16\linewidth} >{\raggedright\arraybackslash}p{0.41\linewidth} >{\raggedright\arraybackslash}p{0.35\linewidth}@{}}{\thead{Module} & \thead{Requires it on} & \thead{Answers without it}}
+Survey & Every path under \opt{/api} except \opt{/api/pdf/download}: building, renaming and
+dropping reporting schemas, and the respondent report. & Every page a respondent uses;
+\opt{/api/pdf/download}, which the respondent's own session decides; and \opt{/q}. \\
+\addlinespace
+FHHS & Every path outside \opt{/q}: its three reports and its post-survey action. &
+\opt{/q}. \\
+\addlinespace
+Pedigree & Every path but \opt{/healthz}. & \opt{/healthz}. \\
+\addlinespace
+Admin & Nothing. No module calls Admin; it holds the token to present it. & Its pages ask
+for a sign-in, and \opt{/q} does not. \\
+\end{plaintable}
+
+\noindent On those paths a module gives one of three answers:
+
+\begin{plaintable}{tab:service-token-answers}{What a protected path answers}{@{}>{\raggedright\arraybackslash}p{0.36\linewidth} >{\raggedright\arraybackslash}p{0.58\linewidth}@{}}{\thead{The request} & \thead{The answer}}
+Carries the site's token. & It is served. \\
+\addlinespace
+Carries no token, or a wrong one. & \val{401}. The answer does not say which of the two it
+was. \\
+\addlinespace
+Reaches a module that has no token itself. & \val{503}, with the message
+\texttt{\small service token not configured}. A module without a token never serves these paths
+unchecked. \\
+\end{plaintable}
+
+The health endpoints stay open, so a container platform probes a module without holding
+the token (Section~\ref{sec:security-observability}).
+
+\subsection{Generating it}
+
+\begin{elicitcmd}
+openssl rand -hex 32
+\end{elicitcmd}
+
+That prints 64 hexadecimal characters, which need no quoting in a shell, a properties file or a
+YAML file. Any value of at least 32 characters is accepted, and a shorter one is refused.
+Generate one value per site. A second site has its own, and so does an Author installation run
+apart from a site.
+
+Keep it where the site keeps its database passwords and supply it the same way: as an
+environment variable from your platform's secret store, never in a file under version control
+(Section~\ref{sec:security-secrets}).
+
+\begin{elicitnote}[The evaluation stack has one already]
+The shipped compose file gives every module the value
+\val{elicit-dev-service-token-not-for-a-real-site}, so that the stack starts in one command
+(Chapter~\ref{sec:compose}). The value is published (Table~\ref{tab:secrets}), and a module
+running with it logs a warning at every start. Setting \opt{ELICIT_SERVICE_TOKEN} in the
+environment, or in the \file{.env} file beside the compose file, replaces it for every service
+at once.
+\end{elicitnote}
+
+\subsection{Which modules read it}
+\label{sec:service-token-modules}
+
+Every module the site runs gets the same value.
+
+\begin{plaintable}{tab:service-token-modules}{How each module is given the service token}{@{}>{\raggedright\arraybackslash}p{0.26\linewidth} >{\raggedright\arraybackslash}p{0.68\linewidth}@{}}{\thead{Module} & \thead{Reads it from}}
+Survey, Admin, FHHS & The environment variable \opt{ELICIT_SERVICE_TOKEN}, which supplies the
+setting \opt{elicit.service.token} (Tables~\ref{tab:survey}, \ref{tab:admin}
+and~\ref{tab:fhhs}). \\
+\addlinespace
+Pedigree & The environment variable \opt{ELICIT_SERVICE_TOKEN}. It is the only setting Pedigree
+has. \\
+\addlinespace
+Author and its preview Survey & The same variable. The Author installation manual covers
+them. \\
+\end{plaintable}
+
+\noindent What a module does when the value is missing or unusable:
+
+\begin{description}
+  \item[Not set.] The module starts, logs one warning that names the variable, and reports
+        itself \emph{not ready}: \opt{/q/health/ready} shows a check named \val{service-token}
+        as down, with the reason that \opt{ELICIT_SERVICE_TOKEN} is not set. Its protected
+        paths answer \val{503}, and it makes no call that needs the token. The pages it serves
+        to people are not affected. Pedigree has no readiness check to fail: \opt{/healthz}
+        still answers, and \opt{/svg} answers \val{503}.
+  \item[Shorter than 32 characters.] The module refuses to start. Its log names the variable
+        and the length required, and never the value.
+  \item[The development value.] The module works, and warns about the value in its log at
+        every start. Admin's \ui{System} overview lists it among the setup work still
+        outstanding.
+\end{description}
+
+No module writes the token to a log, a trace or an error message. Where a module reports on
+its configuration, it says whether the token is set and nothing more.
+
+\subsection{Where the token is sent}
+\label{sec:service-token-origins}
+
+A module sends the token to two kinds of address and to no other.
+
+\begin{description}
+  \item[A module it is configured with.] Admin sends it to Survey at \opt{elicit.survey.url},
+        and FHHS to Pedigree at \opt{pedigree.url}. The site named those addresses in the
+        module's own configuration, so there is nothing more to list.
+  \item[A trusted origin.] The addresses of a survey's report services and post-survey
+        actions arrive in its definition file (Chapter~\ref{sec:reports}). A module does not
+        send the site's token to an address because a file named it: a mistaken definition, or
+        a hostile one, would collect it. It sends the token only when the address's
+        \term{origin} is one the site has listed in \opt{elicit.service.trusted-origins}.
+\end{description}
+
+An origin is a scheme, a host and a port, such as \val{http://fhhs.internal:8080}; the port
+is \val{80} or \val{443} when none is written. The setting is a comma-separated list of them,
+given as the environment variable \opt{ELICIT_SERVICE_TRUSTED_ORIGINS}. Origins are compared
+exactly. There are no wildcards and no partial matches, and another port, or another name for
+the same host, is another origin. An entry that carries a path, a query or a user name stops
+the module at startup, with a message that names the entry.
+
+\subsubsection*{The Family History reports, as the example}
+
+The Family History definition lists FHHS's three reports and its post-survey action at one
+origin (Chapter~\ref{sec:fhhs}). Three modules call those addresses: Survey, for the report
+page and the action; Admin, for \ui{Print reports}; and FHHS itself, which asks its own report
+addresses for the reports when it builds the document it files. So a site whose definition
+names FHHS at \val{http://fhhs.internal:8080} sets, on Survey, Admin and FHHS:
+
+\begin{elicitcmd}
+ELICIT_SERVICE_TRUSTED_ORIGINS=http://fhhs.internal:8080
+\end{elicitcmd}
+
+The shipped compose file sets \val{http://host.docker.internal:8082} on those three services,
+which is the origin the shipped definition names. A site that changes the report addresses
+lists the origin it changed them to.
+
+An address whose origin is not listed is still called, without the token. A module that
+requires the token, as FHHS does, answers that call \val{401}, and the report shows an error
+card in its place (Chapter~\ref{sec:trouble}).
+
+\begin{elicitsecurity}[Listing an origin hands it the site's token]
+Every call to a listed origin carries the token, and whoever holds the token can call every
+protected path of every module. List only services the site runs itself and trusts as it
+trusts Survey. A report service of the site's own does not have to be listed: left off, it is
+called without a credential, and the network is its lock
+(Section~\ref{sec:reports-network}).
+\end{elicitsecurity}
+
+Three more rules follow from the same caution:
+
+\begin{itemize}
+  \item A trusted origin on the private network may be \val{http}. One on another host
+        should be \val{https}, because the token travels in the request as it is.
+  \item A post-survey action that has a bearer token of its own (Section~\ref{sec:psa}) is
+        sent that token and never the service token, whatever its address. One without is
+        sent the service token if its origin is trusted, and no credential otherwise.
+  \item A call that carries the token follows no redirect, and the reachability checks on
+        Admin's \ui{Connections} page and in Survey's startup diagnostics never send it. To
+        those checks, a protected address that answers \val{401} is reachable.
+\end{itemize}
+
+\subsection{Rotating it}
+\label{sec:service-token-rotate}
+
+Change the token when someone who knew it leaves, after any incident, and whenever your policy
+says.
+
+\begin{enumerate}
+  \item Generate a new value.
+  \item Replace the old value for every module of the site.
+  \item Restart all of them together, not one at a time.
+  \item Confirm with the checks in Chapter~\ref{sec:verify}.
+\end{enumerate}
+
+There is one token, and no period in which an old one is accepted beside a new one: the old
+value stops working when the last module restarts. Between the first restart and the last, a
+call from a module on one value to a module on the other is answered \val{401}. A definition
+applied in that time reports that the reporting schema was not rebuilt, a report shows its
+error card, and a post-survey action is retried on Survey's schedule (Section~\ref{sec:psa}).
+Nothing is lost, and applying the definition again rebuilds the schema.
+
+\subsection{What it does not do}
+\label{sec:service-token-limits}
+
+The token is one shared secret. It closes the paths between modules to anyone who is not a
+module of the site, and it is worth knowing what it leaves as it was.
+
+\begin{itemize}
+  \item \textbf{It says that a module of the site is calling, not on whose behalf.} A caller
+        that holds it may ask for any respondent's report, and for a build or a rename of any
+        survey's reporting schema. Which respondent a person may see is decided by the
+        application before it calls: Survey asks only for the respondent of the current
+        session, and Admin asks after its own role and department checks.
+  \item \textbf{Every holder can call every module.} Pedigree needs the token only to check
+        the calls it receives, yet the value it holds is one FHHS and Survey would accept. The
+        same is true of every service on the trusted list.
+  \item \textbf{The module that faces the Internet holds it.} Survey both checks the token and
+        presents it, so whoever could read Survey's environment would have it, as they would
+        have Survey's database password.
+  \item \textbf{It does not identify the caller.} A module that accepts a call knows that the
+        caller held the token, not which module it was.
+  \item \textbf{It is not encrypted by itself.} Over plain \val{http} it travels as written,
+        as it does inside the compose network.
+  \item \textbf{It changes for every module at once.}
+\end{itemize}
+
+So the token is a second lock and not a replacement for the first. Report services stay on
+the private network (Section~\ref{sec:reports-network}), and the reverse proxy still refuses
+the paths that are not for the people it serves (Section~\ref{sec:security-exposure}).
+
+%% ================================================================== 7
 \section{Evaluating with Docker Compose}
 \label{sec:compose}
 
@@ -631,6 +860,9 @@ without any setup, and it is why the stack is not a site.
   \item \textbf{Every password is documented.} The database roles, the OIDC client secrets, the
         Keycloak administrator and the SFTP account all carry the values printed in
         Chapter~\ref{sec:secrets}.
+  \item \textbf{The service token is documented too.} The file gives every module the
+        development value of Table~\ref{tab:secrets}, and each module warns about it at
+        startup (Chapter~\ref{sec:service-token}).
   \item \textbf{Every service publishes a port on the host} (Table~\ref{tab:ports}): the
         database, the identity provider, the report services, the mail catcher and the trace
         collector as well as the applications.
@@ -678,7 +910,9 @@ ELICIT_TAG=3.0.0-beta.1
 
 A pre-release (\val{3.0.0-beta.1}, \val{3.0.0-rc.1}) is published under its exact version
 only; \val{latest} and the \val{3.0} tag move only when a final version ships. Left unset, the
-tag is \val{latest}, which is what a local build produces.
+tag is \val{latest}, which is what a local build produces. The same file is where an
+evaluation sets \opt{ELICIT_SERVICE_TOKEN}, to run the stack with a service token of its own
+rather than the documented one (Chapter~\ref{sec:service-token}).
 
 That is the whole procedure. The database starts and becomes healthy, Survey creates and
 migrates the shared schema, Admin migrates on top of it, and the remaining services start as
@@ -729,7 +963,7 @@ identity provider (Chapter~\ref{sec:oidc}), install the applications
 (Chapter~\ref{sec:nocompose}), secure the site (Chapter~\ref{sec:security}) and verify it
 (Chapter~\ref{sec:verify}).
 
-%% ================================================================== 7
+%% ================================================================== 8
 \section{Installing without Compose}
 \label{sec:nocompose}
 
@@ -747,6 +981,11 @@ this procedure. Start the images as below, once per module.
   \item Write its configuration (datasource, identity, mail, the brand path, and anything else
         your site changes) as environment variables, by the rules in
         Appendix~\ref{sec:config}, and mount the brand and translations directories read-only.
+  \item Give it the site's service token, \opt{ELICIT_SERVICE_TOKEN}: one value, generated
+        once, the same for every module. A site with report services also sets
+        \opt{ELICIT_SERVICE_TRUSTED_ORIGINS} on Survey and Admin
+        (Chapter~\ref{sec:service-token}). A module started without the token reports itself
+        not ready and says why.
   \item Run it under your container platform, publishing its container port \val{8080} to
         your reverse proxy and to nothing else (Section~\ref{sec:security-exposure}).
   \item Start \ui{Survey} first and wait for \opt{/q/health/ready} to report healthy. That is
@@ -774,7 +1013,7 @@ languages depending on which one answered. Keep the proxy-forwarding settings on
 instead of the site's. They are safe when only the proxy reaches the instances and the proxy
 replaces any forwarding header a client sent (Section~\ref{sec:security-exposure}).
 
-%% ================================================================== 8
+%% ================================================================== 9
 \section{The first sign-in}
 \label{sec:firstsignin}
 
@@ -822,7 +1061,7 @@ Creating a department with a direct \val{INSERT} skips the assignment the consol
 Assign it to its users separately, or create it through \ui{Departments}.
 \end{elicitcaution}
 
-%% ================================================================== 9
+%% ================================================================== 10
 \section{Installing a survey definition}
 \label{sec:definition}
 
@@ -851,7 +1090,8 @@ same screen installs a survey and updates one.}
 that the reporting schema was rebuilt, which is why no Survey restart is needed.}
 
 \begin{elicitnote}[No Survey restart is needed]
-The rebuild happens during the apply: Admin calls Survey, at \opt{elicit.survey.url}, unless
+The rebuild happens during the apply: Admin calls Survey, at \opt{elicit.survey.url},
+presenting the service token (Chapter~\ref{sec:service-token}), unless
 \opt{elicit.survey.etl-build.enabled} turns the call off. The outcome is reported in the apply
 result and never fails the apply. A site that restarts Survey after every apply, or runs it with
 \opt{elicit.etl.enabled}\val{=false}, can turn the call off.
@@ -882,7 +1122,7 @@ next probe; nothing needs restarting (Chapter~\ref{sec:fhhs}).
 reports its surveys end with. The reports chapters are written for whoever builds a report
 service, and install the two that ship with Elicit.}
 
-%% ================================================================== 10
+%% ================================================================== 11
 \section{External branding}
 \label{sec:brand}
 
@@ -982,7 +1222,7 @@ directory level off.
 \screenshot{13-system-branding}{The Branding page. It names the directory that resolved and,
 for each asset, whether it came from the mount or from the default brand.}
 
-%% ================================================================== 11
+%% ================================================================== 12
 \section{Translations}
 \label{sec:i18n}
 
@@ -1182,7 +1422,7 @@ that changed, and those then appear in English. Nobody supporting your site can 
 supply or a curated file you edit, so keep it with the site's configuration, and send
 corrections to ElicitSoftware so that the curated directory carries them too.
 
-%% ================================================================== 12
+%% ================================================================== 13
 \section{Custom reports}
 \label{sec:reports}
 
@@ -1260,7 +1500,8 @@ respondent's most recent answer. \\
 \addlinespace
 Waits & 5 seconds to connect, 60 seconds for the answer. & The REST client's defaults. \\
 \addlinespace
-Credentials & None. & None. \\
+Credentials & The site's service token, when the address is at an origin the site lists as
+trusted (Section~\ref{sec:service-token-origins}). Otherwise none. & The same. \\
 \addlinespace
 Uses & \val{innerHTML} for the page; \val{pdf} for \ui{Generate PDF}. & \val{pdf} only. \\
 \end{plaintable}
@@ -1278,15 +1519,35 @@ address answers only the computers running Survey and Admin: the network the con
 under Compose, or a firewall rule that admits those hosts and no others. A service that another
 report service calls, as FHHS calls Pedigree, answers only that service.
 
-That isolation is why a report service needs no authentication. Neither caller presents a
-credential, and the service checks none: the network has already decided who may ask. Build the
-service on that assumption rather than adding a sign-in Survey and Admin cannot answer.
+The network is a report service's first lock. The report services that ship with Elicit have a
+second: FHHS and Pedigree require the site's service token on every call
+(Chapter~\ref{sec:service-token}). Survey and Admin send the token to FHHS because the site
+lists FHHS's origin as trusted, and FHHS sends it to Pedigree, whose address it is configured
+with.
 
-\begin{elicitsecurity}[The network is the only lock]
-Anything that can reach a report service's address can ask it for any respondent's report. Never
-publish its port beyond the Survey and Admin hosts, and never route it through the reverse proxy
-that serves Survey to respondents. The shipped compose file publishes FHHS and Pedigree on the
-evaluation host for local testing only, and a real site does not run that file.
+A report service of your own is on the trusted list only if the operator puts it there
+(Section~\ref{sec:service-token-origins}).
+
+\begin{description}
+  \item[Not listed,] it is called without a credential and should check none: the network
+        is its only lock, and anything that can reach its address can ask it for any
+        respondent's report.
+  \item[Listed,] it receives the site's token in the \texttt{\small Authorization} header of
+        every request, and can answer \val{401} to a request that does not carry it. But
+        listing a service hands it the platform's token, with which it could itself call
+        Survey, FHHS and Pedigree. A site lists a service only when it trusts that service as
+        it trusts Survey.
+\end{description}
+
+Either way, do not give a report service a sign-in of its own: Survey and Admin cannot answer
+one.
+
+\begin{elicitsecurity}[Keep every report service off the Internet]
+Never publish a report service's port beyond the Survey and Admin hosts, and never route it
+through the reverse proxy that serves Survey to respondents, whether or not the service checks
+the token. The shipped compose file publishes FHHS on the evaluation host because the shipped
+Family History definition's addresses reach FHHS through that port
+(Chapter~\ref{sec:fhhs}), and Pedigree for local testing. A real site does not run that file.
 \end{elicitsecurity}
 
 \subsection{The answer}
@@ -1532,7 +1793,10 @@ keyed by the action's key, and never travels in a definition file:
 \val{<key>} is the action's key, the second field of its record in the definition file and the
 same at every site. The token is one the service issued to your site; Survey presents it as
 given and never requests or refreshes one, so when the service retires a token, set the new one
-and restart Survey. An action without a token is called without a credential. Survey's startup
+and restart Survey. An action without a token of its own is sent the site's service token when
+its address is at a trusted origin, which is how an action answered by one of the site's own
+modules, such as FHHS, is called (Section~\ref{sec:service-token-origins}). Any other action
+without a token is called without a credential. Survey's startup
 diagnostics say whether each action has a credential, never its value.
 
 \subsubsection*{When a call fails}
@@ -1562,7 +1826,7 @@ does the work in the background, and keeps its own record and its own retries, a
 the documents it files (Section~\ref{sec:fhhs-sftp}).
 \end{elicitcaution}
 
-%% ================================================================== 13
+%% ================================================================== 14
 \section{The Family History reports}
 \label{sec:fhhs}
 
@@ -1626,8 +1890,10 @@ report of your own.
 
 The shipped compose file already runs both, as the services \val{fhhs} and \val{pedigree}.
 FHHS waits for Admin to be ready before it starts (Chapter~\ref{sec:topology} explains why), and
-connects with the same database passwords as Survey (Chapter~\ref{sec:secrets}). Bring the
-stack up as in Chapter~\ref{sec:compose}, then:
+connects with the same database passwords as Survey (Chapter~\ref{sec:secrets}). The file
+gives both services the development service token, and lists FHHS's published address as a
+trusted origin on \val{survey}, \val{admin} and \val{fhhs} (Chapter~\ref{sec:service-token}).
+Bring the stack up as in Chapter~\ref{sec:compose}, then:
 
 \begin{enumerate}
   \item Watch FHHS report \emph{not ready}. Until the survey is installed it logs one warning
@@ -1648,7 +1914,17 @@ stack up as in Chapter~\ref{sec:compose}, then:
 
 \begin{enumerate}
   \item Start \file{elicitsoftware/pedigree} at the release's tag. It listens on \val{8080},
-        reads no configuration and keeps no data. Its health endpoint is \opt{/healthz}.
+        keeps no data and reads one setting, the site's service token
+        (Chapter~\ref{sec:service-token}). Its health endpoint is \opt{/healthz}.
+\end{enumerate}
+
+\begin{elicitcmd}[fontsize = \footnotesize]
+docker run -d --name pedigree \
+  -e ELICIT_SERVICE_TOKEN='<service token>' \
+  elicitsoftware/pedigree:<version>
+\end{elicitcmd}
+
+\begin{enumerate}[resume]
   \item Start \file{elicitsoftware/fhhs} at the same tag, \emph{after Admin is ready}, with the
         datasource settings Survey uses and the settings in Table~\ref{tab:fhhs}. At minimum:
 \end{enumerate}
@@ -1659,9 +1935,17 @@ docker run -d --name fhhs \
   -e QUARKUS_DATASOURCE_OWNER_JDBC_URL='jdbc:postgresql://db.example.org:5432/survey' \
   -e ELICIT_DB_PASSWORD='<survey_user password>' \
   -e ELICIT_OWNER_DB_PASSWORD='<elicit_owner password>' \
+  -e ELICIT_SERVICE_TOKEN='<service token>' \
+  -e ELICIT_SERVICE_TRUSTED_ORIGINS='http://fhhs.internal:8080' \
   -e PEDIGREE_URL='http://pedigree.internal:8080/svg' \
   elicitsoftware/fhhs:<version>
 \end{elicitcmd}
+
+The service token is the value Survey and Admin hold. The trusted origin is FHHS's own
+address, as the survey's report addresses give it, because FHHS asks those addresses for the
+reports when it builds the document it files. Set the same origin on Survey and Admin, or they
+call FHHS without the token and FHHS refuses them
+(Section~\ref{sec:service-token-origins}).
 
 Keep the connection options of the shipped JDBC address (Appendix~\ref{sec:config}) when you
 point FHHS at your own server. FHHS reports ready at \opt{/q/health/ready} once the survey is
@@ -1675,10 +1959,15 @@ the Survey and Admin containers reach through Docker Desktop's host alias. That 
 shipped compose file on a developer's machine and nowhere else.
 
 A real site gives the four addresses the name the applications know FHHS by on their own
-network, for example \val{http://fhhs:8080/proband/report}. Change them in Author, on the
+network, for example \val{http://fhhs.internal:8080/proband/report}. Change them in Author, on the
 survey's \ui{Reports\ldots} page for the three reports and on its \ui{Post-survey actions\ldots}
 page for the action, and export the survey, then apply that file instead of the shipped one.
 A change made in the database is undone by the next apply.
+
+The origin of those four addresses, \val{http://fhhs.internal:8080} in the example, is the one
+to list in \opt{ELICIT_SERVICE_TRUSTED_ORIGINS} on Survey, Admin and FHHS. The two must agree:
+an address at an origin that is not listed is called without the service token, and FHHS
+answers \val{401} (Section~\ref{sec:service-token-origins}).
 
 \subsection{FHHS settings}
 
@@ -1689,6 +1978,16 @@ passwords (Appendix~\ref{sec:config}). Its own are these.
 \opt{pedigree.url} & --- & \chgset & Pedigree's drawing endpoint, for example
 \val{http://pedigree:8080/svg}. No value is shipped; the compose file sets it.
 Environment: \opt{PEDIGREE_URL}. \\
+\opt{elicit.service.token} & --- & \chgset & The site's service token, which FHHS requires on
+every path outside \opt{/q} and presents to Pedigree and to its own report addresses
+(Chapter~\ref{sec:service-token}). At least 32 characters; no value is shipped. A secret.
+Environment: \opt{ELICIT_SERVICE_TOKEN}. \\
+\opt{elicit.service.trusted-origins} & --- & \chgset & The origin of FHHS's own report
+addresses, as the survey's definition gives them, for example
+\val{http://fhhs.internal:8080}. A comma-separated list. Unset, FHHS sends the token to
+Pedigree only, and its own report addresses refuse it when it builds the document it files
+(Section~\ref{sec:service-token-origins}). Environment:
+\opt{ELICIT_SERVICE_TRUSTED_ORIGINS}. \\
 \opt{family.history.survey.key} & \val{5e91c606-59a1-450a-a8d7-2f1530ff472b} & \chgkeep & The
 key of the survey FHHS serves. It is the key in the shipped definition file, the same at every
 site. \\
@@ -1765,13 +2064,18 @@ multipart field \val{ped}, and answers with the drawing as an SVG. The table's c
 builds the table from the respondent's answers and waits 15 seconds for the drawing.
 \val{GET /healthz} answers \val{{"status":"ok"}} when the service is up.
 
+Every request but \opt{/healthz} must carry the site's service token, which Pedigree reads
+from the environment variable \opt{ELICIT_SERVICE_TOKEN}; it has no other setting. Started
+without the variable, Pedigree answers \val{503} to every drawing request
+(Chapter~\ref{sec:service-token}).
+
 Pedigree is a report service's helper, not a report service: nothing in Elicit calls it but
 FHHS, so it never appears on a survey's report list.
 
 \elicitpart{Running the site}{Securing the site, checking that every part of the installation
 works, what to do when one does not, and where to read further.}
 
-%% ================================================================== 14
+%% ================================================================== 15
 \section{Securing the site}
 \label{sec:security}
 
@@ -1837,6 +2141,10 @@ would have answered:
   \item[On Survey and Admin,] every path under \opt{/q}: health, readiness and metrics
         (Section~\ref{sec:security-observability}).
 \end{description}
+
+Survey also requires the site's service token on those \opt{/api} paths
+(Chapter~\ref{sec:service-token}). The proxy rule stays: a path that is not for the people the
+proxy serves should not reach them at all, and two locks are better than one.
 
 \subsubsection*{Only the proxy reaches the applications}
 
@@ -1981,7 +2289,9 @@ details Admin holds for each subject.
 \label{sec:security-secrets}
 
 Chapter~\ref{sec:secrets} lists the credentials that ship with a documented value. A site also
-has secrets of its own: the mail relay's password, each post-survey action's bearer token
+has secrets of its own: the service token its modules present to each other
+(Chapter~\ref{sec:service-token}), the mail relay's password, each post-survey action's bearer
+token
 (Section~\ref{sec:psa}), and FHHS's SFTP password or private key.
 
 \begin{itemize}
@@ -2024,6 +2334,9 @@ Three things reach a site from outside it and are then shown to people or acted 
   \item \textbf{A report service answers Survey and Admin only}
         (Section~\ref{sec:reports-network}). On a site, the Family History report addresses
         name FHHS on the private network (Chapter~\ref{sec:fhhs}).
+  \item \textbf{FHHS and Pedigree require the site's service token,} and Survey, Admin and
+        FHHS send it only to the origins the site lists as trusted. List no service the site
+        does not run and trust (Section~\ref{sec:service-token-origins}).
   \item \textbf{A post-survey action outside the site has a credential of its own:} a bearer
         token set on Survey, never carried in the definition file (Section~\ref{sec:psa}).
   \item \textbf{FHHS files documents over SFTP with the server's host key verified.} Set
@@ -2135,6 +2448,9 @@ something the site does not run does not apply.
         (Chapter~\ref{sec:secrets}).
   \item Every secret reaches its module from an environment variable or a secret store, and
         none is in a file under version control (Section~\ref{sec:security-secrets}).
+  \item Every module holds the same service token, generated for this site; no module's log
+        warns of the development value; and the trusted origins name only services the site
+        runs (Chapter~\ref{sec:service-token}).
   \item A report service of the site's own connects as \val{surveyreport_user}
         (Section~\ref{sec:security-database}).
   \item Backups are encrypted and access to them is restricted
@@ -2161,7 +2477,7 @@ something the site does not run does not apply.
         (Section~\ref{sec:security-releases}).
 \end{itemize}
 
-%% ================================================================== 15
+%% ================================================================== 16
 \section{Verifying the installation}
 \label{sec:verify}
 
@@ -2174,6 +2490,23 @@ Work through these checks in order: each one relies on the one before it.
         such, with the reason its readiness check gives. Under your own container platform,
         ask each \opt{/q/health/ready} directly. For Survey, ready means its migrations have
         finished.
+  \item \textbf{The modules authenticate each other.} From a host on the private network,
+        ask each module directly, without the service token. On the evaluation stack the
+        addresses are \val{localhost:8080}, \val{localhost:8082} and \val{localhost:8083}.
+\begin{elicitcmd}[fontsize = \footnotesize]
+curl -s -o /dev/null -w '%{http_code}\n' -X POST http://<survey>/api/etl/build
+curl -s -o /dev/null -w '%{http_code}\n' -X POST \
+     -H 'Authorization: Bearer not-this-token' http://<survey>/api/etl/build
+curl -s -o /dev/null -w '%{http_code}\n' -X POST \
+     -H 'Content-Type: application/json' -d '{}' http://<fhhs>/proband/report
+curl -s -o /dev/null -w '%{http_code}\n' -X POST http://<pedigree>/svg
+curl -s -o /dev/null -w '%{http_code}\n' http://<survey>/q/health/ready
+curl -s -o /dev/null -w '%{http_code}\n' http://<pedigree>/healthz
+\end{elicitcmd}
+        The first four print \val{401} and the last two \val{200}. A \val{503} from one of
+        the first four means that module has no token (Chapter~\ref{sec:service-token}). The
+        other half needs no command: a definition that applies with its reporting schema
+        rebuilt, and a report page that shows its reports, are calls that carried the token.
   \item \textbf{The schema exists.} The \val{survey} schema carries tables, and each module's
         migration history is present.
   \item \textbf{The reporting schema is built.} After a definition is applied, the survey's
@@ -2215,7 +2548,7 @@ when the overall log level is \val{WARN}. It is the first place to look after a 
 seemed to work.
 \end{elicitnote}
 
-%% ================================================================== 16
+%% ================================================================== 17
 \section{When it does not work}
 \label{sec:trouble}
 
@@ -2228,6 +2561,34 @@ FHHS is not ready and answers report requests with \val{503}, naming a survey. &
 has not been imported yet, or its reporting schema has not been built. & Apply the definition,
 or apply it again to build the schema (Chapter~\ref{sec:definition}). FHHS goes healthy on its
 next probe; nothing needs restarting. \\
+\addlinespace
+A module is not ready, and its \val{service-token} check gives the reason that
+\opt{ELICIT_SERVICE_TOKEN} is not set. Its protected paths answer \val{503}. & The module was
+started without the service token. & Give it the site's token and restart it
+(Chapter~\ref{sec:service-token}). \\
+\addlinespace
+A module exits at startup, and its log says \opt{ELICIT_SERVICE_TOKEN} is too short. & The
+token has fewer than 32 characters. & Generate one with \val{openssl rand -hex 32} and give
+it to every module. \\
+\addlinespace
+A module exits at startup, and its log says an entry of
+\opt{ELICIT_SERVICE_TRUSTED_ORIGINS} is not an origin. & The entry carries a path, a query or
+a user name, or lacks a scheme or a host. & Write it as scheme, host and port, such as
+\val{http://fhhs.internal:8080}. \\
+\addlinespace
+A module's log warns at every start that \opt{ELICIT_SERVICE_TOKEN} is the well-known
+development value. & The module runs with the token the compose file ships. & Expected on an
+evaluation stack. On a site, generate a token of its own
+(Chapter~\ref{sec:service-token}). \\
+\addlinespace
+An apply reports that the reporting schema was not rebuilt, a report card shows an error
+although its service is running, or FHHS's post-survey action fails, and the module that was
+called answered \val{401}. & Either the two modules hold different service tokens, as they do
+part-way through a rotation; or the address is at an origin the caller does not list as
+trusted, so it sent no token. & Give every module the same token and restart them together;
+or list the origin on Survey, Admin and FHHS, or change the addresses in Author to an origin
+that is listed (Section~\ref{sec:service-token-origins}). The caller's log shows the call
+failing with \val{401}. \\
 \addlinespace
 A report card shows an error, or a report service is unreachable on \ui{Connections}. & The
 address in the survey's report list does not resolve from inside the Survey and Admin
@@ -2299,7 +2660,7 @@ Upgrading one without the others is what breaks. In the compose file, \opt{depen
 \emph{startup} only; it does not check again a dependency that is already running.
 \end{elicitcaution}
 
-%% ================================================================== 17
+%% ================================================================== 18
 \section{Where to look next}
 
 \begin{description}
@@ -2452,6 +2813,15 @@ on. \\
 /api/etl/schema/<key>} may drop a survey's reporting schema. Leave it \val{false} at a site:
 the next build would regenerate the schema with new surrogate ids, which breaks any extract
 keyed on them. Only a database that holds no reporting anyone depends on turns it on. \\
+\opt{elicit.service.token} & --- & \chgset & The site's service token: the secret every module
+presents when it calls another, and that Survey requires on \opt{/api}
+(Chapter~\ref{sec:service-token}). At least 32 characters; no value is shipped. A secret.
+Environment: \opt{ELICIT_SERVICE_TOKEN}. \\
+\opt{elicit.service.trusted-origins} & --- & \chgmay & The origins of the report services and
+post-survey actions Survey may send the service token to: a comma-separated list such as
+\val{http://fhhs.internal:8080}. Unset, Survey sends the token to none
+(Section~\ref{sec:service-token-origins}). Environment:
+\opt{ELICIT_SERVICE_TRUSTED_ORIGINS}. \\
 \opt{elicit.diagnostics.startup.enabled} & \val{true} & \chgmay & Whether the startup
 diagnostics report is written to the log. \\
 \opt{elicit.diagnostics.startup.delay} & \val{10s} & \chgmay & How long after startup that
@@ -2484,7 +2854,15 @@ secret and has no default.
 disable OIDC. Environment: \opt{ELICIT_AUTHORIZATION}. \\
 \opt{elicit.survey.url} & \val{http://survey:8080} & \chgset & Where Survey is, for the
 reporting-schema rebuild after a definition is applied. The default is the compose service
-name. Environment: \opt{ELICIT_SURVEY_URL}. \\
+name. Admin sends the service token to this address. Environment: \opt{ELICIT_SURVEY_URL}. \\
+\opt{elicit.service.token} & --- & \chgset & The site's service token, which Admin presents to
+Survey and to report services at a trusted origin (Chapter~\ref{sec:service-token}). At least
+32 characters; no value is shipped. A secret. Environment: \opt{ELICIT_SERVICE_TOKEN}. \\
+\opt{elicit.service.trusted-origins} & --- & \chgmay & The origins of the report services Admin
+may send the service token to, besides Survey's: a comma-separated list such as
+\val{http://fhhs.internal:8080}. Unset, Admin sends the token to Survey only
+(Section~\ref{sec:service-token-origins}). Environment:
+\opt{ELICIT_SERVICE_TRUSTED_ORIGINS}. \\
 \opt{elicit.survey.etl-build.enabled} & \val{true} & \chgmay & Whether to make that call at
 all. Environment: \opt{ELICIT_SURVEY_ETL_BUILD_ENABLED}. \\
 \opt{elicit.mailer.send-timeout-seconds} & \val{30} & \chgmay & How long a single message

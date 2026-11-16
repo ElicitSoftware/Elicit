@@ -7,7 +7,7 @@
 **Primary Actor:** Deployment Operator  
 **Goal:** Run FHHS and Pedigree, the report services of the Family Health History Survey, beside a site's Survey and Admin, so that a respondent who finishes that survey sees their summary, their relatives' cancer history and their pedigree drawing, and so that a report developer has a working report service to read (UC-020).  
 **Status:** Draft  
-**Requirements:** [FR-042, FR-038, FR-041](../requirements.md)
+**Requirements:** [FR-042, FR-038, FR-041, FR-044, C-019](../requirements.md)
 
 ## Preconditions
 
@@ -19,8 +19,8 @@
 
 1. The operator reads the Family History reports chapter, which states that FHHS answers the three reports of the Family Health History Survey and the post-survey action that files the family history elsewhere, and that Pedigree draws the family tree FHHS asks it for.
 2. The system states that both are optional and specific to that one survey: a site that does not run the Family Health History Survey runs neither.
-3. The operator starts Pedigree. It needs no configuration and no database.
-4. The operator configures FHHS with its database connections, the address of Pedigree, and whether it files reports elsewhere, using the settings the chapter lists.
+3. The operator starts Pedigree with the site's service token (UC-023). It needs no other configuration and no database.
+4. The operator configures FHHS with its database connections, the address of Pedigree, the site's service token, the origin at which Survey and Admin reach FHHS as a trusted origin, and whether it files reports elsewhere, using the settings the chapter lists. The operator lists the same trusted origin on Survey and Admin.
 5. The operator starts FHHS after Admin is ready, as the compose file does.
 6. The system shows FHHS reporting not-ready, with a reason naming the survey it is waiting for, because no Family Health History Survey has been installed yet.
 7. The operator makes sure the report addresses in the survey's definition name FHHS at the address Survey and Admin reach it at, changing them in Author and exporting again if the site's address differs from the shipped one.
@@ -61,6 +61,15 @@
 2. The operator checks that Pedigree is running and that FHHS's Pedigree address reaches it from inside the FHHS container.
 3. Use case continues at step 11.
 
+### A5: A report is refused for want of the service token
+
+**Trigger:** The three report cards show an error although FHHS is ready, or FHHS is not ready with a check named `service-token` (step 11)  
+**Flow:**
+
+1. The manual states the causes: FHHS or Pedigree was started without the service token, or with a different one from Survey and Admin; or the origin of the report addresses is not among the trusted origins of Survey, Admin and FHHS, so they called without the token and FHHS answered `401`.
+2. The operator supplies the same token to all four modules, makes the trusted origin match the report addresses (step 7), and restarts the modules that changed (UC-023 A1, A3).
+3. Use case continues at step 10.
+
 ### A4: Report requests are refused before the survey is installed
 
 **Trigger:** A report is requested while FHHS is not ready (step 6)  
@@ -98,10 +107,14 @@ On a new database FHHS's migrations and Admin's grant on the same tables. Starte
 
 The definition file ships with report addresses that reach FHHS on the evaluation host. A site whose Survey and Admin reach FHHS at another address changes them in Author and exports again; the report list is replaced on every apply (UC-020 BR-006).
 
-### BR-005: Pedigree takes no configuration
+### BR-005: Pedigree takes one setting
 
-Pedigree reads no settings and holds no data. It draws one pedigree per request from the table FHHS sends it and keeps nothing.
+Pedigree reads the service token from its environment and nothing else, and holds no data. It draws one pedigree per request from the table FHHS sends it and keeps nothing.
 
-### BR-006: Report endpoints carry no authentication
+### BR-006: FHHS and Pedigree require the service token
 
-Survey and Admin call report services without credentials, and FHHS does not check any. FHHS and Pedigree are therefore reached only on the network the applications share, and their ports are not published outside it on a real site.
+FHHS checks the site's service token on every path outside `/q`, and Pedigree on every path but `/healthz`. Survey and Admin send it to FHHS because the operator listed FHHS's origin as trusted; FHHS sends it to Pedigree, whose address it is configured with, and to its own report addresses when it builds the filed document, for which it lists the same origin. A module without the token answers `503`; a call without it answers `401` (UC-023).
+
+### BR-007: The network rule still holds
+
+FHHS and Pedigree are reached only on the network the applications share, and their ports are not published outside it on a real site. The token is a second lock beside that one (C-017). The evaluation stack publishes FHHS's port because the shipped definition's addresses reach FHHS through it (BR-004).

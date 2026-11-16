@@ -7,7 +7,7 @@
 **Primary Actor:** Deployment Operator  
 **Goal:** Put in place every control that protects a site — what reaches the Internet, transport security, the identity provider and its accounts, access codes, the database, secrets, what the site loads, and what it logs — and work through a checklist that records each one, so that a site holding respondents' answers is hardened deliberately rather than by assumption.  
 **Status:** Open  
-**Requirements:** [FR-043, C-017](../requirements.md)
+**Requirements:** [FR-043, FR-044, C-017, C-019](../requirements.md)
 
 ## Preconditions
 
@@ -27,10 +27,11 @@
 8. The operator protects the access code: automatic registration off, the invitation link over `https`, and the logs that record the link's address treated as holding credentials.
 9. The operator protects the database: no address outside the application hosts, the connection roles the manual prescribes, the schema owner's password held as the most sensitive secret of the site, and backups protected as the database is.
 10. The operator supplies every secret through a configuration source that keeps it out of files under version control, and knows the two places each one is changed.
-11. The operator decides who may change what the site loads: definition files applied only from authors the site trusts, with the addresses each one carries reviewed, and the brand and translations directories writable by operators only.
-12. The operator restricts the health and metrics endpoints, the logs and the traces to the site's own network and people.
-13. The operator runs a named release of every module and follows the release's upgrade procedure when a new one is published.
-14. The operator works through the chapter's checklist, each line of which names the section that explains it, and records the outcome.
+11. The operator gives every module the site's own service token, so that the paths one module serves for another answer only a module of the site, and lists as trusted only the origins of services the site runs and trusts (UC-023).
+12. The operator decides who may change what the site loads: definition files applied only from authors the site trusts, with the addresses each one carries reviewed, and the brand and translations directories writable by operators only.
+13. The operator restricts the health and metrics endpoints, the logs and the traces to the site's own network and people.
+14. The operator runs a named release of every module and follows the release's upgrade procedure when a new one is published.
+15. The operator works through the chapter's checklist, each line of which names the section that explains it, and records the outcome. The service token has a line of its own.
 
 ## Alternative Flows
 
@@ -96,4 +97,4 @@ No line of the checklist stands alone: each cites the section that says what the
 
 ### BR-005: The proxy refuses what is not for users
 
-A path that serves the site's own applications is refused at the reverse proxy whether or not the application behind it also checks the caller.
+A path that serves the site's own applications is refused at the reverse proxy whether or not the application behind it also checks the caller. The applications do check: those paths require the service token (UC-023). The proxy rule stays, as the first of two locks.

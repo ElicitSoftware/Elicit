@@ -112,6 +112,30 @@ Authoring needs none of the site applications.
 `PREMM5` is commented out in the compose file and is not cloned by
 `cloneAllProjects.sh`.
 
+### Service Token
+
+The modules authenticate their calls to each other with one shared bearer token (umbrella
+C-019, UC-023): `ELICIT_SERVICE_TOKEN`, which is `elicit.service.token` in the Java modules;
+Pedigree reads the environment variable directly. Survey requires it on `/api` except
+`/api/pdf/download`, FHHS on everything outside `/q`, Pedigree on everything but `/healthz`;
+a missing or wrong token answers 401. **Health stays open**, so `status.sh`, the compose
+healthchecks and the suites' readiness waits are unchanged. The compose file gives every
+application the development default `elicit-dev-service-token-not-for-a-real-site` (the
+multi-site e2e stacks use a literal of their own per site, so a cross-wired call fails), and a
+module running with it logs a WARN. A module with no token starts, is **not ready** (health
+check `service-token`, reason "ELICIT_SERVICE_TOKEN is not set") and answers 503 on its protected
+paths; a token under 32 characters stops the start. A real site installs without compose and
+supplies its own value (`openssl rand -hex 32`).
+
+The token is sent only to an address the module is configured with (`elicit.survey.url`,
+`pedigree.url`, `author.preview.survey.url`) or to an origin in
+`ELICIT_SERVICE_TRUSTED_ORIGINS` (`elicit.service.trusted-origins`); an address from a
+`.elicit` file never gets it for being in the file. The Family History definition names its
+reports and its post-survey action at `http://host.docker.internal:8082/...`, so the compose
+file lists that origin on `survey`, `admin` and `fhhs` — which is also why the `8082` mapping
+is needed and is not a testing convenience. No image may carry a token:
+`check-properties.sh` fails on an unprefixed, `%prod` or `%docker` value.
+
 ### Prometheus Is Not Wired Into This Compose File
 
 `Prometheus/` (config, recording rules, alerting rules) and `docs/metrics/*`
@@ -324,8 +348,8 @@ See `docs/I18N_IMPLEMENTATION_GUIDE.md`.
 
 The umbrella now carries its own AIUP artifacts — the first ones it has had —
 scoped to the platform as one deployable whole: `docs/vision.md`,
-`docs/requirements.md` (FR-001..043, NFR-001..013, C-001..018),
-`docs/use_cases.puml` and `docs/use_cases/UC-001..022`. Module requirement and
+`docs/requirements.md` (FR-001..044, NFR-001..014, C-001..019),
+`docs/use_cases.puml` and `docs/use_cases/UC-001..023`. Module requirement and
 use-case IDs are unrelated to these.
 
 - `docs/manual/` — the **installation manual** (UC-001), a LaTeX/PDF that covers
@@ -333,7 +357,7 @@ use-case IDs are unrelated to these.
   service (UC-020, UC-021): topology, prerequisites, the database roles and
   schemas, the OIDC clients and roles, evaluating with the compose stack and installing
   a real site without it, the first
-  sign-in, branding, translations, custom reports, securing a site (a chapter of
+  sign-in, the service token, branding, translations, custom reports, securing a site (a chapter of
   descriptions closing with a checklist, UC-022), verification and the configuration
   reference.
   Built by `docs/manual/build-manual.sh` through a TeX Live container, stamped
