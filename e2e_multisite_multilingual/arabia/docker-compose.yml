@@ -121,7 +121,7 @@ services:
       survey:
         condition: service_healthy
   db:
-    image: elicitsoftware/elicit_db:2.0.0
+    image: elicitsoftware/elicit_db:3.0.0-rc.1
     networks:
       default:
         aliases:

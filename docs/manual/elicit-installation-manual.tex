@@ -362,7 +362,7 @@ script creates it. It can:
 \end{itemize}
 It cannot create roles or databases, read another database of the cluster, or reach the
 server's files. A cluster whose roles were created by an earlier release's script, or by
-version 1 of the bundled database image, still has \val{elicit_owner} and \val{dbowner} as
+version 1.0.0 of the bundled database image, still has \val{elicit_owner} and \val{dbowner} as
 superusers: \file{DeploymentScript.md} gives the three statements that narrow them.
 \end{elicitnote}
 
@@ -403,7 +403,7 @@ them is created by a module's migrations the first time it starts.
 
 \begin{elicitnote}[The bundled database image does all of this for you]
 \file{elicitsoftware/elicit_db} runs the role script and the schema script when its data
-directory is first initialized. The compose file names version 2 of the image, the first
+directory is first initialized. The compose file names version 3.0.0-rc.1 of the image, the first
 whose roles are the ones above. An initialization script runs \emph{only} against an empty
 data directory, so a cluster that already exists is yours to prepare with the two scripts
 above. The image's scripts carry the documented development passwords listed in

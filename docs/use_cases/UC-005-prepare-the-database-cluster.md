@@ -47,7 +47,7 @@
 
 ### A3: The cluster was prepared by an earlier role script
 
-**Trigger:** The roles already exist, and the schema owner and the owner group are superusers, as the script of a release before 3.0.0 and version 1 of the bundled database image created them (step 3)  
+**Trigger:** The roles already exist, and the schema owner and the owner group are superusers, as the script of a release before 3.0.0 and version 1.0.0 of the bundled database image created them (step 3)  
 **Flow:**
 
 1. The operator does not run the role script again. The upgrade notes (`DeploymentScript.md`, C-006) give the query that shows which roles are superusers, the query that confirms the schema owner owns everything in the Elicit schemas, and the three statements that make the schema owner a member of the owner group and remove the superuser attribute from both.
