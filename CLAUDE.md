@@ -235,6 +235,12 @@ to start cleanly on 2026-09-20.
   `elicit-i18n/` gives all three the same languages, and Author's
   `author.content.languages` is exactly that set. Run by `buildDockerImages.sh` before it
   builds anything.
+- `checkBrand.sh [--sync]` — the default brand is one brand (umbrella NFR-015): the copy Survey,
+  Admin and Author each embed at `src/main/resources/META-INF/brand/` is `elicit-brand/` file for
+  file (a module's license header on a stylesheet and the SVG masters in `images/source/` aside), and every color
+  `docs/manual/elicit-brand.sty` defines is a color of `colors/brand-colors.css` with the same
+  value. `--sync` copies `elicit-brand/` into the modules first; the `.sty` is edited by hand. Run
+  by `buildDockerImages.sh` after `checkLanguages.sh`.
 - `buildDockerImages.sh [Target ...]` — build the module images in parallel
   (all five by default, or just the named ones), one log per target under
   `build-logs/`, with a summary and a non-zero exit if any build failed. The
@@ -296,8 +302,16 @@ and Survey together, and the two multi-site suites compile the page objects out 
 ## Branding
 
 `elicit-brand/` is the default brand (colors, typography, `theme.css`,
-`brand-config.json`), mounted read-only at `/opt/brand` in the Survey and
-Admin containers via `brand.file.system.path`. `test-brand/` and
+`brand-config.json`), mounted read-only at `/opt/brand` in the Survey, Admin, Author and
+preview containers via `brand.file.system.path`. It is the **source**: the Choice E mark
+(`images/source/` holds the SVG masters; the applications read the fixed names
+`HorizontalLogo.png`, `icon-white.png` and `favicon.ico`), primary `#0A3D62`, and IBM Plex
+Sans, Sans Arabic and Mono as WOFF2 files under `typography/fonts/`. Each module embeds a copy
+as its fallback and `checkBrand.sh` keeps the copies identical: change the brand here, then
+`./checkBrand.sh --sync`, and commit in each module. A relative `url()` in a brand stylesheet
+is resolved against the brand by each `AppConfig` (Survey serves brand files at `/brand/`,
+Admin and Author at `/api/brand/`), which is how the fonts load without a third-party host
+(UC-014 BR-007). `test-brand/` and
 `test-partial-brand/` exercise fallback behavior when a brand omits assets.
 See `docs/BRAND_SYSTEM_IMPLEMENTATION_GUIDE.md`.
 
@@ -357,7 +371,7 @@ See `docs/I18N_IMPLEMENTATION_GUIDE.md`.
 
 The umbrella now carries its own AIUP artifacts — the first ones it has had —
 scoped to the platform as one deployable whole: `docs/vision.md`,
-`docs/requirements.md` (FR-001..044, NFR-001..014, C-001..020),
+`docs/requirements.md` (FR-001..044, NFR-001..015, C-001..020),
 `docs/use_cases.puml` and `docs/use_cases/UC-001..023`. Module requirement and
 use-case IDs are unrelated to these.
 
@@ -410,7 +424,7 @@ use-case IDs are unrelated to these.
   set it yourself; if the guard stops you, make a branch.
 - CI per repository: Survey, Admin and Author run the Maven suite (`ci.yml`), FHHS runs it
   from `maven.yml`, Pedigree builds its image and smoke-tests `/healthz` and `/svg`, and the
-  umbrella runs `checkLanguages.sh`, `check-properties.sh`, `docker compose config` and the
+  umbrella runs `checkLanguages.sh`, `checkBrand.sh`, `check-properties.sh`, `docker compose config` and the
   manual build against fresh clones of Survey, Admin, FHHS and Author at the target branch
   (Author at `main`).
 

@@ -14,11 +14,11 @@
 %%
 %% UC-002 BR-004: the manual is typeset in the Elicit default brand regardless of which brand
 %% a deployment mounts, so one document serves every site. The colours below are the same
-%% values as elicit-brand/colors/brand-colors.css; the typefaces are the same IBM Plex
-%% families brand-typography.css asks for.
+%% values as elicit-brand/colors/brand-colors.css, which checkBrand.sh holds them to; the
+%% typefaces are the same IBM Plex families brand-typography.css asks for.
 
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{elicit-brand}[2026/11/12 Elicit default brand]
+\ProvidesPackage{elicit-brand}[2026/11/16 Elicit default brand]
 
 \RequirePackage{xcolor}
 \RequirePackage{fontspec}
@@ -43,9 +43,9 @@
 \providecommand{\elicitProduct}{Elicit}
 
 %% ---------------------------------------------------------------- colours
-\definecolor{elicitInk}{HTML}{1B629C}
-\definecolor{elicitInkDark}{HTML}{154C79}
-\definecolor{elicitInkDarkest}{HTML}{0A3D62}
+\definecolor{elicitInk}{HTML}{0A3D62}
+\definecolor{elicitInkDark}{HTML}{072E4A}
+\definecolor{elicitInkDarkest}{HTML}{041A2B}
 \definecolor{elicitVerdigris}{HTML}{22775D}
 \definecolor{elicitVerdigrisPale}{HTML}{E3F3EE}
 \definecolor{elicitPaper}{HTML}{FDFCFA}
@@ -54,7 +54,7 @@
 \definecolor{elicitSlate}{HTML}{4A5A6A}
 \definecolor{elicitCharcoal}{HTML}{1A2229}
 \definecolor{elicitAmberText}{HTML}{8C6A1D}
-\definecolor{elicitBrickText}{HTML}{9B3B2E}
+\definecolor{elicitBrick}{HTML}{BB251B}
 
 \pagecolor{elicitPaper}
 \color{elicitCharcoal}
@@ -115,7 +115,7 @@
 %% A chapter opens with its number in the brand's accent and a ledger rule beneath, so the
 %% start of each chapter is visible when a reader flips through a printed copy.
 \titleformat{\section}
-  {\normalfont\Large\bfseries\color{elicitInkDarkest}}
+  {\normalfont\Large\bfseries\color{elicitInk}}
   {\textcolor{elicitVerdigris}{\thesection}}{0.6em}{}
   [\vspace{3pt}{\color{elicitLedger}\titlerule[0.8pt]}]
 \titleformat{\subsection}
@@ -134,7 +134,7 @@
 %% numbering runs on across parts, so a cross-reference never needs the part to be found.
 \titleclass{\part}{top}
 \titleformat{\part}[display]
-  {\normalfont\bfseries\color{elicitInkDarkest}}
+  {\normalfont\bfseries\color{elicitInk}}
   {\normalsize\color{elicitVerdigris}\MakeUppercase{\partname}~\thepart}
   {6pt}
   {\Huge}
@@ -182,7 +182,7 @@
   arc = 0pt, outer arc = 0pt,
   left = 10pt, right = 10pt, top = 8pt, bottom = 8pt,
   fonttitle = \bfseries\footnotesize,
-  coltitle = elicitInkDarkest,
+  coltitle = elicitInk,
   title = {#1}, attach title to upper = {\par\medskip},
 }
 
@@ -201,12 +201,12 @@
 %% site must decide about deliberately rather than inherit (FR-021).
 \newtcolorbox{elicitsecurity}[1][Before this reaches a real site]{%
   enhanced, breakable,
-  colback = elicitLedgerLight, colframe = elicitBrickText,
+  colback = elicitLedgerLight, colframe = elicitBrick,
   boxrule = 0pt, leftrule = 3pt,
   arc = 0pt, outer arc = 0pt,
   left = 10pt, right = 10pt, top = 8pt, bottom = 8pt,
   fonttitle = \bfseries\footnotesize,
-  coltitle = elicitBrickText,
+  coltitle = elicitBrick,
   title = {#1}, attach title to upper = {\par\medskip},
 }
 
@@ -246,7 +246,7 @@
 %%   \chgmay   — the site may set this; the shipped value is a working default.
 %%   \chgkeep  — leave it alone; it is an internal default that happens to live in the
 %%               same file, and changing it is a change to how the application works.
-\newcommand{\chgset}{\textcolor{elicitBrickText}{\footnotesize\bfseries set}}
+\newcommand{\chgset}{\textcolor{elicitBrick}{\footnotesize\bfseries set}}
 \newcommand{\chgmay}{\textcolor{elicitInkDark}{\footnotesize\bfseries may}}
 \newcommand{\chgkeep}{\textcolor{elicitSlate}{\footnotesize keep}}
 
@@ -356,7 +356,7 @@
 \tikzset{
   elicit node/.style = {draw, rounded corners = 2pt, line width = 0.7pt, align = center,
     inner xsep = 6pt, inner ysep = 5pt, font = \footnotesize\sffamily, minimum height = 2.2em},
-  elicit app/.style = {elicit node, draw = elicitInk, fill = white, text = elicitInkDarkest},
+  elicit app/.style = {elicit node, draw = elicitInk, fill = white, text = elicitInk},
   elicit service/.style = {elicit node, draw = elicitSlate, fill = elicitLedgerLight,
     text = elicitCharcoal},
   elicit person/.style = {elicit node, draw = elicitVerdigris, fill = elicitVerdigrisPale,

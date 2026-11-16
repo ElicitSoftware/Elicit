@@ -38,11 +38,11 @@
 \centering
 \vspace*{3.5cm}
 
-\includegraphics[width = 34mm]{images/elicit-logo.png}
+\includegraphics[width = 70mm]{images/elicit-logo.png}
 
 \vspace{1.4cm}
 
-{\color{elicitInkDarkest}\Huge\bfseries Installing the Platform\par}
+{\color{elicitInk}\Huge\bfseries Installing the Platform\par}
 
 \vspace{0.5cm}
 
@@ -83,7 +83,7 @@ begins.
 \end{elicitnote}
 
 \vspace{1.2em}
-{\color{elicitInkDarkest}\section*{Contents}}
+{\color{elicitInk}\section*{Contents}}
 \vspace{-0.6em}
 \begingroup
 \hypersetup{linkcolor = elicitCharcoal}
@@ -1151,14 +1151,34 @@ colors, typefaces, logos and organization name, mount a brand directory and poin
   brand-info.json                  description for page metadata
   theme.css                        imports the two stylesheets
   colors/brand-colors.css          --brand-* color properties
-  typography/brand-typography.css  --brand-* typeface properties
+  typography/brand-typography.css  --brand-* typeface properties, @font-face rules
   typography/typography.json       the typefaces, described
-  images/HorizontalLogo.png        the logo in the header
-  images/icon-white.png            the icon on a dark background
+  typography/fonts/                the font files, if the brand has its own
+  images/HorizontalLogo.png        the full logo, shown on the Branding page
+  images/icon-white.png            the icon in the header, on the primary color
   images/favicon.ico               the browser tab's icon
 \end{elicitfile}
 
 Start from the repository's \file{elicit-brand/} and change only the files that differ.
+
+\subsection{Fonts}
+
+A brand's fonts are files in the brand. \file{typography/brand-typography.css} names each one in
+an \val{@font-face} rule, with an address relative to that stylesheet:
+
+\begin{elicitfile}
+@font-face {
+  font-family: "IBM Plex Sans";
+  font-weight: 400;
+  src: url("fonts/IBMPlexSans-Regular.woff2") format("woff2");
+}
+\end{elicitfile}
+
+The application serves the file from the brand, so a respondent's browser asks the site for it
+and nobody else. The default brand carries IBM Plex Sans, IBM Plex Sans Arabic and IBM Plex Mono
+this way, with their license beside them. A brand that names a font at another host makes every
+page request it from that host, which tells that host who opened the survey; keep a brand's
+fonts in the brand. A brand with no font files names a stack of system fonts instead.
 
 \subsection{A brand may be partial}
 
