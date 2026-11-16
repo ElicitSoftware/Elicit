@@ -26,7 +26,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <playwright.version>1.65.0</playwright.version>
         <junit.version>6.1.1</junit.version>
-        <surefire-plugin.version>3.5.2</surefire-plugin.version>
+        <surefire-plugin.version>3.6.1</surefire-plugin.version>
         <!-- Opt-in module: skip by default (needs a live docker-compose stack). Run explicitly
              with -DskipTests=false, e.g. from this directory: mvn -DskipTests=false test -->
         <skipTests>true</skipTests>
