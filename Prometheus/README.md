@@ -23,14 +23,12 @@ Prometheus/
 ## 🚀 Quick Start
 
 ### Using Docker Compose
-The `docker-compose.yml` in the root directory automatically mounts this folder:
-
-```bash
-# Start Prometheus with the rest of the Elicit platform
-docker-compose up -d
-
-# Access Prometheus at http://localhost:9090
-```
+The `docker-compose.yml` in the root directory has no `prometheus` service, so `docker compose up -d`
+does not start one. To try this configuration, add the sample service from
+`docs/metrics/OBSERVABILITY_IMPLEMENTATION_GUIDE.md` ("Docker Compose Development Stack"), which mounts
+this folder, after removing the scrape jobs whose targets the stack does not define (see the header
+of `prometheus.yml`). Prometheus then answers at http://localhost:9090. It has no sign-in of its own:
+keep it where only operators reach it.
 
 ### Configuration Files
 

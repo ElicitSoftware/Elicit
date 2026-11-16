@@ -20,7 +20,10 @@ sense of is let through; the GitHub ruleset is the backstop.
 This is one half of the guard. The other half is the GitHub ruleset on main and V3, which
 binds humans and agents alike; this hook exists so that the agent never has to be told no
 by the server. A human can let one command through by prefixing it with
-ELICIT_ALLOW_PROTECTED=1; the agent must not.
+ELICIT_ALLOW_PROTECTED=1; the agent must not. The override counts only as an assignment
+directly in front of the `git` word it applies to (`ELICIT_ALLOW_PROTECTED=1 git push`, with
+`env` before it or other assignments beside it); the same text anywhere else in the command,
+in an `echo` or a commit message say, changes nothing.
 """
 
 import json
@@ -40,6 +43,7 @@ PUSH_OPTS_WITH_ARG = {"-o", "--push-option", "--receive-pack", "--exec", "--repo
 # `<<EOF` or `<<-'EOF'` through the matching terminator line, body included. The rest of the
 # line carrying the operator (a `)"` closing a $(cat ...) substitution, say) is kept.
 HEREDOC = re.compile(r"<<-?\s*(['\"]?)(\w+)\1(?P<rest>[^\n]*)\n.*?\n[ \t]*\2(?=\n|$)", re.S)
+ASSIGNMENT = re.compile(r"[A-Za-z_][A-Za-z0-9_]*=")
 HOW_TO = (
     "main, master, V2 and V3 only change through a pull request. Create a branch for the "
     "issue (`git switch -c <type>/<issue>-<slug>`), commit there, push it and open the PR. "
@@ -131,6 +135,16 @@ def destinations(args, branch):
     return targets & PROTECTED, verb
 
 
+def overridden(toks, i):
+    """True when the git word at toks[i] is prefixed by the override assignment."""
+    k = i - 1
+    found = False
+    while k >= 0 and toks[k] not in SEPARATORS and ASSIGNMENT.match(toks[k]):
+        found = found or toks[k] == OVERRIDE + "=1"
+        k -= 1
+    return found
+
+
 def resolve(base, path):
     return os.path.normpath(os.path.join(base, os.path.expanduser(path)))
 
@@ -143,7 +157,7 @@ def main():
     if data.get("tool_name") != "Bash":
         return
     command = (data.get("tool_input") or {}).get("command") or ""
-    if "git" not in command or OVERRIDE + "=" in command:
+    if "git" not in command:
         return
     cwd = data.get("cwd") or os.getcwd()
 
@@ -160,6 +174,7 @@ def main():
             i += 1
             continue
         # One git invocation: global options, subcommand, arguments up to a separator.
+        allowed = overridden(toks, i)
         repo_dir = current_dir
         j = i + 1
         while j < len(toks) and toks[j].startswith("-") and toks[j] not in SEPARATORS:
@@ -182,7 +197,9 @@ def main():
         while k < len(toks) and toks[k] not in SEPARATORS:
             args.append(toks[k])
             k += 1
-        if sub in COMMIT_LIKE:
+        if allowed:
+            pass
+        elif sub in COMMIT_LIKE:
             branch = branch_of(repo_dir)
             if branch in PROTECTED:
                 refuse("git " + sub, branch, repo_dir)

@@ -342,8 +342,17 @@ After starting a new Elicit system you will need to alter some of the template d
             
     If you wish to disable this remove the line in the post_survey_actions table. 
     DELETE FROM survey.post_survey_actions WHERE id = 1;
-    Or if you would like to use it then you will need to adjust the host of the URL of the action. 
-    UPDATE survey.post_survey_actions set url = 'http://host.docker.internal:8082/familyhistory/generate' where id = 1;
+    Or if you would like to use it then the action's address must name FHHS as Survey reaches it on
+    your own network. The definition ships with `http://host.docker.internal:8082/...`, which works for
+    the bundled compose file on a developer's machine and nowhere else.
+    - On a site installed with 3.0.0, the address belongs to the survey's definition: change it in
+      Author, on the survey's Post-survey actions page, export the survey and apply that file
+      (installation manual, "The Family History reports"). A change made in the database is undone by
+      the next apply.
+    - On a database upgraded from V2, which cannot take an update of the definition, set it in SQL:
+      UPDATE survey.post_survey_actions set url = 'http://<FHHS on your private network>:8080/familyhistory/generate' where id = 1;
+    Either way, list the address's origin in `ELICIT_SERVICE_TRUSTED_ORIGINS` on Survey, Admin and
+    FHHS, or the call is made without the service token and FHHS answers 401.
     
     You will also have to update the sftp properties. From 3.0.0 delivery is off unless
     enabled, and the server's host key is verified: FHHS refuses to connect until
@@ -362,12 +371,15 @@ After starting a new Elicit system you will need to alter some of the template d
       - family.history.upload.psa.id=1 
 
 5) Update Report URLs
-   The reporting system also uses URLs to communicate. 
-   Update the host of the URLs in the reports table. 
-   
-   UPDATE survey.reports set url = 'http://host.docker.internal:8082/proband/report' WHERE id = 1;
+   The reporting system also uses URLs to communicate, and the three report addresses follow the
+   same rule as the action's address in step 4: they name FHHS on your private network, at an origin
+   listed in `ELICIT_SERVICE_TRUSTED_ORIGINS`, never `host.docker.internal`.
+   On a site installed with 3.0.0, change them in Author, on the survey's Reports page, export the
+   survey and apply that file. On a database upgraded from V2, set them in the reports table:
 
-   UPDATE survey.reports set url = 'http://host.docker.internal:8082/casummary/report' WHERE id = 2;
+   UPDATE survey.reports set url = 'http://<FHHS on your private network>:8080/proband/report' WHERE id = 1;
 
-   UPDATE survey.reports set url = 'http://host.docker.internal:8082/pedigree/report' WHERE id = 3;
+   UPDATE survey.reports set url = 'http://<FHHS on your private network>:8080/casummary/report' WHERE id = 2;
+
+   UPDATE survey.reports set url = 'http://<FHHS on your private network>:8080/pedigree/report' WHERE id = 3;
 

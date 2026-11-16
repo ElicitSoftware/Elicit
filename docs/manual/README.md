@@ -54,8 +54,8 @@ target runs `check-properties.sh` first and typesets nothing if it fails;
 
 
 There is no TeX installation to maintain: the script typesets inside a TeX Live
-container (`TEXLIVE_IMAGE`, default `texlive/texlive:latest`), which is where IBM
-Plex and the LaTeX packages come from. Docker must be running. `SKIP_MANUAL=1`
+container (`TEXLIVE_IMAGE`, by default a `texlive/texlive` image pinned by digest in
+`build-manual.sh`), which is where IBM Plex and the LaTeX packages come from. Docker must be running. `SKIP_MANUAL=1`
 skips the build and exits zero.
 
 The umbrella holds no `pom.xml` of its own, and its git tags version the

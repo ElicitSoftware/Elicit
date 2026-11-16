@@ -203,6 +203,8 @@ Matthew Demerath – m.demerath@elicitsoftware.com
 
 Project Link: [https://github.com/ElicitSoftware/Elicit](https://github.com/ElicitSoftware/Elicit)
 
+To report a security vulnerability, privately, see [SECURITY.md](SECURITY.md).
+
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 <!-- ACKNOWLEDGMENTS -->

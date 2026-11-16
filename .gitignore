@@ -11,6 +11,8 @@
 /Prometheus/data
 /keycloak/db
 /keycloak/elicit-realm-export.json
+# What keycloak/exportRealm.sh writes: elicit_<MM_DD_YYYY>.json, accounts and keys included.
+/keycloak/elicit_*.json
 /keycloak/certs/
 /vaadin-quarkus-keycloak
 /vaadin-quarkus-smtp
