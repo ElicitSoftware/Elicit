@@ -56,7 +56,7 @@ class RecordingHarnessSelfTest extends MultilingualTestBase {
             <style>
               html,body{margin:0;height:100%;background:#FDFCFA;color:#1A2229;
                 font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,sans-serif}
-              header{background:#1B629C;color:#fff;padding:18px 34px;font-size:20px;font-weight:600}
+              header{background:#0A3D62;color:#fff;padding:18px 34px;font-size:20px;font-weight:600}
               main{padding:40px 34px;max-width:900px}
               h1{font-size:30px;margin:0 0 6px}
               p.lead{color:#4A5A6A;margin:0 0 30px}
@@ -65,7 +65,7 @@ class RecordingHarnessSelfTest extends MultilingualTestBase {
                 border:1px solid #C9C3B7;border-radius:6px}
               .row{display:flex;gap:14px;margin-top:38px}
               button{font-size:17px;padding:12px 22px;border:0;border-radius:6px;
-                background:#1B629C;color:#fff;cursor:pointer}
+                background:#0A3D62;color:#fff;cursor:pointer}
               button.ghost{background:#E8E4DC;color:#1A2229}
               #far{position:fixed;right:40px;top:120px}
               #count{font-variant-numeric:tabular-nums}

@@ -55,9 +55,9 @@ screen that says which one this is.
 | | USA (master) | Mexico | Arabia |
 |---|---|---|---|
 | Header | Ink navy | Bandera green, red rule | flag green |
-| Mark | the Elicit clipboard | the flag of Mexico | the flag of Arabia |
+| Mark | the Choice E mark | the flag of Mexico | the flag of Arabia |
 | Background | Paper | Paper | Sand |
-| Type | system stack | system stack | Arabic-first stack, looser leading |
+| Type | IBM Plex, carried in the brand | system stack | Arabic-first stack, looser leading |
 
 The two site brands are complete brand packages, not color overrides: each
 carries every file `BrandDiagnostics` expects (`theme.css`, the two

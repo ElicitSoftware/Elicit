@@ -25,22 +25,25 @@ This guide covers the unified brand system for both Admin and Survey application
 
 ### Standardized Brand Directory Structure
 
-All brand directories now follow a consistent structure:
+All brand directories follow a consistent structure. This is the default brand, `elicit-brand/`:
 
 ```
-brand-directory/
-├── brand-config.json          # Brand configuration and metadata
+elicit-brand/
+├── brand-config.json          # Brand metadata (name, organization, logos, favicon)
+├── brand-info.json            # Display metadata (description, primary color)
+├── README.md
 ├── colors/
-│   ├── brand-colors.css      # CSS custom properties for colors
-│   └── README.md             # Color usage guidelines
-├── typography/               # Typography system
-│   ├── brand-typography.css  # CSS typography definitions
-│   └── README.md             # Typography guidelines
-├── images/                   # All visual assets (logos, icons, etc.)
-│   ├── HorizontalLogo.png    # Main horizontal logo for headers
-│   ├── favicon.svg           # Browser favicon
-│   └── README.md             # Image usage guidelines
-└── theme.css                 # Vaadin integration styles
+│   └── brand-colors.css       # CSS custom properties: palette and --brand-* mappings
+├── typography/
+│   ├── brand-typography.css   # @font-face rules, font stacks, type scale, utility classes
+│   ├── typography.json        # Font metadata (for tooling and documentation)
+│   └── fonts/                 # IBM Plex Sans, Sans Arabic and Mono (WOFF2), LICENSE.txt
+├── images/
+│   ├── favicon.ico            # Browser favicon
+│   ├── HorizontalLogo.png     # The ELICIT / SURVEY lockup
+│   ├── icon-white.png         # The white mark, shown in the application header
+│   └── source/                # SVG masters the three files above are rendered from
+└── theme.css                  # Imports colors and typography together
 ```
 
 **Note**: The previous `logos/` and `visual-assets/` directories have been consolidated into `images/` for consistency.
@@ -396,316 +399,172 @@ public class BrandUtil {
 }
 ```
 
-### 3. Standardized Default Brand Structure
+### 3. The Default Brand
 
-Both applications include default brand directories with the standardized structure:
+The default brand is the one an application shows when a site mounts no brand of its own, and the
+one a partial brand falls back to file by file.
 
-#### A. Create Brand Directory Structure
+#### A. Where It Lives
+
+The source is the `elicit-brand/` directory of the umbrella repository, laid out as shown under
+"Standardized Brand Directory Structure" above. `docker-compose.yml` mounts it read-only at
+`/opt/brand` (the path given by `brand.file.system.path`).
+
+Survey, Admin and Author each package a copy of that directory at
+`src/main/resources/META-INF/brand/` as the built-in default. The mounted directory and the
+embedded copies are the same files, except that the SVG masters under `images/source/` are not
+embedded. The umbrella's `checkBrand.sh` keeps them so:
+
 ```bash
-# For Admin application
-mkdir -p Admin/src/main/resources/META-INF/resources/colors
-mkdir -p Admin/src/main/resources/META-INF/resources/typography  
-mkdir -p Admin/src/main/resources/META-INF/resources/images
-
-# For Survey application
-mkdir -p Survey/src/main/resources/META-INF/resources/colors
-mkdir -p Survey/src/main/resources/META-INF/resources/typography
-mkdir -p Survey/src/main/resources/META-INF/resources/images
+./checkBrand.sh           # fail when a copy differs from elicit-brand/
+./checkBrand.sh --sync    # copy elicit-brand/ into the modules, then check
 ```
 
-#### B. Standardized Brand Colors
-**Location**: Both `Admin/src/main/resources/META-INF/resources/colors/brand-colors.css` and `Survey/src/main/resources/META-INF/resources/colors/brand-colors.css`
+The check compares each module's packaged brand with `elicit-brand/` file by file (a module's
+license header at the top of a stylesheet is not part of the comparison). It also checks the
+palette of the manuals' style package, `docs/manual/elicit-brand.sty`: every
+`\definecolor{elicit...}` there must name a color of `colors/brand-colors.css` and carry its
+value. The `.sty` is edited by hand; `--sync` does not write it. `buildDockerImages.sh` runs the
+check before it builds any image.
 
-```css
-/*
-   Elicit Admin Application Theme
-   
-   This theme provides:
-   - Application-specific component styling
-   - Brand integration architecture via CSS custom properties
-   - Base Vaadin Lumo theme integration
-   
-   Brand colors and typography are provided by:
-   - Default: ./brand/ directory (copied into Docker image)
-   - External: Mounted brand directories (e.g., um-brand, test-brand)
-   
-   Visit https://vaadin.com/docs/latest/styling/application-theme and
-   https://vaadin.com/docs/latest/styling/lumo for more information.
-*/
-
-/* Import local fonts as fallback */
-@import 'fonts/style.css';
-
-/* Brand Integration Architecture */
-/* These CSS custom properties provide the contract between brands and the application */
-html {
-    /* Brand variables are populated by brand CSS files */
-    /* Mapping brand variables to Lumo theme properties */
-    --lumo-font-family: var(--brand-font-primary, -apple-system, BlinkMacSystemFont, "Roboto", "Segoe UI", Helvetica, Arial, sans-serif);
-    
-    /* Primary color mapping */
-    --lumo-primary-color: var(--brand-primary, hsl(214, 90%, 52%));
-    --lumo-primary-text-color: var(--brand-primary, hsl(214, 90%, 52%));
-    --lumo-primary-contrast-color: var(--brand-primary-contrast, hsl(0, 0%, 100%));
-    --lumo-base-color: var(--brand-base, hsl(0, 0%, 100%));
-    
-    /* Primary color variants */
-    --lumo-primary-color-50pct: var(--brand-primary-50pct, hsla(214, 90%, 52%, 0.5));
-    --lumo-primary-color-10pct: var(--brand-primary-10pct, hsla(214, 90%, 52%, 0.1));
-    
-    /* Status color mapping */
-    --lumo-error-color: var(--brand-error, hsl(3, 85%, 48%));
-    --lumo-error-text-color: var(--brand-error, hsl(3, 85%, 48%));
-    --lumo-error-color-50pct: var(--brand-error-50pct, hsla(3, 85%, 48%, 0.5));
-    --lumo-error-color-10pct: var(--brand-error-10pct, hsla(3, 85%, 48%, 0.1));
-    
-    --lumo-success-color: var(--brand-success, hsl(145, 72%, 30%));
-    --lumo-success-text-color: var(--brand-success, hsl(145, 72%, 30%));
-    --lumo-success-color-50pct: var(--brand-success-50pct, hsla(145, 72%, 30%, 0.5));
-    --lumo-success-color-10pct: var(--brand-success-10pct, hsla(145, 72%, 30%, 0.1));
-    
-    --lumo-warning-color: var(--brand-warning, hsl(43, 100%, 48%));
-    --lumo-warning-text-color: var(--brand-warning, hsl(43, 100%, 48%));
-    --lumo-warning-color-50pct: var(--brand-warning-50pct, hsla(43, 100%, 48%, 0.5));
-    --lumo-warning-color-10pct: var(--brand-warning-10pct, hsla(43, 100%, 48%, 0.1));
-}
-
-/* Application-specific styling (customize for Admin app) */
-.main-layout {
-    /* Your existing admin-specific styles */
-}
-
-/* Ensure proper brand integration for common components */
-vaadin-button[theme="primary"] {
-    background-color: var(--lumo-primary-color);
-    color: var(--lumo-primary-contrast-color);
-}
-
-vaadin-button[theme="primary"]:hover {
-    background-color: var(--lumo-primary-color-50pct);
-}
-
-/* Add any Admin-specific component styling here */
-```
-
-### 3. Create Default Brand Directory
-
-#### A. Create Brand Directory Structure
-```bash
-mkdir -p brand/colors
-mkdir -p brand/typography
-mkdir -p brand/visual-assets/icons
-mkdir -p brand/logos
-```
+To change the default brand, edit `elicit-brand/`, run `./checkBrand.sh --sync`, and commit the
+result in each module's repository.
 
 #### B. Brand Colors
-**Location**: `brand/colors/brand-colors.css`
+**Location**: `elicit-brand/colors/brand-colors.css`
+
+The file defines the palette as `--elicit-*` custom properties and then maps the generic
+`--brand-*` tokens, which the applications' own stylesheets consume, onto it:
 
 ```css
 :root {
-  /* Primary Brand Colors - Vaadin Lumo Standards */
-  --brand-primary: hsl(214, 90%, 52%); /* Vaadin Lumo primary blue */
-  --brand-primary-hsl: 214, 90%, 52%;
-  --brand-primary-contrast: hsl(0, 0%, 100%); /* White text on primary */
-  --brand-primary-50pct: hsla(214, 90%, 52%, 0.5);
-  --brand-primary-10pct: hsla(214, 90%, 52%, 0.1);
-  --brand-base: hsl(0, 0%, 100%); /* White base */
-
-  /* Status Colors - Vaadin Lumo Standards */
-  --brand-error: hsl(3, 85%, 48%); /* Lumo error red */
-  --brand-error-hsl: 3, 85%, 48%;
-  --brand-error-50pct: hsla(3, 85%, 48%, 0.5);
-  --brand-error-10pct: hsla(3, 85%, 48%, 0.1);
-  --brand-success: hsl(145, 72%, 30%); /* Lumo success green */
-  --brand-success-hsl: 145, 72%, 30%;
-  --brand-success-50pct: hsla(145, 72%, 30%, 0.5);
-  --brand-success-10pct: hsla(145, 72%, 30%, 0.1);
-  --brand-warning: hsl(43, 100%, 48%); /* Lumo warning yellow */
-  --brand-warning-hsl: 43, 100%, 48%;
-  --brand-warning-50pct: hsla(43, 100%, 48%, 0.5);
-  --brand-warning-10pct: hsla(43, 100%, 48%, 0.1);
-
-  /* Interactive Colors - Following Vaadin Standards */
-  --brand-interactive: hsl(214, 90%, 52%); /* Same as primary */
-  --brand-interactive-rgb: 22, 118, 243;
-  --brand-interactive-light: rgba(22, 118, 243, 0.1);
-
-  /* Typography */
-  --brand-font-primary: -apple-system, BlinkMacSystemFont, "Roboto", "Segoe UI", Helvetica, Arial, sans-serif;
-  --brand-font-secondary: var(--brand-font-primary);
-  --brand-font-heading: var(--brand-font-primary);
-  --brand-font-body: var(--brand-font-primary);
-  --brand-font-monospace: "Consolas", "Monaco", "Courier New", monospace;
-
-  /* Semantic Mappings */
-  --brand-background: var(--brand-base);
-  --brand-surface: var(--brand-base);
-  --brand-text-primary: hsl(214, 35%, 15%);
-  --brand-text-secondary: hsl(214, 25%, 35%);
-  --brand-text-disabled: hsl(214, 15%, 55%);
-  
-  /* Border and Shadow Colors */
-  --brand-border: hsl(214, 20%, 85%);
-  --brand-border-light: hsl(214, 20%, 92%);
-  --brand-shadow: hsla(214, 40%, 20%, 0.1);
-  
-  /* Interactive States */
-  --brand-hover: hsla(214, 90%, 52%, 0.1);
-  --brand-active: hsla(214, 90%, 52%, 0.2);
-  --brand-focus: hsl(214, 90%, 52%);
+  --elicit-ink: #0A3D62;
+  --elicit-verdigris: #22775D;
+  --elicit-paper: #FDFCFA;
+  /* ... */
+  --brand-primary: var(--elicit-ink);
+  --brand-primary-contrast: var(--elicit-paper);
+  --brand-secondary: var(--elicit-verdigris);
+  --brand-accent: var(--elicit-verdigris);
+  --brand-background: var(--elicit-paper);
+  --brand-text-primary: var(--elicit-charcoal);
+  --brand-text-secondary: var(--elicit-slate);
 }
 ```
+
+| Color | Property | Value | Drives |
+| ----- | -------- | ----- | ------ |
+| Ink | `--elicit-ink` | `#0A3D62` | `--brand-primary`: header background, primary buttons, access-code pill text |
+| Ink, dark | `--elicit-ink-dark` | `#072E4A` | Primary button hover, the border under the header |
+| Verdigris | `--elicit-verdigris` | `#22775D` | `--brand-secondary`, `--brand-accent`, `--brand-focus`, `--brand-success`, `--brand-info`: secondary buttons, focus outlines |
+| Verdigris, dark | `--elicit-verdigris-dark` | `#1C5F4B` | Secondary button hover |
+| Verdigris, pale | `--elicit-verdigris-pale` | `#E3F3EE` | Access-code pill background |
+| Paper | `--elicit-paper` | `#FDFCFA` | `--brand-background`, `--brand-base`, text on the primary color |
+| White | `--elicit-white` | `#FFFFFF` | `--brand-surface`, text on the secondary color |
+| Ledger | `--elicit-ledger` | `#E8E4DC` | `--brand-border` (`--elicit-ledger-light`, `#F0EDE6`, is `--brand-border-light`) |
+| Charcoal | `--elicit-charcoal` | `#1A2229` | `--brand-text-primary`: heading and body text |
+| Slate | `--elicit-slate` | `#4A5A6A` | `--brand-text-secondary`: question and field-label text |
+| Brick | `--elicit-brick` | `#BB251B` | `--brand-error` |
+| Amber | `--elicit-amber` | `#D9A02C` | `--brand-warning`, as a fill |
+| Amber, text | `--elicit-amber-text` | `#8C6A1D` | `--brand-warning-text`: the warning color where it is drawn as text |
+
+The file also defines `--elicit-ink-darker` (`#052238`), `--elicit-ink-darkest` (`#041A2B`) and
+`--elicit-verdigris-light` (`#5CBBA4`), the 50% and 10% tints of the primary and status colors
+(`--brand-primary-10pct` and so on), and the hover and active states (`--brand-hover`,
+`--brand-active`). Its comments record the contrast ratio each text color was chosen for.
+
+Besides the properties, the file carries a few rules: a flat Ink header with Paper text, solid
+primary (Ink) and secondary (Verdigris) buttons, and the `.elicit-access-code` pill.
 
 #### C. Brand Typography
-**Location**: `brand/typography/brand-typography.css`
+**Location**: `elicit-brand/typography/brand-typography.css`, `elicit-brand/typography/fonts/`
+
+The fonts are files in the brand, in WOFF2 format:
+
+- **IBM Plex Sans**: regular, italic, medium, semibold, bold
+- **IBM Plex Sans Arabic**: regular, medium, semibold, bold
+- **IBM Plex Mono**: regular, semibold
+
+`brand-typography.css` declares each one in an `@font-face` rule whose `url()` is relative to the
+stylesheet:
 
 ```css
-/* Elicit Admin - Default Typography */
-/* Uses system font stack for optimal performance and compatibility */
-
-@import url('./font-declarations.css');
-
-:root {
-  /* Font Family Definitions */
-  --brand-font-primary: -apple-system, BlinkMacSystemFont, "Roboto", "Segoe UI", Helvetica, Arial, sans-serif;
-  --brand-font-secondary: var(--brand-font-primary);
-  --brand-font-heading: var(--brand-font-primary);
-  --brand-font-body: var(--brand-font-primary);
-  --brand-font-monospace: "SF Mono", "Monaco", "Inconsolata", "Roboto Mono", "Consolas", "Courier New", monospace;
-  
-  /* Font Weights */
-  --brand-font-weight-light: 300;
-  --brand-font-weight-normal: 400;
-  --brand-font-weight-medium: 500;
-  --brand-font-weight-semibold: 600;
-  --brand-font-weight-bold: 700;
-  
-  /* Font Sizes */
-  --brand-font-size-xs: 0.75rem;    /* 12px */
-  --brand-font-size-sm: 0.875rem;   /* 14px */
-  --brand-font-size-base: 1rem;     /* 16px */
-  --brand-font-size-lg: 1.125rem;   /* 18px */
-  --brand-font-size-xl: 1.25rem;    /* 20px */
-  --brand-font-size-2xl: 1.5rem;    /* 24px */
-  --brand-font-size-3xl: 1.875rem;  /* 30px */
-  --brand-font-size-4xl: 2.25rem;   /* 36px */
-  
-  /* Line Heights */
-  --brand-line-height-tight: 1.25;
-  --brand-line-height-normal: 1.5;
-  --brand-line-height-relaxed: 1.75;
-}
-
-/* Apply brand typography to common elements */
-body {
-  font-family: var(--brand-font-body);
-  font-weight: var(--brand-font-weight-normal);
-  line-height: var(--brand-line-height-normal);
-}
-
-h1, h2, h3, h4, h5, h6 {
-  font-family: var(--brand-font-heading);
-  font-weight: var(--brand-font-weight-semibold);
-  line-height: var(--brand-line-height-tight);
-}
-
-code, pre {
-  font-family: var(--brand-font-monospace);
+@font-face {
+  font-family: "IBM Plex Sans";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("fonts/IBMPlexSans-Regular.woff2") format("woff2");
 }
 ```
 
+Each application inlines the stylesheet into the page and resolves the relative `url()` against
+the brand, so the browser fetches the font from the application itself: under `/brand/` in Survey
+and under `/api/brand/` in Admin and Author. No third-party font host is contacted. The Arabic
+rules carry a `unicode-range`, so a page that shows no Arabic text does not fetch those files.
+
+IBM Plex is licensed under the SIL Open Font License 1.1. The license travels with the fonts as
+`typography/fonts/LICENSE.txt`.
+
+The same file defines the font stacks (`--brand-font-primary`, `--brand-font-heading`,
+`--brand-font-body`, `--brand-font-monospace`), each naming the IBM Plex family first and a system
+font stack after it as the fallback, together with the weight, size and line-height scales
+(`--brand-font-weight-*`, `--brand-font-size-*`, `--brand-line-height-*`) and a small set of
+`.elicit-*` utility classes. `typography/typography.json` repeats the font metadata for tooling
+and documentation.
+
+A brand of your own can carry fonts the same way, or carry none and name a system font stack.
+
 #### D. Brand Theme
-**Location**: `brand/theme.css`
+**Location**: `elicit-brand/theme.css`
+
+`theme.css` is the entry point the applications inline into the page `<head>`. In the default
+brand it only imports the two stylesheets above:
 
 ```css
-/* Elicit Admin - Default Brand Theme */
-/* Integrates brand colors and typography with Vaadin Lumo theme */
-
 @import url('./colors/brand-colors.css');
 @import url('./typography/brand-typography.css');
-
-/* Brand-specific customizations for Admin application */
-:root {
-  /* Admin-specific brand variables can be defined here */
-  --admin-sidebar-bg: var(--brand-surface);
-  --admin-header-bg: var(--brand-primary);
-  --admin-content-bg: var(--brand-background);
-}
-
-/* Admin application specific styling */
-.admin-layout {
-  background-color: var(--admin-content-bg);
-}
-
-.admin-sidebar {
-  background-color: var(--admin-sidebar-bg);
-  border-right: 1px solid var(--brand-border);
-}
-
-.admin-header {
-  background-color: var(--admin-header-bg);
-  color: var(--brand-primary-contrast);
-}
-
-/* Ensure proper integration with Vaadin components */
-vaadin-app-layout[theme~="admin"] {
-  --lumo-base-color: var(--brand-base);
-  --lumo-primary-color: var(--brand-primary);
-}
 ```
 
 #### E. Brand Configuration
-**Location**: `brand/brand-config.json`
+**Location**: `elicit-brand/brand-config.json`
 
 ```json
 {
-  "brand": {
-    "name": "Elicit Admin Application - Default Brand",
-    "version": "1.0.0",
-    "description": "Default brand configuration using Vaadin standard colors and Elicit styling"
+  "name": "Elicit Default Brand",
+  "version": "2.0.0",
+  "organization": "Elicit Software",
+  "logos": {
+    "horizontal": "HorizontalLogo.png",
+    "icon": "icon-white.png"
   },
-  "structure": {
-    "colors": {
-      "directory": "colors/",
-      "css": "colors/brand-colors.css",
-      "metadata": "colors/palette.json"
+  "favicon": "favicon.ico",
+  "localized": {
+    "es-419": {
+      "name": "Marca predeterminada de Elicit",
+      "organization": "Elicit Software"
     },
-    "logos": {
-      "directory": "logos/",
-      "stacked": "logos/stacked.png"
-    },
-    "typography": {
-      "directory": "typography/",
-      "css": "typography/brand-typography.css",
-      "metadata": "typography/typography.json",
-      "fonts": {
-        "system": "System font stack (Roboto, Segoe UI, etc.)"
-      }
-    },
-    "icons": {
-      "directory": "visual-assets/icons/",
-      "favicon": "visual-assets/icons/favicon.ico",
-      "favicon32": "visual-assets/icons/favicon-32x32.png"
+    "ar": {
+      "name": "العلامة الافتراضية لـ Elicit",
+      "organization": "Elicit Software"
     }
-  },
-  "deployment": {
-    "docker": {
-      "volumeMount": "./brand:/brand",
-      "example": "docker run -v ./custom-brand:/brand elicitsoftware/admin:latest"
-    },
-    "kubernetes": {
-      "configMap": "Mount brand files as ConfigMap to /brand",
-      "example": "See README.md for complete Kubernetes configuration"
-    }
-  },
-  "customization": {
-    "colors": "Modify colors/brand-colors.css to override default brand colors",
-    "fonts": "Replace font files in typography/ and update brand-typography.css",
-    "logos": "Replace image files in logos/ directory",
-    "icons": "Replace favicon files in visual-assets/icons/"
   }
 }
 ```
+
+The optional `localized` block carries per-language variants of the name and organization, keyed
+by language tag. `brand-info.json` beside it holds display metadata (description, primary color,
+last update) and may carry a `localized` description inside its `"brand"` object.
+
+The applications read three fixed image names from `images/`:
+
+- `images/HorizontalLogo.png`: the full ELICIT / SURVEY lockup, shown on the System > Branding
+  pages and in the manuals.
+- `images/icon-white.png`: the white mark, shown in the application header on the primary color.
+- The favicon named in `brand-config.json`, `images/favicon.ico` in the default brand (the white
+  mark on an Ink tile at 16, 32 and 48 px).
+
+The three files are rendered from the SVG masters in `images/source/`.
 
 ### 4. Docker Integration for Shared Brand Directories
 
@@ -803,19 +662,19 @@ curl -s http://localhost:8080/brand/brand-config.json
 
 # Test Admin application brand detection (port 8081)  
 curl -s http://localhost:8081/ | grep brand-info
-curl -s http://localhost:8081/brand/theme.css
-curl -s http://localhost:8081/brand/brand-config.json
+curl -s http://localhost:8081/api/brand/theme.css
+curl -s http://localhost:8081/api/brand/brand-config.json
 ```
 
 #### B. Test Logo Serving (Standardized images/ directory)
 ```bash
 # Test Survey logo serving
 curl -I http://localhost:8080/brand/images/HorizontalLogo.png
-curl -I http://localhost:8080/brand/images/favicon.svg
+curl -I http://localhost:8080/brand/images/favicon.ico
 
 # Test Admin logo serving
-curl -I http://localhost:8081/brand/images/HorizontalLogo.png
-curl -I http://localhost:8081/brand/images/favicon.svg
+curl -I http://localhost:8081/api/brand/images/HorizontalLogo.png
+curl -I http://localhost:8081/api/brand/images/favicon.ico
 ```
 
 #### C. Test Partial Brand Fallback
@@ -826,18 +685,18 @@ docker-compose up -d
 
 # Verify fallback behavior - should serve embedded images
 curl -I http://localhost:8080/brand/images/HorizontalLogo.png  # Should return 200 with embedded logo
-curl -I http://localhost:8081/brand/images/HorizontalLogo.png  # Should return 200 with embedded logo
+curl -I http://localhost:8081/api/brand/images/HorizontalLogo.png  # Should return 200 with embedded logo
 
 # Verify custom colors are loaded
 curl -s http://localhost:8080/brand/colors/brand-colors.css  # Should return custom Halloween colors
-curl -s http://localhost:8081/brand/colors/brand-colors.css  # Should return custom Halloween colors
+curl -s http://localhost:8081/api/brand/colors/brand-colors.css  # Should return custom Halloween colors
 ```
 
 #### D. Test Shared Brand Directory
 ```bash
 # Verify both applications serve the same brand content
 SURVEY_LOGO=$(curl -s http://localhost:8080/brand/images/HorizontalLogo.png | wc -c)
-ADMIN_LOGO=$(curl -s http://localhost:8081/brand/images/HorizontalLogo.png | wc -c)
+ADMIN_LOGO=$(curl -s http://localhost:8081/api/brand/images/HorizontalLogo.png | wc -c)
 
 echo "Survey logo size: $SURVEY_LOGO bytes"
 echo "Admin logo size: $ADMIN_LOGO bytes"
@@ -890,7 +749,7 @@ echo "Admin logo size: $ADMIN_LOGO bytes"
 #### Images Not Displaying
 - **Issue**: Logo paths pointing to old `/logos/` directory
 - **Solution**: Ensure all brand directories use standardized structure with `images/` directory
-- **Solution**: Update any hardcoded logo paths to use `/brand/images/HorizontalLogo.png`
+- **Solution**: Update any hardcoded logo paths to use `/brand/images/HorizontalLogo.png` (Survey) or `/api/brand/images/HorizontalLogo.png` (Admin)
 - **Solution**: Verify BrandUtil.getLogoPath() method returns `/brand/images/` paths
 
 #### CSS Not Applying  
@@ -957,7 +816,7 @@ This unified brand system implementation provides:
 
 ### ✅ **Maintenance Benefits**
 - **Clean Architecture**: Clear separation between application logic and brand resources
-- **Consistent API**: Same `/brand/` URL structure across all applications
+- **Consistent API**: Same URL structure below the brand prefix in every application (`/brand/` in Survey, `/api/brand/` in Admin and Author)
 - **Simplified Structure**: Eliminated confusion between `/logos/` and `/visual-assets/` directories
 - **Future-Proof**: Extensible system that can accommodate additional brand elements
 

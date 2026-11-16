@@ -1,0 +1,136 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Elicit palette comparison</title><style>
+body{margin:0;padding:8px 32px 28px;font-family:"IBM Plex Sans",system-ui,Helvetica,sans-serif;background:#FDFCFA;color:#1A2229}
+h1{color:#0A3D62;font-size:22px;margin:18px 0 0}
+h2{font-size:18px;margin:0 0 2px;color:#0A3D62}
+h3{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:#4A5A6A;margin:18px 0 6px;font-weight:600}
+p{margin:0 0 12px;color:#4A5A6A;font-size:14px;max-width:1000px}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-top:14px}
+.col{background:#fff;border:1px solid #E8E4DC;border-radius:12px;padding:18px 20px 22px}
+.a{--p:#0A3D62;--p-hover:#072E4A;--p-10:rgba(10,61,98,.1);--heading:#0A3D62}
+.b{--p:#1B629C;--p-hover:#154C79;--p-10:rgba(27,98,156,.1);--heading:#1B629C}
+.sw{display:flex;gap:8px;align-items:center;font-size:12px;color:#4A5A6A;margin-bottom:4px}
+.sw i{width:38px;height:22px;border-radius:4px;display:inline-block;border:1px solid #E8E4DC}
+.app{border:1px solid #E8E4DC;border-radius:8px;overflow:hidden;background:#FDFCFA}
+.hdr{background:var(--p);color:#FDFCFA;display:flex;gap:12px;align-items:center;padding:10px 14px;font-size:15px;border-bottom:2px solid var(--p-hover)}
+.hdr span{margin-left:auto;opacity:.85;font-size:13px}
+.body{padding:16px 16px 18px}
+.q{font-weight:600;margin:0 0 8px;color:#1A2229;font-size:15px}
+.opt{display:flex;gap:8px;align-items:center;font-size:14px;padding:5px 8px;border-radius:6px;color:#1A2229}
+.opt.sel{background:var(--p-10)}
+.opt i{width:14px;height:14px;border-radius:50%;border:2px solid #4A5A6A;box-sizing:border-box}
+.opt.sel i{border:4px solid var(--p)}
+.btns{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:14px}
+.btn{font:inherit;font-size:14px;font-weight:600;border-radius:6px;padding:8px 16px;border:0}
+.pri{background:var(--p);color:#FDFCFA}.pri.h{background:var(--p-hover)}
+.sec{background:#22775D;color:#fff}.sec.h{background:#1C5F4B}
+.ter{background:transparent;color:var(--p);border:1px solid #E8E4DC}
+.focus{outline:2px solid #22775D;outline-offset:2px}
+.lbl{font-size:11px;color:#4A5A6A;text-align:center;margin-top:4px}
+.pill{display:inline-block;background:#E3F3EE;color:var(--p);font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;font-weight:600;letter-spacing:.12em;padding:6px 14px;border-radius:999px;font-size:15px}
+.line{font-size:14px;margin:8px 0 0}.line a{color:var(--p);font-weight:600}
+.err{color:#BB251B}.warn{color:#8C6A1D}
+.page{background:#FDFCFA;border:1px solid #E8E4DC;border-radius:4px;padding:26px 30px 22px;box-shadow:0 2px 8px rgba(26,34,41,.08)}
+.page img{display:block}
+.title{font-size:26px;font-weight:700;color:#0A3D62;margin:18px 0 2px}
+.sub{color:#4A5A6A;font-size:14px;margin:0 0 16px}
+.rule{height:3px;background:var(--heading);width:72px;margin:0 0 16px}
+.ch{color:var(--heading);font-size:18px;font-weight:600;margin:0 0 6px}
+.txt{font-size:13px;color:#1A2229;margin:0 0 10px;max-width:none}
+.box{border-left:4px solid var(--heading);background:#F0EDE6;padding:8px 12px;font-size:13px;color:#1A2229}
+.ink{background:var(--p);border-radius:8px;padding:14px 18px;display:inline-block}
+table{border-collapse:collapse;font-size:13px;margin-top:4px}td,th{padding:4px 14px 4px 0;text-align:left;color:#1A2229}th{color:#4A5A6A;font-weight:600}
+.bad{color:#BB251B;font-weight:600}.ok{color:#22775D;font-weight:600}
+</style></head><body>
+<h1>Elicit default brand: which navy is primary?</h1>
+<p>The Choice E mark is drawn in the darkest navy <b>#0A3D62</b> and green <b>#22775D</b>. The applications' primary color today is the lighter Ink <b>#1B629C</b>. The same screens are shown twice below; only the primary color and its hover step differ. Green, neutrals and status colors are the same on both sides.</p>
+
+<div class="cols">
+
+<div class="col a">
+<h2>A · Primary follows the mark</h2>
+<div class="sw"><i style="background:#0A3D62"></i>primary #0A3D62 <i style="background:#072E4A;margin-left:10px"></i>hover #072E4A <i style="background:#22775D;margin-left:10px"></i>accent #22775D</div>
+
+<h3>Application</h3>
+<div class="app"><div class="hdr"><img src="../elicit-survey/choiceE-mark-white.svg" width="30"><b>Elicit Survey</b><span>Step 2 of 5</span></div>
+<div class="body">
+<p class="q">Has anyone in your family been diagnosed with cancer?</p>
+<div class="opt"><i></i>No</div><div class="opt sel"><i></i>Yes</div><div class="opt"><i></i>I don't know</div>
+<div class="btns">
+<div><button class="btn pri">Next</button><div class="lbl">primary</div></div>
+<div><button class="btn pri h">Next</button><div class="lbl">hover</div></div>
+<div><button class="btn sec">Save</button><div class="lbl">secondary</div></div>
+<div><button class="btn sec h">Save</button><div class="lbl">hover</div></div>
+<div><button class="btn ter">Previous</button><div class="lbl">tertiary</div></div>
+<div><button class="btn ter focus">Previous</button><div class="lbl">focus ring</div></div>
+</div>
+<p class="line">Your access code <span class="pill">K7QM-42XD</span></p>
+<p class="line">Read the <a href="#">privacy statement</a> before you begin.</p>
+<p class="line err">Enter a date of birth before continuing.</p>
+<p class="line warn">Your session will end in five minutes.</p>
+</div></div>
+
+<h3>Logo on the primary color</h3>
+<div class="ink"><img src="../elicit-survey/choiceE-horizontal-white.svg" width="270"></div>
+
+<h3>Manual</h3>
+<div class="page"><img src="../elicit-survey/choiceE-horizontal.svg" width="190">
+<div class="title">Installation Manual</div><p class="sub">Elicit 3.0.0-rc.1</p><div class="rule"></div>
+<div class="ch">4 &nbsp;Branding</div>
+<p class="txt">A brand is a directory of colors, typography and images that the applications read when they start.</p>
+<div class="box"><b style="color:var(--heading)">Note</b> &nbsp;A brand that omits a file falls back to the default for that file only.</div></div>
+
+<h3>Contrast (WCAG; 4.5 passes for text, 3.0 for graphics)</h3>
+<table>
+<tr><th>Pair</th><th>Ratio</th></tr>
+<tr><td>Header and button text on primary</td><td class="ok">11.0</td></tr>
+<tr><td>Links and headings on Paper</td><td class="ok">11.0</td></tr>
+<tr><td>Access code on its pill</td><td class="ok">9.9</td></tr>
+<tr><td>White logo's green row on the header</td><td class="ok">4.9</td></tr>
+</table>
+</div>
+
+<div class="col b">
+<h2>B · Palette as shipped</h2>
+<div class="sw"><i style="background:#1B629C"></i>primary #1B629C <i style="background:#154C79;margin-left:10px"></i>hover #154C79 <i style="background:#22775D;margin-left:10px"></i>accent #22775D</div>
+
+<h3>Application</h3>
+<div class="app"><div class="hdr"><img src="../elicit-survey/choiceE-mark-white.svg" width="30"><b>Elicit Survey</b><span>Step 2 of 5</span></div>
+<div class="body">
+<p class="q">Has anyone in your family been diagnosed with cancer?</p>
+<div class="opt"><i></i>No</div><div class="opt sel"><i></i>Yes</div><div class="opt"><i></i>I don't know</div>
+<div class="btns">
+<div><button class="btn pri">Next</button><div class="lbl">primary</div></div>
+<div><button class="btn pri h">Next</button><div class="lbl">hover</div></div>
+<div><button class="btn sec">Save</button><div class="lbl">secondary</div></div>
+<div><button class="btn sec h">Save</button><div class="lbl">hover</div></div>
+<div><button class="btn ter">Previous</button><div class="lbl">tertiary</div></div>
+<div><button class="btn ter focus">Previous</button><div class="lbl">focus ring</div></div>
+</div>
+<p class="line">Your access code <span class="pill">K7QM-42XD</span></p>
+<p class="line">Read the <a href="#">privacy statement</a> before you begin.</p>
+<p class="line err">Enter a date of birth before continuing.</p>
+<p class="line warn">Your session will end in five minutes.</p>
+</div></div>
+
+<h3>Logo on the primary color</h3>
+<div class="ink"><img src="../elicit-survey/choiceE-horizontal-white.svg" width="270"></div>
+
+<h3>Manual</h3>
+<div class="page"><img src="../elicit-survey/choiceE-horizontal.svg" width="190">
+<div class="title">Installation Manual</div><p class="sub">Elicit 3.0.0-rc.1</p><div class="rule"></div>
+<div class="ch">4 &nbsp;Branding</div>
+<p class="txt">A brand is a directory of colors, typography and images that the applications read when they start.</p>
+<div class="box"><b style="color:var(--heading)">Note</b> &nbsp;A brand that omits a file falls back to the default for that file only.</div></div>
+
+<h3>Contrast (WCAG; 4.5 passes for text, 3.0 for graphics)</h3>
+<table>
+<tr><th>Pair</th><th>Ratio</th></tr>
+<tr><td>Header and button text on primary</td><td class="ok">6.3</td></tr>
+<tr><td>Links and headings on Paper</td><td class="ok">6.3</td></tr>
+<tr><td>Access code on its pill</td><td class="ok">5.6</td></tr>
+<tr><td>White logo's green row on the header</td><td class="bad">2.8 (below 3.0)</td></tr>
+</table>
+</div>
+
+</div>
+</body></html>

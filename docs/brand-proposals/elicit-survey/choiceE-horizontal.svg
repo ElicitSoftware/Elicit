@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 200"><g transform="translate(0 22) scale(0.6)">
+<circle cx="58" cy="62" r="20" fill="none" stroke="#0A3D62" stroke-width="12"/>
+<path d="M104 62 H214" stroke="#0A3D62" stroke-width="28" stroke-linecap="round"/>
+<circle cx="58" cy="128" r="26" fill="#22775D"/>
+<path d="M104 128 H180" stroke="#22775D" stroke-width="28" stroke-linecap="round"/>
+<circle cx="58" cy="194" r="20" fill="none" stroke="#0A3D62" stroke-width="12"/>
+<path d="M104 194 H214" stroke="#0A3D62" stroke-width="28" stroke-linecap="round"/>
+</g>
+<text x="180" y="110" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-weight="700" font-size="92" fill="#0A3D62">ELICIT</text>
+<text x="184" y="156" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-weight="600" font-size="34" letter-spacing="17.5" fill="#22775D">SURVEY</text></svg>

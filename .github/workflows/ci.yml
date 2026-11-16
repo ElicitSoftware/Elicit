@@ -5,6 +5,8 @@
 #   checkLanguages.sh               the images carry English only, elicit-i18n/ gives Survey,
 #                                   Admin and Author the same languages, and Author publishes
 #                                   content in exactly those
+#   checkBrand.sh                   Survey, Admin and Author embed elicit-brand/ unchanged, and
+#                                   the manuals' style package carries its palette (NFR-015)
 #   docs/manual/check-properties.sh the configuration reference matches the modules'
 #                                   @ConfigProperty declarations and defaults (NFR-004/005)
 #   docker compose config           the compose file parses
@@ -68,6 +70,9 @@ jobs:
 
       - name: Images carry English only; Survey, Admin and Author get the same languages
         run: ./checkLanguages.sh
+
+      - name: The default brand is one brand
+        run: ./checkBrand.sh
 
       - name: Configuration reference matches the code
         run: docs/manual/check-properties.sh

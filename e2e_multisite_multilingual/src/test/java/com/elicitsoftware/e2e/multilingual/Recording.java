@@ -377,7 +377,7 @@ final class Recording {
     }
 
     private static final List<SiteBrand> BRANDS = List.of(
-            new SiteBrand(Site.usa(), "#1B629C", Path.of("..", "..", "elicit-brand", "images", "icon-white.png")),
+            new SiteBrand(Site.usa(), "#0A3D62", Path.of("..", "..", "elicit-brand", "images", "icon-white.png")),
             new SiteBrand(Site.mexico(), "#006847", Path.of("mexico", "mexico_brand", "images", "icon-white.png")),
             new SiteBrand(Site.arabia(), "#006C35", Path.of("arabia", "arabia_brand", "images", "icon-white.png")));
 

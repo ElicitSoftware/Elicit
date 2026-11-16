@@ -17,7 +17,7 @@
 ## Main Success Scenario
 
 1. The operator reads the branding chapter, which states that every application carries a complete brand inside its image and that mounting a brand replaces files of that default rather than the whole of it.
-2. The system gives the directory layout a brand must follow: `brand-config.json` and `brand-info.json` at the root, `colors/brand-colors.css`, `typography/brand-typography.css` with its `typography.json` companion, `images/` holding the horizontal logo, the icon and the favicon, and `theme.css`, which imports the color and typography stylesheets and is the file an application inlines into the page head.
+2. The system gives the directory layout a brand must follow: `brand-config.json` and `brand-info.json` at the root, `colors/brand-colors.css`, `typography/brand-typography.css` with its `typography.json` companion and, when the brand has fonts of its own, `typography/fonts/` (BR-007), `images/` holding the horizontal logo, the icon and the favicon, and `theme.css`, which imports the color and typography stylesheets and is the file an application inlines into the page head.
 3. The system states that a brand populates `--brand-*` custom properties only: each application's own stylesheet maps the Lumo theme tokens onto them, so a brand never sets a `--lumo-*` value itself, and a brand that defines only `--brand-*` values needs no knowledge of the applications.
 4. The operator assembles the site's brand directory, starting from the repository's default brand and changing only the files that differ, and names the brand in `brand-config.json` along with the logo, icon and favicon file names it expects to find under `images/`.
 5. The operator points each application at the directory with `brand.file.system.path` — which defaults to `/brand`, and which the compose file sets to `/opt/brand` with a read-only volume — and gives the survey application and the console the same mount.
@@ -98,3 +98,7 @@ The organization name in the header and the brand description in the page metada
 ### BR-006: The resolved brand is cached
 
 An application resolves its brand once and holds it. A change to a mounted file takes effect on an explicit reload from the branding screen or on the next restart, and at no other time.
+
+### BR-007: A brand carries its own fonts
+
+A font is a file of the brand like any other. A brand stylesheet names it with a `url()` relative to that stylesheet (`url("fonts/Face.woff2")` in `typography/brand-typography.css` is `typography/fonts/Face.woff2`), and each application resolves the URL against the brand when it inlines the stylesheet, so the browser fetches the font from the application. The default brand carries IBM Plex Sans, IBM Plex Sans Arabic and IBM Plex Mono this way, with their license. No page requests a font from a third party unless a site's own brand says so, and a brand with no font files renders in the font stack its stylesheet names.

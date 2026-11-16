@@ -49,6 +49,9 @@
 # the run without building anything. Author's own buildDockerImage.sh runs this same script, so
 # the run below sets SKIP_LANGUAGE_CHECK=1 for it rather than checking twice.
 #
+# checkBrand.sh runs next: the default brand each of Survey, Admin and Author embeds is the same
+# files as elicit-brand/, and docs/manual/elicit-brand.sty carries the same palette.
+#
 # PREMM5 is not cloned by cloneAllProjects.sh and is commented out of
 # docker-compose.yml; add it to MODULES if you restore that module. The
 # postgresql/ directory holds only the local PGDATA volume -- there is no build
@@ -109,6 +112,15 @@ fi
 # still gets it: the manual documents these settings.
 if ! ./checkLanguages.sh; then
     echo "Refusing to build: the language check failed (see above)." >&2
+    exit 1
+fi
+
+# The default brand is one brand (NFR-015): the copy each of Survey, Admin and Author embeds is
+# elicit-brand/, and the manuals' style package carries its palette. A copy that drifted would show
+# one logo with a brand mounted and another without; nothing at runtime notices. Checked like the
+# languages, before anything is built.
+if ! ./checkBrand.sh; then
+    echo "Refusing to build: the brand check failed (see above)." >&2
     exit 1
 fi
 

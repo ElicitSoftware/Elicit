@@ -1,8 +1,8 @@
 /* Brand Typography */
-/* Elicit Mexico: the system font stack, unchanged from the default brand. The
-   Mexico site differs from the master in colour and mark, not in type -- and a
-   demo brand that also swapped the typeface would make it harder to see which
-   of the two the screen is showing. */
+/* Elicit Mexico: the system font stack. The default brand carries IBM Plex in
+   its own typography/fonts/; this site brand carries no font files, which is
+   the other supported case -- a brand names a stack of system fonts and the
+   page requests no font at all. */
 
 :root {
   /* Font Family Variables */
