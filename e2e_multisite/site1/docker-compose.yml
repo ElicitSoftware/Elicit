@@ -19,6 +19,9 @@ services:
     ports:
       - 8080:8080
     environment:
+      # The token the modules authenticate each other with. Every module of one site gets the
+      # same value; a real site supplies its own (openssl rand -hex 32).
+      ELICIT_SERVICE_TOKEN: elicit-e2e-service-token-multisite-site1
       TZ: America/Detroit
       accessCode.autoRegister: true
       # INFO so a test run's rule evaluation and save errors show in `docker compose logs survey`.
@@ -56,6 +59,10 @@ services:
         condition: service_healthy
   pedigree:
     image: elicitsoftware/pedigree:latest
+    environment:
+      # The token the modules authenticate each other with. Every module of one site gets the
+      # same value; a real site supplies its own (openssl rand -hex 32).
+      ELICIT_SERVICE_TOKEN: elicit-e2e-service-token-multisite-site1
     ports:
       - 8083:8080
   admin:
@@ -69,6 +76,9 @@ services:
       retries: 20
       start_period: 60s
     environment:
+      # The token the modules authenticate each other with. Every module of one site gets the
+      # same value; a real site supplies its own (openssl rand -hex 32).
+      ELICIT_SERVICE_TOKEN: elicit-e2e-service-token-multisite-site1
       TZ: America/Detroit
       quarkus.mailer.from: elicit@localhost
       quarkus.mailer.host: mailpit
@@ -109,6 +119,9 @@ services:
     ports:
       - 8085:8080
     environment:
+      # The token the modules authenticate each other with. Every module of one site gets the
+      # same value; a real site supplies its own (openssl rand -hex 32).
+      ELICIT_SERVICE_TOKEN: elicit-e2e-service-token-multisite-site1
       TZ: America/Detroit
       accessCode.autoRegister: true
       elicit.etl.enabled: "false"
@@ -157,6 +170,9 @@ services:
       retries: 20
       start_period: 60s
     environment:
+      # The token the modules authenticate each other with. Every module of one site gets the
+      # same value; a real site supplies its own (openssl rand -hex 32).
+      ELICIT_SERVICE_TOKEN: elicit-e2e-service-token-multisite-site1
       # The preview Survey, which drops a survey's reporting schema before Author deletes it (UC-047).
       author.preview.survey.url: http://author-survey:8080
       TZ: America/Detroit
