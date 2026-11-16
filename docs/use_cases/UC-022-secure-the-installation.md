@@ -7,7 +7,7 @@
 **Primary Actor:** Deployment Operator  
 **Goal:** Put in place every control that protects a site — what reaches the Internet, transport security, the identity provider and its accounts, access codes, the database, secrets, what the site loads, and what it logs — and work through a checklist that records each one, so that a site holding respondents' answers is hardened deliberately rather than by assumption.  
 **Status:** Open  
-**Requirements:** [FR-043, FR-044, C-017, C-019](../requirements.md)
+**Requirements:** [FR-043, FR-044, C-017, C-019, C-020](../requirements.md)
 
 ## Preconditions
 
@@ -25,7 +25,7 @@
 6. The operator sets transport security: `https` for every address a browser uses, the response headers the chapter lists, and a verified, encrypted connection for each outbound dependency the site reaches across a network it does not control.
 7. The operator configures the identity provider and the accounts: the site's own provider, an exact redirect address, a client that allows the authorization code flow only, failed sign-ins limited and sign-ins recorded by the provider, roles granted narrowly, the machine role held by a machine client only, the seeded accounts renamed, and departed people removed at the provider.
 8. The operator protects the access code: automatic registration off, the invitation link over `https`, and the logs that record the link's address treated as holding credentials.
-9. The operator protects the database: no address outside the application hosts, the connection roles the manual prescribes, the schema owner's password held as the most sensitive secret of the site, and backups protected as the database is.
+9. The operator protects the database: no address outside the application hosts, the connection roles the manual prescribes, none of them a superuser, the schema owner's password held as the most sensitive secret of the site, and backups protected as the database is.
 10. The operator supplies every secret through a configuration source that keeps it out of files under version control, and knows the two places each one is changed.
 11. The operator gives every module the site's own service token, so that the paths one module serves for another answer only a module of the site, and lists as trusted only the origins of services the site runs and trusts (UC-023).
 12. The operator decides who may change what the site loads: definition files applied only from authors the site trusts, with the addresses each one carries reviewed, and the brand and translations directories writable by operators only.
@@ -59,12 +59,12 @@
 1. The manual states that the authority is added to the trust store and that certificate verification is never turned off (UC-012).
 2. Use case continues at step 6.
 
-### A4: Site policy forbids a superuser login role
+### A4: The schema owner is still a superuser
 
-**Trigger:** The operator reaches the database section (step 9)  
+**Trigger:** The cluster was prepared by the role script of an earlier release, and the checklist's query shows the schema owner or the owner group as a superuser (step 9)  
 **Flow:**
 
-1. The manual points at the database chapter, which states what the schema owner must be able to do and that a narrowed role is verified against the release (UC-005).
+1. The manual states that no role Elicit prescribes is a superuser (C-020), and points at the upgrade notes for the statements that narrow the roles of a cluster that already exists (UC-005 A3).
 2. Use case continues at step 9.
 
 ## Postconditions

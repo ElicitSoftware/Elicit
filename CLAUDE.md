@@ -85,7 +85,12 @@ second Survey on the `author` database, Author's respondent preview). Supporting
 `elicitsoftware/<name>:latest`, and the compose file pulls every application image
 at one tag, `${ELICIT_TAG:-latest}`, so `ELICIT_TAG=3.0.0-beta.1 docker compose up -d` (or a
 `.env` line, ignored by git) runs a published release as a matched set. `elicit_db` is not on
-the tag.
+the tag: every compose file names its own version, `2.0.0`, the first whose schema owner
+(`elicit_owner`) and owner group (`dbowner`) are not superusers (umbrella C-020). The image's
+source is the `ElicitSoftware/PostgreSQL` repository, which is not cloned here. A `PGDATA`
+initialized by version 1 keeps its superuser roles until the three statements in
+`DeploymentScript.md` are run; `resetDatabase.sh V2` runs them on the V2 copy, and `fullTest.sh`
+fails a run whose schema owner is a superuser.
 
 | Port    | Service                                    |
 | ------- | ------------------------------------------ |
@@ -352,7 +357,7 @@ See `docs/I18N_IMPLEMENTATION_GUIDE.md`.
 
 The umbrella now carries its own AIUP artifacts — the first ones it has had —
 scoped to the platform as one deployable whole: `docs/vision.md`,
-`docs/requirements.md` (FR-001..044, NFR-001..014, C-001..019),
+`docs/requirements.md` (FR-001..044, NFR-001..014, C-001..020),
 `docs/use_cases.puml` and `docs/use_cases/UC-001..023`. Module requirement and
 use-case IDs are unrelated to these.
 
