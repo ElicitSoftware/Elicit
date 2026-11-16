@@ -444,7 +444,8 @@ a browser reaches the console at, which is not necessarily the address the conta
 administrative ones. \\
 \addlinespace
 \val{elicit_importer} & \val{elicit-admin} & The subject-import endpoints of the
-integration API, for a machine client presenting a bearer token. \\
+integration API, for a machine client presenting a bearer token. The role lets the client
+call; the departments it registers into come from its console user record. \\
 \end{plaintable}
 
 At least one account must hold \val{elicit_admin} before the first sign-in
@@ -463,6 +464,9 @@ repository: the secret of the console's client and of Author's is the literal st
 \val{secret}, the integration client's is \val{importer}, every account's password is
 documented, and the realm's signing keys are the same in every copy. Keycloak's own bootstrap
 administrator, in its \val{master} realm, is \val{admin}/\val{admin}.
+The integration client has no console user record in a new database, so the registration API
+answers it 403 until one is created on the Users screen, named
+\val{service-account-import-service}, with a department.
 
 A real site does not import this file or change its secrets one by one. It creates the client
 and the roles above in its own identity provider, which issues secrets and keys of its own.
@@ -2252,7 +2256,11 @@ protected as the provider is.
         departments' subjects.
   \item \textbf{Keep \val{elicit_importer} for machines.} A machine client that imports
         subjects is a client of its own in the provider, with its own secret and that one
-        role. No person holds it.
+        role. No person holds it. Enter the client on the console's Users screen as well,
+        under the name its tokens carry (for a Keycloak service account,
+        \val{service-account-} followed by the client ID), and assign it the departments it
+        registers into: a caller with no console user record registers in none, and the
+        registration API answers it 403.
   \item \textbf{Rename the seeded accounts} \val{admin} and \val{user}
         (Chapter~\ref{sec:firstsignin}).
   \item \textbf{Remove a person at the provider first.} When someone leaves, disable their
@@ -2448,7 +2456,8 @@ something the site does not run does not apply.
         (Section~\ref{sec:security-identity}).
   \item The provider locks an account out after repeated failed sign-ins, and records
         sign-ins and administrative changes (Section~\ref{sec:security-identity}).
-  \item \val{elicit_importer} is held by a machine client only
+  \item \val{elicit_importer} is held by a machine client only, and that client has a
+        console user record with only the departments it registers into
         (Section~\ref{sec:security-identity}).
   \item The seeded accounts \val{admin} and \val{user} are renamed, and the console shows no
         banner about them (Chapter~\ref{sec:firstsignin}).
