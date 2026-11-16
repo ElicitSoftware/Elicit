@@ -16,7 +16,7 @@ The docker-compose.yml has many properties defined for a local development envir
 Examine these properties and adjust them for your unique installation requirements. 
 Refer to the Quarkus.io documentation for explanations of properties (https://quarkus.io/guides/all-config).
 
-Three settings have no usable default from 3.0.0 and must be set by every deployment:
+Four settings have no usable default from 3.0.0 and must be set by every deployment:
 
 - **Database passwords.** Survey and FHHS ship without them. Set `ELICIT_DB_PASSWORD` and
   `ELICIT_OWNER_DB_PASSWORD` (or `quarkus.datasource.password` and
@@ -27,6 +27,23 @@ Three settings have no usable default from 3.0.0 and must be set by every deploy
   `http://survey:8080`, resolves only inside docker compose. Those `/api` paths on Survey are for
   Admin only, so do not publish them: a public Survey host should refuse every `/api` path except
   `/api/pdf/download`.
+- **The service token.** Survey, Admin, FHHS and Pedigree authenticate their calls to each other
+  with one secret, the same value on every module of a deployment. Generate it once
+  (`openssl rand -hex 32`) and set `ELICIT_SERVICE_TOKEN` on all four (`elicit.service.token` in
+  the Java modules; Pedigree reads the environment variable only). It must be at least 32
+  characters, and a module refuses to start with a shorter one. A module started without it
+  starts, reports not ready on `/q/health/ready` (check `service-token`, reason
+  "ELICIT_SERVICE_TOKEN is not set") and answers 503 on the paths it serves for other modules:
+  Survey's `/api` paths other than `/api/pdf/download`, everything outside `/q` on FHHS, and
+  everything but `/healthz` on Pedigree. A call without the token, or with a wrong one, is
+  answered 401.
+  A site that runs FHHS also sets `ELICIT_SERVICE_TRUSTED_ORIGINS` on Survey, Admin and FHHS to the
+  origin of the report addresses in its Family History definition, for example
+  `http://fhhs.internal:8080`: the token is sent to an address from a definition file only when
+  its origin is listed. The value in `docker-compose.yml`,
+  `elicit-dev-service-token-not-for-a-real-site`, is published and is for development and
+  evaluation only. The installation manual's chapter "The service token" has the detail,
+  including rotation.
 - **Trusted certificates.** Outbound HTTPS is verified (`quarkus.tls.trust-all` is no longer set).
   If a report service, post-survey action or identity provider uses a certificate from a private
   CA, add that CA with `quarkus.tls.trust-store.pem.certs`.

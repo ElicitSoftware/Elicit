@@ -7,7 +7,7 @@
 **Primary Actor:** Deployment Operator  
 **Goal:** Match a failing installation against the failures that have actually been seen, each with its cause and its fix, so that a stalled install has a documented next step rather than a search through five repositories.  
 **Status:** Open  
-**Requirements:** [FR-034, FR-035, C-006](../requirements.md)
+**Requirements:** [FR-034, FR-035, FR-044, C-006](../requirements.md)
 
 ## Preconditions
 
@@ -36,6 +36,25 @@
 2. The system points at the deployment script document in this repository, which carries the upgrade procedures — the ordering the modules must be upgraded in, which migrations depend on which, and the configuration and template changes each upgrade requires — and names the sections rather than restating them.
 3. The operator follows the procedure there and returns.
 4. Use case continues at step 8.
+
+### A7: A module is not ready, or will not start, over the service token
+
+**Trigger:** A module reports not ready with a check named `service-token`, or exits at startup naming `ELICIT_SERVICE_TOKEN` (step 3)  
+**Flow:**
+
+1. The system states the two causes and how each shows. A module with no token starts, logs one warning naming the variable, reports not ready with the reason "ELICIT_SERVICE_TOKEN is not set", and answers `503` on the paths it serves for other modules. A module given a token shorter than 32 characters does not start; its log names the variable and the length required, and never the value.
+2. The system gives the fix: supply a value generated as the service token section gives, to every module, and start the module again (UC-023 A1, A2).
+3. Use case continues at step 4.
+
+### A8: Calls between modules are refused with 401
+
+**Trigger:** Applying a definition reports that the reporting schema was not rebuilt, a report shows an error card although its service is running, or a post-survey action's deliveries fail with `401` (step 3)  
+**Flow:**
+
+1. The system states the two causes. The modules do not all hold the same service token, which is the state of a site part-way through a rotation; or the address being called is one a survey definition carries and its origin is not among the calling module's trusted origins, so the call was made without the token.
+2. The system gives the fix for each: give every module the same value and restart them together, or add the origin to the trusted origins of the modules that call it — or change the address in Author to one whose origin is listed — and restart those modules (UC-023 A3, A4).
+3. The system states that a module still running with the token the compose files ship logs a warning at startup, which is the place to look when a site's modules disagree.
+4. Use case continues at step 4.
 
 ### A2: The database refuses to start on its data directory's ownership
 

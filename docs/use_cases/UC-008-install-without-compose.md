@@ -18,7 +18,7 @@
 
 1. The operator reads the module-by-module chapter, which gives one procedure repeated per module.
 2. The operator pulls the module's image at the tag of the release being installed; every module runs at the same tag.
-3. The operator writes the module's configuration — datasource, identity, mail, brand and translations paths, and anything else the site changes — as environment variables, by the rules the configuration chapter gives (UC-011), and mounts the brand and translations directories read-only.
+3. The operator writes the module's configuration — datasource, identity, mail, the site's service token (UC-023), brand and translations paths, and anything else the site changes — as environment variables, by the rules the configuration chapter gives (UC-011), and mounts the brand and translations directories read-only.
 4. The operator runs the image under the site's container platform, publishing its container port 8080 to the site's reverse proxy and to nothing else; the proxy terminates TLS and is the only way a browser reaches the survey application or the console (UC-022).
 5. The operator starts the survey application first and waits for its readiness endpoint to report healthy, which is what confirms its migrations have completed.
 6. The operator starts the console, whose migrations add its tables to the schema the survey application created, and waits for its readiness endpoint.

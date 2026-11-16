@@ -7,7 +7,7 @@
 **Primary Actor:** Report Developer  
 **Goal:** Give a survey a report of the site's own — shown to the respondent when they finish, and printed by the console for an administrator — by writing a small web service that reads the survey's reporting schema for one respondent and answers with the report, and by registering that service with the survey.  
 **Status:** Draft  
-**Requirements:** [FR-038, FR-039, FR-040, FR-041, C-017](../requirements.md)
+**Requirements:** [FR-038, FR-039, FR-040, FR-041, FR-044, C-017, C-019](../requirements.md)
 
 ## Preconditions
 
@@ -42,6 +42,16 @@
 2. The manual states that an action is independent of the report list, that a failed call is recorded against the respondent, retried by Survey on a schedule up to a limit, and never stops the respondent finishing, and that once a call is answered, what the service does next (such as filing a document) is the service's to record and retry.
 3. The manual names the Family History report service's upload to a records system as the worked example (UC-021).
 4. Use case continues at step 9.
+
+### A6: The site wants the service's calls authenticated
+
+**Trigger:** The developer wants the service to check who is calling, not only to rely on the network (step 5)  
+**Flow:**
+
+1. The manual states that Survey and Admin send the site's service token only to an origin the operator has listed as trusted, so a service of the site's own is called without a credential unless the operator lists it.
+2. The manual states what listing means: the service is handed the platform's token on every call, and a holder of that token can call every protected path of every module. A site lists a service only if it trusts the service as it trusts Survey.
+3. The operator lists the service's origin on Survey and Admin and gives the service the token to compare against; the service answers `401` to a request that does not carry it (UC-023 A6).
+4. Use case continues at step 5.
 
 ### A2: The service is not reachable from the console
 
@@ -100,7 +110,7 @@ A survey's reports are the entries of its report list, in display order. Each en
 
 ### BR-002: The request carries the respondent and the language
 
-Each report service is sent a JSON `POST` to its address carrying `id`, the respondent's id (`survey.respondents.id`), and `language`, the tag of the language the respondent answered in, or nothing for the survey's base language. Survey waits 5 seconds to connect and 60 seconds for the answer; the console uses the REST client's own defaults. No credential is sent.
+Each report service is sent a JSON `POST` to its address carrying `id`, the respondent's id (`survey.respondents.id`), and `language`, the tag of the language the respondent answered in, or nothing for the survey's base language. Survey waits 5 seconds to connect and 60 seconds for the answer; the console uses the REST client's own defaults. The site's service token is sent as `Authorization: Bearer` when the address's origin is one the operator listed as trusted, and no credential is sent otherwise (UC-023 BR-005).
 
 ### BR-003: The answer carries three things
 
@@ -120,7 +130,7 @@ The report list is carried in the definition file and applied as a whole: an app
 
 ### BR-007: Post-survey actions are called as configured, and a failed call is retried
 
-When a respondent finishes, Survey calls each post-survey action in execution order (Survey UC-015). The call uses the action's method (`POST`, `GET` or `PUT`); its address may carry `{respondentId}` and, when the author turned on sending the subject's External ID, `{externalId}`; a `POST` or `PUT` body is `{"id": <respondent id>}`, with `externalId` and `departmentCode` added for such an action, which must use an `https` address. A site gives an action a credential in Survey's configuration, by the action's key: a bearer token the service issued, which Survey presents as given and never obtains or refreshes; nothing secret is in the definition file. Survey waits 5 seconds to connect and 60 for the answer, and any 2xx is delivered. A failed call is recorded and retried on a schedule (`elicit.post-survey-action.retry.*`) until it is delivered or the limit is reached; a call refused before it is made is not retried; a status the service writes itself is never overwritten or retried by Survey. The respondent's finishing is never affected.
+When a respondent finishes, Survey calls each post-survey action in execution order (Survey UC-015). The call uses the action's method (`POST`, `GET` or `PUT`); its address may carry `{respondentId}` and, when the author turned on sending the subject's External ID, `{externalId}`; a `POST` or `PUT` body is `{"id": <respondent id>}`, with `externalId` and `departmentCode` added for such an action, which must use an `https` address. A site gives an action a credential in Survey's configuration, by the action's key: a bearer token the service issued, which Survey presents as given and never obtains or refreshes; nothing secret is in the definition file. An action with no token of its own is sent the site's service token when its address's origin is trusted, which is how an action answered by a platform module is reached, and nothing otherwise (UC-023 BR-006). Survey waits 5 seconds to connect and 60 for the answer, and any 2xx is delivered. A failed call is recorded and retried on a schedule (`elicit.post-survey-action.retry.*`) until it is delivered or the limit is reached; a call refused before it is made is not retried; a status the service writes itself is never overwritten or retried by Survey. The respondent's finishing is never affected.
 
 ### BR-008: Reachability is checked, never generation
 
@@ -128,4 +138,4 @@ The console's Connections screen sends each report service and post-survey actio
 
 ### BR-009: A report service is headless and reachable only by its callers
 
-A report service has no user interface: no pages, no sign-in, nothing a person opens in a browser. A respondent's browser never calls it; Survey calls it on the respondent's behalf, and Admin on the administrator's. The service therefore runs without exposure to the Internet, on a network or behind a firewall rule that admits only the Survey and Admin hosts (and, for a service another report service calls, as FHHS calls Pedigree, that service). That isolation is why no authentication is needed: neither caller presents a credential and the service checks none (C-017). This rule is for report services; post-survey actions are not bound by it.
+A report service has no user interface: no pages, no sign-in, nothing a person opens in a browser. A respondent's browser never calls it; Survey calls it on the respondent's behalf, and Admin on the administrator's. The service therefore runs without exposure to the Internet, on a network or behind a firewall rule that admits only the Survey and Admin hosts (and, for a service another report service calls, as FHHS calls Pedigree, that service). For a service of the site's own that isolation is the only lock, unless the operator lists the service as a trusted origin: an unlisted service is sent no credential and checks none. The shipped report services have a second lock: FHHS and Pedigree require the site's service token on every call (C-017, C-019). The token does not relax the network rule. This rule is for report services; post-survey actions are not bound by it.

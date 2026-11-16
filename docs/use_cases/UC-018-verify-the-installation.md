@@ -7,7 +7,7 @@
 **Primary Actor:** Deployment Operator  
 **Goal:** Work through an ordered set of checks that confirm each part of a new installation — services reachable, applications ready, dependencies reachable, the database populated and a survey walkable — so that the site is known to work before anyone else uses it.  
 **Status:** Open  
-**Requirements:** [FR-032, FR-033, FR-043, C-011](../requirements.md)
+**Requirements:** [FR-032, FR-033, FR-043, FR-044, C-011](../requirements.md)
 
 ## Preconditions
 
@@ -24,8 +24,9 @@
 5. The operator signs in to the console and works through its System section: an overview of what is running with the setup work still outstanding, the state of both database connections and each module's migration history, which brand directory resolved, the effective mail settings with a test message, a bounded reachability probe of every outbound dependency, and the current sign-in's authentication and role state.
 6. The operator confirms in the database that applying the survey definition rebuilt the reporting star schema, by counting the rows of the step dimension: the count is zero on an installation that carries no survey and non-zero once one has been applied.
 7. The operator completes one end-to-end walkthrough: generate an access code for a test subject in the console, enter the survey with it, answer, finalize, and generate that subject's report.
-8. The operator works through the security checklist, which confirms that the site's controls are in place as well as its functions (UC-022).
-9. The operator records the outcome. Any check that did not pass is taken to the failure chapter (UC-019).
+8. The operator confirms that the modules authenticate each other, with the requests the manual gives: a path one module serves for another answers `401` without the service token and with a wrong one, is served with the right one, and the health endpoints answer without any (UC-023).
+9. The operator works through the security checklist, which confirms that the site's controls are in place as well as its functions (UC-022).
+10. The operator records the outcome. Any check that did not pass is taken to the failure chapter (UC-019).
 
 ## Alternative Flows
 
@@ -36,6 +37,15 @@
 
 1. The manual states that the script's probe is a reachability check and not a health check: a redirect or an authentication challenge proves only that the application is listening.
 2. The operator reads that application's readiness endpoint instead, which reports the failing check by name.
+3. Use case continues at step 3.
+
+### A7: An application is not ready for want of the service token
+
+**Trigger:** An application's readiness endpoint reports a failing check named `service-token` (step 3)  
+**Flow:**
+
+1. The manual states that an application started without the service token starts, reports not ready with the reason "ELICIT_SERVICE_TOKEN is not set", and answers `503` on the paths it serves for other modules.
+2. The operator supplies the token and restarts the application (UC-023 A1).
 3. Use case continues at step 3.
 
 ### A2: The report service reports itself not ready

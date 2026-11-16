@@ -61,8 +61,9 @@ rectangle "Elicit Platform — Installation" {
     usecase "UC-018\nVerify the Installation" as UC018
     usecase "UC-019\nDiagnose a Failed Installation" as UC019
 
-    ' Securing a site (FR-043)
+    ' Securing a site (FR-043, FR-044)
     usecase "UC-022\nSecure the Installation" as UC022
+    usecase "UC-023\nProvision and Rotate\nthe Service Token" as UC023
 }
 
 ' ---------------------------------------------------------------- actors
@@ -88,6 +89,7 @@ dev --> UC020
 op --> UC018
 op --> UC019
 op --> UC022
+op --> UC023
 
 UC005 --> db
 UC006 --> idp
@@ -129,6 +131,10 @@ UC019 ..> UC018 : <<extend>>
 
 UC022 ..> UC013 : <<include>>
 UC018 ..> UC022 : <<include>>
+
+UC008 ..> UC023 : <<include>>
+UC022 ..> UC023 : <<include>>
+UC021 ..> UC023 : <<include>>
 
 ' ---------------------------------------------------------------- hand-off
 note right of UC010
