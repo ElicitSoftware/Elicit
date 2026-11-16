@@ -33,6 +33,9 @@ services:
     ports:
       - 8030:8080
     environment:
+      # The token the modules authenticate each other with. Every module of one site gets the
+      # same value; a real site supplies its own (openssl rand -hex 32).
+      ELICIT_SERVICE_TOKEN: elicit-e2e-service-token-multisite-site2
       TZ: America/Detroit
       accessCode.autoRegister: true
       # INFO so a test run's rule evaluation and save errors show in `docker compose logs survey`.
@@ -71,6 +74,10 @@ services:
         condition: service_healthy
   pedigree:
     image: elicitsoftware/pedigree:latest
+    environment:
+      # The token the modules authenticate each other with. Every module of one site gets the
+      # same value; a real site supplies its own (openssl rand -hex 32).
+      ELICIT_SERVICE_TOKEN: elicit-e2e-service-token-multisite-site2
     ports:
       - 8033:8080
   admin:
@@ -87,6 +94,9 @@ services:
       retries: 20
       start_period: 60s
     environment:
+      # The token the modules authenticate each other with. Every module of one site gets the
+      # same value; a real site supplies its own (openssl rand -hex 32).
+      ELICIT_SERVICE_TOKEN: elicit-e2e-service-token-multisite-site2
       TZ: America/Detroit
       quarkus.mailer.from: elicit-site2@localhost
       quarkus.mailer.host: mailpit

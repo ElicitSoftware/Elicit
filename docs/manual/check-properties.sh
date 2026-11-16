@@ -147,6 +147,19 @@ for module in MODULES:
             if m:
                 note(m.group(1), module, m.group(2).strip())
 
+# The service token is the one setting an image must never carry a value for: a receiver with
+# a shipped token is open to anyone who reads the repository. Development and test profiles
+# may name one; an unprefixed line or a %prod / %docker line may only point at the environment.
+shipped_token = []
+for module in MODULES:
+    props = os.path.join(repo, module, "src", "main", "resources", "application.properties")
+    if not os.path.exists(props):
+        continue
+    for line in open(props, encoding="utf-8", errors="replace"):
+        m = re.match(r'^\s*(%(?:prod|docker)\.)?elicit\.service\.token\s*[=:]\s*(.*)$', line)
+        if m and (resolve(m.group(2)) or ""):
+            shipped_token.append(f"{module}: {(m.group(1) or '')}elicit.service.token carries a value")
+
 # ---------------------------------------------------------------- what the manual documents
 tex = open(tex_path, encoding="utf-8", errors="replace").read()
 documented = set(re.findall(r'\\opt\{([^}]*)\}', tex))
@@ -227,6 +240,7 @@ def report(title, lines):
 report("keys the code reads but the manual does not document",
        [f"{k}  (read by {', '.join(sorted(read[k]))})" for k in undocumented])
 report("Elicit keys the manual documents that nothing reads", stale)
+report("images that ship a service token", shipped_token)
 report("documented defaults that disagree with the code",
        [f"{k}: manual says {d!r}, code says {', '.join(repr(a) for a in acts)}"
         for k, d, acts in mismatches])

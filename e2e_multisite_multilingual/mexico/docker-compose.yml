@@ -42,6 +42,12 @@ services:
     ports:
       - 8030:8080
     environment:
+      # The token the modules authenticate each other with. Every module of one site gets the
+      # same value; a real site supplies its own (openssl rand -hex 32).
+      ELICIT_SERVICE_TOKEN: elicit-e2e-service-token-multilingual-mexico
+      # The Family History definition names its report and post-survey action addresses as
+      # http://host.docker.internal:8082/..., so that origin is the one the token may be sent to.
+      ELICIT_SERVICE_TRUSTED_ORIGINS: http://host.docker.internal:8082
       TZ: America/Detroit
       accessCode.autoRegister: true
       LOG_LEVEL: INFO
@@ -92,6 +98,12 @@ services:
       retries: 20
       start_period: 60s
     environment:
+      # The token the modules authenticate each other with. Every module of one site gets the
+      # same value; a real site supplies its own (openssl rand -hex 32).
+      ELICIT_SERVICE_TOKEN: elicit-e2e-service-token-multilingual-mexico
+      # The Family History definition names its report and post-survey action addresses as
+      # http://host.docker.internal:8082/..., so that origin is the one the token may be sent to.
+      ELICIT_SERVICE_TRUSTED_ORIGINS: http://host.docker.internal:8082
       TZ: America/Detroit
       quarkus.mailer.from: elicit-mexico@localhost
       quarkus.mailer.host: mailpit
@@ -135,6 +147,12 @@ services:
       retries: 20
       start_period: 90s
     environment:
+      # The token the modules authenticate each other with. Every module of one site gets the
+      # same value; a real site supplies its own (openssl rand -hex 32).
+      ELICIT_SERVICE_TOKEN: elicit-e2e-service-token-multilingual-mexico
+      # The Family History definition names its report and post-survey action addresses as
+      # http://host.docker.internal:8082/..., so that origin is the one the token may be sent to.
+      ELICIT_SERVICE_TRUSTED_ORIGINS: http://host.docker.internal:8082
       TZ: America/Detroit
       pedigree.url: http://pedigree:8080/svg
       # FHHS connects as survey_user and migrates as elicit_owner, like Survey.
@@ -156,6 +174,10 @@ services:
         condition: service_healthy
   pedigree:
     image: elicitsoftware/pedigree:latest
+    environment:
+      # The token the modules authenticate each other with. Every module of one site gets the
+      # same value; a real site supplies its own (openssl rand -hex 32).
+      ELICIT_SERVICE_TOKEN: elicit-e2e-service-token-multilingual-mexico
     ports:
       - 8033:8080
   db:

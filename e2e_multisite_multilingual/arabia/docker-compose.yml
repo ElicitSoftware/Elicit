@@ -34,6 +34,9 @@ services:
     ports:
       - 7980:8080
     environment:
+      # The token the modules authenticate each other with. Every module of one site gets the
+      # same value; a real site supplies its own (openssl rand -hex 32).
+      ELICIT_SERVICE_TOKEN: elicit-e2e-service-token-multilingual-arabia
       TZ: America/Detroit
       accessCode.autoRegister: true
       LOG_LEVEL: INFO
@@ -84,6 +87,9 @@ services:
       retries: 20
       start_period: 60s
     environment:
+      # The token the modules authenticate each other with. Every module of one site gets the
+      # same value; a real site supplies its own (openssl rand -hex 32).
+      ELICIT_SERVICE_TOKEN: elicit-e2e-service-token-multilingual-arabia
       TZ: America/Detroit
       quarkus.mailer.from: elicit-arabia@localhost
       quarkus.mailer.host: mailpit

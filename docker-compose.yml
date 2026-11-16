@@ -43,6 +43,11 @@
 #
 #   ELICIT_TAG=3.0.0-beta.1
 #
+# The same `.env` file may set ELICIT_SERVICE_TOKEN, the token the modules authenticate each
+# other with. Unset, every service gets the development value written below, which is
+# published and not for a real site; a value of your own (openssl rand -hex 32, at least 32
+# characters) replaces it for every service at once.
+#
 # A pre-release (3.0.0-beta.1, 3.0.0-rc.1) is published under its exact version only; `latest`
 # and `3.0` move only when a final version ships, so a beta is reachable only by naming it.
 # The database image, elicitsoftware/elicit_db, is versioned on its own and is not covered.
@@ -53,6 +58,12 @@ services:
     ports:
       - 8080:8080
     environment:
+      # The token the modules authenticate each other with. Every module of one site gets the
+      # same value; a real site supplies its own (openssl rand -hex 32).
+      ELICIT_SERVICE_TOKEN: ${ELICIT_SERVICE_TOKEN:-elicit-dev-service-token-not-for-a-real-site}
+      # The Family History definition names its report and post-survey action addresses as
+      # http://host.docker.internal:8082/..., so that origin is the one the token may be sent to.
+      ELICIT_SERVICE_TRUSTED_ORIGINS: http://host.docker.internal:8082
       TZ: America/Detroit
       # AutoRegister allows for users to type in any access code for testing.
       # The Admin tool is used to create access codes and manage respondents.
@@ -95,7 +106,10 @@ services:
         condition: service_healthy
   fhhs:
     image: elicitsoftware/fhhs:${ELICIT_TAG:-latest}
-    #open this port for local testing. It is not needed for inter container communication.
+    # This port is needed, not only for local testing: the shipped Family History definition
+    # names its reports and its post-survey action at http://host.docker.internal:8082/..., so
+    # Survey and Admin reach FHHS through the published port. Every path outside /q requires the
+    # service token.
     ports:
       - 8082:8080
     healthcheck:
@@ -105,6 +119,12 @@ services:
         retries: 20
         start_period: 90s
     environment:
+      # The token the modules authenticate each other with. Every module of one site gets the
+      # same value; a real site supplies its own (openssl rand -hex 32).
+      ELICIT_SERVICE_TOKEN: ${ELICIT_SERVICE_TOKEN:-elicit-dev-service-token-not-for-a-real-site}
+      # The Family History definition names its report and post-survey action addresses as
+      # http://host.docker.internal:8082/..., so that origin is the one the token may be sent to.
+      ELICIT_SERVICE_TRUSTED_ORIGINS: http://host.docker.internal:8082
       TZ: America/Detroit
       pedigree.url: http://pedigree:8080/svg
       # FHHS connects as survey_user and migrates as elicit_owner, like Survey.
@@ -211,7 +231,12 @@ services:
   #     - ./PREMM5/PREMM5.license:/license/PREMM5.license:ro
   pedigree:
     image: elicitsoftware/pedigree:${ELICIT_TAG:-latest}
-    #open this port for local testing. It is not needed for inter container communication.
+    environment:
+      # The token the modules authenticate each other with. Every module of one site gets the
+      # same value; a real site supplies its own (openssl rand -hex 32).
+      ELICIT_SERVICE_TOKEN: ${ELICIT_SERVICE_TOKEN:-elicit-dev-service-token-not-for-a-real-site}
+    # Open this port for local testing. It is not needed for inter container communication:
+    # FHHS reaches Pedigree at pedigree:8080. Every path but /healthz requires the service token.
     ports:
       - 8083:8080
   admin:
@@ -225,6 +250,12 @@ services:
         retries: 20
         start_period: 60s
     environment:
+      # The token the modules authenticate each other with. Every module of one site gets the
+      # same value; a real site supplies its own (openssl rand -hex 32).
+      ELICIT_SERVICE_TOKEN: ${ELICIT_SERVICE_TOKEN:-elicit-dev-service-token-not-for-a-real-site}
+      # The Family History definition names its report and post-survey action addresses as
+      # http://host.docker.internal:8082/..., so that origin is the one the token may be sent to.
+      ELICIT_SERVICE_TRUSTED_ORIGINS: http://host.docker.internal:8082
       TZ: America/Detroit
       quarkus.mailer.from: elicit@localhost
       quarkus.mailer.host: mailpit
@@ -292,6 +323,9 @@ services:
     ports:
       - 8085:8080
     environment:
+      # The token the modules authenticate each other with. Every module of one site gets the
+      # same value; a real site supplies its own (openssl rand -hex 32).
+      ELICIT_SERVICE_TOKEN: ${ELICIT_SERVICE_TOKEN:-elicit-dev-service-token-not-for-a-real-site}
       TZ: America/Detroit
       # Preview only: an author types any access code to walk through a draft.
       accessCode.autoRegister: true
@@ -349,6 +383,9 @@ services:
         retries: 20
         start_period: 60s
     environment:
+      # The token the modules authenticate each other with. Every module of one site gets the
+      # same value; a real site supplies its own (openssl rand -hex 32).
+      ELICIT_SERVICE_TOKEN: ${ELICIT_SERVICE_TOKEN:-elicit-dev-service-token-not-for-a-real-site}
       TZ: America/Detroit
       brand.file.system.path: /opt/brand
       # The image carries English only; the other languages are read from <this path>/<app>/.
