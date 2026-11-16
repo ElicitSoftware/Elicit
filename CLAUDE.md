@@ -266,8 +266,8 @@ to start cleanly on 2026-09-20.
   schemas and `dim_step` count after each run. `SKIP_BUILD=1` reuses the images already
   built. The greenfield start waits for every service but FHHS, which is not ready until
   the suite imports the survey. About 35 minutes.
-- `generateGithubTemplates.py` — regenerate the pull request template and issue forms of
-  all six repositories from one table; commit the result in each.
+- `generateGithubTemplates.py` — regenerate the pull request template, the issue forms and
+  `SECURITY.md` of all six repositories from one table; commit the result in each.
 
 ## End-to-End Suites
 

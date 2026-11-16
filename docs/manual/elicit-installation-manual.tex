@@ -2229,8 +2229,15 @@ protected as the provider is.
         (Chapter~\ref{sec:oidc}); a site never imports it.
   \item \textbf{Make the redirect address exact:} the console's public \val{https} address and
         nothing wider.
+  \item \textbf{Allow the console's client the authorization code flow only.} People sign in
+        on the provider's own page, so the client needs no other way of obtaining a token: turn
+        off the grant that exchanges a user name and password directly, and every other flow
+        the provider offers on the client.
   \item \textbf{Require a second factor} for every account that holds \val{elicit_admin}, by
         whatever means the provider offers.
+  \item \textbf{Limit failed sign-ins and keep a record.} Have the provider lock an account
+        out after repeated failures, and record sign-ins and administrative changes where the
+        people who run the site can read them.
   \item \textbf{Grant roles narrowly} (Table~\ref{tab:roles-oidc}). Most people who use the
         console need \val{elicit_user} and the departments they work in, and see only those
         departments' subjects.
@@ -2423,8 +2430,12 @@ something the site does not run does not apply.
 \begin{itemize}[label = \elicitcheck]
   \item The console signs in against the site's own provider, with an exact redirect address
         (Section~\ref{sec:security-identity}).
+  \item The console's client allows the authorization code flow only
+        (Section~\ref{sec:security-identity}).
   \item Every \val{elicit_admin} account has a second factor
         (Section~\ref{sec:security-identity}).
+  \item The provider locks an account out after repeated failed sign-ins, and records
+        sign-ins and administrative changes (Section~\ref{sec:security-identity}).
   \item \val{elicit_importer} is held by a machine client only
         (Section~\ref{sec:security-identity}).
   \item The seeded accounts \val{admin} and \val{user} are renamed, and the console shows no

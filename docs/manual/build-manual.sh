@@ -14,7 +14,7 @@
 # Usage: docs/manual/build-manual.sh [version] [build-date]
 #
 # Env:
-#   TEXLIVE_IMAGE   container image to typeset with (default texlive/texlive:latest)
+#   TEXLIVE_IMAGE   container image to typeset with (default: the pinned TeX Live below)
 #   MANUAL_OUT      where to write the PDF (default docs/manual)
 #   SKIP_MANUAL=1   skip the build entirely and exit 0
 
@@ -23,7 +23,11 @@ set -euo pipefail
 MANUAL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_DIR="$(cd "${MANUAL_DIR}/../.." && pwd)"
 
-TEXLIVE_IMAGE="${TEXLIVE_IMAGE:-texlive/texlive:latest}"
+# Pinned by digest, so that every build, CI's included, typesets with the same TeX Live
+# whatever the tag points at that day. This is texlive/texlive:latest as of 2026-10-18
+# (linux/amd64 and linux/arm64). To move it: pull the tag, build the manual with it, and put
+# the digest `docker images --digests texlive/texlive` prints here.
+TEXLIVE_IMAGE="${TEXLIVE_IMAGE:-texlive/texlive@sha256:e8148b126545105c4aeeaa212f8a7bd02d05b500351372881055e1e59ae67d33}"
 MANUAL_OUT="${MANUAL_OUT:-${MANUAL_DIR}}"
 JOB="elicit-installation-manual"
 PDF_NAME="${JOB}.pdf"

@@ -45,7 +45,7 @@
         <mexico.jdbc.url>jdbc:postgresql://localhost:5402/survey</mexico.jdbc.url>
         <mexico.jdbc.user>survey</mexico.jdbc.user>
         <mexico.jdbc.password>admin</mexico.jdbc.password>
-        <postgresql.version>42.7.5</postgresql.version>
+        <postgresql.version>42.7.14</postgresql.version>
         <arabia.survey.baseUrl>http://localhost:7980</arabia.survey.baseUrl>
         <arabia.admin.baseUrl>http://localhost:7981</arabia.admin.baseUrl>
         <admin.username>admin</admin.username>
