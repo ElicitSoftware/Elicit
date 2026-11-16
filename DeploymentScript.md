@@ -185,6 +185,55 @@ start after an upgrade; the first start is already healthy, and nothing needs do
   the exact file list. Track this as a real follow-up once the rollout is confirmed
   complete — don't let it get pulled into builds forever out of inertia.
 
+### Upgrading to a schema owner that is not a superuser
+
+From 3.0.0 no database role Elicit prescribes is a superuser. The role script in the installation
+manual and version 2 of the `elicitsoftware/elicit_db` image create the schema owner
+(`elicit_owner`) and the owner group (`dbowner`) without the attribute, and make `elicit_owner` a
+member of `dbowner`, which holds `CREATE` on the database for the per-survey reporting schemas.
+
+Roles are created once, when a cluster is prepared, so a cluster that an earlier script or version 1
+of the image prepared still has both as superusers. A newer image does not change that: its role
+script runs only against an empty data directory. Narrow them once, with the modules stopped, as a
+superuser of the cluster:
+
+1. See where the cluster stands. `elicit_owner` and `dbowner` are listed if they are superusers:
+
+   ```sql
+   select rolname from pg_roles where rolsuper and rolname in ('elicit_owner', 'dbowner');
+   ```
+
+2. Confirm that `elicit_owner` owns everything in the Elicit schemas. Run this in the `survey`
+   database (and in `author`, where Author is installed); every row should name `elicit_owner`:
+
+   ```sql
+   select n.nspname, pg_get_userbyid(c.relowner) as owner, count(*)
+     from pg_class c join pg_namespace n on n.oid = c.relnamespace
+    where n.nspname in ('survey', 'surveyreport') or n.nspname like 'report\_%'
+    group by 1, 2 order by 1, 2;
+   ```
+
+   A row with another owner is an object created by hand or by another account. Give it to the
+   schema owner before going on (`ALTER TABLE ... OWNER TO elicit_owner`, and the same for a
+   sequence, view or function), or the next migration that alters it fails with `must be owner`.
+
+3. Narrow the roles. The grant comes first: without it the schema owner loses the right to create
+   a reporting schema together with the attribute.
+
+   ```sql
+   GRANT dbowner TO elicit_owner;
+   ALTER ROLE elicit_owner NOSUPERUSER;
+   ALTER ROLE dbowner NOSUPERUSER;
+   ```
+
+4. Start the modules, apply a survey definition and open a report. `permission denied` or
+   `must be owner` in a module's log names what step 2 missed.
+
+The statements can be run before the modules of 3.0.0 first start or at any time after. A
+database upgraded from V2 was checked with the roles narrowed first: everything in its schemas is
+owned by `elicit_owner`, and its migrations to 3.0.0 run as the narrowed role. `resetDatabase.sh V2` applies step 3 to the
+`PGDATA_v2` test copy.
+
 ### Upgrading to one reporting schema per survey (Survey V021)
 
 Before V021 the reporting star lived in `surveyreport` and worked for exactly one survey, the

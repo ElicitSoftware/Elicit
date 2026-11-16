@@ -29,6 +29,12 @@
 # the collation repair, the V2 mode runs that script too, as the script's own header tells
 # an operator to do by hand on an existing cluster.
 #
+# PGDATA_v2 was, last, initialized by version 1 of the database image, whose schema owner
+# (elicit_owner) and owner group (dbowner) are superusers. No role Elicit prescribes is one
+# any longer (umbrella C-020), so the V2 mode narrows them with the three statements
+# DeploymentScript.md gives a site in the same position, and the brownfield run upgrades the
+# V2 database as a schema owner that is not a superuser.
+#
 # If the first start after a reset dies with
 #   FATAL:  data directory "/var/lib/postgresql/data/pgdata" has wrong ownership
 # that is a Docker Desktop for Mac VirtioFS glitch, not a problem with the copy: bind
@@ -87,6 +93,19 @@ create_author_database() {
     docker compose exec -T db psql -U survey -d survey -v ON_ERROR_STOP=1 -X -q -f "$AUTHOR_DB_SCRIPT"
 }
 
+# Make the schema owner a member of the owner group, which holds CREATE on the database, and
+# take the superuser attribute from both. Run against a started db.
+narrow_owner_roles() {
+    db_psql postgres "GRANT dbowner TO elicit_owner"
+    db_psql postgres "ALTER ROLE elicit_owner NOSUPERUSER"
+    db_psql postgres "ALTER ROLE dbowner NOSUPERUSER"
+    local left
+    left=$(db_psql postgres "select rolname from pg_roles
+        where rolsuper and rolname in ('elicit_owner', 'dbowner')")
+    [ -z "$left" ] || { echo "  still a superuser: $left" >&2; exit 1; }
+    echo "  elicit_owner and dbowner are no longer superusers"
+}
+
 # psql against the db service. The collation mismatch warning PostgreSQL prints on every
 # connection is the condition being fixed, so its three lines are dropped; anything else,
 # errors included, is shown, and a failing statement fails the script (pipefail).
@@ -130,6 +149,8 @@ case "$MODE" in
         refresh_collation_versions
         echo "Adding Author's database, which the V2 cluster predates"
         create_author_database
+        echo "Narrowing the schema owner, which the V2 cluster created as a superuser"
+        narrow_owner_roles
         docker compose stop db
         echo "Done. 'docker compose up -d' will run the V2 -> V3 upgrade (brownfield) path."
         ;;

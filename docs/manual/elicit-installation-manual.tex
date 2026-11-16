@@ -305,30 +305,33 @@ modules' migrations on their first start.
 \subsection{The roles}
 
 \begin{plaintable}{tab:roles}{The database roles Elicit expects}{@{}>{\raggedright\arraybackslash}p{0.24\linewidth} >{\raggedright\arraybackslash}p{0.14\linewidth} >{\raggedright\arraybackslash}p{0.56\linewidth}@{}}{\thead{Role} & \thead{Kind} & \thead{Used by}}
-\val{dbowner} & group & Holds the create privileges the schema owner inherits. \\
+\val{dbowner} & group & Holds \val{CREATE} on the Elicit database. The schema owner is a member
+and has it through the group. \\
 \val{dbuser} & group & Holds the connect and usage privileges every application role
 inherits. \\
 \addlinespace
 \val{elicit_owner} & login & The \emph{schema owner}. Every module's Flyway migrations run as
-this role. \\
+this role, and Survey builds each survey's reporting schema as it. \\
 \val{survey_user} & login & The application connection of Survey and of FHHS. \\
 \val{surveyadmin_user} & login & Admin's application connection. \\
 \val{surveyreport_user} & login & Reads the reporting schemas, for a report service of the
 site's own (Chapter~\ref{sec:reports}). \\
 \end{plaintable}
 
-Run this once for the cluster, substituting a password of your own for each placeholder.
+Run this once for the cluster, as a superuser of the cluster, substituting a password of your
+own for each placeholder. None of the roles it creates is a superuser.
 
 \begin{elicitsql}
-CREATE ROLE dbowner WITH NOLOGIN SUPERUSER INHERIT
+CREATE ROLE dbowner WITH NOLOGIN NOSUPERUSER INHERIT
   NOCREATEDB NOCREATEROLE NOREPLICATION;
 
 CREATE ROLE dbuser WITH NOLOGIN NOSUPERUSER INHERIT
   NOCREATEDB NOCREATEROLE NOREPLICATION;
 
-CREATE ROLE elicit_owner WITH LOGIN SUPERUSER INHERIT
+CREATE ROLE elicit_owner WITH LOGIN NOSUPERUSER INHERIT
   NOCREATEDB NOCREATEROLE NOREPLICATION
   ENCRYPTED PASSWORD '<owner password>';
+GRANT dbowner TO elicit_owner;
 
 CREATE ROLE survey_user WITH LOGIN NOSUPERUSER INHERIT
   NOCREATEDB NOCREATEROLE NOREPLICATION
@@ -346,17 +349,22 @@ CREATE ROLE surveyreport_user WITH LOGIN NOSUPERUSER INHERIT
 GRANT dbuser TO surveyreport_user;
 \end{elicitsql}
 
-\begin{elicitcaution}[The schema owner is a superuser here]
-The role script creates \val{elicit_owner} as a superuser, because that is what the modules'
-migrations are tested with. A site whose policy forbids a superuser login role can narrow it,
-but must then verify the narrowed role against its release. The role needs to:
+\begin{elicitnote}[What the schema owner can do]
+\val{elicit_owner} is not a superuser, and the modules' migrations are tested with it as the
+script creates it. It can:
 \begin{itemize}
-  \item create and alter objects in the \val{survey} and \val{surveyreport} schemas;
-  \item create a schema for each installed survey, which is why \val{CREATE ON DATABASE} below
-        is required rather than a courtesy;
-  \item own and alter what it creates there.
+  \item create and alter objects in the \val{survey} and \val{surveyreport} schemas, which it
+        owns;
+  \item create a schema for each installed survey, through its membership of \val{dbowner}
+        and the \val{CREATE ON DATABASE} grant below, which is required rather than a
+        courtesy;
+  \item own, alter, rename and drop what it creates there.
 \end{itemize}
-\end{elicitcaution}
+It cannot create roles or databases, read another database of the cluster, or reach the
+server's files. A cluster whose roles were created by an earlier release's script, or by
+version 1 of the bundled database image, still has \val{elicit_owner} and \val{dbowner} as
+superusers: \file{DeploymentScript.md} gives the three statements that narrow them.
+\end{elicitnote}
 
 \subsection{The site's survey database}
 
@@ -395,7 +403,8 @@ them is created by a module's migrations the first time it starts.
 
 \begin{elicitnote}[The bundled database image does all of this for you]
 \file{elicitsoftware/elicit_db} runs the role script and the schema script when its data
-directory is first initialized. An initialization script runs \emph{only} against an empty
+directory is first initialized. The compose file names version 2 of the image, the first
+whose roles are the ones above. An initialization script runs \emph{only} against an empty
 data directory, so a cluster that already exists is yours to prepare with the two scripts
 above. The image's scripts carry the documented development passwords listed in
 Chapter~\ref{sec:secrets}.
@@ -2285,9 +2294,12 @@ details Admin holds for each subject.
         service of the site's own connects as \val{surveyreport_user}, which reads the reporting
         schemas, and never as the schema owner.
   \item \textbf{The schema owner's password is the most sensitive secret of the site.} Every
-        module holds it, because every module runs its own migrations, and as shipped the role
-        is a superuser. A site whose policy forbids that narrows the role as
-        Chapter~\ref{sec:database} describes.
+        module holds it, because every module runs its own migrations, and whoever has it can
+        read and change everything Elicit stores.
+  \item \textbf{No Elicit role is a superuser.} The schema owner owns the Elicit schemas and
+        can create a schema in the Elicit database; it can do nothing else in the cluster
+        (Chapter~\ref{sec:database}). Check it on a cluster an earlier release prepared:
+        \val{rolsuper} is false for \val{elicit_owner} and \val{dbowner} in \val{pg_roles}.
   \item \textbf{Backups are protected as the database is:} encrypted, and readable by the same
         few people.
 \end{itemize}
@@ -2462,6 +2474,8 @@ something the site does not run does not apply.
   \item Every module holds the same service token, generated for this site; no module's log
         warns of the development value; and the trusted origins name only services the site
         runs (Chapter~\ref{sec:service-token}).
+  \item Neither \val{elicit_owner} nor \val{dbowner} is a superuser
+        (Section~\ref{sec:security-database}).
   \item A report service of the site's own connects as \val{surveyreport_user}
         (Section~\ref{sec:security-database}).
   \item Backups are encrypted and access to them is restricted

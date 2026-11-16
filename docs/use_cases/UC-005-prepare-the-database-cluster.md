@@ -8,7 +8,7 @@
 **Secondary Actor:** PostgreSQL Cluster  
 **Goal:** Create the login roles, databases and schemas Elicit's migrations assume, with site passwords, so that the modules can create their own tables on first start.  
 **Status:** Open  
-**Requirements:** [FR-008, FR-021, C-007](../requirements.md)
+**Requirements:** [FR-008, FR-021, C-007, C-020](../requirements.md)
 
 ## Preconditions
 
@@ -18,7 +18,7 @@
 ## Main Success Scenario
 
 1. The operator reads the database chapter, which states what Elicit creates for itself and what it expects to already exist.
-2. The system gives the two group roles and the four login roles, with what each login role is used by: the schema owner used for migrations, the role the survey application connects as, the role the console connects as, and the role the reporting schema is read with.
+2. The system gives the two group roles and the four login roles, with what each login role is used by: the schema owner used for migrations, the role the survey application connects as, the role the console connects as, and the role the reporting schema is read with. It states that none of them is a superuser, and what the schema owner can do: own the two schemas, and create a schema in the Elicit database through its membership of the owner group.
 3. The operator runs the given role script against the cluster, substituting a site password for each login role.
 4. The operator creates the site's survey database and runs the given schema script in it, which creates the two schemas owned by the schema owner and grants each role usage.
 5. The system states that no table is created here: every table, sequence, index and grant inside those schemas comes from a module's migrations on first start.
@@ -45,14 +45,14 @@
 2. The manual gives the refresh statement to run against the template database, then repeats the creation.
 3. Use case continues at step 4.
 
-### A3: The schema owner is not a superuser
+### A3: The cluster was prepared by an earlier role script
 
-**Trigger:** Site policy forbids a superuser login role (step 3)  
+**Trigger:** The roles already exist, and the schema owner and the owner group are superusers, as the script of a release before 3.0.0 and version 1 of the bundled database image created them (step 3)  
 **Flow:**
 
-1. The manual states which privileges the migrations actually require of the schema owner — creating and altering objects in the two schemas, and creating extensions if the site's PostgreSQL requires them — so that the role can be narrowed deliberately.
-2. The manual states that a narrowed role is the operator's to verify, because the modules' migrations are tested against the role the scripts create.
-3. Use case continues at step 4.
+1. The operator does not run the role script again. The upgrade notes (`DeploymentScript.md`, C-006) give the query that shows which roles are superusers, the query that confirms the schema owner owns everything in the Elicit schemas, and the three statements that make the schema owner a member of the owner group and remove the superuser attribute from both.
+2. The operator runs them as a superuser of the cluster, with the modules stopped, and starts the modules again.
+3. Use case continues at step 6.
 
 ## Postconditions
 
@@ -81,6 +81,10 @@ The operator creates the two empty schemas and the grants on them. Everything in
 ### BR-004: The schema owner is the migrating role
 
 Migrations run as the schema owner, not as an application's own role. The application roles are granted access by the migrations themselves.
+
+### BR-006: No prescribed role is a superuser
+
+The role script creates no superuser (C-020). The schema owner owns the two schemas and, as a member of the owner group, may create a schema in the Elicit database, which each survey's reporting schema needs. Running the script, and creating a database, is the one thing here that takes a superuser, and the operator does it once.
 
 ### BR-005: No documented password reaches a site
 
