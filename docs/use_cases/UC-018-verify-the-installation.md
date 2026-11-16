@@ -59,11 +59,11 @@
 
 ### A3: A service the status script does not probe
 
-**Trigger:** The site runs the pedigree service or the trace collector (step 2)  
+**Trigger:** The site runs the trace collector (step 2)  
 **Flow:**
 
-1. The manual states that the script probes the survey application, the console, the report service, and the bundled identity provider and mail catcher, and that the pedigree service and the trace collector are not among them.
-2. The operator checks those directly: the pedigree service through the console's connection probe, which lists every report service address the database holds, and the trace collector through the trace user interface.
+1. The manual states that the script probes the survey application, the console, the report service, the authoring tool and its preview, the pedigree service (its `/healthz`), and the bundled identity provider and mail catcher, and that the trace collector is not among them.
+2. The operator checks the trace collector through the trace user interface.
 3. Use case continues at step 3.
 
 ### A4: The site has no console to verify from

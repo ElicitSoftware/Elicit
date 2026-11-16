@@ -16,6 +16,8 @@
 # Env:
 #   TEXLIVE_IMAGE   container image to typeset with (default: the pinned TeX Live below)
 #   MANUAL_OUT      where to write the PDF (default docs/manual)
+#   MANUAL_JOB      the document to typeset (default elicit-installation-manual; specimen
+#                   typesets the design specimen, the reference for elicit-brand.sty)
 #   SKIP_MANUAL=1   skip the build entirely and exit 0
 
 set -euo pipefail
@@ -29,7 +31,7 @@ REPO_DIR="$(cd "${MANUAL_DIR}/../.." && pwd)"
 # the digest `docker images --digests texlive/texlive` prints here.
 TEXLIVE_IMAGE="${TEXLIVE_IMAGE:-texlive/texlive@sha256:e8148b126545105c4aeeaa212f8a7bd02d05b500351372881055e1e59ae67d33}"
 MANUAL_OUT="${MANUAL_OUT:-${MANUAL_DIR}}"
-JOB="elicit-installation-manual"
+JOB="${MANUAL_JOB:-elicit-installation-manual}"
 PDF_NAME="${JOB}.pdf"
 
 if [[ "${SKIP_MANUAL:-0}" == "1" ]]; then
