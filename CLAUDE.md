@@ -211,6 +211,10 @@ and eleven more), so the V2 mode recreates them in the copy; never copy it by ha
 `db-init/V0.0.4__CREATE_AUTHOR_DATABASE.sql` while the database is up for the collation
 repair; without it `author-survey` never becomes healthy and Author does not start.
 
+`PGDATA_v2` holds test data only: every respondent, user and department in it is
+synthetic, and it contains no real patient information (confirmed by the owner on
+2026-11-16). Keep it that way; never refresh it from a database that has held real data.
+
 If the db container's first start after a reset fails with `data directory
 "/var/lib/postgresql/data/pgdata" has wrong ownership`, that is a Docker Desktop
 for Mac VirtioFS glitch (docker/for-mac#7415), not a broken copy: bind mounts show
