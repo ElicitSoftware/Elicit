@@ -11,6 +11,8 @@
 #   Admin               Admin/src/main/resources/manual/elicit-admin-manual.pdf (Admin UC-029)
 #   Author              Author/src/main/resources/manual/elicit-author-manual.pdf (Author UC-039)
 #   AuthorInstallation  Author/docs/manual/elicit-author-installation-manual.pdf (Author UC-051)
+#   Specimen            docs/manual/specimen.pdf, every element of elicit-brand.sty on a few
+#                       pages: look at it after changing the design
 #
 # Each manual is built by its own docs/manual/build-manual.sh, so where it is written, how it
 # is stamped (the version its sources carry and the current UTC time) and which TeX Live image
@@ -37,13 +39,13 @@
 set -u
 cd "$(dirname "$0")"
 
-ALL_TARGETS=(Platform Admin Author AuthorInstallation)
+ALL_TARGETS=(Platform Admin Author AuthorInstallation Specimen)
 if [ $# -gt 0 ]; then TARGETS=("$@"); else TARGETS=("${ALL_TARGETS[@]}"); fi
 
 # The directory holding a target's manual sources and build-manual.sh.
 manual_dir() {
     case "$1" in
-        Platform)                  echo docs/manual ;;
+        Platform|Specimen)         echo docs/manual ;;
         Admin)                     echo Admin/docs/manual ;;
         Author|AuthorInstallation) echo Author/docs/manual ;;
     esac
@@ -56,6 +58,7 @@ manual_source() {
         Admin)              echo Admin/docs/manual/elicit-admin-manual.tex ;;
         Author)             echo Author/docs/manual/elicit-author-manual.tex ;;
         AuthorInstallation) echo Author/docs/manual/elicit-author-installation-manual.tex ;;
+        Specimen)           echo docs/manual/specimen.tex ;;
     esac
 }
 
@@ -75,6 +78,8 @@ build_target() {
             MANUAL=author "${dir}/build-manual.sh" ;;
         AuthorInstallation)
             MANUAL=installation "${dir}/build-manual.sh" ;;
+        Specimen)
+            MANUAL_JOB=specimen docs/manual/build-manual.sh ;;
     esac
 }
 

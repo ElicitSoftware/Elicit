@@ -9,12 +9,12 @@
 
 \documentclass[11pt, a4paper]{article}
 
-\usepackage[T1]{fontenc}
 \usepackage[a4paper, margin = 25mm, bottom = 28mm]{geometry}
 
 \newcommand{\elicitProduct}{Elicit Platform}
 \usepackage{elicit-brand}
-\usepackage[hidelinks]{hyperref}
+\usepackage{hyperref}
+\elicitAccent{elicitVerdigris}
 
 \hypersetup{
   pdftitle = {Elicit — Installing the Platform},
@@ -33,40 +33,12 @@
 \begin{document}
 
 %% ------------------------------------------------------------------ title page
-\begin{titlepage}
-\thispagestyle{empty}
-\centering
-\vspace*{3.5cm}
-
-\includegraphics[width = 70mm]{images/elicit-logo.png}
-
-\vspace{1.4cm}
-
-{\color{elicitInk}\Huge\bfseries Installing the Platform\par}
-
-\vspace{0.5cm}
-
-{\color{elicitSlate}\Large The Elicit installation manual\par}
-
-\vspace{0.4cm}
-
-{\color{elicitSlate}\large Survey \textperiodcentered\ Admin \textperiodcentered\ FHHS \textperiodcentered\ Pedigree\par}
-
-\vspace{2.2cm}
-
-{\color{elicitSlate}\large
-Version \textbf{\elicitVersion}\\[0.35em]
-Built \textbf{\elicitBuildDate}\par}
-
-\vfill
-
-{\color{elicitSlate}\small
-This manual describes the platform version named above. It is a release artifact of the\\
-Elicit umbrella repository and is read before any Elicit service is running.\\[0.6em]
-Elicit Software \textperiodcentered\ PolyForm Noncommercial License 1.0.0\par}
-
-\vspace{1cm}
-\end{titlepage}
+\elicitTitlePage{Installing the Platform}{The Elicit installation manual}%
+  {Survey \textperiodcentered\ Admin \textperiodcentered\ FHHS \textperiodcentered\ Pedigree.
+   Author, the authoring tool, has an installation manual of its own.}%
+  {This manual describes the platform version named above. It is a release artifact of the
+   Elicit umbrella repository and is read before any Elicit service is running.\\[0.5em]
+   Elicit Software \textperiodcentered\ PolyForm Noncommercial License 1.0.0}
 
 %% ------------------------------------------------------------------ contents
 \pagenumbering{roman}
@@ -83,12 +55,7 @@ begins.
 \end{elicitnote}
 
 \vspace{1.2em}
-{\color{elicitInk}\section*{Contents}}
-\vspace{-0.6em}
-\begingroup
-\hypersetup{linkcolor = elicitCharcoal}
-\makeatletter\@starttoc{toc}\makeatother
-\endgroup
+\elicitContents
 
 \clearpage
 \pagenumbering{arabic}
@@ -114,7 +81,7 @@ optional report services are called by Survey and Admin, never by a browser.}
   \node[elicit app, minimum width = 2.6cm] (admin) at (6.4, -1.8) {Admin};
   \node[elicit service, minimum width = 2.3cm] (idp) at (10.0, -1.25) {Identity provider};
   \node[elicit service, minimum width = 2.3cm] (smtp) at (10.0, -2.35) {SMTP relay};
-  \node[elicit service, minimum width = 4.4cm] (db) at (3.2, -3.6)
+  \node[elicit database, minimum width = 4.4cm] (db) at (3.2, -3.6)
     {PostgreSQL\\[-1pt]{\scriptsize the \val{survey} schema and the reporting schemas}};
   \node[elicit app, minimum width = 2.6cm] (fhhs) at (0, -5.4)
     {FHHS\\[-1pt]{\scriptsize report service}};
@@ -1496,7 +1463,7 @@ same answer; only what they do with it differs.}
     {Admin\\[-1pt]{\scriptsize \ui{Print reports}}};
   \node[elicit app, minimum width = 2.7cm, minimum height = 5.2em] (svc) at (6.4, 0)
     {Report service\\[-1pt]{\scriptsize your site's}};
-  \node[elicit service, minimum width = 2.7cm, minimum height = 5.2em] (db) at (12.2, 0)
+  \node[elicit database, minimum width = 2.7cm, minimum height = 5.2em] (db) at (12.2, 0)
     {Reporting schema\\[-1pt]{\scriptsize\val{report_<survey>}}};
   \draw[elicit flow, {Stealth[length = 5pt]}-{Stealth[length = 5pt]}] (survey.east) --
     ([yshift = 0.55cm]svc.west);
@@ -1888,7 +1855,7 @@ post-survey action; Pedigree only ever hears from FHHS.}
     {Pedigree\\[-1pt]\texttt{\scriptsize /svg}};
   \node[elicit service, minimum width = 2.6cm] (sftp) at (11.4, -1.0)
     {SFTP server\\[-1pt]{\scriptsize optional}};
-  \node[elicit service, minimum width = 4.2cm] (db) at (5.6, -2.7)
+  \node[elicit database, minimum width = 4.2cm] (db) at (5.6, -2.7)
     {\texttt{\footnotesize report\_family\_history\_survey}};
   \draw[elicit flow] (survey.east) -- node[elicit label, above = 2pt, sloped] {reports, action}
     ([yshift = 0.5cm]fhhs.west);
