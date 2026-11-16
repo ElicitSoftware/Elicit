@@ -28,7 +28,7 @@
         <playwright.version>1.59.0</playwright.version>
         <junit.version>6.1.1</junit.version>
         <jackson.version>2.18.2</jackson.version>
-        <surefire-plugin.version>3.5.2</surefire-plugin.version>
+        <surefire-plugin.version>3.6.1</surefire-plugin.version>
         <build-helper-plugin.version>3.6.0</build-helper-plugin.version>
         <!-- Opt-in module: needs three live stacks. Run with -DskipTests=false. -->
         <skipTests>true</skipTests>
