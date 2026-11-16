@@ -27,6 +27,9 @@
 
 \graphicspath{{./}}
 
+%% The box in front of each line of the security checklist (UC-022 BR-004).
+\newcommand{\elicitcheck}{\raisebox{-0.12em}{\setlength{\fboxsep}{0pt}\fbox{\rule{0pt}{0.72em}\hspace{0.72em}}}}
+
 \begin{document}
 
 %% ------------------------------------------------------------------ title page
@@ -72,7 +75,7 @@ Elicit Software \textperiodcentered\ PolyForm Noncommercial License 1.0.0\par}
 Someone comfortable with PostgreSQL, a container runtime and an OIDC provider, who has not
 seen Elicit before. Parts~I and II take a site from an empty machine to its first survey.
 Part~III makes it the site's own: its brand, its languages and its reports, the last of which
-is written for whoever builds a report service. Part~IV checks the result, and the appendix is
+is written for whoever builds a report service. Part~IV secures the site and checks the result, and the appendix is
 the reference for every setting.
 
 Running the console day to day is the administrator's manual. This one stops where that
@@ -240,6 +243,10 @@ The endpoint is there for your site's own scraper. The bundled Jaeger collects t
 its \ui{Monitor} tab, which would read metrics, is inert.
 \end{elicitnote}
 
+The health and metrics endpoints answer without a sign-in, and logs and traces can name
+respondents. Section~\ref{sec:security-observability} says who should be able to reach each on a
+real site.
+
 %% ================================================================== 2
 \section{Before you start}
 \label{sec:before}
@@ -249,8 +256,9 @@ to find now than halfway through an installation.
 
 \begin{description}
   \item[A PostgreSQL 17 cluster] in which you can create roles, databases and schemas.
-  \item[A container runtime,] with compose for the bundled path (Chapter~\ref{sec:compose}),
-        or the container platform your site already runs (Chapter~\ref{sec:nocompose}).
+  \item[A container runtime:] one with compose to evaluate Elicit
+        (Chapter~\ref{sec:compose}), and for a real site the container platform it already
+        runs (Chapter~\ref{sec:nocompose}).
         Elicit is released as container images only.
   \item[An OIDC provider] in which you can create a confidential client and three roles,
         reachable at \emph{one} address from both the browser and the application containers.
@@ -272,11 +280,13 @@ both.
 \end{elicitcaution}
 
 The repository bundles a database, an identity provider, a mail catcher, an SFTP server and a
-trace collector so that an evaluation site works in one command. Each ships with a documented
-password; read Chapter~\ref{sec:secrets} before any of them reaches a real site.
+trace collector so that an evaluation works in one command (Chapter~\ref{sec:compose}). They
+are for development and evaluation: a real site uses none of them, and none of the documented
+passwords they ship with (Chapter~\ref{sec:secrets}).
 
 \elicitpart{Installing}{From an empty database cluster to a site with its first survey: the
-database, the identity provider, the secrets, the two ways to start the applications, the
+database, the identity provider, the secrets, the bundled stack for evaluating Elicit and the
+installation of a real site, the
 first sign-in, and applying a survey definition.}
 
 %% ================================================================== 3
@@ -397,8 +407,9 @@ provider.
 \subsection{The client}
 
 \begin{plaintable}{tab:clients}{The OIDC client}{@{}>{\raggedright\arraybackslash}p{0.22\linewidth} >{\raggedright\arraybackslash}p{0.20\linewidth} >{\raggedright\arraybackslash}p{0.52\linewidth}@{}}{\thead{Client} & \thead{Type} & \thead{Redirect}}
-\val{elicit-admin} & confidential & The console's address, for example
-\val{http://localhost:8081/*}. \\
+\val{elicit-admin} & confidential & The console's address. On a real site that is its
+public \val{https} address and nothing wider, for example \val{https://console.example.org/*};
+the evaluation stack uses \val{http://localhost:8081/*}. \\
 \end{plaintable}
 
 The client needs a secret, which reaches the application as \opt{OIDC_CLIENT_SECRET}. Admin
@@ -432,9 +443,15 @@ ones in its own provider.}
 
 The repository ships a Keycloak realm at \file{keycloak/elicit-realm.json}, carrying the
 console's client and its roles, the integration client \val{import-service}, Author's client,
-and the accounts \val{admin}, \val{user} and \val{author}. It is a worked example and an
-evaluation provider, not a production one: its client secret is the literal string
-\val{secret}, and its administrator account is \val{admin}/\val{admin}.
+and the accounts \val{admin}, \val{user}, \val{author} and \val{etl}. It is a worked example
+and an evaluation provider, not a production one. Everything in the file is published with the
+repository: the secret of the console's client and of Author's is the literal string
+\val{secret}, the integration client's is \val{importer}, every account's password is
+documented, and the realm's signing keys are the same in every copy. Keycloak's own bootstrap
+administrator, in its \val{master} realm, is \val{admin}/\val{admin}.
+
+A real site does not import this file or change its secrets one by one. It creates the client
+and the roles above in its own identity provider, which issues secrets and keys of its own.
 
 \subsection{Sourcing roles from the database instead}
 
@@ -449,8 +466,10 @@ console's user records.
 \section{Replacing the development secrets}
 \label{sec:secrets}
 
-The repository and its images ship with working credentials so that an evaluation site starts
-in one command. Every one of them has to be replaced before a real site goes live.
+The repository and its images ship with working credentials so that the evaluation stack
+starts in one command (Chapter~\ref{sec:compose}). None of them may be in use on a real site:
+a site that was prepared from the scripts and examples in this manual checks every row of the
+table below.
 
 \begin{elicitsecurity}[Every one of these is published]
 Each value below is in this repository and in this manual. A site that leaves one as shipped
@@ -478,10 +497,24 @@ the bundled Keycloak realm, used by a machine client presenting a bearer token. 
 \addlinespace
 Database superuser & \val{survey}/\val{admin} & The bundled database service. \\
 \addlinespace
-Keycloak administrator & \val{admin}/\val{admin} & The bundled identity provider. \\
+Keycloak bootstrap administrator & \val{admin}/\val{admin} & The bundled identity provider's
+\val{master} realm. \\
+\addlinespace
+Everything else in the bundled realm & as in the file & Author's client secret, the accounts
+\val{admin}, \val{user}, \val{author} and \val{etl}, and the realm's signing keys. A real site
+replaces none of them one by one: it uses its own provider and never imports the realm
+(Chapter~\ref{sec:oidc}). \\
+\addlinespace
+Author's connection password & \val{SURVEYPW} & \opt{ELICIT_DB_PASSWORD} on the \val{author}
+and \val{author-survey} services in the compose file. Author connects as \val{survey_user}, so
+this is Survey's password again; the Author installation manual covers it. \\
 \addlinespace
 SFTP account & \val{fhhs_user}/\val{pass} & The bundled SFTP service, for FHHS report
 delivery. \\
+\addlinespace
+SFTP key pair & the files in \file{sftp_ssh/} & A fixture for the bundled SFTP service, which
+accepts its public half. A site generates a key pair of its own
+(Section~\ref{sec:fhhs-sftp}). \\
 \end{plaintable}
 
 \begin{elicitcaution}[Every module needs both variables]
@@ -511,25 +544,73 @@ Two more things a new installation ships with are not secrets but are just as pu
 seeded accounts \val{admin} and \val{user}, which Admin warns about on every screen until
 they are renamed (Chapter~\ref{sec:firstsignin}).
 
+\subsection{Changing a password on a cluster that exists}
+\label{sec:secrets-change}
+
+The database image's role script runs only when its data directory is first initialized, so
+editing it changes nothing on a cluster that already exists. There, and on a cluster of your
+own, change a role's password with a statement, as a role that may alter it. Give each role a
+different password, and write none of them into a file you keep under version control.
+
+\begin{elicitsql}
+ALTER ROLE elicit_owner      PASSWORD '<new owner password>';
+ALTER ROLE survey_user       PASSWORD '<new survey password>';
+ALTER ROLE surveyadmin_user  PASSWORD '<new admin password>';
+ALTER ROLE surveyreport_user PASSWORD '<new report password>';
+\end{elicitsql}
+
+Then give the new value to every module that presents it, and restart those modules: Survey
+first, then Admin, then FHHS.
+
+\begin{plaintable}{tab:secrets-present}{Which module presents each role's password}{@{}>{\raggedright\arraybackslash}p{0.26\linewidth} >{\raggedright\arraybackslash}p{0.68\linewidth}@{}}{\thead{Role} & \thead{Presented as}}
+\val{elicit_owner} & \opt{ELICIT_OWNER_DB_PASSWORD} on Survey, Admin and FHHS, and on Author's
+preview Survey where a site runs it. \\
+\addlinespace
+\val{survey_user} & \opt{ELICIT_DB_PASSWORD} on Survey and FHHS, and on Author and its preview
+Survey where a site runs them. \\
+\addlinespace
+\val{surveyadmin_user} & \opt{ELICIT_DB_PASSWORD} on Admin. \\
+\addlinespace
+\val{surveyreport_user} & Whatever a report service of the site's own reads it from
+(Chapter~\ref{sec:reports}). \\
+\end{plaintable}
+
+A module still holding the old password is refused by the database and reports itself not
+ready, as the caution above describes; nothing is lost, and giving it the new value is the whole
+fix. The same two-place rule holds for every other secret (Section~\ref{sec:security-secrets}):
+an OIDC client secret is changed in the identity provider and in \opt{OIDC_CLIENT_SECRET}, an
+SFTP key on the server and in FHHS's settings (Table~\ref{tab:fhhs}), and a post-survey action's
+bearer token at the receiving service and on Survey (Section~\ref{sec:psa}).
+
 %% ================================================================== 6
-\section{Installing with Docker Compose}
+\section{Evaluating with Docker Compose}
 \label{sec:compose}
 
 The umbrella repository carries \file{docker-compose.yml}, the default brand and the curated
-translations directory, \file{elicit-i18n/}. Together they are both a working site and a
-worked example of one. The compose file mounts the brand and the translations read-only into
-Survey and Admin (Chapters~\ref{sec:brand} and~\ref{sec:i18n}).
+translations directory, \file{elicit-i18n/}. Together they are a complete Elicit site that
+starts in one command: every application, and a database, an identity provider, a mail catcher,
+an SFTP server and a trace collector for them to use. It is how Elicit is developed, how its
+end-to-end tests run, and the quickest way to see what the platform does.
+
+\begin{elicitsecurity}[For development and evaluation, not for a real site]
+The stack is built to be easy to start, not to be locked down
+(Section~\ref{sec:compose-open}), and it is not the starting point of a production
+installation. Enter no real respondent's data into it. A site that will hold real answers is
+installed against its own database, identity provider and network
+(Chapter~\ref{sec:nocompose}) and secured as Chapter~\ref{sec:security} describes;
+Section~\ref{sec:compose-onward} says what an evaluation carries over to it.
+\end{elicitsecurity}
 
 \subsection{What the file defines}
 
-Six application services and five supporting services bundled for evaluation:
+Six application services and five supporting services:
 
 \begin{itemize}
   \item the site: \val{survey}, \val{admin}, and the Family History reports \val{fhhs} and
         \val{pedigree} (Chapter~\ref{sec:fhhs});
   \item the authoring tool: \val{author} and its preview, \val{author-survey}, which the
         Author installation manual covers;
-  \item for evaluation: \val{db}, \val{keycloak}, \val{mailpit}, \val{sftpServer} and
+  \item what they depend on: \val{db}, \val{keycloak}, \val{mailpit}, \val{sftpServer} and
         \val{jaeger}.
 \end{itemize}
 
@@ -537,26 +618,48 @@ Every application image is \file{elicitsoftware/<name>} at one tag,
 \val{${ELICIT_TAG:-latest}}, so the applications always run as a matched set from one
 release. The tag defaults to \val{latest}; you run a published release by naming its version
 (Section~\ref{sec:compose-up}). The database image, \file{elicitsoftware/elicit_db}, is
-versioned on its own and is not on the tag.
+versioned on its own and is not on the tag. The compose file mounts the brand and the
+translations read-only into Survey and Admin (Chapters~\ref{sec:brand} and~\ref{sec:i18n}).
+
+\subsection{What the stack leaves open}
+\label{sec:compose-open}
+
+Each of these is deliberate. It is what lets the stack start in one command and be explored
+without any setup, and it is why the stack is not a site.
+
+\begin{itemize}
+  \item \textbf{Every password is documented.} The database roles, the OIDC client secrets, the
+        Keycloak administrator and the SFTP account all carry the values printed in
+        Chapter~\ref{sec:secrets}.
+  \item \textbf{Every service publishes a port on the host} (Table~\ref{tab:ports}): the
+        database, the identity provider, the report services, the mail catcher and the trace
+        collector as well as the applications.
+  \item \textbf{The identity provider is an example.} The bundled Keycloak runs in its
+        development mode with the example realm of Chapter~\ref{sec:oidc}.
+  \item \textbf{Any access code reaches a survey.} The file sets
+        \opt{accessCode.autoRegister} to \val{true} on \val{survey}, so that an evaluator can
+        type a code without registering a subject first.
+  \item \textbf{No mail leaves the machine.} Admin sends to the mail catcher, whose web
+        interface on port \val{8025} shows every invitation.
+  \item \textbf{Nothing is served over \val{https}.}
+\end{itemize}
 
 \subsection{Before bringing it up}
 
-\begin{enumerate}
-  \item Replace the development secrets (Chapter~\ref{sec:secrets}).
-  \item Set \opt{accessCode.autoRegister} to \val{false} on \val{survey}. The file ships it
-        \val{true} so that an evaluator can type any access code; on a site that delivers real
-        surveys, that would let anyone in.
-  \item Point the brand volume at your own brand directory, if you have one
+Nothing has to change. These are the changes an evaluation most often wants:
+
+\begin{itemize}
+  \item Point the brand volume at a brand directory of your own, to see the site as yours
         (Chapter~\ref{sec:brand}).
-  \item Point the translations volume at your own directory if you have one, or remove it for
-        an English-only site, and set \opt{i18n.offered.locales} on any application that should
+  \item Point the translations volume at a directory of your own, or remove it for an
+        English-only site, and set \opt{i18n.offered.locales} on any application that should
         offer fewer languages than are mounted (Chapter~\ref{sec:i18n}).
-  \item Remove any bundled service your site replaces with its own, and point the
-        applications at yours using the settings in Appendix~\ref{sec:config}.
-  \item Remove \val{fhhs} and \val{pedigree}, and Admin's dependency on \val{pedigree}, if
-        your site does not run the Family Health History Survey. Remove \val{author} and
-        \val{author-survey} if it authors no surveys.
-\end{enumerate}
+  \item Remove \val{fhhs} and \val{pedigree}, and Admin's dependency on \val{pedigree}, if you
+        are not evaluating the Family Health History Survey. Remove \val{author} and
+        \val{author-survey} if you are not evaluating authoring.
+  \item Change a published host port that is already taken on your machine, and the matching
+        redirect URI in the bundled realm (Chapter~\ref{sec:oidc}).
+\end{itemize}
 
 \subsection{Bringing it up}
 \label{sec:compose-up}
@@ -566,7 +669,7 @@ ELICIT_TAG=3.0.0-beta.1 docker compose up -d
 ./status.sh
 \end{elicitcmd}
 
-Name the release you are installing in \val{ELICIT_TAG}, either on the command line as above
+Name the release you are evaluating in \val{ELICIT_TAG}, either on the command line as above
 or once, in a \file{.env} file beside the compose file:
 
 \begin{elicitcmd}
@@ -579,7 +682,8 @@ tag is \val{latest}, which is what a local build produces.
 
 That is the whole procedure. The database starts and becomes healthy, Survey creates and
 migrates the shared schema, Admin migrates on top of it, and the remaining services start as
-their dependencies become healthy.
+their dependencies become healthy. Go on to the first sign-in (Chapter~\ref{sec:firstsignin})
+and apply a survey definition (Chapter~\ref{sec:definition}).
 
 \begin{elicitnote}[No restart sequence is required]
 Older instructions described bringing the stack up and then restarting it twice. That no
@@ -590,9 +694,6 @@ new database and the definition can be applied through it while FHHS is still wa
 its survey.
 \end{elicitnote}
 
-If a published host port is taken, change it, and change the matching redirect URI in your
-identity provider too (Chapter~\ref{sec:oidc}).
-
 \subsection{Resetting}
 
 To start again from an empty database, run
@@ -602,17 +703,43 @@ To start again from an empty database, run
 \end{elicitcmd}
 
 which stops the stack and deletes the database's data directory. Everything in the database is
-lost, so use it only on an evaluation site.
+lost.
+
+\subsection{From an evaluation to a real site}
+\label{sec:compose-onward}
+
+A real site is installed separately; it is not this stack with its passwords changed.
+
+\begin{plaintable}{tab:compose-onward}{What an evaluation carries over to a real site}{@{}>{\raggedright\arraybackslash}p{0.46\linewidth} >{\raggedright\arraybackslash}p{0.48\linewidth}@{}}{\thead{Carries over} & \thead{Stays behind}}
+The brand directory you made (Chapter~\ref{sec:brand}). & The compose file. \\
+\addlinespace
+The translations directory, and your choice of languages (Chapter~\ref{sec:i18n}). & Every
+bundled service: the database, Keycloak and its realm, the mail catcher, the SFTP server and
+the trace collector. \\
+\addlinespace
+The survey definition files you applied, once their report addresses name the site's own
+services (Chapter~\ref{sec:fhhs}). & Every documented password (Chapter~\ref{sec:secrets}). \\
+\addlinespace
+The settings the evaluation showed your site needs (Appendix~\ref{sec:config}). & Everything
+in the evaluation database: its subjects, access codes and answers. \\
+\end{plaintable}
+
+\noindent Then, in order: prepare the database (Chapter~\ref{sec:database}), configure your
+identity provider (Chapter~\ref{sec:oidc}), install the applications
+(Chapter~\ref{sec:nocompose}), secure the site (Chapter~\ref{sec:security}) and verify it
+(Chapter~\ref{sec:verify}).
 
 %% ================================================================== 7
 \section{Installing without Compose}
 \label{sec:nocompose}
 
-Elicit is released as container images only, \file{elicitsoftware/<name>} at the release's
-tag; no runnable Java artifact is distributed. If your site runs its containers under something
-other than the bundled compose file, such as Podman, Kubernetes or a cloud container service,
-start the same images with the procedure below, once per module, against your own database
-(Chapter~\ref{sec:database}) and identity provider (Chapter~\ref{sec:oidc}).
+This is how a real site is installed. Elicit is released as container images only,
+\file{elicitsoftware/<name>} at the release's tag; no runnable Java artifact is distributed.
+A site runs those images under the container platform it already has, such as Podman,
+Kubernetes or a cloud container service, against its own database
+(Chapter~\ref{sec:database}) and identity provider (Chapter~\ref{sec:oidc}). The bundled
+compose file is for development and evaluation (Chapter~\ref{sec:compose}) and is no part of
+this procedure. Start the images as below, once per module.
 
 \begin{enumerate}
   \item Pull the module's image at the tag of the release you are installing. Every module
@@ -620,12 +747,14 @@ start the same images with the procedure below, once per module, against your ow
   \item Write its configuration (datasource, identity, mail, the brand path, and anything else
         your site changes) as environment variables, by the rules in
         Appendix~\ref{sec:config}, and mount the brand and translations directories read-only.
-  \item Run it under your container platform, publishing its container port \val{8080}.
+  \item Run it under your container platform, publishing its container port \val{8080} to
+        your reverse proxy and to nothing else (Section~\ref{sec:security-exposure}).
   \item Start \ui{Survey} first and wait for \opt{/q/health/ready} to report healthy. That is
         what confirms its migrations have completed.
   \item Start \ui{Admin} and wait for its readiness endpoint.
   \item Start \ui{FHHS}, if your site runs it, only once Admin is ready; start \ui{Pedigree}
         whenever you like (Chapter~\ref{sec:fhhs}).
+  \item Secure the site before it takes a real respondent (Chapter~\ref{sec:security}).
 \end{enumerate}
 
 \begin{elicitcaution}[Nothing sequences this for you]
@@ -642,7 +771,8 @@ translations: mount the same directories and set the same \opt{i18n.offered.loca
 Instances of Survey that disagreed, behind one load balancer, would offer a different set of
 languages depending on which one answered. Keep the proxy-forwarding settings on
 (Table~\ref{tab:quarkus-http}), or sign-in redirects are built with the container's address
-instead of the site's.
+instead of the site's. They are safe when only the proxy reaches the instances and the proxy
+replaces any forwarding header a client sent (Section~\ref{sec:security-exposure}).
 
 %% ================================================================== 8
 \section{The first sign-in}
@@ -1156,7 +1286,7 @@ service on that assumption rather than adding a sign-in Survey and Admin cannot 
 Anything that can reach a report service's address can ask it for any respondent's report. Never
 publish its port beyond the Survey and Admin hosts, and never route it through the reverse proxy
 that serves Survey to respondents. The shipped compose file publishes FHHS and Pedigree on the
-evaluation host for local testing only; a real site removes those mappings.
+evaluation host for local testing only, and a real site does not run that file.
 \end{elicitsecurity}
 
 \subsection{The answer}
@@ -1492,7 +1622,7 @@ Section~\ref{sec:reports-data} describes. The source is in the FHHS repository, 
 per report (\file{proband}, \file{casummary}, \file{pedigree}); it is the place to start a
 report of your own.
 
-\subsection{Installing with Docker Compose}
+\subsection{Evaluating with Docker Compose}
 
 The shipped compose file already runs both, as the services \val{fhhs} and \val{pedigree}.
 FHHS waits for Admin to be ready before it starts (Chapter~\ref{sec:topology} explains why), and
@@ -1612,6 +1742,12 @@ replaced from the respondent's record: \val{{RespondentId}}, \val{{Xid}},
 \val{{DepartmentID}}, \val{{AccessCode}}, \val{{Status}}, \val{{Created}} and
 \val{{Finalized}}. The compose file carries a commented example.
 
+FHHS signs in to the server with a password or with a private key (Table~\ref{tab:fhhs}); prefer
+the key. Generate a key pair for the site, give the server its public half, and supply the
+private half to FHHS as a secret (Section~\ref{sec:security-secrets}). The pair under
+\file{sftp_ssh/} in the repository belongs to the bundled SFTP service and is published with
+it: no server of a site's own accepts it.
+
 FHHS answers the action at once and does the work in the background. It records every upload
 against the respondent in \val{survey.respondent_psa}, as started, completed or failed, and
 every fifteen minutes retries the failed ones, up to fifty attempts. That is the pattern
@@ -1632,10 +1768,400 @@ builds the table from the respondent's answers and waits 15 seconds for the draw
 Pedigree is a report service's helper, not a report service: nothing in Elicit calls it but
 FHHS, so it never appears on a survey's report list.
 
-\elicitpart{Running the site}{Checking that every part of the installation works, what to do
-when one does not, and where to read further.}
+\elicitpart{Running the site}{Securing the site, checking that every part of the installation
+works, what to do when one does not, and where to read further.}
 
 %% ================================================================== 14
+\section{Securing the site}
+\label{sec:security}
+
+An Elicit site holds what respondents say about themselves, and often about their health. The
+applications protect it in the ways this chapter describes, and leave four things to the
+deployment: a private network for everything that is not a browser's business, a reverse proxy
+that terminates TLS, an identity provider, and somewhere to keep secrets. This chapter says
+what each control is and why it is there, and closes with a checklist
+(Section~\ref{sec:security-checklist}) to work through before the site takes its first real
+respondent.
+
+\begin{elicitsecurity}[The bundled stack is not a production site]
+The compose file, and the database, identity provider, mail catcher, SFTP server and trace
+collector bundled with it, exist so that a developer or an evaluator has a working site in one
+command. They publish every port, ship documented passwords, and prefer ease of use to
+strictness throughout. The bundled Keycloak realm is an example of an OIDC provider and nothing
+more. Nothing in this chapter hardens them. It describes a site installed against its own
+database, identity provider and network (Chapter~\ref{sec:nocompose}).
+\end{elicitsecurity}
+
+\subsection{What faces the Internet}
+\label{sec:security-exposure}
+
+Two things on a site are for people: Survey, for respondents, and Admin, for administrators.
+Everything else is for the applications.
+
+\begin{plaintable}{tab:exposure}{Who reaches each service}{@{}>{\raggedright\arraybackslash}p{0.22\linewidth} >{\raggedright\arraybackslash}p{0.30\linewidth} >{\raggedright\arraybackslash}p{0.40\linewidth}@{}}{\thead{Service} & \thead{Reached by} & \thead{So it is}}
+Survey & Respondents, in a browser. Admin, for the reporting schema. & Published through the
+reverse proxy, with the paths below refused. \\
+\addlinespace
+Admin & Administrators, in a browser. A machine client, if the site imports subjects through
+the integration API. & Published through the reverse proxy. Where every administrator works
+inside the organization, published to its network only. \\
+\addlinespace
+A report service, FHHS included & Survey and Admin. & On the private network, answering those
+hosts only (Section~\ref{sec:reports-network}). \\
+\addlinespace
+Pedigree & FHHS. & On the private network, answering FHHS only. \\
+\addlinespace
+PostgreSQL & The applications, and the people who administer it. & On the private network. \\
+\addlinespace
+The identity provider & Administrators' browsers, and Admin. & Whatever your organization
+already does with it. \\
+\addlinespace
+The SMTP relay & Admin. & On the private network. \\
+\addlinespace
+The trace collector, and a metrics scraper & The applications; operators. & On the private
+network. \\
+\end{plaintable}
+
+\subsubsection*{What the proxy refuses}
+
+Some paths on Survey and Admin are for the site's own applications and operators, not for the
+people the proxy serves. The reverse proxy refuses them, whatever the application behind it
+would have answered:
+
+\begin{description}
+  \item[On Survey,] every path under \opt{/api} except \opt{/api/pdf/download}, which a
+        respondent's browser uses for \ui{Generate PDF}. The rest is how Admin asks Survey to
+        build, rename and drop reporting schemas and to print the respondent report. Admin
+        reaches Survey at \opt{elicit.survey.url}, on the private network, not through the
+        proxy.
+  \item[On Survey and Admin,] every path under \opt{/q}: health, readiness and metrics
+        (Section~\ref{sec:security-observability}).
+\end{description}
+
+\subsubsection*{Only the proxy reaches the applications}
+
+Survey and Admin trust the forwarding headers a proxy sets, so that sign-in redirects and links
+carry the site's public address (Table~\ref{tab:quarkus-http}). That trust is safe only when
+the proxy is the one sending them. Let nothing but the proxy reach an application's port, and
+have the proxy replace any \texttt{\small Forwarded} and \texttt{\small X-Forwarded-*} header
+a client sent rather than pass it on.
+
+\subsubsection*{Limit the rate of requests}
+
+Survey is open to anyone who has its address, and an access code is all that stands between
+that address and a survey (Section~\ref{sec:security-access-codes}). Limit the number of
+requests one client address may make at the proxy, on Survey in particular, so that codes
+cannot be guessed at speed.
+
+\subsection{Transport security}
+\label{sec:security-transport}
+
+Each application speaks plain HTTP on port \val{8080} inside its container and expects the
+reverse proxy to terminate TLS.
+
+\begin{itemize}
+  \item \textbf{Browsers use \val{https} only.} Redirect \val{http} to \val{https} at the
+        proxy, for Survey and for Admin. The invitation link in every message template is an
+        \val{https} address (Chapter~\ref{sec:firstsignin}).
+  \item \textbf{The identity provider's issuer address is \val{https}}
+        (\opt{quarkus.oidc.auth-server-url}).
+  \item \textbf{Outbound certificates are verified.} Leave \opt{quarkus.tls.trust-all} at
+        \val{false}. A service signed by a private authority is trusted by adding the authority,
+        never by turning verification off (Table~\ref{tab:quarkus-http} and the note below it).
+  \item \textbf{Mail is sent over TLS.} Set \opt{quarkus.mailer.tls} to \val{true} unless the
+        relay is on the same private network. Invitations carry access codes.
+  \item \textbf{The database connection is encrypted} when the database is on another host:
+        add \val{sslmode=verify-full} to the parameters of both connection URLs
+        (Table~\ref{tab:quarkus-db}).
+  \item \textbf{A report service may be called over \val{http} only inside the private
+        network.} A post-survey action that leaves the site uses \val{https}, and one that
+        sends the External ID is refused at anything else (Section~\ref{sec:psa}).
+  \item \textbf{The SFTP server's host key is verified}
+        (Section~\ref{sec:security-reports}).
+\end{itemize}
+
+\subsubsection*{Response headers}
+
+Survey and Admin send these with every response. The proxy passes them through; it need not
+add them, and must not strip them.
+
+\begin{plaintable}{tab:security-headers}{Response headers Survey and Admin send}{@{}>{\raggedright\arraybackslash}p{0.44\linewidth} >{\raggedright\arraybackslash}p{0.50\linewidth}@{}}{\thead{Header} & \thead{Why}}
+\texttt{\small Strict-Transport-Security: max-age=31536000; includeSubDomains} & A browser
+that has seen the site once never asks for it, or for a name beneath it, over \val{http}
+again. \\
+\addlinespace
+\texttt{\small X-Content-Type-Options: nosniff} & A browser does not guess the type of a file
+it is sent. \\
+\addlinespace
+\texttt{\small Content-Security-Policy: frame-ancestors} & Another site cannot show yours
+inside a frame. Survey allows its own pages to (\texttt{\small 'self'}); Admin allows none
+(\texttt{\small 'none'}, with \texttt{\small X-Frame-Options: DENY}). \\
+\addlinespace
+\texttt{\small Referrer-Policy} & The address of a page is never sent to another site:
+\texttt{\small no-referrer} on Survey, \texttt{\small same-origin} on Admin. \\
+\end{plaintable}
+
+\noindent Each is a setting of the form
+\optlit{quarkus.http.header."<name>".value}, which a site overrides like any other
+(Appendix~\ref{sec:config}). The one most likely to need it is
+\texttt{\small Strict-Transport-Security}: a site whose host name has sibling names still
+served over plain \val{http} drops \texttt{\small includeSubDomains}. A fuller
+\texttt{\small Content-Security-Policy} is worth having and is specific to the site: it must
+allow whatever the site's brand loads. Add it at the proxy in report-only mode against the
+mounted brand before enforcing it.
+
+\subsection{The identity provider and its accounts}
+\label{sec:security-identity}
+
+Sign-in to the console is decided by the identity provider, so the console is as well
+protected as the provider is.
+
+\begin{itemize}
+  \item \textbf{Use your organization's provider.} The bundled realm is an example
+        (Chapter~\ref{sec:oidc}); a site never imports it.
+  \item \textbf{Make the redirect address exact:} the console's public \val{https} address and
+        nothing wider.
+  \item \textbf{Require a second factor} for every account that holds \val{elicit_admin}, by
+        whatever means the provider offers.
+  \item \textbf{Grant roles narrowly} (Table~\ref{tab:roles-oidc}). Most people who use the
+        console need \val{elicit_user} and the departments they work in, and see only those
+        departments' subjects.
+  \item \textbf{Keep \val{elicit_importer} for machines.} A machine client that imports
+        subjects is a client of its own in the provider, with its own secret and that one
+        role. No person holds it.
+  \item \textbf{Rename the seeded accounts} \val{admin} and \val{user}
+        (Chapter~\ref{sec:firstsignin}).
+  \item \textbf{Remove a person at the provider first.} When someone leaves, disable their
+        account in the identity provider, then remove their departments in \ui{Users}.
+  \item \textbf{Prefer roles from the provider.} Under
+        \opt{elicit.authorization.mode}\val{=DATABASE} the console also reads roles from its own
+        table, so whoever can write to the database can grant them.
+\end{itemize}
+
+\subsection{Respondents and access codes}
+\label{sec:security-access-codes}
+
+A respondent has no account. The access code is their whole credential: whoever holds it can
+open that subject's survey and, once it is finished, its reports.
+
+\begin{itemize}
+  \item \textbf{Leave \opt{accessCode.autoRegister} at \val{false}.} Set to \val{true}, any
+        code typed in reaches a survey. It exists for an evaluation stack and for walking a
+        draft, and the shipped compose file turns it on.
+  \item \textbf{Send a code to its subject and nobody else.} Admin's messages are the intended
+        route. A code read out, printed or forwarded is a code given away.
+  \item \textbf{The invitation link carries the code in its address.} Survey keeps the link
+        out of its own access log and replaces the address with \opt{/login} once the page has
+        opened, so the code does not stay in the browser's history. The proxy in front of it
+        still sees the request as it arrived: read Section~\ref{sec:security-observability}
+        before deciding what the proxy logs and who may read it.
+\end{itemize}
+
+\subsection{The database}
+\label{sec:security-database}
+
+Everything a respondent says is in the database, with the names, dates of birth and contact
+details Admin holds for each subject.
+
+\begin{itemize}
+  \item \textbf{No address outside the application hosts.} The database answers Survey, Admin,
+        FHHS and the people who administer it.
+  \item \textbf{Each application connects as its own role} (Table~\ref{tab:roles}). A report
+        service of the site's own connects as \val{surveyreport_user}, which reads the reporting
+        schemas, and never as the schema owner.
+  \item \textbf{The schema owner's password is the most sensitive secret of the site.} Every
+        module holds it, because every module runs its own migrations, and as shipped the role
+        is a superuser. A site whose policy forbids that narrows the role as
+        Chapter~\ref{sec:database} describes.
+  \item \textbf{Backups are protected as the database is:} encrypted, and readable by the same
+        few people.
+\end{itemize}
+
+\subsection{Secrets}
+\label{sec:security-secrets}
+
+Chapter~\ref{sec:secrets} lists the credentials that ship with a documented value. A site also
+has secrets of its own: the mail relay's password, each post-survey action's bearer token
+(Section~\ref{sec:psa}), and FHHS's SFTP password or private key.
+
+\begin{itemize}
+  \item \textbf{Supply every secret as configuration,} through an environment variable or
+        your platform's secret store (Appendix~\ref{sec:config}). Never write one into a file
+        under version control, and never build one into an image.
+  \item \textbf{A secret is changed in two places:} where it is issued, and wherever it is
+        presented. Change both, then restart the modules that present it.
+  \item \textbf{Change a secret when someone who knew it leaves,} and after any incident.
+  \item \textbf{The applications never show one.} Survey's startup diagnostics and Admin's
+        \ui{System} pages report a secret as present or absent, and mask tokens.
+\end{itemize}
+
+\subsection{What the site loads}
+\label{sec:security-content}
+
+Three things reach a site from outside it and are then shown to people or acted on.
+
+\begin{description}
+  \item[A survey definition] carries the text and markup respondents will read, and the
+        addresses Survey and Admin will call for the survey's reports and post-survey actions.
+        Apply only a file exported from Author by an author the site trusts. Read the
+        addresses each new file brings before applying it; afterwards Admin's
+        \ui{Connections} page shows the report services among the site's outbound
+        dependencies (Chapter~\ref{sec:verify}).
+  \item[The brand directory] supplies the style sheet, images and names on every page. Mount
+        it read-only, as shipped, and let only operators write to it
+        (Chapter~\ref{sec:brand}). A brand is code as much as decoration: its style sheet can
+        restyle or hide anything on a page, so review a brand as you would a release. Have it
+        carry its own font files rather than import them from another site, which would send
+        every reader's address there.
+  \item[The translations directory] supplies the text of every page in each language it
+        holds. The same rule applies (Chapter~\ref{sec:i18n}).
+\end{description}
+
+\subsection{Report services and post-survey actions}
+\label{sec:security-reports}
+
+\begin{itemize}
+  \item \textbf{A report service answers Survey and Admin only}
+        (Section~\ref{sec:reports-network}). On a site, the Family History report addresses
+        name FHHS on the private network (Chapter~\ref{sec:fhhs}).
+  \item \textbf{A post-survey action outside the site has a credential of its own:} a bearer
+        token set on Survey, never carried in the definition file (Section~\ref{sec:psa}).
+  \item \textbf{FHHS files documents over SFTP with the server's host key verified.} Set
+        \opt{family.history.sftp.knownHosts}, leave
+        \opt{family.history.sftp.strictHostKeyChecking} at \val{true}, and prefer a private key
+        to a password (Table~\ref{tab:fhhs}). The filed documents and their index hold
+        personal data, the access code among it if the index template includes it
+        (Section~\ref{sec:fhhs-sftp}): the server and the directory are as sensitive as the
+        database.
+\end{itemize}
+
+\subsection{Health, metrics, logs and traces}
+\label{sec:security-observability}
+
+\begin{description}
+  \item[Health and metrics] under \opt{/q} answer without a sign-in, so that a container
+        platform can probe them and a scraper can read them. That is why the proxy refuses
+        \opt{/q}: read them on the private network only.
+  \item[Access logs] are on as shipped (\opt{quarkus.http.access-log.enabled}). Survey's
+        records the method and path of each request, without the query string or the
+        referring page, and leaves out requests for an invitation link altogether, so it holds
+        no access codes. The proxy's own log does, unless you configure it the same way: leave
+        the path of \opt{/login/} requests out of it, or restrict who reads it and keep it only
+        as long as your policy needs.
+  \item[Application logs] can name respondents and subjects. Leave the log levels as shipped
+        on a site (Table~\ref{tab:quarkus-obs}), and treat the logs, and wherever they are
+        shipped to, as holding personal data.
+  \item[Traces] go to the collector at \opt{quarkus.otel.exporter.otlp.endpoint} and carry
+        request addresses too. Send them to a collector your site protects. The bundled
+        Jaeger has no sign-in and is for evaluation.
+\end{description}
+
+\subsection{Releases}
+\label{sec:security-releases}
+
+\begin{itemize}
+  \item \textbf{Run a named release,} the same one for every module, never \val{latest}
+        (Chapter~\ref{sec:nocompose}).
+  \item \textbf{Move to a new release when one is published,} by the procedure for that
+        release in \file{DeploymentScript.md}. Fixes arrive in releases; earlier lines are not
+        patched.
+  \item \textbf{Keep what Elicit runs on current:} PostgreSQL, the container runtime, the
+        proxy and the host.
+\end{itemize}
+
+\subsection{The checklist}
+\label{sec:security-checklist}
+
+Work through this before the site takes its first real respondent, and again after every
+upgrade or change of network. Each line names the section that explains it. A line about
+something the site does not run does not apply.
+
+\subsubsection*{Exposure}
+\begin{itemize}[label = \elicitcheck]
+  \item The site is not the bundled compose stack, and uses none of its bundled services
+        (Chapter~\ref{sec:nocompose}).
+  \item Only Survey and Admin are published, each through the reverse proxy
+        (Section~\ref{sec:security-exposure}).
+  \item The proxy refuses \opt{/api} on Survey, except \opt{/api/pdf/download}, and \opt{/q} on
+        Survey and Admin (Section~\ref{sec:security-exposure}).
+  \item Nothing but the proxy reaches an application's port, and the proxy replaces forwarding
+        headers sent by a client (Section~\ref{sec:security-exposure}).
+  \item The proxy limits the rate of requests from one client address
+        (Section~\ref{sec:security-exposure}).
+  \item Report services, Pedigree, the database, the mail relay and the trace collector answer
+        on the private network only (Table~\ref{tab:exposure}).
+\end{itemize}
+
+\subsubsection*{Transport}
+\begin{itemize}[label = \elicitcheck]
+  \item Survey and Admin are served over \val{https} only, and \val{http} redirects to it
+        (Section~\ref{sec:security-transport}).
+  \item A response from Survey and from Admin, fetched through the proxy, carries the headers
+        of Table~\ref{tab:security-headers}.
+  \item The issuer address and every invitation link are \val{https}
+        (Section~\ref{sec:security-transport}).
+  \item \opt{quarkus.tls.trust-all} is \val{false} on every module
+        (Section~\ref{sec:security-transport}).
+  \item Mail and the database connection are encrypted wherever they cross a network the site
+        does not control (Section~\ref{sec:security-transport}).
+\end{itemize}
+
+\subsubsection*{Identity and accounts}
+\begin{itemize}[label = \elicitcheck]
+  \item The console signs in against the site's own provider, with an exact redirect address
+        (Section~\ref{sec:security-identity}).
+  \item Every \val{elicit_admin} account has a second factor
+        (Section~\ref{sec:security-identity}).
+  \item \val{elicit_importer} is held by a machine client only
+        (Section~\ref{sec:security-identity}).
+  \item The seeded accounts \val{admin} and \val{user} are renamed, and the console shows no
+        banner about them (Chapter~\ref{sec:firstsignin}).
+  \item Each user has only the departments they work in
+        (Section~\ref{sec:security-identity}).
+\end{itemize}
+
+\subsubsection*{Access codes}
+\begin{itemize}[label = \elicitcheck]
+  \item \opt{accessCode.autoRegister} is \val{false} on Survey
+        (Section~\ref{sec:security-access-codes}).
+  \item The proxy's access log leaves out the path of invitation links, or the people who can
+        read it are the people who may see access codes
+        (Section~\ref{sec:security-observability}).
+\end{itemize}
+
+\subsubsection*{Database and secrets}
+\begin{itemize}[label = \elicitcheck]
+  \item No password in Table~\ref{tab:secrets} is in use anywhere on the site
+        (Chapter~\ref{sec:secrets}).
+  \item Every secret reaches its module from an environment variable or a secret store, and
+        none is in a file under version control (Section~\ref{sec:security-secrets}).
+  \item A report service of the site's own connects as \val{surveyreport_user}
+        (Section~\ref{sec:security-database}).
+  \item Backups are encrypted and access to them is restricted
+        (Section~\ref{sec:security-database}).
+\end{itemize}
+
+\subsubsection*{What the site loads and calls}
+\begin{itemize}[label = \elicitcheck]
+  \item Somebody is named as the person who decides which definition files are applied, and
+        reads the addresses each one brings (Section~\ref{sec:security-content}).
+  \item The brand and translations directories are mounted read-only and writable by operators
+        only (Section~\ref{sec:security-content}).
+  \item Every report address names a service on the private network, and every post-survey
+        action that leaves the site is \val{https} (Section~\ref{sec:security-reports}).
+  \item FHHS verifies the SFTP server's host key (Section~\ref{sec:security-reports}).
+\end{itemize}
+
+\subsubsection*{Operations}
+\begin{itemize}[label = \elicitcheck]
+  \item Logs and traces go only where personal data may go
+        (Section~\ref{sec:security-observability}).
+  \item Every module runs the same named release (Section~\ref{sec:security-releases}).
+  \item Somebody is named as the person who watches for new releases and applies them
+        (Section~\ref{sec:security-releases}).
+\end{itemize}
+
+%% ================================================================== 15
 \section{Verifying the installation}
 \label{sec:verify}
 
@@ -1660,6 +2186,10 @@ Work through these checks in order: each one relies on the one before it.
         included) and the current sign-in's roles. Its screens are shown below.
   \item \textbf{A respondent can answer.} Register a subject, issue an access code, and walk
         the survey to the end. If the survey has reports, the report page shows each of them.
+  \item \textbf{The site is secured.} Work through the checklist that closes
+        Chapter~\ref{sec:security} (Section~\ref{sec:security-checklist}). The checks above
+        show that the site works; the checklist shows that it works only for the people it
+        should.
 \end{enumerate}
 
 \screenshot{11-system-overview}{The System overview page. It lists the setup work still
@@ -1685,7 +2215,7 @@ when the overall log level is \val{WARN}. It is the first place to look after a 
 seemed to work.
 \end{elicitnote}
 
-%% ================================================================== 15
+%% ================================================================== 16
 \section{When it does not work}
 \label{sec:trouble}
 
@@ -1769,7 +2299,7 @@ Upgrading one without the others is what breaks. In the compose file, \opt{depen
 \emph{startup} only; it does not check again a dependency that is already running.
 \end{elicitcaution}
 
-%% ================================================================== 16
+%% ================================================================== 17
 \section{Where to look next}
 
 \begin{description}
@@ -1967,8 +2497,9 @@ off. Environment: \opt{ELICIT_PARTICIPATION_SMALL_CELL}. \\
 exports, a respondent in progress who has not opened a page or saved an answer for this many days
 is counted as stalled. Environment: \opt{ELICIT_PARTICIPATION_STALLED_DAYS}. \\
 \opt{elicit.debug.reveal-tokens} & \val{false} & \chgkeep & Shows OIDC and bearer tokens
-unmasked on the diagnostics screen. A development aid. This concerns identity tokens, not
-respondent access codes. \\
+unmasked on the diagnostics screen, in development mode only: a released image ignores it, and
+\ui{System} says so when it is set. This concerns identity tokens, not respondent access
+codes. \\
 \opt{admin.manual.resource} & \val{manual/elicit-admin-manual.pdf} & \chgkeep & Where the
 administrator's manual sits on the classpath. A build carrying no manual simply does not
 offer it. \\
@@ -2011,9 +2542,18 @@ dropped connection hanging a request indefinitely:
 ?connectTimeout=30&socketTimeout=600&tcpKeepAlive=true&tcpKeepAlivesIdle=60
 \end{elicitfile}
 
+When the database is on another host, encrypt the connection and verify the server by adding
+two more to both URLs, the second naming the certificate authority that signed the server's
+certificate (Section~\ref{sec:security-transport}):
+
+\begin{elicitfile}[fontsize=\footnotesize]
+&sslmode=verify-full&sslrootcert=<path to the CA certificate>
+\end{elicitfile}
+
 \begin{settings}{tab:quarkus-oidc}{Identity: Admin only}
 \opt{quarkus.oidc.auth-server-url} & \val{http://host.docker.internal:8180/realms/elicit/} &
-\chgset & Your provider's issuer address. It must resolve to the same provider from the
+\chgset & Your provider's issuer address: \val{https} on a real site
+(Section~\ref{sec:security-transport}). It must resolve to the same provider from the
 browser and from inside the container. \\
 \opt{quarkus.oidc.client-id} & \val{elicit-admin} & \chgmay & \\
 \opt{quarkus.oidc.credentials.secret} & \opt{OIDC_CLIENT_SECRET} & \chgset & The
@@ -2028,8 +2568,12 @@ bearer tokens on one client. \\
 \opt{quarkus.http.port} & \val{8080} & \chgkeep & Inside the container. Publish a different
 host port instead. \\
 \opt{quarkus.http.proxy.proxy-address-forwarding} & \val{true} & \chgkeep & Required behind a
-load balancer so that redirect URIs are built with the external address. \\
-\opt{quarkus.http.proxy.allow-x-forwarded} & \val{true} & \chgkeep & \\
+reverse proxy or load balancer so that redirect URIs are built with the external address. Safe
+when only the proxy reaches the application's port
+(Section~\ref{sec:security-exposure}). \\
+\opt{quarkus.http.proxy.allow-x-forwarded} & \val{true} & \chgkeep & Honors the
+\texttt{\small X-Forwarded-*} headers. Have the proxy set them itself and discard any a client
+sent. \\
 \opt{quarkus.http.cors.origins} & empty & \chgmay & Admin lists allowed origins explicitly;
 Survey defaults to \val{http://localhost:8080}. Each application is served same-origin to
 its own interface, so a site normally needs nothing here. \\
@@ -2076,25 +2620,33 @@ description recorded alongside it. \\
 \opt{quarkus.mailer.host} & \val{localhost} & \chgset & Your SMTP relay. \\
 \opt{quarkus.mailer.port} & \val{25} & \chgset & \\
 \opt{quarkus.mailer.from} & --- & \chgset & The address invitations are sent from. \\
-\opt{quarkus.mailer.tls} & \val{false} & \chgset & \\
+\opt{quarkus.mailer.tls} & \val{false} & \chgset & \val{true} for a relay reached across a
+network the site does not control; invitations carry access codes
+(Section~\ref{sec:security-transport}). \val{false} suits the bundled mail catcher. \\
 \opt{quarkus.mailer.username} & --- & \chgmay & With
 \opt{quarkus.mailer.password} if your relay authenticates. \\
 \end{settings}
 
 \begin{settings}{tab:quarkus-obs}{Health, metrics and traces}
 \opt{quarkus.smallrye-health.root-path} & \val{/q/health} & \chgkeep & Gives
-\opt{/q/health/ready} and \opt{/q/health/live}. Public on Admin. \\
-\opt{quarkus.micrometer.export.prometheus.path} & \val{/q/metrics} & \chgkeep & Public on
-Admin, for a scraper your site provides. \\
+\opt{/q/health/ready} and \opt{/q/health/live}. On Admin they answer without a sign-in, for
+your container platform's probes: have the reverse proxy refuse \opt{/q} and read them on the
+private network (Section~\ref{sec:security-observability}). \\
+\opt{quarkus.micrometer.export.prometheus.path} & \val{/q/metrics} & \chgkeep & Answers
+without a sign-in on Admin too, for a scraper your site provides on the private network. \\
 \opt{quarkus.otel.enabled} & \val{true} & \chgmay & \\
 \opt{quarkus.otel.exporter.otlp.endpoint} & \val{http://localhost:4317} & \chgset & Your
 collector. The compose file sets \val{http://jaeger:4317}. \\
 \opt{quarkus.otel.traces.sampler} & \val{parentbased_always_on} & \chgmay & Samples every
-trace. Consider reducing this on a busy site. \\
+trace. On a busy site, \val{parentbased_traceidratio} with a ratio keeps a share of them. Traces
+carry request addresses, so send them only to a collector the site protects
+(Section~\ref{sec:security-observability}). \\
 \opt{quarkus.log.level} & \val{WARN} & \chgmay & Environment: \opt{LOG_LEVEL}. \\
 \opt{quarkus.log.category."com.elicitsoftware".level} & \val{INFO} & \chgmay & Admin only.
 Environment: \opt{ELICIT_LOG_LEVEL}. \\
-\opt{quarkus.http.access-log.enabled} & \val{true} & \chgmay & \\
+\opt{quarkus.http.access-log.enabled} & \val{true} & \chgmay & Survey's log leaves out
+invitation links and query strings, so it holds no access codes
+(Section~\ref{sec:security-observability}). \\
 \opt{quarkus.hibernate-orm.statistics} & \val{true} & \chgmay & Useful, and not free. \\
 \end{settings}
 

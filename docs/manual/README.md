@@ -13,8 +13,9 @@ See [`../use_cases/UC-001-consult-the-installation-manual.md`](../use_cases/UC-0
 and [`../use_cases/UC-002-build-the-installation-manual.md`](../use_cases/UC-002-build-the-installation-manual.md)
 for the behavior this implements, and FR-001/FR-002 with NFR-001–NFR-013 in
 [`../requirements.md`](../requirements.md). Its chapters map onto umbrella use
-cases UC-003 to UC-021; the custom reports chapters are UC-020 (building a report
-service) and UC-021 (installing FHHS and Pedigree).
+cases UC-003 to UC-022; the custom reports chapters are UC-020 (building a report
+service) and UC-021 (installing FHHS and Pedigree), and the security chapter and its
+checklist are UC-022.
 
 ## This manual ships with no image
 

@@ -33,6 +33,10 @@ on:
       - main
       - V3
 
+# The job only reads: it checks out, clones public repositories and uploads an artifact.
+permissions:
+  contents: read
+
 jobs:
   gate:
     name: Cross-module checks and manual
@@ -42,6 +46,9 @@ jobs:
     steps:
       - name: Check out repo
         uses: actions/checkout@v7
+        with:
+          # Later steps run repository and module scripts; none of them needs the token.
+          persist-credentials: false
 
       - name: Clone Survey, Admin, FHHS and Author at the matching branch
         env:

@@ -114,6 +114,13 @@ site is configured with. It covers the Survey and Admin applications, both
 installation paths, external branding and translations. Not every site authors
 surveys, so Author is installed from a manual of its own, in the Author repository.
 
+`docker-compose.yml` and everything bundled with it (the database, the Keycloak realm, the mail
+catcher, the SFTP server and the trace collector) are for development and evaluation: one command
+gives a working site to try, with documented passwords and every port published. It is not a
+production installation and should hold no real respondent data. A real site is installed against
+its own database, identity provider and network, and secured as the manual's chapter "Securing the
+site" describes.
+
 ```bash
 docs/manual/build-manual.sh   # writes docs/manual/elicit-installation-manual.pdf
 ```

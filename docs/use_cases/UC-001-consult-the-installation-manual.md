@@ -19,10 +19,10 @@
 1. The operator opens the manual.
 2. The system shows a title page naming the platform, the version the manual was built for, and the date of that build.
 3. The operator reads the orientation chapters: what the platform is made of, what the modules share, and what must exist before starting (UC-003, UC-004).
-4. The operator follows the provisioning chapters in order: the database cluster (UC-005), the identity provider (UC-006), then one of the two installation paths (UC-007 or UC-008).
+4. The operator follows the provisioning chapters in order: the database cluster (UC-005), the identity provider (UC-006), then the bundled stack to evaluate Elicit (UC-007) or the installation of a real site (UC-008).
 5. The operator completes the first sign-in and installs a survey definition (UC-009, UC-010).
 6. The operator turns to the customizing part: the branding chapter for the directory their site mounts (UC-014), the translations chapter for the languages their site offers (UC-015, UC-016), and the custom reports chapters for the reports their surveys deliver, including the Family History reports a site running that survey installs (UC-020, UC-021). For any setting their site needs to change they consult the configuration reference, an appendix (UC-011, UC-012).
-7. The operator verifies the installation against the checks the manual gives (UC-018).
+7. The operator secures the site with the security chapter and its checklist (UC-022), and verifies the installation against the checks the manual gives (UC-018).
 8. The system repeats the version and the build date in the footer of every page.
 9. The operator holds a running, verified site and knows what every setting it runs with does.
 

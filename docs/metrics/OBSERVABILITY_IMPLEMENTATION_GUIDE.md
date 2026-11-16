@@ -281,6 +281,11 @@ volumes:
   prometheus_data:
 ```
 
+Prometheus has no sign-in of its own, and the applications' `/q/metrics` endpoints answer without
+one. The sample above suits a developer's machine. On a real site, keep Prometheus on a network only
+operators reach or behind a proxy that authenticates them, and have it scrape the applications on
+the private network, not through the reverse proxy that serves respondents.
+
 ### Kubernetes Production Deployment
 
 For GCP Kubernetes deployments, the observability stack will be provided as Helm charts with:
