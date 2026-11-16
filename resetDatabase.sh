@@ -29,7 +29,7 @@
 # the collation repair, the V2 mode runs that script too, as the script's own header tells
 # an operator to do by hand on an existing cluster.
 #
-# PGDATA_v2 was, last, initialized by version 1 of the database image, whose schema owner
+# PGDATA_v2 was, last, initialized by version 1.0.0 of the database image, whose schema owner
 # (elicit_owner) and owner group (dbowner) are superusers. No role Elicit prescribes is one
 # any longer (umbrella C-020), so the V2 mode narrows them with the three statements
 # DeploymentScript.md gives a site in the same position, and the brownfield run upgrades the
