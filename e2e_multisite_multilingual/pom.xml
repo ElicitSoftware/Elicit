@@ -29,7 +29,7 @@
         <junit.version>6.1.1</junit.version>
         <jackson.version>2.18.2</jackson.version>
         <surefire-plugin.version>3.6.1</surefire-plugin.version>
-        <build-helper-plugin.version>3.6.0</build-helper-plugin.version>
+        <build-helper-plugin.version>3.8.0</build-helper-plugin.version>
         <!-- Opt-in module: needs three live stacks. Run with -DskipTests=false. -->
         <skipTests>true</skipTests>
 
