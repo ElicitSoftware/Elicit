@@ -58,7 +58,7 @@
 **Trigger:** The site integrates an external system with the console's subject API (step 4)  
 **Flow:**
 
-1. The manual states that the integration role is checked on bearer tokens, that the console accepts both browser sign-ins and bearer tokens on the same client, and that a service account holding only the integration role reaches the import endpoints and nothing else.
+1. The manual states that the integration role is checked on bearer tokens, that the console accepts both browser sign-ins and bearer tokens on the same client, and that a service account holding only the integration role reaches the import endpoints and nothing else, and that it does so only once it is entered in the console as an import client with its departments (Admin UC-032); no person holds the role and no console role implies it.
 2. Use case continues at step 6.
 
 ## Postconditions
