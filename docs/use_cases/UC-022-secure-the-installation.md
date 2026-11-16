@@ -48,7 +48,7 @@
 **Trigger:** The site imports subjects through the console's API (step 7)  
 **Flow:**
 
-1. The manual states that the client is a client of its own in the identity provider, with its own secret, holding the importer role and nothing else.
+1. The manual states that the client is a client of its own in the identity provider, with its own secret, holding the importer role and nothing else, and that it is entered in the console as an import client with only the departments it registers into (Admin UC-032).
 2. Use case continues at step 7.
 
 ### A3: A service is signed by a private certificate authority
