@@ -176,6 +176,8 @@
 %% subtitle; a stripe in the manual's accent closes it. Below: what the manual covers, the
 %% version and build stamp, and the provenance note at the foot.
 \newcommand{\elicitTitlePage}[4]{%
+  %% The cover is numbered apart (a), so its page anchor is never the same as page 1's.
+  \pagenumbering{alph}%
   \begin{titlepage}
   \thispagestyle{empty}%
   \begin{tikzpicture}[remember picture, overlay]
