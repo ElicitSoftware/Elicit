@@ -29,8 +29,9 @@
   <summary>Table of Contents</summary>
   <ol>
     <li><a href="#built-with">Built With</a></li>
-    <li><a href="#getting-started">Getting Started</a></li>
-    <li><a href="#usage">Usage</a></li>
+    <li><a href="#trying-elicit">Trying Elicit</a></li>
+    <li><a href="#a-guided-tour">A Guided Tour</a></li>
+    <li><a href="#going-further">Going Further</a></li>
     <!-- <li><a href="#roadmap">Roadmap</a></li> -->
     <li><a href="#contributing">Contributing</a></li>
     <li><a href="#license">License</a></li>
@@ -47,7 +48,6 @@
     <ul>
     <li><a href="https://github.com/ElicitSoftware/Admin/">Admin</a><br/>
       <ul>
-      <li>Expected release in Summer 2025</li>
       <li>The Admin application is used by survey administrators to register subjects, view survey progress, and view final reports.</li>
       </ul>
     </li>
@@ -73,7 +73,7 @@
         <li>A Docker container to serve the <a href="https://cran.r-project.org/web/packages/kinship2/index.html">Kinship2</a> R package. This container supports the visual drawing of family pedigrees for the FHHS Survey.</li>
       </ul>
     </li>
-    <li><a href="https://github.com/ElicitSoftware/Elicit/tree/main/postgresql/">PostgreSQL Database</a><br/>
+    <li><a href="https://github.com/ElicitSoftware/PostgreSQL/">PostgreSQL Database</a><br/>
       <ul>
         <li>An open source object-relational database used to store decision tree logic and data.</li>
       </ul>
@@ -103,52 +103,84 @@ Here's a blank template to get started. To avoid retyping too much info, do a se
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 <!-- GETTING STARTED -->
-## Getting Started
-The easiest way to see Elicit Software in action is to check out the <a href="https://github.com/ElicitSoftware/FHHS/">Family Health History Survey</a>.
+## Trying Elicit
+Everything you need to try Elicit is in this repository and in the published Docker images.
+Nothing has to be compiled, git is not needed, and the module repositories do not need to be
+cloned.
 
-### Installing it
+You need Docker Desktop (or Docker Engine with Compose v2) and these ports free: 8080–8085,
+8180, 8025, 5452 and 16686.
 
-The **installation manual** takes a deployment operator from an empty machine to a
-running, verified Elicit site, and is the single reference for every setting that
-site is configured with. It covers the Survey and Admin applications, both
-installation paths, external branding and translations. Not every site authors
-surveys, so Author is installed from a manual of its own, in the Author repository.
+1. Download this repository as a ZIP (**Code > Download ZIP** at the top of this page) and unzip
+   it. Keep its folders beside `docker-compose.yml`: the stack reads the identity provider's realm
+   from `keycloak/`, a database script from `db-init/`, the SFTP key from `sftp_ssh/`, the brand
+   from `elicit-brand/` and the translations from `elicit-i18n/`.
+2. In that folder, start the stack:
 
-`docker-compose.yml` and everything bundled with it (the database, the Keycloak realm, the mail
-catcher, the SFTP server and the trace collector) are for development and evaluation: one command
-gives a working site to try, with documented passwords and every port published. It is not a
-production installation and should hold no real respondent data. A real site is installed against
-its own database, identity provider and network, and secured as the manual's chapter "Securing the
-site" describes.
+   ```bash
+   ELICIT_TAG=3.0.0-rc.1 docker compose up -d
+   ./status.sh
+   ```
 
-```bash
-docs/manual/build-manual.sh   # writes docs/manual/elicit-installation-manual.pdf
-```
+The first start pulls the images and creates the database, which takes a few minutes. `status.sh`
+shows each service as it becomes ready. FHHS stays *not ready* until the Family Health History
+Survey is applied (step 2 of the tour below); that is expected.
 
-See [`docs/manual/README.md`](docs/manual/README.md). Release-specific *upgrade*
-procedures stay in [`DeploymentScript.md`](DeploymentScript.md).
+| Application              | Address                  | Sign in as                       |
+| ------------------------ | ------------------------ | -------------------------------- |
+| Admin                    | http://localhost:8081    | `admin` / `admin`                |
+| Survey                   | http://localhost:8080    | any access code (tour step 3)    |
+| Author                   | http://localhost:8084    | `author` / `author`              |
+| Mailpit (sent email)     | http://localhost:8025    | —                                |
+| Keycloak (identity)      | http://localhost:8180    | `admin` / `admin`, master realm  |
+| Jaeger (traces)          | http://localhost:16686   | —                                |
+
+This stack is for evaluation and development only. Its passwords are published, every port is
+open, and it should never hold real respondent data. A real site is installed against its own
+database, identity provider and network, as the installation manual describes (see
+[Going further](#going-further)).
 
 <!-- USAGE EXAMPLES -->
-## Usage
-A running Elicit site starts out with no survey, so the first step is to install one. A survey is
-carried in a **survey definition file** (`.elicit`), and a local checkout has two ready to apply:
+## A Guided Tour
+A new site starts with no survey. A survey travels as a **survey definition file** (`.elicit`),
+and two are ready to apply:
 
-- `FHHS/family-history-survey.elicit` — the Family Health History Survey.
-- `samples/census-household-survey.elicit` — a small demonstration survey that exercises every
-  question type and rule the engine supports.
+- [`samples/census-household-survey.elicit`](samples/census-household-survey.elicit), in this
+  repository: a small demonstration survey that uses every question type and rule the engine
+  supports.
+- [`family-history-survey.elicit`](https://github.com/ElicitSoftware/FHHS/blob/V3/family-history-survey.elicit),
+  in the FHHS repository: the Family Health History Survey, with its custom reports and pedigree
+  drawing. Use the **Download raw file** button on that page to save it.
 
-To use the Elicit System:
+1. **Sign in to Admin** at http://localhost:8081 as `admin`. A dialog asks for a department
+   first: follow its link to **Departments** and create one.
+2. **Apply a survey** under **Apply Survey Definition**, uploading one of the files above. The
+   survey and its reporting schema are built as part of the apply; nothing needs restarting.
+3. **Take the survey.** The evaluation stack lets Survey accept any access code you make up, so
+   open http://localhost:8080, choose the survey and type any code.
+4. **Or follow the real path:** register a subject in Admin (one at a time, in bulk, or over the
+   integration API), generate an access code and send the invitation. The email arrives in
+   Mailpit at http://localhost:8025; its link opens Survey with the code filled in.
+5. **Review the results** in Admin: survey progress for each subject and the final reports.
+6. **Design a survey** in Author at http://localhost:8084: build steps, sections, questions and
+   rules, preview them as a respondent would, and export a `.elicit` file for step 2.
 
-1. **Sign in to the Admin application** as an administrator, and create a department if you are
-   asked for one.
-2. **Apply a survey definition** under **Admin > Apply Survey Definition**, uploading one of the
-   files above. The survey and its reporting schema are built as part of the apply; nothing needs
-   restarting.
-3. **Register subjects** — one at a time, in bulk, or over the integration API.
-4. **Generate a unique access code** for each subject.
-5. **Send invitation emails** containing the survey link and access code.
+`docker compose down` stops the stack and keeps its data. To start over with an empty database,
+run `./resetDatabase.sh V3` and bring the stack up again.
 
-Subjects receive the email, follow the link, and enter their access code in the Elicit Software to complete the questionnaire.
+<!-- GOING FURTHER -->
+## Going Further
+- **Installing a real site:** the installation manual is published as a PDF with each release on
+  the [releases page](https://github.com/ElicitSoftware/Elicit/releases). It covers
+  installing Survey and Admin with and without Docker Compose, identity, branding, translations,
+  custom reports, securing the site, and every configuration setting. Author has an installation
+  manual of its own.
+- **Upgrading** an existing installation: [`DeploymentScript.md`](DeploymentScript.md).
+- **Building from source** (contributors only): clone this repository with git;
+  `cloneAllProjects.sh` then clones the module
+  repositories and `buildDockerImages.sh` builds the images, after which `docker compose up -d`
+  (without `ELICIT_TAG`) runs your own builds. See
+  [`docs/manual/README.md`](docs/manual/README.md) for building the manual.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 <!-- ROADMAP
