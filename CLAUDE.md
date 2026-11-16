@@ -74,6 +74,10 @@ OIDC/Bearer token. Never call the respondent credential a token.
 
 ## Local Stack (`docker-compose.yml`)
 
+The compose stack and everything bundled with it (Keycloak and its realm included) are for
+development, evaluation and the e2e suites, never a production installation (umbrella C-018):
+its defaults favor ease of use and are not hardened.
+
 Applications: `survey`, `admin`, `fhhs`, `pedigree`, `author` and `author-survey` (a
 second Survey on the `author` database, Author's respondent preview). Supporting services:
 `db` (PostgreSQL), `keycloak` (OIDC), `mailpit` (SMTP), `sftpServer`, and
@@ -320,15 +324,17 @@ See `docs/I18N_IMPLEMENTATION_GUIDE.md`.
 
 The umbrella now carries its own AIUP artifacts — the first ones it has had —
 scoped to the platform as one deployable whole: `docs/vision.md`,
-`docs/requirements.md` (FR-001..042, NFR-001..013, C-001..017),
-`docs/use_cases.puml` and `docs/use_cases/UC-001..021`. Module requirement and
+`docs/requirements.md` (FR-001..043, NFR-001..013, C-001..018),
+`docs/use_cases.puml` and `docs/use_cases/UC-001..022`. Module requirement and
 use-case IDs are unrelated to these.
 
 - `docs/manual/` — the **installation manual** (UC-001), a LaTeX/PDF that covers
   Survey and Admin, and FHHS and Pedigree as the worked example of a custom report
   service (UC-020, UC-021): topology, prerequisites, the database roles and
-  schemas, the OIDC clients and roles, both installation paths, the first
-  sign-in, branding, translations, custom reports, verification and the configuration
+  schemas, the OIDC clients and roles, evaluating with the compose stack and installing
+  a real site without it, the first
+  sign-in, branding, translations, custom reports, securing a site (a chapter of
+  descriptions closing with a checklist, UC-022), verification and the configuration
   reference.
   Built by `docs/manual/build-manual.sh` through a TeX Live container, stamped
   with the version the two modules agree on, and built alongside the images by

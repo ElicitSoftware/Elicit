@@ -915,6 +915,21 @@ echo "Admin logo size: $ADMIN_LOGO bytes"
 - **Solution**: Check that both applications are using enhanced resource handlers with fallback
 - **Solution**: Test with `curl -I` to compare Content-Length headers
 
+## Who May Write a Brand
+
+A brand is code as much as decoration. Its style sheets are served on every Survey and Admin page
+and can restyle or hide anything there, so treat a brand directory like a release:
+
+- Mount it read-only, as the shipped compose file does. No application writes to it.
+- Let only the people who deploy the applications write to the directory on the host.
+- Review a brand before mounting it, as you would any other change to the site.
+- Ship the brand's fonts inside the brand (`typography/`) rather than importing them from another
+  site with `@import url(...)`. A remote import sends every reader's address to that site and
+  makes each page depend on it.
+
+The same holds for the translations directory, which supplies the text of every page. See the
+installation manual, chapter "Securing the site".
+
 ## Summary
 
 This unified brand system implementation provides:

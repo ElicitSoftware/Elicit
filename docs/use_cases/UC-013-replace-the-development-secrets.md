@@ -19,8 +19,8 @@
 1. The operator reads the secrets section, which lists every credential the platform ships with a documented value, where that value is set today, and which module presents it.
 2. The system gives the database credentials: the login roles the bundled database image creates carry three documented passwords between the four of them, and the same passwords are named again in each module's shipped configuration, so that each one has an issuing place and one or more presenting places.
 3. The system gives the account the bundled database image is initialized with, which is a superuser of the cluster and is not the role any module connects as.
-4. The system gives the identity credentials: in the bundled realm the console's client carries one documented secret, the machine client used for subject import carries a second, and the bundled provider's own administrator account is documented as well.
-5. The system gives the remaining bundled accounts — the file-transfer account the report service uploads through, and the mail catcher, which accepts anything and authenticates no one.
+4. The system gives the identity credentials: in the bundled realm the console's client carries one documented secret, the machine client used for subject import carries a second, and the bundled provider's own bootstrap administrator account is documented as well. The system states that the bundled realm as a whole — every client secret and every account in it, the authoring tool's client included — is an example for development and evaluation, and that a real site configures its own identity provider and never imports it (UC-006).
+5. The system gives the remaining bundled accounts — the file-transfer account the report service uploads through, with the key pair the repository carries for it, and the mail catcher, which accepts anything and authenticates no one — and the database password the authoring tool presents, which is the survey application's.
 6. The operator changes each credential at the place that issues it and at every place that presents it, in the order the manual gives for that credential.
 7. The operator restarts the modules whose configuration changed and confirms each one connects: the datasources through the readiness endpoint, the identity provider through a sign-in.
 8. The operator reads the section's closing list of settings that are permissive by design rather than secret, decides each one for the site, and records the decision.
@@ -45,22 +45,23 @@
 1. The manual states that the bundled credential does not exist for such a site, but that each module's configuration still names a password of its own, which must be set to the one the site's cluster was given (UC-005) and the one the site's provider issued (UC-006).
 2. Use case continues at step 6.
 
-### A3: The modules do not all take their database password the same way
+### A3: A module is started without its database passwords
 
 **Trigger:** The operator changes the database passwords across the modules (step 6)  
 **Flow:**
 
-1. The manual states that the console reads its database password from a setting the compose file supplies, while the survey application carries its two passwords directly in its own shipped configuration and takes no such setting.
-2. The manual names the settings to override for the survey application, so that a site changes every database password and not only the ones the compose file makes visible.
-3. Use case continues at step 6.
+1. The manual states that no module ships a database password: the survey application, the console and the report service each read their application password and their schema-owner password from the same two settings, and none of them carries a value of its own.
+2. The manual states what a module started without them does — the database refuses it, the module logs that no password was provided, reports itself not ready, retries, and exits when its retries run out — so that a module sitting unhealthy with that message is recognized as missing the settings.
+3. The manual states that a site upgrading from a release before 3.0.0, in which the survey application and the report service carried a password in their shipped configuration, must now set both.
+4. Use case continues at step 6.
 
-### A4: Outbound certificate verification is disabled
+### A4: A service the site calls is signed by a private certificate authority
 
-**Trigger:** The operator reaches the settings that are permissive by design (step 8)  
+**Trigger:** A service the site calls over TLS presents a certificate the applications do not already trust (step 8)  
 **Flow:**
 
-1. The manual states that the survey application and the console both ship with outbound TLS certificate verification turned off, and that the console's configuration records an audit sign-off of September 2026 keeping it, so that it is an accepted risk rather than an oversight.
-2. The manual states what the setting permits — an outbound connection to a host whose certificate is never checked — and that each site re-confirms the decision for itself and records the outcome, because the sign-off was given for the platform's own development, not for a site.
+1. The manual states that the survey application and the console verify the certificate of every service they call over TLS, and that the setting which would turn the verification off stays off.
+2. The manual states that a service whose certificate is issued by a private authority is trusted by adding that authority to the application's trust store, never by turning verification off, and that a site which carried the older setting forward from a release before 3.0.0 removes it.
 3. Use case continues at step 8.
 
 ### A5: The evaluation stack accepts any access code
@@ -110,7 +111,7 @@ A permissive setting the platform's own team signed off remains an open decision
 
 ### BR-005: Evaluation defaults are evaluation defaults
 
-The compose file is a working site and a worked example (UC-007 BR-004). Every value in it that makes evaluation convenient rather than a site correct is named in this section.
+The compose stack is for development and evaluation (UC-007 BR-004). Every value in it that makes evaluation convenient rather than a site correct is named in this section.
 
 ### BR-006: A respondent's access code is not one of these credentials
 

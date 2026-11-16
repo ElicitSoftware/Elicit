@@ -8,7 +8,8 @@ your own container platform (Podman, Kubernetes, a container service) instead of
 `docker-compose.yml`, which means you, not `depends_on`, order their start.
 
 ### Create the database schemas
-   1) Run the scripts in the postgresql/init_scripts folder. Don't forget to change the passwords! 
+   1) Create the roles, the `survey` database and its two schemas with the scripts in the installation
+      manual, chapter "The database" (`docs/manual/`), giving every role a password of your own.
 
 ### Adjust the properties for your deployment. 
 The docker-compose.yml has many properties defined for a local development environment.
@@ -255,7 +256,9 @@ spans Survey, Admin and FHHS, so upgrade all three from the same release.
   `/add/csv` names the credential `status.accessCode` instead of `status.token`. Update API clients
   before upgrading. The smoke-test endpoint `/api/secured/test` now returns
   `access code service test`.
-- **Admin links:** the subject edit route takes `?accessCode=` instead of `?token=`.
+- **Admin links:** a subject is edited at `/register/<subject id>`. The V2 link that carried the
+  credential in the address (`/register?token=`) is gone; update any bookmark or integration that
+  built one.
 - **Respondent sessions:** the session attribute was renamed, so a respondent who is mid-survey
   during the upgrade must log in again with their access code. Their answers are kept.
 - **Respondent export files** keep the `ELICIT_EXPORT_V1` format and still import. New exports
@@ -333,9 +336,10 @@ After starting a new Elicit system you will need to alter some of the template d
     development server.
       - family.history.sftp.enabled=true
       - family.history.sftp.knownHosts=<known_hosts lines or file path>
-      - family.history.sftp.host=sftpServer
-      - family.history.sftp.username=fhhs_user
-      - family.history.sftp.password=pass
+      - family.history.sftp.host=<your SFTP server>
+      - family.history.sftp.username=<the account FHHS files as>
+      - family.history.sftp.privateKey=<a private key generated for the site, or its path>
+        (or family.history.sftp.password=<that account's password>; prefer the key)
       - family.history.sftp.path=/upload/reports
       - family.history.sftp.port=22
       - family.history.upload.psa.id=1 

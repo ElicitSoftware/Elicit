@@ -35,7 +35,7 @@ rectangle "Elicit Platform — Installation" {
     usecase "UC-006\nConfigure the Identity Provider" as UC006
 
     ' Installing (FR-012..FR-015)
-    usecase "UC-007\nInstall with Docker Compose" as UC007
+    usecase "UC-007\nEvaluate with Docker Compose" as UC007
     usecase "UC-008\nInstall without Compose" as UC008
     usecase "UC-009\nComplete the First Sign-In" as UC009
     usecase "UC-010\nInstall a Survey Definition" as UC010
@@ -60,6 +60,9 @@ rectangle "Elicit Platform — Installation" {
     ' Verification (FR-032..FR-035)
     usecase "UC-018\nVerify the Installation" as UC018
     usecase "UC-019\nDiagnose a Failed Installation" as UC019
+
+    ' Securing a site (FR-043)
+    usecase "UC-022\nSecure the Installation" as UC022
 }
 
 ' ---------------------------------------------------------------- actors
@@ -84,6 +87,7 @@ op --> UC021
 dev --> UC020
 op --> UC018
 op --> UC019
+op --> UC022
 
 UC005 --> db
 UC006 --> idp
@@ -122,6 +126,9 @@ UC021 .> UC020 : <<worked example of>>
 
 UC018 ..> UC010 : <<extend>>
 UC019 ..> UC018 : <<extend>>
+
+UC022 ..> UC013 : <<include>>
+UC018 ..> UC022 : <<include>>
 
 ' ---------------------------------------------------------------- hand-off
 note right of UC010
