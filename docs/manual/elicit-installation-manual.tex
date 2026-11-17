@@ -399,10 +399,15 @@ decides for itself. It never reads a Keycloak-specific claim and never calls Key
 administration API.
 
 The same holds beyond OIDC. The console reads only the signed-in principal's name and its
-roles, so any authentication method that yields a principal with a user name will work. The
-published image speaks OIDC only: another method, such as LDAP or a header set by a trusted
-proxy, means building Admin with the Quarkus security extension for it in place of
-\val{quarkus-oidc}.
+roles, so any authentication method that yields a principal with a user name will work, but
+the principal has to be established \emph{inside} Admin. The published image establishes it
+with OIDC only, and it ignores a user name a reverse proxy passes along: a web server that signs
+people in by Basic, LDAP or SAML and forwards \val{REMOTE_USER} or a header gets them to the
+console's front door, where Admin sends them to the identity provider all the same. Choosing
+\val{DATABASE} for the roles (Section~\ref{sec:oidc-authorization}) does not change this, since
+it decides roles only after someone is signed in. A proxy that is itself an OIDC client can
+forward the provider's access token as \val{Authorization: Bearer}, which Admin accepts; any
+other method means building Admin with an authentication mechanism for it.
 
 \subsection{The client}
 
