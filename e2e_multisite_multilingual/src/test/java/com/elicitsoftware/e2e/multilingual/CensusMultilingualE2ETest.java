@@ -897,7 +897,22 @@ class CensusMultilingualE2ETest extends MultilingualTestBase {
             // Admin UC-018 BR-107: a successful apply asks Survey to rebuild the reporting star schema.
             assertTrue(result.contains("Reporting schema rebuilt."),
                     site + ": the apply should have rebuilt the reporting schema:\n" + result);
+            // Admin UC-006 BR-173: a new survey is in no department until one is given it.
+            if (result.contains("New Survey Installed")) {
+                new DepartmentsPage(page).ensureSurvey(site.departmentName(), surveyNameIn(file));
+            }
         });
+    }
+
+    /** The survey a definition installs, from its {@code # survey_name:} header line. */
+    private static String surveyNameIn(Path file) {
+        try (var lines = java.nio.file.Files.lines(file)) {
+            return lines.limit(50).filter(line -> line.startsWith("# survey_name:"))
+                    .map(line -> line.substring("# survey_name:".length()).trim())
+                    .findFirst().orElseThrow(() -> new IllegalStateException(file + " names no survey"));
+        } catch (java.io.IOException e) {
+            throw new java.io.UncheckedIOException(e);
+        }
     }
 
     /**

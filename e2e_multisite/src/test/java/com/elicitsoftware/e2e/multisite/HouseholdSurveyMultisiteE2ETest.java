@@ -199,6 +199,8 @@ class HouseholdSurveyMultisiteE2ETest extends MultisiteTestBase {
             assertTrue(result.contains("New Survey Installed"), "unexpected apply outcome on site 1:\n" + result);
             assertTrue(result.contains(surveyKey), "apply dialog should echo the survey key:\n" + result);
             assertReportingRebuilt(result, SITE1);
+            // Admin UC-006 BR-173: a new survey is in no department until one is given it.
+            new DepartmentsPage(page).ensureSurvey(SITE1_DEPARTMENT, surveyName);
         }));
     }
 
@@ -215,6 +217,7 @@ class HouseholdSurveyMultisiteE2ETest extends MultisiteTestBase {
             String result = new SurveyApplyPage(page).apply(v1File);
             assertTrue(result.contains("New Survey Installed"), "unexpected apply outcome on site 2:\n" + result);
             assertReportingRebuilt(result, SITE2);
+            new DepartmentsPage(page).ensureSurvey(SITE2_DEPARTMENT, surveyName);
         }));
     }
 

@@ -24,9 +24,10 @@
 4. The operator opens Apply Survey Definition and uploads the file, without nominating a target survey (Admin UC-018).
 5. The system reads the file's stable survey key, finds no survey installed under it, installs the definition as a new survey and reports how many records of each kind it wrote (Admin UC-014).
 6. The system then asks the survey application to rebuild its reporting schema, which grows from the six tables the migrations created to the full set of dimensions, fact tables and views for the survey just installed, and adds to the result whether the rebuild happened. The survey application is not restarted (Admin UC-018 BR-107).
-7. The operator confirms the outcome: the console's missing-survey warning is gone on the next screen, the apply result reports the rebuild, and the reporting schema's step dimension is no longer empty.
-8. The operator confirms, where the site runs the report service, that it has become ready by itself on its next readiness probe, with nothing restarted (FHHS UC-005).
-9. The operator proceeds to verify the installation as a whole (UC-018), and hands the site over to its administrators and authors, whose own manuals take it from here.
+7. The operator adds the new survey to each department that runs it, on the department's edit screen: a newly applied survey is in no department, the apply result says so, and nobody can register a subject onto it until a department lists it (BR-116, Admin UC-006 BR-172/173).
+8. The operator confirms the outcome: the console's missing-survey warning is gone on the next screen, the apply result reports the rebuild, and the reporting schema's step dimension is no longer empty.
+9. The operator confirms, where the site runs the report service, that it has become ready by itself on its next readiness probe, with nothing restarted (FHHS UC-005).
+10. The operator proceeds to verify the installation as a whole (UC-018), and hands the site over to its administrators and authors, whose own manuals take it from here.
 
 ## Alternative Flows
 
@@ -67,12 +68,12 @@
 
 ### A5: The report service stays not-ready after the apply
 
-**Trigger:** The report service still reports not-ready and refuses reports once a survey is installed (step 8)  
+**Trigger:** The report service still reports not-ready and refuses reports once a survey is installed (step 9)  
 **Flow:**
 
 1. The manual states that the report service serves one named survey and recognizes it by key, so a site that installed a different survey, or configured the service with the wrong key, is in the same position as one that installed nothing (FHHS UC-005 A1).
 2. The operator installs the survey that service serves, or corrects the key it is configured with (UC-011).
-3. Use case continues at step 8.
+3. Use case continues at step 9.
 
 ## Postconditions
 
@@ -107,6 +108,10 @@ Installing a definition fills the reporting schema's dimensions and nothing else
 ### BR-005: The report service is specific to one survey
 
 The report service serves the Family Health History Survey alone and holds the key of the survey it serves. Until that survey is installed it logs the instruction once, reports not-ready and refuses report requests with the same message; it becomes ready on its next probe after the apply, with nothing restarted. The console depends on that service having started rather than being healthy, so the apply is always reachable (UC-007 BR-003, FHHS UC-005).
+
+### BR-116: A new survey reaches registration through its departments
+
+A survey is registered onto only in the departments that list it (Admin UC-006 BR-172). A survey applied after the site's departments exist is in none of them, so the manual's first-run procedure adds it to the department the operator created; a department created later starts with every installed survey.
 
 ### BR-006: Installing a survey issues no access codes
 
