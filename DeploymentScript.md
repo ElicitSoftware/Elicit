@@ -333,6 +333,25 @@ spans Survey, Admin and FHHS, so upgrade all three from the same release.
   `--brand-token-bg`/`--brand-token-text` are now `--brand-access-code-bg`/`--brand-access-code-text`.
   Rename them in any custom brand that overrides them.
 
+### Upgrading the CSV subject upload
+
+V2 read a CSV upload as `departmentId,firstName,lastName,middleName,dob,email,phone,xid` and
+registered every row onto survey 1. V3 has no implied survey: every row names its own, in the
+first column, and the columns are now
+
+```
+surveyId,departmentId,xid,firstName,lastName,middleName,dob,email,phone
+```
+
+This applies to the Register page's **Upload CSV** and to `POST /api/secured/add/csv` alike, with
+no backwards-compatible reading of the V2 order. Rewrite every file and every import client that
+produces one before upgrading Admin: put the survey's ID first (the ID shown beside the survey's
+name in the department's **Surveys**; `1` is what V2 used), then the department ID, then the
+external ID that V2 had last. A row with no phone may end at the email.
+
+A V2 file uploaded to V3 registers no one. Its department ID is read as the survey and its first
+name as the department, so the upload refuses every row with "Invalid department ID format".
+
 ### Check the deployment from the Admin console
 Once Admin is up, sign in as an administrator and open **System** in the navigation. Its
 pages show what the service is running, whether both database connections and each module's

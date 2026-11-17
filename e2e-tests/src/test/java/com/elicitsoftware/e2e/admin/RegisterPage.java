@@ -74,7 +74,7 @@ public class RegisterPage extends PageObject {
      * UC-003 alt-flow A6: uploads a CSV fixture through the CSV upload control and returns what
      * RegisterView reported. Vaadin's Upload component visually hides its native
      * {@code <input type=file>} behind a styled button; Playwright's {@code setInputFiles} works
-     * on it directly regardless of visibility. Each row names its survey in its ninth column
+     * on it directly regardless of visibility. Each row names its survey in its first column
      * (UC-003 BR-175), so no survey is chosen in the form; the upload's confirmation is accepted.
      *
      * <p>The outcome is a modal dialog -- "CSV import succeeded" listing the subjects, or the
