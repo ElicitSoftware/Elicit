@@ -27,8 +27,14 @@ GitHub repo, dropped into this directory and excluded from this repo via
 
 `cloneAllProjects.sh` bootstraps all five module clones.
 
-Author was a private repository from 2026-09-29 until Elicit#72 released it with the
-other modules. Everything it shares with the platform lives here once: the stack
+Author's GitHub repository, `ElicitSoftware/Author`, is **still private**: it is not ready
+to be public (owner, 2026-11-16). Elicit#72 made Author the fifth module of the platform
+here, in the stack, the scripts and the documents, but did not change the repository's
+visibility. So a link to it from anything public is a 404 for an outsider,
+`cloneAllProjects.sh` clones it only for an account that has access to it, and an anonymous
+clone fails (see CI under Git Workflow). Do not propose making it public as a fix.
+
+Everything Author shares with the platform lives here once: the stack
 (`docker-compose.yml`), the Keycloak realm (with the `elicit-author` client), the
 `author` database script (`db-init/`), the curated translations
 (`elicit-i18n/author/`) and the three end-to-end suites. Author's integration branch is
@@ -426,7 +432,10 @@ use-case IDs are unrelated to these.
   from `maven.yml`, Pedigree builds its image and smoke-tests `/healthz` and `/svg`, and the
   umbrella runs `checkLanguages.sh`, `checkBrand.sh`, `check-properties.sh`, `docker compose config` and the
   manual build against fresh clones of Survey, Admin, FHHS and Author at the target branch
-  (Author at `main`).
+  (Author at `main`). The umbrella's job clones the modules anonymously, and Author is
+  private, so it **fails at the clone step on every run** and has since at least 2026-11-11:
+  a red check on an umbrella pull request says nothing about the pull request. It stays that
+  way until the job is given a read token for Author or is changed to run without it.
 
 ## Git Commits
 
