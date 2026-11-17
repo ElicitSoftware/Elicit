@@ -456,11 +456,11 @@ The file defines the palette as `--elicit-*` custom properties and then maps the
 | ----- | -------- | ----- | ------ |
 | Ink | `--elicit-ink` | `#0A3D62` | `--brand-primary`: header background, primary buttons, access-code pill text |
 | Ink, dark | `--elicit-ink-dark` | `#072E4A` | Primary button hover, the border under the header |
-| Verdigris | `--elicit-verdigris` | `#22775D` | `--brand-secondary`, `--brand-accent`, `--brand-focus`, `--brand-success`, `--brand-info`: secondary buttons, focus outlines |
+| Verdigris | `--elicit-verdigris` | `#22775D` | `--brand-secondary`, `--brand-accent`, `--brand-focus`, `--brand-success`, `--brand-info`: secondary buttons, focus outlines, Author's rule glyphs |
 | Verdigris, dark | `--elicit-verdigris-dark` | `#1C5F4B` | Secondary button hover |
 | Verdigris, pale | `--elicit-verdigris-pale` | `#E3F3EE` | Access-code pill background |
 | Paper | `--elicit-paper` | `#FDFCFA` | `--brand-background`, `--brand-base`, text on the primary color |
-| White | `--elicit-white` | `#FFFFFF` | `--brand-surface`, text on the secondary color |
+| White | `--elicit-white` | `#FFFFFF` | `--brand-surface`, text on the secondary and accent colors |
 | Ledger | `--elicit-ledger` | `#E8E4DC` | `--brand-border` (`--elicit-ledger-light`, `#F0EDE6`, is `--brand-border-light`) |
 | Charcoal | `--elicit-charcoal` | `#1A2229` | `--brand-text-primary`: heading and body text |
 | Slate | `--elicit-slate` | `#4A5A6A` | `--brand-text-secondary`: question and field-label text |
