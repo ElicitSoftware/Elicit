@@ -375,6 +375,8 @@ services:
       i18n.file.system.path: /opt/i18n
       # The preview Survey, which drops a survey's reporting schema before Author deletes it (UC-047).
       author.preview.survey.url: http://author-survey:8080
+      # The preview as an author's browser opens it, for Reports > Preview in Survey… (Author UC-048 BR-007).
+      author.preview.survey.public-url: http://localhost:8085
       # Author connects as survey_user (Survey's grants cover every definition table)
       # to the `author` database; the schema there is created by author-survey.
       quarkus.datasource.jdbc.url: jdbc:postgresql://db:5432/author?connectTimeout=30&socketTimeout=600&tcpKeepAlive=true&tcpKeepAlivesIdle=60

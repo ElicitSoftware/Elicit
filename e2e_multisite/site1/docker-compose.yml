@@ -175,6 +175,8 @@ services:
       ELICIT_SERVICE_TOKEN: elicit-e2e-service-token-multisite-site1
       # The preview Survey, which drops a survey's reporting schema before Author deletes it (UC-047).
       author.preview.survey.url: http://author-survey:8080
+      # The preview as an author's browser opens it, for Reports > Preview in Survey… (Author UC-048 BR-007).
+      author.preview.survey.public-url: http://localhost:8085
       TZ: America/Detroit
       brand.file.system.path: /opt/brand
       # The image carries English only; the other languages are read from <this path>/<app>/.
