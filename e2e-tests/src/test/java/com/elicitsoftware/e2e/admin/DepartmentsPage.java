@@ -47,26 +47,26 @@ public class DepartmentsPage extends PageObject {
         openDepartment(department);
         Locator surveys = page.locator("#edit-department-surveys");
         surveys.waitFor();
-        Locator chips = surveys.locator("vaadin-multi-select-combo-box-chip");
-        boolean present = chips.allInnerTexts().stream().anyMatch(chip -> chip.startsWith(survey + " (ID "));
-        int id;
-        if (!present) {
-            Locator input = surveys.locator("input");
-            input.click();
-            input.fill(survey);
-            Locator item = page.locator("vaadin-multi-select-combo-box-item")
-                    .filter(new Locator.FilterOptions().setHasText(survey + " (ID ")).first();
-            item.waitFor();
-            id = idIn(item.innerText());
+        // Decide from the dropdown, not the chips: with several surveys selected the field folds
+        // its chips into an overflow chip, and clicking an item that is already selected would
+        // deselect it.
+        Locator input = surveys.locator("input");
+        input.click();
+        input.fill(survey);
+        Locator item = page.locator("vaadin-multi-select-combo-box-item")
+                .filter(new Locator.FilterOptions().setHasText(survey + " (ID ")).first();
+        item.waitFor();
+        int id = idIn(item.innerText());
+        boolean selected = item.getAttribute("selected") != null;
+        if (!selected) {
             item.click();
-            input.press("Escape");
-            page.waitForTimeout(300);
+        }
+        input.press("Escape");
+        page.waitForTimeout(300);
+        if (!selected) {
             Locator save = page.locator("vaadin-button").filter(new Locator.FilterOptions().setHasText("Update department")).first();
             clickAfterFill(save);
             page.waitForURL(url -> url.endsWith("/departments"));
-        } else {
-            id = chips.allInnerTexts().stream().filter(chip -> chip.startsWith(survey + " (ID "))
-                    .map(DepartmentsPage::idIn).findFirst().orElseThrow();
         }
         return id;
     }

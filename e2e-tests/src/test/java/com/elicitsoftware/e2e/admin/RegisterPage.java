@@ -85,17 +85,15 @@ public class RegisterPage extends PageObject {
      */
     public String uploadCsv(Path csvFile) {
         page.locator("#register-csv-upload input[type=file]").setInputFiles(csvFile);
-        // UC-003 BR-176: the upload first says what it will register and asks to confirm. A file
-        // with nothing to confirm (rejected, or every row refused) goes straight to the result.
-        Locator confirmation = page.locator("vaadin-confirm-dialog[opened]");
-        Locator anyDialog = page.locator("vaadin-confirm-dialog[opened], vaadin-dialog[opened]").first();
-        anyDialog.waitFor(new Locator.WaitForOptions().setState(WaitForSelectorState.ATTACHED));
-        if (confirmation.count() > 0) {
-            // The confirm button is captioned "Import"; nothing else on the page is.
-            Locator importButton = page.getByRole(AriaRole.BUTTON,
-                    new Page.GetByRoleOptions().setName("Import").setExact(true)).first();
-            importButton.waitFor();
-            importButton.click();
+        // UC-003 BR-176: the upload first says what it will register and asks to confirm, with a
+        // button captioned "Import" (nothing else on the page is). A file with nothing to confirm
+        // (rejected, or every row refused) goes straight to the result dialog.
+        Locator importButton = page.getByRole(AriaRole.BUTTON,
+                new Page.GetByRoleOptions().setName("Import").setExact(true));
+        Locator result = page.locator("vaadin-dialog[opened]");
+        importButton.or(result).first().waitFor(new Locator.WaitForOptions().setState(WaitForSelectorState.ATTACHED));
+        if (importButton.count() > 0) {
+            importButton.first().click();
         }
         Locator dialog = page.locator("vaadin-dialog[opened]");
         // The host renders with display: contents (never "visible" to Playwright): wait for
