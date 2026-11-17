@@ -88,6 +88,12 @@ class AuthorToRespondentE2ETest extends E2ETestBase {
         DesignerPage.DragHighlight ruleDrag = designer.highlightWhileDraggingRule("SHOW");
         assertTrue(ruleDrag.questionRowsLit(), "dragging a rule glyph must light the question rows");
         assertFalse(ruleDrag.insertionBarsLit(), "an insertion bar cannot take a rule, so it must stay dark");
+        //     Author UC-006 BR-007 (Author #133): and nothing that turns a rule away may take it --
+        //     drop effect "none" is no hover highlight, a not-allowed pointer and no drop.
+        assertEquals("move", ruleDrag.rowDropEffect(), "a question row takes the rule");
+        assertEquals("none", ruleDrag.stepBarDropEffect(), "an insertion bar between steps must refuse a rule");
+        assertEquals("none", ruleDrag.laneHeaderDropEffect(), "a step lane must refuse a rule");
+        assertEquals("none", ruleDrag.cardHeaderDropEffect(), "a section card must refuse a rule");
 
         // 4. Author UC-004 / UC-007: point the survey at its first section, then expect a clean
         //    validation panel -- Export is disabled while any error remains.
