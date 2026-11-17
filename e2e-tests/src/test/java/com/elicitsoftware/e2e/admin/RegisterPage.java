@@ -3,6 +3,7 @@ package com.elicitsoftware.e2e.admin;
 import com.elicitsoftware.e2e.PageObject;
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
+import com.microsoft.playwright.options.AriaRole;
 import com.microsoft.playwright.options.WaitForSelectorState;
 
 import java.nio.file.Path;
@@ -73,8 +74,8 @@ public class RegisterPage extends PageObject {
      * UC-003 alt-flow A6: uploads a CSV fixture through the CSV upload control and returns what
      * RegisterView reported. Vaadin's Upload component visually hides its native
      * {@code <input type=file>} behind a styled button; Playwright's {@code setInputFiles} works
-     * on it directly regardless of visibility. The CSV import always registers against survey
-     * id 1 (CsvImportService), so no survey is chosen.
+     * on it directly regardless of visibility. Each row names its survey in its ninth column
+     * (UC-003 BR-175), so no survey is chosen in the form; the upload's confirmation is accepted.
      *
      * <p>The outcome is a modal dialog -- "CSV import succeeded" listing the subjects, or the
      * error title -- with no notification and no navigation, so this returns the dialog's full
@@ -84,6 +85,16 @@ public class RegisterPage extends PageObject {
      */
     public String uploadCsv(Path csvFile) {
         page.locator("#register-csv-upload input[type=file]").setInputFiles(csvFile);
+        // UC-003 BR-176: the upload first says what it will register and asks to confirm, with a
+        // button captioned "Import" (nothing else on the page is). A file with nothing to confirm
+        // (rejected, or every row refused) goes straight to the result dialog.
+        Locator importButton = page.getByRole(AriaRole.BUTTON,
+                new Page.GetByRoleOptions().setName("Import").setExact(true));
+        Locator result = page.locator("vaadin-dialog[opened]");
+        importButton.or(result).first().waitFor(new Locator.WaitForOptions().setState(WaitForSelectorState.ATTACHED));
+        if (importButton.count() > 0) {
+            importButton.first().click();
+        }
         Locator dialog = page.locator("vaadin-dialog[opened]");
         // The host renders with display: contents (never "visible" to Playwright): wait for
         // attachment. That only means the dialog exists, though -- Vaadin teleports its contents

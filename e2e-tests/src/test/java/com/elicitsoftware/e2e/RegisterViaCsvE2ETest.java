@@ -1,6 +1,7 @@
 package com.elicitsoftware.e2e;
 
 import com.elicitsoftware.e2e.admin.KeycloakLoginHelper;
+import com.elicitsoftware.e2e.admin.DepartmentsPage;
 import com.elicitsoftware.e2e.admin.RegisterPage;
 import com.elicitsoftware.e2e.admin.SearchPage;
 import org.junit.jupiter.api.Test;
@@ -31,6 +32,9 @@ class RegisterViaCsvE2ETest extends E2ETestBase {
     /** The placeholder {@code fixtures/single-respondent.csv} carries in place of an identity. */
     private static final String SUFFIX_PLACEHOLDER = "UNIQUE_SUFFIX";
 
+    /** The placeholder the fixture carries in place of the seeded survey's ID (Admin UC-003 BR-175). */
+    private static final String SURVEY_PLACEHOLDER = "SURVEY_ID";
+
     @TempDir
     Path tempDir;
 
@@ -52,8 +56,11 @@ class RegisterViaCsvE2ETest extends E2ETestBase {
         String uniqueSuffix = String.valueOf(System.nanoTime());
         String email = "csv.e2e.test." + uniqueSuffix + "@example.org";
 
+        // Each row names its survey (Admin UC-003 BR-175); the department must have it (UC-006 BR-172).
+        int surveyId = new DepartmentsPage(page).ensureSurvey(ADMIN_DEPARTMENT, SEEDED_SURVEY_NAME);
+
         openAdmin("/register");
-        String importResult = new RegisterPage(page).uploadCsv(renderFixture(uniqueSuffix));
+        String importResult = new RegisterPage(page).uploadCsv(renderFixture(uniqueSuffix, surveyId));
         assertTrue(importResult.contains("CSV import succeeded"),
                 "unexpected CSV import outcome:\n" + importResult);
         assertTrue(importResult.contains("New Subject"),
@@ -71,16 +78,18 @@ class RegisterViaCsvE2ETest extends E2ETestBase {
 
     /**
      * Writes the CSV fixture out with {@link #SUFFIX_PLACEHOLDER} replaced, so the upload
-     * registers an identity no earlier run can have used. Returns the rendered file.
+     * registers an identity no earlier run can have used, and {@link #SURVEY_PLACEHOLDER} by the
+     * seeded survey's ID. Returns the rendered file.
      */
-    private Path renderFixture(String uniqueSuffix) throws URISyntaxException {
+    private Path renderFixture(String uniqueSuffix, int surveyId) throws URISyntaxException {
         Path template = fixture("fixtures/single-respondent.csv");
         try {
             String csv = Files.readString(template, StandardCharsets.UTF_8);
             assertTrue(csv.contains(SUFFIX_PLACEHOLDER),
                     template + " should carry " + SUFFIX_PLACEHOLDER + " in place of an identity");
             Path rendered = tempDir.resolve("single-respondent-" + uniqueSuffix + ".csv");
-            Files.writeString(rendered, csv.replace(SUFFIX_PLACEHOLDER, uniqueSuffix), StandardCharsets.UTF_8);
+            Files.writeString(rendered, csv.replace(SUFFIX_PLACEHOLDER, uniqueSuffix)
+                    .replace(SURVEY_PLACEHOLDER, String.valueOf(surveyId)), StandardCharsets.UTF_8);
             return rendered;
         } catch (IOException e) {
             throw new UncheckedIOException("could not render " + template, e);

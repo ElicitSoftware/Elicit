@@ -1,6 +1,7 @@
 package com.elicitsoftware.e2e;
 
 import com.elicitsoftware.e2e.admin.KeycloakLoginHelper;
+import com.elicitsoftware.e2e.admin.DepartmentsPage;
 import com.elicitsoftware.e2e.admin.RegisterPage;
 import com.elicitsoftware.e2e.admin.SearchPage;
 import com.elicitsoftware.e2e.admin.SurveyApplyPage;
@@ -142,6 +143,10 @@ class AuthorToRespondentE2ETest extends E2ETestBase {
         assertTrue(applyResult.contains("New Survey Installed"), "unexpected apply outcome:\n" + applyResult);
         assertTrue(applyResult.contains(surveyKey), "apply dialog should echo the survey key:\n" + applyResult);
         assertTrue(applyResult.contains("report_items"), "Admin UC-014 BR-112: the mark was installed with the survey:\n" + applyResult);
+
+        // 7b. Admin UC-006 BR-173: a new survey is in no department, so add it to this one.
+        assertTrue(applyResult.contains("in no department yet"), "UC-018: the apply says so:\n" + applyResult);
+        new DepartmentsPage(page).ensureSurvey(ADMIN_DEPARTMENT, surveyName);
 
         // 8. Admin UC-003: register a respondent on the newly installed survey.
         String firstName = "E2E";

@@ -197,6 +197,9 @@ public abstract class E2ETestBase {
                 waitForRegisterView(bootstrapPage);
             }
             if (isSeededSurveyInstalled(bootstrapPage)) {
+                // Installed already: on a brownfield database the migration gave every existing
+                // department every survey, but make sure of it (Admin UC-006 BR-172/173).
+                new DepartmentsPage(bootstrapPage).ensureSurvey(ADMIN_DEPARTMENT, SEEDED_SURVEY_NAME);
                 return;
             }
             if (!Files.isReadable(definition)) {
@@ -210,6 +213,8 @@ public abstract class E2ETestBase {
                 throw new IllegalStateException("Could not install " + SEEDED_SURVEY_NAME
                         + " from " + definition + "; Admin answered:\n" + outcome);
             }
+            // Admin UC-006 BR-173: a newly applied survey is in no department until one is given it.
+            new DepartmentsPage(bootstrapPage).ensureSurvey(ADMIN_DEPARTMENT, SEEDED_SURVEY_NAME);
         }
     }
 

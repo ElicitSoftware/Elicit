@@ -391,6 +391,19 @@ Admin authenticates against a confidential OIDC client. Survey has no client: a 
 enters an access code, which is issued by Admin and is not a credential in your identity
 provider.
 
+Elicit does not depend on Keycloak. The realm the repository ships (Section~\ref{sec:oidc-example})
+is an example, and any OpenID Connect provider will do: your organization's own, a cloud
+directory, or a Keycloak you run yourself. What the console needs from a sign-in is a
+\emph{principal with a user name} (Section~\ref{sec:oidc-username}); everything else it
+decides for itself. It never reads a Keycloak-specific claim and never calls Keycloak's
+administration API.
+
+The same holds beyond OIDC. The console reads only the signed-in principal's name and its
+roles, so any authentication method that yields a principal with a user name will work. The
+published image speaks OIDC only: another method, such as LDAP or a header set by a trusted
+proxy, means building Admin with the Quarkus security extension for it in place of
+\val{quarkus-oidc}.
+
 \subsection{The client}
 
 Create one client in the provider's realm for Admin. Survey needs none.
@@ -409,6 +422,25 @@ client in its own provider, under whatever name it configures Admin with.}
 
 \screenshot{02-keycloak-client}{The console's client. The redirect URI must cover the address
 a browser reaches the console at, which is not necessarily the address the container knows.}
+
+\subsection{The user name}
+\label{sec:oidc-username}
+
+The console identifies a person by the name of their principal and nothing else. After every
+sign-in it looks that name up among its own user records (\val{survey.users.username}), and
+only an active record with that exact name can use the console: it carries the person's
+departments, and without one the console logs \val{No active user found for authenticated
+principal} and offers nothing. This holds in both authorization modes
+(Section~\ref{sec:oidc-authorization}). A machine client's name is matched the same way,
+against its import client record.
+
+With OIDC the name is taken from a claim of the token: \val{upn} if the token has one,
+otherwise \val{preferred_username}, otherwise \val{sub}. Keycloak puts the account's user name
+in \val{preferred_username}. A provider whose user name is in another claim, such as
+\val{email}, is followed by setting \val{quarkus.oidc.token.principal-claim} on Admin
+(environment: \val{QUARKUS_OIDC_TOKEN_PRINCIPAL_CLAIM}). Choose a claim whose value does not
+change while the person keeps their account, and create each user record in the console with
+that value as its username.
 
 \subsection{The roles}
 
@@ -431,6 +463,7 @@ At least one account must hold \val{elicit_admin} before the first sign-in
 ones in its own provider.}
 
 \subsection{The bundled example}
+\label{sec:oidc-example}
 
 The repository ships a Keycloak realm at \file{keycloak/elicit-realm.json}, carrying the
 console's client and its roles, the integration client \val{import-service}, Author's client,
@@ -449,14 +482,33 @@ import client's alone.
 A real site does not import this file or change its secrets one by one. It creates the client
 and the roles above in its own identity provider, which issues secrets and keys of its own.
 
-\subsection{Sourcing roles from the database instead}
+\subsection{Where the roles come from}
+\label{sec:oidc-authorization}
 
-A site that cannot manage Elicit's roles in its identity provider can set
-\opt{elicit.authorization.mode} to \val{DATABASE} on Admin. That makes the console consult
-its own \val{survey.user_roles} table as a fallback, and shows the role-assignment section of
-the user editor. It does \emph{not} turn OIDC off: sign-in is unchanged, and roles the provider
-supplies are still honored. In this mode the identity provider's account names must match the
-console's user records.
+Authentication, proving who someone is, is always the identity provider's. Authorization,
+deciding which of the roles in Table~\ref{tab:roles-oidc} they hold, can come from either the
+provider or the console's own database, chosen by \opt{elicit.authorization.mode} on Admin.
+
+\begin{description}
+  \item[\val{OIDC}, the default.] The roles arrive in the token, and the provider is the only
+        place they are granted or withdrawn. \ui{Users} in the console then assigns
+        departments only. The roles are read from the token's \val{groups} claim or, from
+        Keycloak, from the realm's and the console client's role lists; for a browser sign-in
+        the ID token is read. A provider that puts them elsewhere is followed with
+        \val{quarkus.oidc.roles.role-claim-path} (the claim holding them) and
+        \val{quarkus.oidc.roles.source} (\val{idtoken}, \val{accesstoken} or \val{userinfo}).
+        Many providers can also be told to emit the role names as \val{groups}.
+  \item[\val{DATABASE}.] The provider only authenticates and need not know Elicit's roles at
+        all. An administrator assigns them in the console's user editor, which shows a role
+        section in this mode, and they are kept in \val{survey.user_roles}. The table is
+        consulted only for a principal whose token carries none of Elicit's roles: a role the
+        provider does supply still wins, and a user record that is inactive grants nothing.
+\end{description}
+
+Neither mode turns OIDC off or changes sign-in, and in both the principal's name must match an
+active user record (Section~\ref{sec:oidc-username}). Choose \val{DATABASE} when the people who
+run the console cannot have roles created in the organization's provider; otherwise keep the
+roles at the provider (Section~\ref{sec:security-identity}).
 
 %% ================================================================== 5
 \section{Replacing the development secrets}
@@ -1104,6 +1156,12 @@ in Admin.
         \val{survey.surveys.report_schema}, and fills it with the dimension tables, the fact
         table and the views. \val{surveyreport} itself keeps only the shared date and status
         dimensions.
+  \item A new survey is in no department, and the result says so. Open \ui{Departments}, edit
+        each department that runs the survey, add it under \ui{Surveys} and save. Until then
+        nobody can register a subject onto it, by the form, a CSV upload or the registration
+        API. A department created \emph{after} a survey is installed starts with every installed
+        survey, so this step is needed only for a survey applied to departments that already
+        exist, as on the first run.
 \end{enumerate}
 
 \screenshot{09-apply-definition}{Apply Survey Definition. The file identifies itself, so the
@@ -1969,6 +2027,8 @@ Bring the stack up as in Chapter~\ref{sec:compose}, then:
   \item Apply \file{FHHS/family-history-survey.elicit} in Admin
         (Chapter~\ref{sec:definition}).
   \item FHHS becomes ready on its next readiness probe. Nothing needs restarting.
+  \item Add the survey to your department on \ui{Departments} (Chapter~\ref{sec:definition}),
+        so subjects can be registered onto it.
   \item In Admin, open \ui{System} $>$ \ui{Connections} and check the three report services and
         the post-survey action.
   \item Walk the survey to the end as a respondent. The report page shows three cards, the
@@ -2737,6 +2797,11 @@ create one (Chapter~\ref{sec:firstsignin}). \\
 \addlinespace
 A signed-in user can only log out. & They belong to no department. & Assign them one in
 \ui{Users}. \\
+\addlinespace
+A survey is missing from \ui{Register Subjects}, or a CSV row or API record is refused as not
+permitted for its survey. & The subject's department does not list that survey; a newly applied
+survey is in no department. & Add the survey to the department on \ui{Departments}
+(Chapter~\ref{sec:definition}). \\
 \addlinespace
 Sign-in succeeds, but the console says the account has no active application record. & The
 identity provider knows the account; the console has no user record for it. It is a missing
