@@ -265,8 +265,13 @@ public class DesignerPage extends AuthorPageObject {
         return dropZones().stream().filter(zone -> kind.equals(zone.kind())).toList();
     }
 
-    /** What the board offers while something is being dragged: which targets are outlined. */
-    public record DragHighlight(boolean questionRowsLit, boolean insertionBarsLit) {}
+    /**
+     * What the board offers while something is being dragged: which targets are outlined, and the
+     * drop effect of the first question row, insertion bar between steps, step lane header and
+     * section card header ("move" takes the drop, "none" refuses it).
+     */
+    public record DragHighlight(boolean questionRowsLit, boolean insertionBarsLit, String rowDropEffect,
+                                String stepBarDropEffect, String laneHeaderDropEffect, String cardHeaderDropEffect) {}
 
     /**
      * Starts a drag of the rule glyph for {@code action} ("SHOW", "REPEAT" or "TEXT"), reports what
@@ -277,9 +282,15 @@ public class DesignerPage extends AuthorPageObject {
      * pointed a rule at targets that turn it away; scoping the highlight to the payload silently
      * left rules with no feedback until the rows were wired up, and that is what this pins down.</p>
      *
+     * <p>The outline is only half of it. The hover highlight and the pointer come from the drop
+     * effect Vaadin keeps on each target as {@code __dropEffect}: a target left at "move" still
+     * lit up and showed the move pointer for a rule it then refused (Author #133). Every target that
+     * turns the payload away must say "none" for the duration of the drag (Author UC-006 BR-007).</p>
+     *
      * <p>The gesture is a synthetic {@code dragstart} rather than a real pointer drag: Vaadin's
      * {@code DragSource} listens for that event, so it round-trips to the server and the board comes
-     * back marked, while Chromium's real HTML5 drag is not reliably drivable from automation.</p>
+     * back marked, while Chromium's real HTML5 drag is not reliably drivable from automation. The
+     * drop effects arrive in the same response as the board's {@code dragging-rule} class.</p>
      */
     public DragHighlight highlightWhileDraggingRule(String action) {
         String glyph = ".elicit-glyph-rule-" + action.toLowerCase();
@@ -291,7 +302,9 @@ public class DesignerPage extends AuthorPageObject {
         page.waitForFunction("() => document.querySelector('.designer-board')"
                 + ".classList.contains('dragging-rule')");
         try {
-            return new DragHighlight(outlined(".designer-row:not(.retired)"), outlined(".designer-drop-zone-step"));
+            return new DragHighlight(outlined(".designer-row:not(.retired)"), outlined(".designer-drop-zone-step"),
+                    dropEffect(".designer-row:not(.retired)"), dropEffect(".designer-drop-zone-step"),
+                    dropEffect(".designer-lane-header"), dropEffect(".designer-card-header"));
         } finally {
             page.evaluate("selector => { const g = document.querySelector(selector);"
                     + " if (g) { g.dispatchEvent(new DragEvent('dragend',"
@@ -304,6 +317,12 @@ public class DesignerPage extends AuthorPageObject {
         Object style = page.evaluate("selector => { const el = document.querySelector(selector);"
                 + " return el ? getComputedStyle(el).outlineStyle : 'none'; }", selector);
         return "dashed".equals(String.valueOf(style));
+    }
+
+    /** The drop effect Vaadin's drag-and-drop connector reads on the first element matching {@code selector}. */
+    private String dropEffect(String selector) {
+        return String.valueOf(page.evaluate("selector => { const el = document.querySelector(selector);"
+                + " return el ? String(el.__dropEffect) : 'no element'; }", selector));
     }
 
     // ---- rules on the board (UC-020, UC-033) ----------------------------------------------
