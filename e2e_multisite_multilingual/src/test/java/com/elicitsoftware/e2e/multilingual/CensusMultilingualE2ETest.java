@@ -280,19 +280,25 @@ class CensusMultilingualE2ETest extends MultilingualTestBase {
                 "The author declares the survey published in Spanish and Arabic", () -> visit(page -> {
             authorLogin(page, USA);
             openAuthor(page, USA, "/survey/" + surveyIdInAuthor);
-            Recording.beat(USA, "published in " + SPANISH + " and " + ARABIC + ", base language English");
             SurveyEditorPage editor = new SurveyEditorPage(page);
-            editor.setContentLanguages(SPANISH + "," + ARABIC, "en");
             editor.openTranslations();
 
-            Recording.beat(USA, "the Translations page lists every translatable string, none translated");
+            // Author #131: a language is published from the Translations page, by choosing one the
+            // survey does not publish yet; the Edit details dialog no longer carries a picker.
+            Recording.beat(USA, "published in " + SPANISH + " and " + ARABIC + " from the Translations page");
             TranslationsPage page043 = new TranslationsPage(page);
+            page043.waitUntilOpen();
+            assertTrue(page043.saysNoLanguages(), "a new survey should publish no translation yet");
+            page043.publishLanguage(SPANISH);
+            page043.publishLanguage(ARABIC);
             page043.waitUntilLoaded();
+
+            Recording.beat(USA, "the Translations page lists every translatable string, none translated");
             // Two assertions, because the list means two things. What it offers is every content
             // language Elicit carries (author.content.languages less the survey's own English),
             // which is the whole point of curating that set: an author cannot start a language no
             // site could render. What it marks as published is this survey's own set, which the
-            // editor has just declared. Here they coincide.
+            // author has just published. Here they coincide.
             assertEquals(PUBLISHED, page043.languages(),
                     "the Translations page should offer exactly the content languages Elicit carries");
             assertEquals(PUBLISHED, page043.publishedLanguages(),
