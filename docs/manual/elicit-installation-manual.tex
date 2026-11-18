@@ -2417,6 +2417,15 @@ open that subject's survey and, once it is finished, its reports.
         before deciding what the proxy logs and who may read it.
 \end{itemize}
 
+\begin{elicitcaution}[Auto-registration can skew a survey's results]
+With \opt{accessCode.autoRegister} on in production, nothing ties a respondent to a person. The
+same person can take the survey again and again, each time with a new access code, and an
+automated bot can type codes and enter answers as fast as it likes. Either one skews the
+survey's results, and the console cannot tell such respondents apart from genuine ones. Turn it
+on only for a survey whose results can bear that, and leave it \val{false} where every
+respondent must be a registered subject.
+\end{elicitcaution}
+
 \subsection{The database}
 \label{sec:security-database}
 
