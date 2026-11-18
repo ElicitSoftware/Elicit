@@ -1,4 +1,5 @@
-# Gates the umbrella on every pull request into main or V3 and every push to one. The
+# Gates the umbrella on every release tag (v*, V*). Pull requests into main or V3 and pushes to
+# one still start it, so the ruleset's required check reports, but the job is skipped there. The
 # umbrella holds no application source, so what it can check are the cross-module
 # invariants and the installation manual (UC-001, UC-002):
 #
@@ -14,11 +15,12 @@
 #
 # Three of those read the Survey, Admin, FHHS and Author sources, which are independent clones and
 # not part of this repository (see CLAUDE.md), so the job clones each at the branch this run
-# targets: the pull request's base branch, or the branch that was pushed to. Author has no V3
-# or release line of its own; its integration branch is main, so it is cloned from main
-# instead. A module branch with the same name as the pull request's own branch is preferred,
-# so a cross-repo change (one branch name in every repo, as the modules' CI also assumes) is
-# checked against itself before any of it merges.
+# targets: the release tag, which every module carries, the pull request's base branch, or the
+# branch that was pushed to. Author has no V3 or release line of its own; its integration branch
+# is main, so outside a tag it is cloned from main instead. A module branch with the same name
+# as the pull request's own branch is preferred, so a cross-repo change (one branch name in
+# every repo, as the modules' CI also assumes) is checked against itself before any of it
+# merges.
 #
 # The job name is the status check the branch ruleset on main and V3 requires; rename both
 # together.
@@ -30,6 +32,9 @@ on:
     branches:
       - main
       - V3
+    tags:
+      - 'v*'
+      - 'V*'
   pull_request:
     branches:
       - main
@@ -44,6 +49,10 @@ jobs:
     name: Cross-module checks and manual
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    # Runs only for a release tag. Pull requests and branch pushes still trigger the workflow so
+    # that the ruleset's required check reports, but the job is skipped there, and a skipped job
+    # satisfies a required check. Actions minutes are spent once per release, not on every change.
+    if: github.ref_type == 'tag'
 
     steps:
       - name: Check out repo
@@ -60,7 +69,7 @@ jobs:
           for m in Survey Admin FHHS Author; do
             url="https://github.com/ElicitSoftware/$m.git"
             ref=$BRANCH
-            [ "$m" = Author ] && ref=main
+            [ "$m" = Author ] && [ "$GITHUB_REF_TYPE" != tag ] && ref=main
             if [ -n "$HEAD" ] && git ls-remote --exit-code --heads "$url" "$HEAD" >/dev/null 2>&1; then
               ref=$HEAD
             fi

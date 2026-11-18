@@ -431,11 +431,15 @@ use-case IDs are unrelated to these.
 - CI per repository: Survey, Admin and Author run the Maven suite (`ci.yml`), FHHS runs it
   from `maven.yml`, Pedigree builds its image and smoke-tests `/healthz` and `/svg`, and the
   umbrella runs `checkLanguages.sh`, `checkBrand.sh`, `check-properties.sh`, `docker compose config` and the
-  manual build against fresh clones of Survey, Admin, FHHS and Author at the target branch
-  (Author at `main`). The umbrella's job clones the modules anonymously, and Author is
-  private, so it **fails at the clone step on every run** and has since at least 2026-11-11:
-  a red check on an umbrella pull request says nothing about the pull request. It stays that
-  way until the job is given a read token for Author or is changed to run without it.
+  manual build against fresh clones of Survey, Admin, FHHS and Author at the release tag (or,
+  on a manual FHHS run, the dispatched branch).
+- **CI runs only on a release tag** (`v*`), to save Actions minutes. Pull requests and pushes to
+  `main`/`V3` still trigger each workflow, but its job has an `if:` on the tag and is *skipped*;
+  GitHub counts a skipped job as passing the ruleset's required check, so merging still works
+  but nothing is tested until the tag. Run the suites locally (`buildDockerImages.sh`,
+  `fullTest.sh`) before merging. The umbrella's job clones the modules anonymously, and Author
+  is private, so a tag run of the umbrella **fails at the clone step** until the job is given a
+  read token for Author.
 
 ## Git Commits
 
