@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "organization": "Healthcare Organization",
   "logos": {
-    "horizontal": "HorizontalLogo.png"
+    "horizontal": "HorizontalLogo.png",
+    "icon": "icon.svg"
   },
   "favicon": "favicon.svg",
   "localized": {

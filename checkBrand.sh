@@ -16,6 +16,9 @@
 #   2. Every \definecolor{elicit…} in docs/manual/elicit-brand.sty names a color of
 #      elicit-brand/colors/brand-colors.css and carries its value: elicitInkDark is
 #      --elicit-ink-dark.
+#   3. Every logo file elicit-brand/brand-config.json names (logos.horizontal, logos.icon and
+#      favicon) is under elicit-brand/images/, and the brand names its icon, because it brings its
+#      own favicon (umbrella UC-014 BR-008, BR-009).
 #
 #   ./checkBrand.sh           check, exit non-zero on a difference
 #   ./checkBrand.sh --sync    copy elicit-brand/ into the modules (keeping their license headers),
@@ -126,8 +129,28 @@ if [ "$defined" -eq 0 ]; then
     status=1
 fi
 
+# 3. The logo files the configuration names exist, and the icon is named beside the favicon.
+logos=$(python3 - "$BRAND/brand-config.json" <<'PY'
+import json, sys
+config = json.load(open(sys.argv[1]))
+logos = config.get("logos") or {}
+for key, value in (("logos.horizontal", logos.get("horizontal")), ("logos.icon", logos.get("icon")),
+                   ("favicon", config.get("favicon"))):
+    print(key, value or "")
+PY
+) || { echo "ERROR: $BRAND/brand-config.json could not be read as JSON." >&2; status=1; }
+while read -r key file; do
+    if [ -z "$file" ]; then
+        echo "ERROR: $BRAND/brand-config.json names no $key; the default brand names all three logo files." >&2
+        status=1
+    elif [ ! -f "$BRAND/images/$file" ]; then
+        echo "ERROR: $BRAND/brand-config.json names $key $file, which is not in $BRAND/images/." >&2
+        status=1
+    fi
+done <<< "$logos"
+
 if [ "$status" -eq 0 ]; then
-    echo "Survey, Admin and Author package $BRAND/; the manuals' $defined colors match it"
+    echo "Survey, Admin and Author package $BRAND/; the manuals' $defined colors match it; its three logo files are named and present"
 else
     echo "       $BRAND/ is the source. Run ./checkBrand.sh --sync to copy it into the modules." >&2
 fi
