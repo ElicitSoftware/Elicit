@@ -114,7 +114,7 @@ public class TranslationsPage extends AuthorPageObject {
         Locator input = combo.locator("input");
         input.fill(tag);
         page.waitForTimeout(500); // the filter is applied client-side
-        List<String> labels = languageItems().allInnerTexts().stream().map(String::trim).toList();
+        List<String> labels = renderedLabels();
         int index = -1;
         for (int i = 0; i < labels.size(); i++) {
             if (tag.equals(tagOf(labels.get(i)))) {
@@ -262,8 +262,28 @@ public class TranslationsPage extends AuthorPageObject {
     /** The offered items' labels, read with the list open and left closed again. */
     private List<String> offeredLabels() {
         openLanguageOverlay();
-        List<String> labels = languageItems().allInnerTexts().stream().map(String::trim).toList();
+        List<String> labels = renderedLabels();
         closeLanguageOverlay();
+        return labels;
+    }
+
+    /**
+     * The shown items' labels, once every one of them has its text.
+     *
+     * <p>Vaadin attaches an item before its renderer fills in the label, so reading straight after
+     * the first item appears can return empty strings on a loaded machine (Elicit#128). Polled for
+     * up to ten seconds; what is read last is returned, so a list that never renders fails the
+     * caller's own assertion with the labels it saw.</p>
+     */
+    private List<String> renderedLabels() {
+        List<String> labels = List.of();
+        for (int i = 0; i < 50; i++) {
+            labels = languageItems().allInnerTexts().stream().map(String::trim).toList();
+            if (!labels.isEmpty() && labels.stream().noneMatch(String::isEmpty)) {
+                return labels;
+            }
+            page.waitForTimeout(200);
+        }
         return labels;
     }
 
