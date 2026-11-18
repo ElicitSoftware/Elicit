@@ -2400,9 +2400,14 @@ A respondent has no account. The access code is their whole credential: whoever 
 open that subject's survey and, once it is finished, its reports.
 
 \begin{itemize}
-  \item \textbf{Leave \opt{accessCode.autoRegister} at \val{false}.} Set to \val{true}, any
-        code typed in reaches a survey. It exists for an evaluation stack and for walking a
-        draft, and the shipped compose file turns it on.
+  \item \textbf{Decide on \opt{accessCode.autoRegister}.} Left at \val{false}, only a code
+        the console issued reaches a survey. Set to \val{true}, any code of 5 to 12 characters
+        typed in creates a respondent and starts the survey: anyone who can reach the login page
+        can take it, which is what a survey open to the public wants. Such a respondent was never
+        registered: Admin lists it as \ui{Auto-registered}, with no name, contact details or
+        department, to every console account; a post-survey action receives no External ID for
+        it; and the code the respondent chose is the only thing that brings them back to their
+        answers. The shipped compose file turns it on.
   \item \textbf{Send a code to its subject and nobody else.} Admin's messages are the intended
         route. A code read out, printed or forwarded is a code given away.
   \item \textbf{The invitation link carries the code in its address.} Survey keeps the link
@@ -2411,6 +2416,15 @@ open that subject's survey and, once it is finished, its reports.
         still sees the request as it arrived: read Section~\ref{sec:security-observability}
         before deciding what the proxy logs and who may read it.
 \end{itemize}
+
+\begin{elicitcaution}[Auto-registration can skew a survey's results]
+With \opt{accessCode.autoRegister} on in production, nothing ties a respondent to a person. The
+same person can take the survey again and again, each time with a new access code, and an
+automated bot can type codes and enter answers as fast as it likes. Either one skews the
+survey's results, and the console cannot tell such respondents apart from genuine ones. Turn it
+on only for a survey whose results can bear that, and leave it \val{false} where every
+respondent must be a registered subject.
+\end{elicitcaution}
 
 \subsection{The database}
 \label{sec:security-database}
@@ -2591,8 +2605,8 @@ something the site does not run does not apply.
 
 \subsubsection*{Access codes}
 \begin{itemize}[label = \elicitcheck]
-  \item \opt{accessCode.autoRegister} is \val{false} on Survey
-        (Section~\ref{sec:security-access-codes}).
+  \item \opt{accessCode.autoRegister} is \val{true} on Survey only where anyone may take the
+        survey (Section~\ref{sec:security-access-codes}).
   \item The proxy's access log leaves out the path of invitation links, or the people who can
         read it are the people who may see access codes
         (Section~\ref{sec:security-observability}).
@@ -3000,9 +3014,10 @@ metrics and traces. \\
 \subsection{Survey}
 
 \begin{settings}{tab:survey}{Survey: Elicit settings}
-\opt{accessCode.autoRegister} & \val{false} & \chgset & Accept \emph{any} access code rather
-than only one the console issued. The compose file sets \val{true} for evaluation. A site
-delivering real surveys must leave it \val{false}. \\
+\opt{accessCode.autoRegister} & \val{false} & \chgmay & Accept \emph{any} access code of 5 to 12
+characters rather than only one the console issued, creating a respondent with no subject
+(Section~\ref{sec:security-access-codes}). Set \val{true} for a survey anyone may take; the
+compose file sets it for evaluation. \\
 \opt{elicit.etl.enabled} & \val{true} & \chgmay & Whether this instance builds the reporting
 star schema of every installed survey at startup and updates it when a respondent finalizes.
 Set \val{false} only on an instance that merely renders surveys and that nothing reports
