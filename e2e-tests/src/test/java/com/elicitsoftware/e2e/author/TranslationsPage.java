@@ -56,6 +56,16 @@ public class TranslationsPage extends AuthorPageObject {
         countsSpan().waitFor();
     }
 
+    /**
+     * Waits until the page has opened, whether or not the survey publishes a language yet: the
+     * counts are only shown once one is chosen, so {@link #waitUntilLoaded()} would wait forever
+     * on a survey that publishes nothing (UC-043 A4) -- the state {@link #publishLanguage} starts from.
+     */
+    public void waitUntilOpen() {
+        page.locator("vaadin-grid").first().waitFor();
+        languageCombo();
+    }
+
     /** The message shown instead of the grid when the survey publishes no language (UC-043 A4). */
     public boolean saysNoLanguages() {
         return page.getByText("This survey publishes no translations yet.").count() > 0;
@@ -120,6 +130,19 @@ public class TranslationsPage extends AuthorPageObject {
         }
         languageItems().nth(index).click();
         page.waitForTimeout(800); // the grid and the counts are reloaded server-side
+    }
+
+    /**
+     * Publishes the language whose tag is {@code tag} (Author UC-044 step 4): choosing a language
+     * the survey does not publish yet adds it to the published set, which is the only place an
+     * author does so since the Edit details dialog lost its picker (Author #131). Waits for the
+     * confirmation, which also says how many strings still need translating (UC-044 A1).
+     */
+    public void publishLanguage(String tag) {
+        chooseLanguage(tag);
+        page.locator("vaadin-notification-card")
+                .filter(new Locator.FilterOptions().setHasText(tag + " is now one of this survey's published languages"))
+                .first().waitFor();
     }
 
     public Counts counts() {
