@@ -58,13 +58,30 @@ wait_ready() { # site port name
     return 1
 }
 
+# The other sites sign in through site1's Keycloak. site1's Survey and Admin are ready before
+# it is, since they do not need it to start, and on a loaded machine Keycloak can take minutes
+# more (Elicit#128), so wait for it rather than checking once.
+wait_keycloak() { # site
+    local i
+    for i in $(seq 1 60); do
+        if curl -fsS -o /dev/null http://localhost:8180/ 2>/dev/null; then
+            echo "  ✅ $1 Keycloak ready on :8180"
+            return 0
+        fi
+        sleep 5
+    done
+    echo "  ❌ $1 Keycloak did not answer on :8180 within 5 minutes" >&2
+    docker compose -f "$1/docker-compose.yml" ps keycloak >&2
+    return 1
+}
+
 for site in $SITES; do
     if [ "$site" = site2 ]; then
-        if ! docker network inspect elicit-site1_default >/dev/null 2>&1 || \
-           ! curl -fsS -o /dev/null http://localhost:8180/ 2>/dev/null; then
+        if ! docker network inspect elicit-site1_default >/dev/null 2>&1; then
             echo "site 2 needs site 1 running (its Keycloak on :8180 and its compose network); run '$0 site1' first" >&2
             exit 1
         fi
+        wait_keycloak site1 || exit 1
     fi
     echo "== $site: docker compose up -d"
     mkdir -p "data/$site"
