@@ -556,15 +556,20 @@ The optional `localized` block carries per-language variants of the name and org
 by language tag. `brand-info.json` beside it holds display metadata (description, primary color,
 last update) and may carry a `localized` description inside its `"brand"` object.
 
-The applications read three fixed image names from `images/`:
+The applications read the three logo files `brand-config.json` names under `images/` (umbrella
+UC-014 BR-008), never fixed file names:
 
-- `images/HorizontalLogo.png`: the full ELICIT / SURVEY lockup, shown on the System > Branding
-  pages and in the manuals.
-- `images/icon-white.png`: the white mark, shown in the application header on the primary color.
-- The favicon named in `brand-config.json`, `images/favicon.ico` in the default brand (the white
-  mark on an Ink tile at 16, 32 and 48 px).
+- `logos.horizontal`: the full lockup, shown on the System > Branding pages and in the manuals
+  (`HorizontalLogo.png`, ELICIT / SURVEY, in the default brand).
+- `logos.icon`: the mark alone, shown in the application header on the primary color
+  (`icon-white.png`, the white mark, in the default brand).
+- `favicon`: the browser tab's icon (`favicon.ico`, the white mark on an Ink tile at 16, 32 and
+  48 px, in the default brand).
 
-The three files are rendered from the SVG masters in `images/source/`.
+A name the configuration leaves out resolves to the default brand's file. The icon and the
+favicon are one mark (BR-009): a brand that supplies its own favicon names its own `logos.icon`
+too, or the header keeps Elicit's mark and the Branding screen warns. The default brand's three
+files are rendered from the SVG masters in `images/source/`.
 
 ### 4. Docker Integration for Shared Brand Directories
 

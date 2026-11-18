@@ -1229,19 +1229,39 @@ colors, typefaces, logos and organization name, mount a brand directory and poin
 
 \begin{elicitfile}[fontsize = \footnotesize]
 <brand>/
-  brand-config.json                name, organization, logo files
+  brand-config.json                name, organization, the logo file names
   brand-info.json                  description for page metadata
   theme.css                        imports the two stylesheets
   colors/brand-colors.css          --brand-* color properties
   typography/brand-typography.css  --brand-* typeface properties, @font-face rules
   typography/typography.json       the typefaces, described
   typography/fonts/                the font files, if the brand has its own
-  images/HorizontalLogo.png        the full logo, shown on the Branding page
-  images/icon-white.png            the icon in the header, on the primary color
-  images/favicon.ico               the browser tab's icon
+  images/                          the logo files brand-config.json names
 \end{elicitfile}
 
 Start from the repository's \file{elicit-brand/} and change only the files that differ.
+
+\subsection{The logos}
+
+\file{brand-config.json} names three image files, each under \file{images/}:
+
+\begin{elicitfile}
+"logos": {
+  "horizontal": "HorizontalLogo.png",
+  "icon": "icon-white.png"
+},
+"favicon": "favicon.ico"
+\end{elicitfile}
+
+\val{horizontal} is the full logo, the mark with its wording, shown on the \ui{Branding} page.
+\val{icon} is the mark alone, shown in every application's header on the primary color, so it
+needs a transparent ground and a color that reads on that primary. \val{favicon} is the
+browser tab's icon. Any file name and any image format a browser shows will do; an SVG scales
+cleanly. A name that is left out is taken from the default brand.
+
+The icon and the favicon are the same mark at two sizes. A brand that brings its own favicon
+must name its own \val{icon} too: without it the header keeps Elicit's mark beside the site's
+favicon, and the \ui{Branding} page warns about it.
 
 \subsection{Fonts}
 
