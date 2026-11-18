@@ -17,12 +17,12 @@
 ## Main Success Scenario
 
 1. The operator reads the branding chapter, which states that every application carries a complete brand inside its image and that mounting a brand replaces files of that default rather than the whole of it.
-2. The system gives the directory layout a brand must follow: `brand-config.json` and `brand-info.json` at the root, `colors/brand-colors.css`, `typography/brand-typography.css` with its `typography.json` companion and, when the brand has fonts of its own, `typography/fonts/` (BR-007), `images/` holding the horizontal logo, the icon and the favicon, and `theme.css`, which imports the color and typography stylesheets and is the file an application inlines into the page head.
+2. The system gives the directory layout a brand must follow: `brand-config.json` and `brand-info.json` at the root, `colors/brand-colors.css`, `typography/brand-typography.css` with its `typography.json` companion and, when the brand has fonts of its own, `typography/fonts/` (BR-007), `images/` holding the logo files `brand-config.json` names (BR-008), and `theme.css`, which imports the color and typography stylesheets and is the file an application inlines into the page head.
 3. The system states that a brand populates `--brand-*` custom properties only: each application's own stylesheet maps the Lumo theme tokens onto them, so a brand never sets a `--lumo-*` value itself, and a brand that defines only `--brand-*` values needs no knowledge of the applications.
-4. The operator assembles the site's brand directory, starting from the repository's default brand and changing only the files that differ, and names the brand in `brand-config.json` along with the logo, icon and favicon file names it expects to find under `images/`.
+4. The operator assembles the site's brand directory, starting from the repository's default brand and changing only the files that differ, and names the brand in `brand-config.json` along with its logo files under `images/`: `logos.horizontal` (the lockup), `logos.icon` (the mark shown in the header) and `favicon` (BR-008). A brand that supplies its own favicon names its icon too (BR-009).
 5. The operator points each application at the directory with `brand.file.system.path` — which defaults to `/brand`, and which the compose file sets to `/opt/brand` with a read-only volume — and gives the survey application and the console the same mount.
 6. The operator restarts each application, because the resolved brand is cached for the life of the service.
-7. The operator opens Branding in the console's System section (Admin UC-023), which reports the configured path, whether that directory exists, which metadata files are present in it, and, for each asset, whether it resolved from the mount, from the local directory, from the embedded default or from nowhere.
+7. The operator opens Branding in the console's System section (Admin UC-023), which reports the configured path, whether that directory exists, which metadata files are present in it, and, for each asset, whether it resolved from the mount, from the local directory, from the embedded default or from nowhere, and warns when the brand supplies a favicon but no icon (BR-009).
 8. The operator, if the site offers more than one language, translates the brand's own texts in the brand itself: an optional `localized` block keyed by language tag in `brand-config.json` carries `name` and `organization`, and the matching block in `brand-info.json` carries `description`.
 9. The operator proceeds to choosing the site's languages (UC-015).
 
@@ -102,3 +102,11 @@ An application resolves its brand once and holds it. A change to a mounted file 
 ### BR-007: A brand carries its own fonts
 
 A font is a file of the brand like any other. A brand stylesheet names it with a `url()` relative to that stylesheet (`url("fonts/Face.woff2")` in `typography/brand-typography.css` is `typography/fonts/Face.woff2`), and each application resolves the URL against the brand when it inlines the stylesheet, so the browser fetches the font from the application. The default brand carries IBM Plex Sans, IBM Plex Sans Arabic and IBM Plex Mono this way, with their license. No page requests a font from a third party unless a site's own brand says so, and a brand with no font files renders in the font stack its stylesheet names.
+
+### BR-008: The configuration names the logos
+
+`brand-config.json` names each logo file under `images/`: `logos.horizontal` is the lockup (the mark with the wording, shown on the branding screen and in the manuals), `logos.icon` is the mark alone (shown in every application's header, on the primary color), and `favicon` is the browser tab's icon. Every application reads these names wherever it shows the asset and never assumes a fixed file name. A name the configuration leaves out resolves to the default brand's own file under the per-file rule (BR-002).
+
+### BR-009: The icon and the favicon are one mark
+
+The header icon and the favicon are two renditions of the same mark: the icon at high resolution for the header, the favicon small for the tab. A brand that supplies its own favicon therefore names its own `logos.icon` as well. When it does not, the header shows the default brand's mark beside the site's favicon; the page still works, but the branding screen (and Survey's startup diagnostics) report the missing icon as a warning, so the mismatch is never silent.
