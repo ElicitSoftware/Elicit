@@ -27,12 +27,8 @@ GitHub repo, dropped into this directory and excluded from this repo via
 
 `cloneAllProjects.sh` bootstraps all five module clones.
 
-Author's GitHub repository, `ElicitSoftware/Author`, is **still private**: it is not ready
-to be public (owner, 2026-11-16). Elicit#72 made Author the fifth module of the platform
-here, in the stack, the scripts and the documents, but did not change the repository's
-visibility. So a link to it from anything public is a 404 for an outsider,
-`cloneAllProjects.sh` clones it only for an account that has access to it, and an anonymous
-clone fails (see CI under Git Workflow). Do not propose making it public as a fix.
+Author's GitHub repository, `ElicitSoftware/Author`, is public (owner, 2026-11-18), so
+the umbrella's CI clones it anonymously like the other four.
 
 Everything Author shares with the platform lives here once: the stack
 (`docker-compose.yml`), the Keycloak realm (with the `elicit-author` client), the
@@ -431,15 +427,9 @@ use-case IDs are unrelated to these.
 - CI per repository: Survey, Admin and Author run the Maven suite (`ci.yml`), FHHS runs it
   from `maven.yml`, Pedigree builds its image and smoke-tests `/healthz` and `/svg`, and the
   umbrella runs `checkLanguages.sh`, `checkBrand.sh`, `check-properties.sh`, `docker compose config` and the
-  manual build against fresh clones of Survey, Admin, FHHS and Author at the release tag (or,
-  on a manual FHHS run, the dispatched branch).
-- **CI runs only on a release tag** (`v*`), to save Actions minutes. Pull requests and pushes to
-  `main`/`V3` still trigger each workflow, but its job has an `if:` on the tag and is *skipped*;
-  GitHub counts a skipped job as passing the ruleset's required check, so merging still works
-  but nothing is tested until the tag. Run the suites locally (`buildDockerImages.sh`,
-  `fullTest.sh`) before merging. The umbrella's job clones the modules anonymously, and Author
-  is private, so a tag run of the umbrella **fails at the clone step** until the job is given a
-  read token for Author.
+  manual build against fresh clones of Survey, Admin, FHHS and Author at the branch or tag the
+  run targets (or, on a manual FHHS run, the dispatched branch).
+- CI runs on every pull request into `main`/`V3`, every push to one and every release tag (`v*`).
 
 ## Git Commits
 
