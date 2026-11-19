@@ -85,7 +85,7 @@ second Survey on the `author` database, Author's respondent preview). Supporting
 `db` (PostgreSQL), `keycloak` (OIDC), `mailpit` (SMTP), `sftpServer`, and
 `jaeger` (OpenTelemetry). All app images are built locally as
 `elicitsoftware/<name>:latest`, and the compose file pulls every application image
-at one tag, `${ELICIT_TAG:-latest}`, so `ELICIT_TAG=3.0.0-beta.1 docker compose up -d` (or a
+at one tag, `${ELICIT_TAG:-latest}`, so `ELICIT_TAG=3.0.0-rc.1 docker compose up -d` (or a
 `.env` line, ignored by git) runs a published release as a matched set. `elicit_db` is not on
 the tag: every compose file names its version, `3.0.0-rc.1`, the first whose schema owner
 (`elicit_owner`) and owner group (`dbowner`) are not superusers (umbrella C-020). The image's
