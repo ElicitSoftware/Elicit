@@ -2,8 +2,10 @@
 
 ### Follow these steps for deploying without the bundled compose file.
 
-Elicit is released as container images only (`elicitsoftware/survey`, `admin`, `fhhs`, `pedigree`,
-all at one release tag); no runnable Java artifact is distributed. These steps run those images on
+Elicit is released as container images only (`elicitsoftware/survey`, `admin`, `fhhs`, `pedigree`
+and `author`, all at one release tag); no runnable Java artifact is distributed. Author, the
+authoring tool, is installed apart from a site's applications, with a Survey of its own for the
+preview; its installation manual (in the Author repository) covers it. These steps run those images on
 your own container platform (Podman, Kubernetes, a container service) instead of this repository's
 `docker-compose.yml`, which means you, not `depends_on`, order their start.
 
@@ -30,7 +32,9 @@ Four settings have no usable default from 3.0.0 and must be set by every deploym
 - **The service token.** Survey, Admin, FHHS and Pedigree authenticate their calls to each other
   with one secret, the same value on every module of a deployment. Generate it once
   (`openssl rand -hex 32`) and set `ELICIT_SERVICE_TOKEN` on all four (`elicit.service.token` in
-  the Java modules; Pedigree reads the environment variable only). It must be at least 32
+  the Java modules; Pedigree reads the environment variable only). Author and its preview Survey
+  need a token too, the same value on the two of them; an Author installed apart from a site has
+  a token of its own, not the site's. It must be at least 32
   characters, and a module refuses to start with a shorter one. A module started without it
   starts, reports not ready on `/q/health/ready` (check `service-token`, reason
   "ELICIT_SERVICE_TOKEN is not set") and answers 503 on the paths it serves for other modules:
@@ -48,9 +52,9 @@ Four settings have no usable default from 3.0.0 and must be set by every deploym
   If a report service, post-survey action or identity provider uses a certificate from a private
   CA, add that CA with `quarkus.tls.trust-store.pem.certs`.
 
-### Start the modules in this order to insure the database is properly setup and configured. 
+### Start the modules in this order to ensure the database is properly set up and configured. 
 We use Flyway for database setup and migration (https://www.red-gate.com/products/flyway/community/).
-To insure the database populates please start the modules in this order. 
+To ensure the database populates, please start the modules in this order. 
 Wait for each module to report ready on `/q/health/ready` before starting the next.
 1) Start Survey
    This will install most of the tables needed for a survey but no survey

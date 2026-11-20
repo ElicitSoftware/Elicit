@@ -15,7 +15,7 @@
 
 ## Overview
 
-[BinaryFilter](../../../Source/BinaryFilter) (`../Source/BinaryFilter`; modules `engine`, `sql`,
+BinaryFilter (a separate Elicit Software project, not part of this repository; modules `engine`, `sql`,
 `producer`, `viewer`, `web`) turns any rectangular result set into a faceted browser: every
 column becomes a tab listing its distinct values with live counts, the last tab lists the rows,
 and each selection narrows every other tab to the values still reachable. Its input is a
