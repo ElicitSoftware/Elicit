@@ -31,7 +31,7 @@ wait_stack() {
 }
 
 db_report() {
-    docker exec elicit-db-1 psql -U survey -d survey -At \
+    docker compose exec -T db psql -U survey -d survey -At \
         -c "select name, report_schema from survey.surveys order by 1;" \
         -c "select count(*) from report_family_history_survey.dim_step;" \
         -c "select count(*) from survey.respondents;" > "$LOGS/db-$1.log" 2>&1
@@ -41,7 +41,7 @@ db_report() {
 # (greenfield) and resetDatabase.sh V2 narrows the V2 copy's (brownfield).
 owner_not_superuser() {
     local supers
-    supers=$(docker exec elicit-db-1 psql -U survey -d survey -At \
+    supers=$(docker compose exec -T db psql -U survey -d survey -At \
         -c "select rolname from pg_roles where rolsuper and rolname in ('elicit_owner', 'dbowner');" 2>&1)
     echo "superusers among elicit_owner, dbowner: [${supers}]" >> "$LOGS/db-$1.log"
     [ -z "$supers" ]
@@ -68,7 +68,7 @@ owner_not_superuser green || fail "greenfield schema owner is a superuser" "$LOG
 stage "brownfield: reset V2 and start"
 ./resetDatabase.sh V2 > "$LOGS/reset-brown.log" 2>&1 || fail "reset V2" "$LOGS/reset-brown.log"
 wait_stack brown || fail "brownfield up" "$LOGS/up-brown.log"
-docker restart elicit-survey-1 > /dev/null   # deploy.sh's second step, for a pre-change database
+docker compose restart survey > /dev/null   # deploy.sh's second step, for a pre-change database
 wait_stack brown2 || fail "brownfield restart" "$LOGS/up-brown2.log"
 stage "brownfield: e2e-tests"
 (cd e2e-tests && mvn -B -DskipTests=false test > "$LOGS/e2e-brown.log" 2>&1) \

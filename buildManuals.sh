@@ -2,7 +2,7 @@
 #
 # Typeset every Elicit manual, fresh, in one run (#76).
 #
-#   ./buildManuals.sh                    all four manuals
+#   ./buildManuals.sh                    every target below
 #   ./buildManuals.sh Admin Author       only the named targets
 #
 # Targets, in the order they are built:

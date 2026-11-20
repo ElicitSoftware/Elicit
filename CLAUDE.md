@@ -21,7 +21,7 @@ GitHub repo, dropped into this directory and excluded from this repo via
 | `Author/`     | `ElicitSoftware/Author`      | Authoring tool; exports `.elicit` definitions   |
 | `Admin/`      | `ElicitSoftware/Admin`       | Administrator app (Quarkus + Vaadin)            |
 | `FHHS/`       | `ElicitSoftware/FHHS`        | Family Health History Survey; headless REST     |
-| `Pedigree/`   | `ElicitSoftware/Pedigree`    | R/Kinship2 pedigree-drawing service (plumber)   |
+| `Pedigree/`   | `ElicitSoftware/Pedigree`    | R/Pedixplorer pedigree-drawing service (plumber) |
 | `Prometheus/` | *tracked here*               | Prometheus config; not a repo, not in compose   |
 | `postgresql/` | *not tracked, not a repo*    | Local `PGDATA` volume only                      |
 
@@ -185,7 +185,7 @@ survey gets a schema of its own (Survey UC-008): `surveyreport` holds only the s
 `survey.surveys.report_schema`. Confirm with:
 
 ```sh
-docker exec elicit-db-1 psql -U survey -d survey \
+docker compose exec db psql -U survey -d survey \
   -c "select name, report_schema from survey.surveys;" \
   -c "select count(*) from report_family_history_survey.dim_step;"
 ```
@@ -293,9 +293,9 @@ projects (no parent pom) holding the platform's Playwright tests. They drive Aut
 and Survey together, and the two multi-site suites compile the page objects out of
 `e2e-tests/src/test/java` by relative path, so the three stay siblings.
 
-- They run through `mvn`, not the Quarkus Dev MCP tools: each suite's `run.sh` calls
-  `mvn -DskipTests=false test` against a stack that is already running. `skipTests`
-  defaults to true.
+- They run through `mvn`, not the Quarkus Dev MCP tools: `mvn -DskipTests=false test` against
+  a stack that is already running (`skipTests` defaults to true). The two multi-site suites wrap
+  that in a `run.sh`; `e2e-tests/` is run with the command itself.
 - They need the images first (`./buildDockerImages.sh`, Author included).
 - `e2e-tests/` runs against this directory's `docker-compose.yml`. The multi-site suites
   bring up stacks of their own (`up.sh`/`down.sh`) on the same host ports, so only one of

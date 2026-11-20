@@ -70,7 +70,7 @@ services:
       quarkus.datasource.jdbc.telemetry: true
       quarkus.otel.instrument.jdbc: true
       OTEL_SERVICE_NAME: survey
-      OTEL_RESOURCE_ATTRIBUTES: service.name=survey,service.version=1.0,deployment.environment=local
+      OTEL_RESOURCE_ATTRIBUTES: service.name=survey,service.version=${ELICIT_TAG:-latest},deployment.environment=local
     healthcheck:
         test: ["CMD", "curl", "--head", "-fsS", "http://localhost:8080/q/health/ready"]
         interval: 15s
@@ -161,7 +161,7 @@ services:
       quarkus.datasource.jdbc.telemetry: true
       quarkus.otel.instrument.jdbc: true
       OTEL_SERVICE_NAME: fhhs
-      OTEL_RESOURCE_ATTRIBUTES: service.name=fhhs,service.version=1.0,deployment.environment=local
+      OTEL_RESOURCE_ATTRIBUTES: service.name=fhhs,service.version=${ELICIT_TAG:-latest},deployment.environment=local
     depends_on:
       db:
         condition: service_healthy
@@ -203,7 +203,7 @@ services:
   #     quarkus.otel.metrics.enabled: true
   #     quarkus.otel.logs.enabled: true
   #     OTEL_SERVICE_NAME: premm5
-  #     OTEL_RESOURCE_ATTRIBUTES: service.name=premm5,service.version=1.0,deployment.environment=local
+  #     OTEL_RESOURCE_ATTRIBUTES: service.name=premm5,service.version=${ELICIT_TAG:-latest},deployment.environment=local
   #   depends_on:
   #     # db:
   #     #   condition: service_healthy
@@ -269,7 +269,7 @@ services:
       quarkus.datasource.jdbc.telemetry: true
       quarkus.otel.instrument.jdbc: true
       OTEL_SERVICE_NAME: admin
-      OTEL_RESOURCE_ATTRIBUTES: service.name=admin,service.version=1.0,deployment.environment=local
+      OTEL_RESOURCE_ATTRIBUTES: service.name=admin,service.version=${ELICIT_TAG:-latest},deployment.environment=local
     volumes:
       - ./elicit-brand/:/opt/brand:ro
       - ./elicit-i18n/:/opt/i18n:ro
@@ -340,7 +340,7 @@ services:
       quarkus.datasource.jdbc.telemetry: true
       quarkus.otel.instrument.jdbc: true
       OTEL_SERVICE_NAME: author-survey
-      OTEL_RESOURCE_ATTRIBUTES: service.name=author-survey,service.version=1.0,deployment.environment=local
+      OTEL_RESOURCE_ATTRIBUTES: service.name=author-survey,service.version=${ELICIT_TAG:-latest},deployment.environment=local
     healthcheck:
         test: ["CMD", "curl", "--head", "-fsS", "http://localhost:8080/q/health/ready"]
         interval: 15s
@@ -400,7 +400,7 @@ services:
       quarkus.datasource.jdbc.telemetry: true
       quarkus.otel.instrument.jdbc: true
       OTEL_SERVICE_NAME: author
-      OTEL_RESOURCE_ATTRIBUTES: service.name=author,service.version=3.0.0,deployment.environment=local
+      OTEL_RESOURCE_ATTRIBUTES: service.name=author,service.version=${ELICIT_TAG:-latest},deployment.environment=local
     volumes:
       - ./elicit-brand/:/opt/brand:ro
       - ./elicit-i18n/:/opt/i18n:ro
@@ -455,7 +455,7 @@ services:
 # This is a Mailpit server that is used for testing the email integration.    
 # visit http://localhost:8025/ to view the emails sent by the application.
   mailpit:
-    image: axllent/mailpit
+    image: axllent/mailpit:v1.34.0
     container_name: mailpit
     volumes:
       - ./mailpit_data:/data
@@ -471,7 +471,8 @@ services:
 # SFTP Server
 # This is a SFTP server that is used for testing the SFTP integration.      
   sftpServer:
-    image: atmoz/sftp:alpine
+    # Pinned by digest: the image publishes only floating tags.
+    image: atmoz/sftp:alpine@sha256:c5fb9e4beb8b7054a4c0b65c5e11df47cc20da95ad6002e88aecff62bab06372
     ports:
       - "22:22"
     environment:

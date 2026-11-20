@@ -70,7 +70,7 @@
     </li>
     <li><a href="https://github.com/ElicitSoftware/Pedigree/">Pedigree</a><br/>
       <ul>
-        <li>A Docker container to serve the <a href="https://cran.r-project.org/web/packages/kinship2/index.html">Kinship2</a> R package. This container supports the visual drawing of family pedigrees for the FHHS Survey.</li>
+        <li>A Docker container to serve the <a href="https://bioconductor.org/packages/Pedixplorer/">Pedixplorer</a> R package. This container supports the visual drawing of family pedigrees for the FHHS Survey.</li>
       </ul>
     </li>
     <li><a href="https://github.com/ElicitSoftware/PostgreSQL/">PostgreSQL Database</a><br/>
