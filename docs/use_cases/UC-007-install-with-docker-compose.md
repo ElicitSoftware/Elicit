@@ -101,7 +101,7 @@ The compose file and the services bundled with it are a working example of a sit
 
 ### BR-005: One tag for every application image
 
-The compose file names every Elicit application image at the same tag, read from the `ELICIT_TAG` variable and defaulting to `latest`. A site therefore runs the survey application, the console, the report service and the pedigree service from one release and cannot mix two. A pre-release version is published under its exact version only — `latest` moves only for a final version — so a beta or release candidate is run by naming it (`ELICIT_TAG=3.0.0-beta.1`, on the command line or in a `.env` file beside the compose file). The database image is versioned on its own and is not on the tag.
+The compose file names every Elicit application image at the same tag, read from the `ELICIT_TAG` variable and defaulting to `latest`. A site therefore runs the survey application, the console, the report service and the pedigree service from one release and cannot mix two. A pre-release version is published under its exact version only — `latest` moves only for a final version — so a beta or release candidate is run by naming it (`ELICIT_TAG=3.0.0-rc.1`, on the command line or in a `.env` file beside the compose file). The database image is versioned on its own and is not on the tag.
 
 ### BR-006: Ease of use is preferred to strictness
 
