@@ -1087,9 +1087,9 @@ Instances of Survey that disagreed, behind one load balancer, would offer a diff
 languages depending on which one answered. Keep the proxy-forwarding settings on
 (Table~\ref{tab:quarkus-http}), or sign-in redirects are built with the container's address
 instead of the site's. They are safe when only the proxy reaches the instances and the proxy
-replaces any forwarding header a client sent (Section~\ref{sec:security-exposure}). Admin
-honors them only from the addresses in \opt{ELICIT_TRUSTED_PROXIES}: when the load balancer is
-not on a private address, list it there.
+replaces any forwarding header a client sent (Section~\ref{sec:security-exposure}). Survey
+and Admin honor them only from the addresses in \opt{ELICIT_TRUSTED_PROXIES}: when the load
+balancer is not on a private address, list it there.
 
 %% ================================================================== 9
 \section{The first sign-in}
@@ -2309,10 +2309,11 @@ the proxy is the one sending them. Let nothing but the proxy reach an applicatio
 have the proxy replace any \val{Forwarded} and \val{X-Forwarded-*} header
 a client sent rather than pass it on.
 
-Admin also checks where the headers come from: it honors them only from the addresses in
-\opt{ELICIT_TRUSTED_PROXIES}, which by default are loopback and the private ranges. Set it to
-your reverse proxy's address or network, so that another machine on the private network cannot
-choose the address Admin builds its sign-in redirects with.
+Survey and Admin also check where the headers come from: each honors them only from the
+addresses in \opt{ELICIT_TRUSTED_PROXIES}, which by default are loopback and the private
+ranges. Set it on both to your reverse proxy's address or network, so that another machine on
+the private network cannot choose the address Admin builds its sign-in redirects with, or the
+client address either application logs.
 
 \subsubsection*{Limit the rate of requests}
 
@@ -2590,8 +2591,8 @@ something the site does not run does not apply.
         Survey and Admin (Section~\ref{sec:security-exposure}).
   \item Nothing but the proxy reaches an application's port, and the proxy replaces forwarding
         headers sent by a client (Section~\ref{sec:security-exposure}).
-  \item \opt{ELICIT_TRUSTED_PROXIES} on Admin names the reverse proxy's address or network
-        (Section~\ref{sec:security-exposure}).
+  \item \opt{ELICIT_TRUSTED_PROXIES} on Survey and Admin names the reverse proxy's address or
+        network (Section~\ref{sec:security-exposure}).
   \item The proxy limits the rate of requests from one client address
         (Section~\ref{sec:security-exposure}).
   \item Report services, Pedigree, the database, the mail relay and the trace collector answer
@@ -3195,8 +3196,8 @@ when only the proxy reaches the application's port
 \opt{quarkus.http.proxy.allow-x-forwarded} & \val{true} & \chgkeep & Honors the
 \val{X-Forwarded-*} headers. Have the proxy set them itself and discard any a client
 sent. \\
-\opt{quarkus.http.proxy.trusted-proxies} & loopback and the private ranges & \chgset & Admin
-only. The addresses whose forwarding headers Admin honors; from any other address they are
+\opt{quarkus.http.proxy.trusted-proxies} & loopback and the private ranges & \chgset & The
+addresses whose forwarding headers Survey and Admin honor; from any other address they are
 ignored. The default is \val{127.0.0.1}, \val{::1}, \val{10.0.0.0/8}, \val{172.16.0.0/12},
 \val{192.168.0.0/16} and \val{fc00::/7}. Narrow it to your reverse proxy's address or
 network, comma-separated. Environment: \opt{ELICIT_TRUSTED_PROXIES}. \\
