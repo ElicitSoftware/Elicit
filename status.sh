@@ -86,7 +86,7 @@ echo "==============="
 echo "• View logs:     docker compose logs -f [service-name]"
 echo "• Restart all:   docker compose restart"
 echo "• Stop all:      docker compose down"
-echo "• Rebuild:       ./buildDockerImages.sh && docker compose up -d --build"
+echo "• Rebuild:       ./buildDockerImages.sh && docker compose up -d"
 
 # Show recent logs for failed services
 failed_services=$(docker compose ps --filter "status=exited" --format "{{.Service}}" 2>/dev/null)

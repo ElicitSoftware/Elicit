@@ -240,7 +240,7 @@ services:
       - ../data/site1/keycloak-h2:/h2
   # Shared by both sites: site 2's Admin joins this project's network and sends to `mailpit`.
   mailpit:
-    image: axllent/mailpit
+    image: axllent/mailpit:v1.34.0
     volumes:
       - ../data/site1/mailpit:/data
     ports:

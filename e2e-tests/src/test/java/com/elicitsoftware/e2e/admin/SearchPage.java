@@ -99,8 +99,8 @@ public class SearchPage extends PageObject {
         int totalBlocks = cells.count() / TOTAL_COLUMNS;
         List<Integer> real = new ArrayList<>();
         for (int block = 1; block < totalBlocks; block++) { // block 0 is the header row
-            String token = cells.nth(block * TOTAL_COLUMNS + COL_ACCESS_CODE).innerText().trim();
-            if (!token.isEmpty()) {
+            String accessCode = cells.nth(block * TOTAL_COLUMNS + COL_ACCESS_CODE).innerText().trim();
+            if (!accessCode.isEmpty()) {
                 real.add(block);
             }
         }

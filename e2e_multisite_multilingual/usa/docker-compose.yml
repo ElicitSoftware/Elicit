@@ -233,7 +233,7 @@ services:
   # Shared by all three sites: their Admin containers join this project's network, so the service
   # name `mailpit` resolves there and SMTP stays unpublished.
   mailpit:
-    image: axllent/mailpit
+    image: axllent/mailpit:v1.34.0
     volumes:
       - ../data/usa/mailpit:/data
     ports:

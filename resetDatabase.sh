@@ -14,7 +14,7 @@
 # every entry of pg_tblspc and pg_replslot as data, so the V2 mode recreates the
 # directories in the copy instead.
 #
-# PGDATA_v2 was also initialised on a host whose glibc (2.41) is newer than the one in the
+# PGDATA_v2 was also initialized on a host whose glibc (2.41) is newer than the one in the
 # elicitsoftware/elicit_db image (2.36), so PostgreSQL warns of a collation version
 # mismatch on every connection, and an index on a text column built under one glibc can
 # order differently under the other. The V2 mode therefore starts the database once,
