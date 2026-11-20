@@ -293,8 +293,11 @@ release it is set only when the respondent changes a value, never for a question
 The migration runs on both tracks at Survey's first start and back-fills what the database can
 prove: every answer row of a **finished** respondent gets `presented_dt` from its `created_dt`,
 because finishing passed every page, and everyone who has logged in gets `last_activity_dt`
-from their finalization, latest save or first access. Rows of respondents still in progress are
-left unstamped, and existing `saved_dt` values are left as they are. Nothing else changes:
+from their finalization, latest save or first access. A respondent still in progress gets
+`presented_dt` on each answer they saved, from its `saved_dt` (a default stamped when its row was
+built is not a save), so Admin's Participation page can place them at the step of their last
+saved answer; their other rows are left unstamped, and existing `saved_dt` values are left as they
+are. Nothing else changes:
 no reporting schema is touched, and the respondent export and import (Admin UC-011/UC-012)
 carry the two columns as a trailing field, so a file exported before this release still imports.
 
