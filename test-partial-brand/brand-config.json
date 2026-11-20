@@ -4,5 +4,10 @@
   "organization": "Test Organization",
   "logos": {
     "horizontal": "HorizontalLogo.png"
+  },
+  "localized": {
+    "ar": {
+      "organization": "مؤسسة الاختبار"
+    }
   }
 }

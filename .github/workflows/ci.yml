@@ -1,0 +1,96 @@
+# Gates the umbrella on every pull request into main (or the frozen V3), every push to one and
+# every release tag (v*, V*). The umbrella holds no application source, so what it can check are
+# the cross-module invariants and the installation manual (UC-001, UC-002):
+#
+#   checkLanguages.sh               the images carry English only, elicit-i18n/ gives Survey,
+#                                   Admin and Author the same languages, and Author publishes
+#                                   content in exactly those
+#   checkBrand.sh                   Survey, Admin and Author embed elicit-brand/ unchanged, and
+#                                   the manuals' style package carries its palette (NFR-015)
+#   docs/manual/check-properties.sh the configuration reference matches the modules'
+#                                   @ConfigProperty declarations and defaults (NFR-004/005)
+#   docker compose config           the compose file parses
+#   docs/manual/build-manual.sh     the manual typesets, stamped with the modules' version
+#
+# Three of those read the Survey, Admin, FHHS and Author sources, which are independent clones and
+# not part of this repository (see CLAUDE.md), so the job clones each at the branch this run
+# targets: the release tag, which every module carries, the pull request's base branch, or the
+# branch that was pushed to. Author has no V3 of its own, so outside a tag it is cloned from main
+# (which only matters for a run against the frozen V3). A module branch with the same name as the
+# pull request's own branch is preferred, so a cross-repo change (one branch name in
+# every repo, as the modules' CI also assumes) is checked against itself before any of it
+# merges.
+#
+# The job name is the status check the branch ruleset on main and V3 requires; rename both
+# together. V3 is frozen since main took over as the integration branch (#188); drop it here and
+# from the ruleset when the branch is deleted after 3.0.0 ships.
+
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - V3
+    tags:
+      - 'v*'
+      - 'V*'
+  pull_request:
+    branches:
+      - main
+      - V3
+
+# The job only reads: it checks out, clones public repositories and uploads an artifact.
+permissions:
+  contents: read
+
+jobs:
+  gate:
+    name: Cross-module checks and manual
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # Later steps run repository and module scripts; none of them needs the token.
+          persist-credentials: false
+
+      - name: Clone Survey, Admin, FHHS and Author at the matching branch
+        env:
+          HEAD: ${{ github.head_ref }}
+          BRANCH: ${{ github.base_ref || github.ref_name }}
+        run: |
+          for m in Survey Admin FHHS Author; do
+            url="https://github.com/ElicitSoftware/$m.git"
+            ref=$BRANCH
+            [ "$m" = Author ] && [ "$GITHUB_REF_TYPE" != tag ] && ref=main
+            if [ -n "$HEAD" ] && git ls-remote --exit-code --heads "$url" "$HEAD" >/dev/null 2>&1; then
+              ref=$HEAD
+            fi
+            git clone --quiet --depth 1 --branch "$ref" "$url" "$m"
+            echo "$m@$ref: $(git -C "$m" log -1 --format='%h %s')"
+          done
+
+      - name: Images carry English only; Survey, Admin and Author get the same languages
+        run: ./checkLanguages.sh
+
+      - name: The default brand is one brand
+        run: ./checkBrand.sh
+
+      - name: Configuration reference matches the code
+        run: docs/manual/check-properties.sh
+
+      - name: Compose file parses
+        run: docker compose config --quiet
+
+      - name: Build the installation manual
+        run: docs/manual/build-manual.sh
+
+      - name: Keep the manual
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: elicit-installation-manual
+          path: docs/manual/elicit-installation-manual.pdf
+          if-no-files-found: error

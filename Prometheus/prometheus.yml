@@ -1,3 +1,11 @@
+# Sample scrape configuration. No Prometheus service runs in this repository's compose file
+# (see README.md here), so nothing reads this file today.
+#
+# Three jobs below name targets that the compose file does not define: premm5-app (PREMM5 is not
+# part of the stack), postgresql (postgres-exporter) and cadvisor. Remove them, or add those
+# services, before wiring Prometheus in. Scrape the applications on the private network, and keep
+# Prometheus itself where only operators reach it: it has no sign-in of its own.
+
 global:
   scrape_interval: 15s
   evaluation_interval: 15s

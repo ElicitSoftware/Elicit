@@ -5,17 +5,34 @@
 /Survey
 /PREMM5
 /Pedigree
-/PostgreSQL
+# Per-issue git worktrees of a module clone, e.g. Author-22 for Author#22.
+/Author-*
+/Postgr
 /Prometheus/data
 /keycloak/db
 /keycloak/elicit-realm-export.json
+# What keycloak/exportRealm.sh writes: elicit_<MM_DD_YYYY>.json, accounts and keys included.
+/keycloak/elicit_*.json
 /keycloak/certs/
 /vaadin-quarkus-keycloak
 /vaadin-quarkus-smtp
-/postgresql/PGDATA
+/postgresql/
 /mailpit_data
 TEMP.sql
 /sftp_data/
 .idea/
 .DS_Store
 .vscode
+/build-logs/
+/test-logs/
+# A site's local image tag pin (ELICIT_TAG=...), read by docker compose.
+.env
+
+# The installation manual's generated files (docs/manual/README.md).
+# The .tex sources and elicit-brand.sty are committed; the stamp, LaTeX's working
+# directory and the PDF are not — build-manual.sh regenerates all three.
+/docs/manual/build-info.tex
+/docs/manual/build/
+/docs/manual/*.pdf
+/docs/manual/capture/node_modules/
+/docs/manual/images/FAILED.png

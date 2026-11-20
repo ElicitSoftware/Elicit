@@ -22,15 +22,16 @@
     <img src="https://github.com/ElicitSoftware/Elicit/blob/main/images/stacked.png" alt="Logo" width="15%" >
   </a>
 <h3 align="center">Elicit Software</h3>
-  <p>Copyright © 2025 The Regents of the University of Michigan</p>
+  <p>Copyright © 2025–2026 The Regents of the University of Michigan</p>
 </div>
 <!-- TABLE OF CONTENTS -->
 <details>
   <summary>Table of Contents</summary>
   <ol>
     <li><a href="#built-with">Built With</a></li>
-    <li><a href="#getting-started">Getting Started</a></li>
-    <li><a href="#usage">Usage</a></li>
+    <li><a href="#trying-elicit">Trying Elicit</a></li>
+    <li><a href="#a-guided-tour">A Guided Tour</a></li>
+    <li><a href="#going-further">Going Further</a></li>
     <!-- <li><a href="#roadmap">Roadmap</a></li> -->
     <li><a href="#contributing">Contributing</a></li>
     <li><a href="#license">License</a></li>
@@ -47,19 +48,13 @@
     <ul>
     <li><a href="https://github.com/ElicitSoftware/Admin/">Admin</a><br/>
       <ul>
-      <li>Expected release in Summer 2025</li>
       <li>The Admin application is used by survey administrators to register subjects, view survey progress, and view final reports.</li>
       </ul>
     </li>
     <li><a href="https://github.com/ElicitSoftware/Author/">Author</a><br/>
       <ul>
-        <li>Expected release in Winter 2025/26</li>
-        <li>This tool allows users to design new surveys with:</li>
-        <ul>
-          <li>Decision trees with branching logic to guide respondents through different survey paths based on their answers</li>
-          <li>Text replacement to dynamically insert values or responses into survey questions and instructions</li>
-          <li>Repeatable items to allow sections or questions to be repeated for multiple entries (e.g., family members, medications)</li>
-        </ul>
+        <li>The authoring tool: survey authors design steps, sections, questions, rules, reports and translations, preview them, and export a survey definition file (<code>.elicit</code>).</li>
+        <li>Sites that only deliver surveys do not need it; it has its own installation manual.</li>
       </ul>
     </li>
     <li><a href="https://github.com/ElicitSoftware/Survey/">Survey</a><br/>
@@ -75,15 +70,18 @@
     </li>
     <li><a href="https://github.com/ElicitSoftware/Pedigree/">Pedigree</a><br/>
       <ul>
-        <li>A Docker container to serve the <a href="https://cran.r-project.org/web/packages/kinship2/index.html">Kinship2</a> R package. This container supports the visual drawing of family pedigrees for the FHHS Survey.</li>
+        <li>A Docker container to serve the <a href="https://bioconductor.org/packages/Pedixplorer/">Pedixplorer</a> R package. This container supports the visual drawing of family pedigrees for the FHHS Survey.</li>
       </ul>
     </li>
-    <li><a href="https://github.com/ElicitSoftware/Elicit/tree/main/postgresql/">PostgreSQL Database</a><br/>
+    <li><a href="https://github.com/ElicitSoftware/PostgreSQL/">PostgreSQL Database</a><br/>
       <ul>
         <li>An open source object-relational database used to store decision tree logic and data.</li>
       </ul>
     </li>
     </ul>
+    Surveys themselves are designed in Author, which exports a survey definition file
+    (<code>.elicit</code>) that the Admin application applies to a site. The Family Health History Survey and the sample under <code>samples/</code> are two such
+    definitions, ready to apply.
   </p>
 
 <!-- [![Product Name Screen Shot][product-screenshot]](https://example.com)
@@ -105,24 +103,87 @@ Here's a blank template to get started. To avoid retyping too much info, do a se
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 <!-- GETTING STARTED -->
-## Getting Started
-The easiest way to see Elicit Software in action is to check out the <a href="https://github.com/ElicitSoftware/FHHS/">Family Health History Survey</a>.
+## Trying Elicit
+Everything you need to try Elicit is in this repository and in the published Docker images.
+Nothing has to be compiled, git is not needed, and the module repositories do not need to be
+cloned.
+
+You need Docker Desktop (or Docker Engine with Compose v2) and these ports free: 8080–8085,
+8180, 5452, 8025 and 1025 (Mailpit), 16686, 4317, 4318, 14268 and 14250 (Jaeger), and 22 (the SFTP
+server FHHS files its reports to). A host that runs an SSH server already has port 22: change the
+`sftpServer` port mapping in `docker-compose.yml`, or remove that service if you are not
+evaluating the filing, or FHHS, which depends on it, does not start.
+
+1. Download this repository as a ZIP (**Code > Download ZIP** at the top of this page) and unzip
+   it. Keep its folders beside `docker-compose.yml`: the stack reads the identity provider's realm
+   from `keycloak/`, a database script from `db-init/`, the SFTP key from `sftp_ssh/`, the brand
+   from `elicit-brand/` and the translations from `elicit-i18n/`.
+2. In that folder, start the stack:
+
+   ```bash
+   ELICIT_TAG=3.0.0-rc.1 docker compose up -d
+   ./status.sh
+   ```
+
+The first start pulls the images and creates the database, which takes a few minutes. `status.sh`
+shows each service as it becomes ready. FHHS stays *not ready* until the Family Health History
+Survey is applied (step 2 of the tour below); that is expected.
+
+| Application              | Address                  | Sign in as                       |
+| ------------------------ | ------------------------ | -------------------------------- |
+| Admin                    | http://localhost:8081    | `admin` / `admin`                |
+| Survey                   | http://localhost:8080    | any access code (tour step 3)    |
+| Author                   | http://localhost:8084    | `author` / `author`              |
+| Mailpit (sent email)     | http://localhost:8025    | —                                |
+| Keycloak (identity)      | http://localhost:8180    | `admin` / `admin`, master realm  |
+| Jaeger (traces)          | http://localhost:16686   | —                                |
+
+This stack is for evaluation and development only. Its passwords are published, every port is
+open, and it should never hold real respondent data. A real site is installed against its own
+database, identity provider and network, as the installation manual describes (see
+[Going further](#going-further)).
 
 <!-- USAGE EXAMPLES -->
-## Usage
-To use the Elicit System:
+## A Guided Tour
+A new site starts with no survey. A survey travels as a **survey definition file** (`.elicit`),
+and two are ready to apply:
 
-1. **Download the Authoring Tool** (available Winter 2025/26).
-2. **Create a new survey** using the Authoring Tool.
-3. **Publish the survey** to the database.
+- [`samples/census-household-survey.elicit`](samples/census-household-survey.elicit), in this
+  repository: a small demonstration survey that uses every question type and rule the engine
+  supports.
+- [`family-history-survey.elicit`](https://github.com/ElicitSoftware/FHHS/blob/main/family-history-survey.elicit),
+  in the FHHS repository: the Family Health History Survey, with its custom reports and pedigree
+  drawing. Use the **Download raw file** button on that page to save it.
 
-Next, use the **Admin application** to:
+1. **Sign in to Admin** at http://localhost:8081 as `admin`. A dialog asks for a department
+   first: follow its link to **Departments** and create one.
+2. **Apply a survey** under **Apply Survey Definition**, uploading one of the files above. The
+   survey and its reporting schema are built as part of the apply; nothing needs restarting.
+3. **Take the survey.** The evaluation stack lets Survey accept any access code you make up, so
+   open http://localhost:8080, choose the survey and type any code.
+4. **Or follow the real path:** register a subject in Admin (one at a time, in bulk, or over the
+   integration API), generate an access code and send the invitation. The email arrives in
+   Mailpit at http://localhost:8025; its link opens Survey with the code filled in.
+5. **Review the results** in Admin: survey progress for each subject and the final reports.
+6. **Design a survey** in Author at http://localhost:8084: build steps, sections, questions and
+   rules, preview them as a respondent would, and export a `.elicit` file for step 2.
 
-- Register subjects.
-- Generate unique tokens for each subject.
-- Send invitation emails containing the survey link and token.
+`docker compose down` stops the stack and keeps its data. To start over with an empty database,
+run `./resetDatabase.sh V3` and bring the stack up again.
 
-Subjects receive the email, follow the link, and enter their token in the Elicit Software to complete the questionnaire.
+<!-- GOING FURTHER -->
+## Going Further
+- **Installing a real site:** the installation manual is published as a PDF with each release on
+  the [releases page](https://github.com/ElicitSoftware/Elicit/releases). It covers
+  installing Survey and Admin with and without Docker Compose, identity, branding, translations,
+  custom reports, securing the site, and every configuration setting. Author has an installation
+  manual of its own.
+- **Upgrading** an existing installation: [`DeploymentScript.md`](DeploymentScript.md).
+- **Building from source** (contributors only): clone this repository with git;
+  `cloneAllProjects.sh` then clones the module
+  repositories and `buildDockerImages.sh` builds the images, after which `docker compose up -d`
+  (without `ELICIT_TAG`) runs your own builds. See
+  [`docs/manual/README.md`](docs/manual/README.md) for building the manual.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 <!-- ROADMAP
@@ -162,7 +223,7 @@ Don't forget to give the project a star! Thanks again!
 <!-- LICENSE -->
 ## License
 
-Distributed under the PolyForm Noncommercial License 1.0.0. See `LICENSE.md` for more information.
+Distributed under the PolyForm Noncommercial License 1.0.0. See `LICENSE.MD` for more information.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -176,6 +237,8 @@ Distributed under the PolyForm Noncommercial License 1.0.0. See `LICENSE.md` for
 Matthew Demerath – m.demerath@elicitsoftware.com
 
 Project Link: [https://github.com/ElicitSoftware/Elicit](https://github.com/ElicitSoftware/Elicit)
+
+To report a security vulnerability, privately, see [SECURITY.md](SECURITY.md).
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 

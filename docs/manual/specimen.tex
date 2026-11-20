@@ -1,0 +1,188 @@
+%% The Elicit manual design, on a few pages — every element elicit-brand.sty provides, in the
+%% order a manual uses them. Typeset it after any change to the .sty and look at it before
+%% rebuilding the four manuals: docs/manual/build-manual.sh --job specimen.
+%%
+%% It is the design's reference, not a manual: nothing in it describes the platform.
+
+\documentclass[11pt, a4paper]{article}
+
+\usepackage[a4paper, margin = 25mm, bottom = 28mm]{geometry}
+
+\newcommand{\elicitProduct}{Elicit Design Specimen}
+\usepackage{elicit-brand}
+\usepackage[hidelinks]{hyperref}
+\hypersetup{pdftitle = {Elicit — Manual design specimen}, pdfauthor = {Elicit Software}}
+\elicitAccent{elicitVerdigris}
+
+\begin{document}
+
+\elicitTitlePage{Manual Design Specimen}{Every element of the Elicit manuals}%
+  {Title page \textperiodcentered\ parts \textperiodcentered\ chapters \textperiodcentered\
+   call-outs \textperiodcentered\ blocks \textperiodcentered\ tables \textperiodcentered\
+   diagrams \textperiodcentered\ screenshots}%
+  {This specimen is the reference for elicit-brand.sty, the design the installation manual,
+   the administrator's manual and Author's two manuals are typeset in.\\[0.5em]
+   Elicit Software \textperiodcentered\ PolyForm Noncommercial License 1.0.0}
+
+\pagenumbering{roman}
+\begin{elicitnote}[Who this specimen is for]
+Whoever changes \file{docs/manual/elicit-brand.sty}. Each page below uses the elements one
+manual chapter would, so a change that spoils one of them shows here first.
+\end{elicitnote}
+\vspace{1.2em}
+\elicitContents
+
+\clearpage
+\pagenumbering{arabic}
+
+\elicitpart{Getting oriented}{What an Elicit site is made of, how its pieces depend on each
+other, and what has to exist before you install any of them.}
+
+\section{What Elicit is made of}
+\label{sec:topology}
+
+Elicit is a modular survey platform: a handful of applications that share one database, one
+identity provider and one brand directory. A \term{site} is one installation of them. This
+chapter names the pieces and how they connect, so that you can decide which of them your
+site runs before you install anything. On screen you open \ui{Admin} \textgreater\
+\ui{Apply Survey Definition}, and a long label such as \ui{Send a test email to this address
+now} still breaks across a line like any other phrase in a paragraph.
+
+\begin{elicitdiagram}{A site. Respondents reach Survey and administrators reach Admin. The
+optional report services are called by Survey and Admin, never by a browser.}
+  \node[elicit person, minimum width = 2.6cm] (resp) at (0, 0) {Respondent};
+  \node[elicit person, minimum width = 2.6cm] (adm) at (6.4, 0) {Administrator};
+  \node[elicit app, minimum width = 2.6cm] (survey) at (0, -1.8) {Survey};
+  \node[elicit app, minimum width = 2.6cm] (admin) at (6.4, -1.8) {Admin};
+  \node[elicit service, minimum width = 2.3cm] (idp) at (10.0, -1.25) {Identity provider};
+  \node[elicit service, minimum width = 2.3cm] (smtp) at (10.0, -2.35) {SMTP relay};
+  \node[elicit database, minimum width = 4.4cm] (db) at (3.2, -3.6)
+    {PostgreSQL\\[-1pt]{\scriptsize the \val{survey} schema and the reporting schemas}};
+  \node[elicit app, minimum width = 2.6cm] (fhhs) at (0, -5.6)
+    {FHHS\\[-1pt]{\scriptsize\mdseries report service}};
+  \node[elicit app, minimum width = 2.6cm] (ped) at (3.6, -5.6)
+    {Pedigree\\[-1pt]{\scriptsize\mdseries draws pedigrees}};
+  \begin{scope}[on background layer]
+    \node[elicit group, fit = (fhhs) (ped), inner ysep = 12pt] (opt) {};
+  \end{scope}
+  \node[elicit group label, anchor = south west] at (opt.north west) {optional};
+  \draw[elicit flow] (resp) -- node[elicit label] {access code} (survey);
+  \draw[elicit flow] (adm) -- node[elicit label] {signs in} (admin);
+  \draw[elicit flow] (survey) -- (db);
+  \draw[elicit flow] (admin) -- (db);
+  \draw[elicit flow] (admin.east) -- (idp.west);
+  \draw[elicit flow] (admin.east) -- (smtp.west);
+  \draw[elicit flow] ([xshift = -0.9cm]survey.south) -- node[elicit label, pos = 0.38]
+    {reports} ([xshift = -0.9cm]fhhs.north);
+  \draw[elicit flow] (fhhs) -- (db);
+  \draw[elicit flow] (fhhs) -- (ped);
+\end{elicitdiagram}
+
+\subsection{The three call-outs}
+
+\begin{elicitnote}[One address for the identity provider]
+The issuer address you configure must resolve to the same provider \emph{from the browser}
+and \emph{from inside the container}. The bundled example uses \val{host.docker.internal}.
+\end{elicitnote}
+
+\begin{elicitcaution}
+A module that starts without the service token is not ready, and answers 503 on its
+protected paths until it is given one.
+\end{elicitcaution}
+
+\begin{elicitsecurity}
+The compose file gives every application the development token
+\val{elicit-dev-service-token-not-for-a-real-site}. A real site generates its own with
+\val{openssl rand -hex 32}.
+\end{elicitsecurity}
+
+\subsection{Commands, SQL and files}
+
+Generate a token, then check that a module answers:
+
+\begin{elicitcmd}
+openssl rand -hex 32
+curl -s http://localhost:8080/q/health/ready | jq '.status'
+\end{elicitcmd}
+
+\begin{elicitsql}
+ALTER ROLE elicit_owner NOSUPERUSER;
+GRANT CREATE ON DATABASE survey TO elicit_owner;
+\end{elicitsql}
+
+\begin{elicitfile}[fontsize = \footnotesize]
+survey:
+  environment:
+    ELICIT_SERVICE_TOKEN: "elicit-dev-service-token-not-for-a-real-site"
+    ELICIT_SERVICE_TRUSTED_ORIGINS: "http://host.docker.internal:8082"
+\end{elicitfile}
+
+\section{Installing a survey definition}
+\label{sec:apply}
+
+A procedure's steps are numbered in discs, and a figure the procedure points into carries
+the same discs where the controls are.
+
+\begin{enumerate}
+  \item Sign in to Admin and open \ui{Apply Survey Definition} \elicitstep{1}.
+  \item Read the setup banners \elicitstep{2}; each one links to the page that clears it.
+  \item Choose \ui{Upload} \elicitstep{3} and pick the \file{.elicit} file Author exported.
+\end{enumerate}
+
+\screenshot[\elicitmark{1}{0.035}{0.45}\elicitmark{2}{0.985}{0.205}\elicitmark{3}{0.205}{0.555}]%
+  {09-apply-definition.png}{Apply Survey Definition, before a file is chosen.}
+
+\elicitpart{Reference}{Every setting Survey and Admin define, with its default and whether a
+site has to change it.}
+
+\section{Configuration reference}
+\label{sec:reference}
+
+The \emph{Change} column says what a site does with a setting: \chgset\ it, \chgmay\ change
+it, or \chgkeep\ it.
+
+\begin{settings}{tab:survey}{Settings Survey defines}
+\opt{quarkus.datasource.jdbc.url} & \val{jdbc:postgresql://db:5432/survey} & \chgset & The database Survey connects to. A site points it at its own cluster. \\
+\opt{quarkus.datasource.username} & \val{survey_user} & \chgmay & The role Survey connects as; it owns nothing and reads and writes the \val{survey} schema. \\
+\opt{elicit.service.token} & \val{(none)} & \chgset & The bearer token the modules send each other. At least 32 characters; generate one with \val{openssl rand -hex 32}. \\
+\opt{quarkus.flyway.migrate-at-start} & \val{true} & \chgkeep & Survey creates and upgrades its schema when it starts. \\
+\opt{quarkus.datasource.jdbc.url} & \val{jdbc:postgresql://db:5432/survey} & \chgset & The database Survey connects to. A site points it at its own cluster. \\
+\opt{quarkus.datasource.username} & \val{survey_user} & \chgmay & The role Survey connects as; it owns nothing and reads and writes the \val{survey} schema. \\
+\opt{elicit.service.token} & \val{(none)} & \chgset & The bearer token the modules send each other. At least 32 characters; generate one with \val{openssl rand -hex 32}. \\
+\opt{quarkus.flyway.migrate-at-start} & \val{true} & \chgkeep & Survey creates and upgrades its schema when it starts. \\
+\opt{quarkus.datasource.jdbc.url} & \val{jdbc:postgresql://db:5432/survey} & \chgset & The database Survey connects to. A site points it at its own cluster. \\
+\opt{quarkus.datasource.username} & \val{survey_user} & \chgmay & The role Survey connects as; it owns nothing and reads and writes the \val{survey} schema. \\
+\opt{elicit.service.token} & \val{(none)} & \chgset & The bearer token the modules send each other. At least 32 characters; generate one with \val{openssl rand -hex 32}. \\
+\opt{quarkus.flyway.migrate-at-start} & \val{true} & \chgkeep & Survey creates and upgrades its schema when it starts. \\
+\opt{quarkus.datasource.jdbc.url} & \val{jdbc:postgresql://db:5432/survey} & \chgset & The database Survey connects to. A site points it at its own cluster. \\
+\opt{quarkus.datasource.username} & \val{survey_user} & \chgmay & The role Survey connects as; it owns nothing and reads and writes the \val{survey} schema. \\
+\opt{elicit.service.token} & \val{(none)} & \chgset & The bearer token the modules send each other. At least 32 characters; generate one with \val{openssl rand -hex 32}. \\
+\opt{quarkus.flyway.migrate-at-start} & \val{true} & \chgkeep & Survey creates and upgrades its schema when it starts. \\
+\opt{quarkus.datasource.jdbc.url} & \val{jdbc:postgresql://db:5432/survey} & \chgset & The database Survey connects to. A site points it at its own cluster. \\
+\opt{quarkus.datasource.username} & \val{survey_user} & \chgmay & The role Survey connects as; it owns nothing and reads and writes the \val{survey} schema. \\
+\opt{elicit.service.token} & \val{(none)} & \chgset & The bearer token the modules send each other. At least 32 characters; generate one with \val{openssl rand -hex 32}. \\
+\opt{quarkus.flyway.migrate-at-start} & \val{true} & \chgkeep & Survey creates and upgrades its schema when it starts. \\
+\opt{quarkus.datasource.jdbc.url} & \val{jdbc:postgresql://db:5432/survey} & \chgset & The database Survey connects to. A site points it at its own cluster. \\
+\opt{quarkus.datasource.username} & \val{survey_user} & \chgmay & The role Survey connects as; it owns nothing and reads and writes the \val{survey} schema. \\
+\opt{elicit.service.token} & \val{(none)} & \chgset & The bearer token the modules send each other. At least 32 characters; generate one with \val{openssl rand -hex 32}. \\
+\opt{quarkus.flyway.migrate-at-start} & \val{true} & \chgkeep & Survey creates and upgrades its schema when it starts. \\
+\opt{quarkus.datasource.jdbc.url} & \val{jdbc:postgresql://db:5432/survey} & \chgset & The database Survey connects to. A site points it at its own cluster. \\
+\opt{quarkus.datasource.username} & \val{survey_user} & \chgmay & The role Survey connects as; it owns nothing and reads and writes the \val{survey} schema. \\
+\opt{elicit.service.token} & \val{(none)} & \chgset & The bearer token the modules send each other. At least 32 characters; generate one with \val{openssl rand -hex 32}. \\
+\opt{quarkus.flyway.migrate-at-start} & \val{true} & \chgkeep & Survey creates and upgrades its schema when it starts. \\
+\end{settings}
+
+\begin{plaintable}{tab:ports}{Published host ports in the shipped compose file}{@{\hspace{4pt}}>{\raggedright\arraybackslash}p{0.13\linewidth} >{\raggedright\arraybackslash}p{0.28\linewidth} >{\raggedright\arraybackslash}p{0.49\linewidth}@{\hspace{4pt}}}{\thead{Host port} & \thead{Service} & \thead{Reached by}}
+\val{8080} & Survey & respondents, from a browser \\
+\val{8081} & Admin & administrators, from a browser \\
+\val{8082} & FHHS & Survey and Admin; the Family History definition names it \\
+\val{8083} & Pedigree & FHHS only \\
+\val{8084} & Author & authors, from a browser \\
+\val{8085} & Author preview & authors, from a browser \\
+\val{8180} & Keycloak & every browser and every module \\
+\val{8025} & Mailpit & whoever reads the test mail \\
+\val{16686} & Jaeger & whoever reads the traces \\
+\val{5452} & PostgreSQL & the host, for \val{psql} \\
+\end{plaintable}
+
+\end{document}

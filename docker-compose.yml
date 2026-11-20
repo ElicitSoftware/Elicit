@@ -1,47 +1,64 @@
-#This file will setup a docker network named elicit (or what ever directory it is run from)
-# It will then create 4 containers:
-#   1. db - postgres database
-#   2. survey - the survey application
-#   3. fhhs - the family health history survey
-#   4. pedigree - the service for drawing pedigrees
+# The Elicit platform's development and evaluation stack (umbrella C-018): never a production
+# installation. Its defaults favor ease of use and are not hardened.
 #
-# The containers initialize the database when they start.
-# However, they need to run in the correct order.
-# When the Survey container starts it will create the database tables.
-# When the FHHS container starts it will insert the data for the Family Health History Survey.
-# The FHHS will fail as it is trying to build database views based on the Dimensional data tables in the database
-# that do not exist yet.
-# When you restart the Survey container it will create the Dimensional database tables used for the new survey
-# for use in reporting.
-# Then when the FHHS container is restarted it should find the tables and create the views.
+#   docker compose up -d        (ELICIT_TAG=<version> to run a published release)
+#   ./status.sh
 #
-# So in order for the application to be fully configured you will need to start the containers multiple times using the following commands:
-# 1. docker-compose up -d
-# 2. Wait for 30 seconds or until the FHHS container stops.
-# 2. docker-compose restart
-# 2. Wait for 30 seconds or until the FHHS container stops.
-# 3. docker-compose restart
+# One pass, no restarts: Survey creates the schema, Admin migrates on top of it, and FHHS starts
+# after Admin is healthy. No survey is seeded; apply FHHS/family-history-survey.elicit in Admin
+# and FHHS becomes ready on its next probe. The installation manual's "Evaluating with Docker
+# Compose" chapter (docs/manual) describes every service, port and volume below.
 #
-# For Mac and Linux users these can be combined into a single command:
-# docker compose up -d && sleep 25 && docker compose restart && sleep 25 && docker compose restart && sleep 25 && echo "Initialization complete Please visit http://localhost:8080"
+# Survey: http://localhost:8080   Admin: http://localhost:8081   Author: http://localhost:8084
 #
-# For Windows users you can use the following command:
-# docker-compose up -d && timeout /t 25 && docker-compose restart && timeout /t 25 && docker-compose restart && timeout /t 25 && echo "Initialization complete Please visit http://localhost:8080"
+
+# Image tag (release). Every Elicit application image -- survey, admin, fhhs, pedigree,
+# author and the author-survey preview -- is pulled at the one tag in ELICIT_TAG, so a site
+# runs a matched set and never mixes releases.
+# It defaults to `latest`, which is what the local builds (buildDockerImages.sh) are tagged with.
+# To run a published release, set the tag to its version, either for one command
 #
-# The application will be available at the following URL: http://localhost:8080
+#   ELICIT_TAG=3.0.0-rc.1 docker compose up -d
+#
+# or once, in a `.env` file beside this one (ignored by git):
+#
+#   ELICIT_TAG=3.0.0-rc.1
+#
+# The same `.env` file may set ELICIT_SERVICE_TOKEN, the token the modules authenticate each
+# other with. Unset, every service gets the development value written below, which is
+# published and not for a real site; a value of your own (openssl rand -hex 32, at least 32
+# characters) replaces it for every service at once.
+#
+# A pre-release (3.0.0-beta.1, 3.0.0-rc.1) is published under its exact version only; `latest`
+# and `3.0` move only when a final version ships, so a pre-release is reachable only by naming it.
+# The database image, elicitsoftware/elicit_db, is not covered: it is released under the
+# platform's version numbers but only when its role scripts change, and is named below.
 
 services:
   survey:
-    image: elicitsoftware/survey:latest
+    image: elicitsoftware/survey:${ELICIT_TAG:-latest}
     ports:
       - 8080:8080
     environment:
+      # The token the modules authenticate each other with. Every module of one site gets the
+      # same value; a real site supplies its own (openssl rand -hex 32).
+      ELICIT_SERVICE_TOKEN: ${ELICIT_SERVICE_TOKEN:-elicit-dev-service-token-not-for-a-real-site}
+      # The Family History definition names its report and post-survey action addresses as
+      # http://host.docker.internal:8082/..., so that origin is the one the token may be sent to.
+      ELICIT_SERVICE_TRUSTED_ORIGINS: http://host.docker.internal:8082
       TZ: America/Detroit
-      # AutoRegister allows for users to type in any token for testing.
-      # The Admin tool is used to create tokens and manage respondents.
+      # AutoRegister allows for users to type in any access code for testing.
+      # The Admin tool is used to create access codes and manage respondents.
       # Remove this for production, the default is false.
-      token.autoRegister: true
+      accessCode.autoRegister: true
       brand.file.system.path: /opt/brand
+      # The image carries English only; the other languages are read from <this path>/<app>/.
+      # Narrow what is offered with i18n.offered.locales (e.g. en,es-419).
+      i18n.file.system.path: /opt/i18n
+      # Survey's connection is survey_user and its migrating connection elicit_owner; both
+      # passwords are SURVEYPW in the database image's role script.
+      ELICIT_DB_PASSWORD: SURVEYPW
+      ELICIT_OWNER_DB_PASSWORD: SURVEYPW
       # OpenTelemetry configuration
       quarkus.application.name: survey
       quarkus.otel.enabled: true
@@ -53,15 +70,16 @@ services:
       quarkus.datasource.jdbc.telemetry: true
       quarkus.otel.instrument.jdbc: true
       OTEL_SERVICE_NAME: survey
-      OTEL_RESOURCE_ATTRIBUTES: service.name=survey,service.version=1.0,deployment.environment=local
+      OTEL_RESOURCE_ATTRIBUTES: service.name=survey,service.version=${ELICIT_TAG:-latest},deployment.environment=local
     healthcheck:
-        test: ["CMD", "curl", "--head","fsS", "http://localhost:8080/q/health/ready"]
+        test: ["CMD", "curl", "--head", "-fsS", "http://localhost:8080/q/health/ready"]
         interval: 15s
         timeout: 5s
         retries: 20
         start_period: 60s
-    # volumes:
-      # - ./elicit-brand/:/opt/brand:ro
+    volumes:
+      - ./elicit-brand/:/opt/brand:ro
+      - ./elicit-i18n/:/opt/i18n:ro
       # - ../Elicit_Campsites/um-brand/:/opt/brand:ro
       # - ../Kindred/kindred-brand/:/opt/brand:ro
       # - ./test-partial-brand/:/opt/brand:ro
@@ -69,19 +87,31 @@ services:
       db:
         condition: service_healthy
   fhhs:
-    image: elicitsoftware/fhhs:latest
-    #open this port for local testing. It is not needed for inter container communication.
+    image: elicitsoftware/fhhs:${ELICIT_TAG:-latest}
+    # This port is needed, not only for local testing: the shipped Family History definition
+    # names its reports and its post-survey action at http://host.docker.internal:8082/..., so
+    # Survey and Admin reach FHHS through the published port. Every path outside /q requires the
+    # service token.
     ports:
       - 8082:8080
     healthcheck:
-        test: ["CMD", "curl", "--head","fsS", "http://localhost:8080/q/health/ready"]
+        test: ["CMD", "curl", "--head", "-fsS", "http://localhost:8080/q/health/ready"]
         interval: 15s
         timeout: 5s
         retries: 20
         start_period: 90s
     environment:
+      # The token the modules authenticate each other with. Every module of one site gets the
+      # same value; a real site supplies its own (openssl rand -hex 32).
+      ELICIT_SERVICE_TOKEN: ${ELICIT_SERVICE_TOKEN:-elicit-dev-service-token-not-for-a-real-site}
+      # The Family History definition names its report and post-survey action addresses as
+      # http://host.docker.internal:8082/..., so that origin is the one the token may be sent to.
+      ELICIT_SERVICE_TRUSTED_ORIGINS: http://host.docker.internal:8082
       TZ: America/Detroit
       pedigree.url: http://pedigree:8080/svg
+      # FHHS connects as survey_user and migrates as elicit_owner, like Survey.
+      ELICIT_DB_PASSWORD: SURVEYPW
+      ELICIT_OWNER_DB_PASSWORD: SURVEYPW
       family.history.sftp.enabled: false
       # family.history.sftp.enabled: true
       # family.history.sftp.host: sftpServer
@@ -103,6 +133,9 @@ services:
       # #   -----END RSA PRIVATE KEY-----
       # family.history.sftp.path: /upload/reports
       # family.history.sftp.port: 22
+      # # The bundled sftpServer makes a new host key each start, so there is none to pin.
+      # # A real server needs family.history.sftp.knownHosts instead (ssh-keyscan output).
+      # family.history.sftp.strictHostKeyChecking: false
       # family.history.upload.psa.id: 1
       # family.history.sftp.xml.template: |+
       #   <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -128,23 +161,32 @@ services:
       quarkus.datasource.jdbc.telemetry: true
       quarkus.otel.instrument.jdbc: true
       OTEL_SERVICE_NAME: fhhs
-      OTEL_RESOURCE_ATTRIBUTES: service.name=fhhs,service.version=1.0,deployment.environment=local
+      OTEL_RESOURCE_ATTRIBUTES: service.name=fhhs,service.version=${ELICIT_TAG:-latest},deployment.environment=local
     depends_on:
       db:
         condition: service_healthy
       survey:
         condition: service_healthy
+      # After Admin, not beside it: on a fresh database FHHS's V0.0.4 and Admin's first
+      # migration grant on the same tables at the same moment and one of them fails with
+      # "tuple concurrently updated" (seen on 2026-10-03 in the multilingual suite's Mexico
+      # site). Admin needs nothing from FHHS at startup, so the dependency runs this way round.
+      admin:
+        condition: service_healthy
       sftpServer:
         condition: service_started
     # volumes:
       # - ./sftp_ssh/fhhs_user:/ssh/fhhs_user:ro        
+  # premm5 (not cloned by cloneAllProjects.sh; see CLAUDE.md).
+  # NOTE before re-enabling: the healthcheck must probe the container-internal 8080 like every
+  # other service here, not the published one. 8084 and 8085 are Author's, so 8086 is free.
   # premm5:
-  #   image: elicitsoftware/premm5:latest
+  #   image: elicitsoftware/premm5:${ELICIT_TAG:-latest}
   #   #open this port for local testing. It is not needed for inter container communication.
   #   ports:
-  #     - 8084:8080
+  #     - 8086:8080
   #   healthcheck:
-  #       test: ["CMD", "curl", "--head","fsS", "http://localhost:8084/q/health/ready"]
+  #       test: ["CMD", "curl", "--head", "-fsS", "http://localhost:8080/q/health/ready"]
   #       interval: 15s
   #       timeout: 5s
   #       retries: 20
@@ -161,7 +203,7 @@ services:
   #     quarkus.otel.metrics.enabled: true
   #     quarkus.otel.logs.enabled: true
   #     OTEL_SERVICE_NAME: premm5
-  #     OTEL_RESOURCE_ATTRIBUTES: service.name=premm5,service.version=1.0,deployment.environment=local
+  #     OTEL_RESOURCE_ATTRIBUTES: service.name=premm5,service.version=${ELICIT_TAG:-latest},deployment.environment=local
   #   depends_on:
   #     # db:
   #     #   condition: service_healthy
@@ -170,27 +212,41 @@ services:
   #   volumes:
   #     - ./PREMM5/PREMM5.license:/license/PREMM5.license:ro
   pedigree:
-    image: elicitsoftware/pedigree:latest
-    #open this port for local testing. It is not needed for inter container communication.
+    image: elicitsoftware/pedigree:${ELICIT_TAG:-latest}
+    environment:
+      # The token the modules authenticate each other with. Every module of one site gets the
+      # same value; a real site supplies its own (openssl rand -hex 32).
+      ELICIT_SERVICE_TOKEN: ${ELICIT_SERVICE_TOKEN:-elicit-dev-service-token-not-for-a-real-site}
+    # Open this port for local testing. It is not needed for inter container communication:
+    # FHHS reaches Pedigree at pedigree:8080. Every path but /healthz requires the service token.
     ports:
       - 8083:8080
   admin:
-    image: elicitsoftware/admin:latest
+    image: elicitsoftware/admin:${ELICIT_TAG:-latest}
     ports:
       - 8081:8080
     healthcheck:
-        test: ["CMD", "curl", "--head","fsS", "http://localhost:8080/q/health/ready"]
+        test: ["CMD", "curl", "--head", "-fsS", "http://localhost:8080/q/health/ready"]
         interval: 15s
         timeout: 5s
         retries: 20
         start_period: 60s
     environment:
+      # The token the modules authenticate each other with. Every module of one site gets the
+      # same value; a real site supplies its own (openssl rand -hex 32).
+      ELICIT_SERVICE_TOKEN: ${ELICIT_SERVICE_TOKEN:-elicit-dev-service-token-not-for-a-real-site}
+      # The Family History definition names its report and post-survey action addresses as
+      # http://host.docker.internal:8082/..., so that origin is the one the token may be sent to.
+      ELICIT_SERVICE_TRUSTED_ORIGINS: http://host.docker.internal:8082
       TZ: America/Detroit
       quarkus.mailer.from: elicit@localhost
       quarkus.mailer.host: mailpit
       quarkus.mailer.port: 1025
       quarkus.mailer.tls: false
       brand.file.system.path: /opt/brand
+      # The image carries English only; the other languages are read from <this path>/<app>/.
+      # Narrow what is offered with i18n.offered.locales (e.g. en,es-419).
+      i18n.file.system.path: /opt/i18n
       ELICIT_DB_PASSWORD: SAOWNERPW
       ELICIT_OWNER_DB_PASSWORD: SURVEYPW
       OIDC_CLIENT_SECRET: secret
@@ -213,9 +269,10 @@ services:
       quarkus.datasource.jdbc.telemetry: true
       quarkus.otel.instrument.jdbc: true
       OTEL_SERVICE_NAME: admin
-      OTEL_RESOURCE_ATTRIBUTES: service.name=admin,service.version=1.0,deployment.environment=local
+      OTEL_RESOURCE_ATTRIBUTES: service.name=admin,service.version=${ELICIT_TAG:-latest},deployment.environment=local
     volumes:
       - ./elicit-brand/:/opt/brand:ro
+      - ./elicit-i18n/:/opt/i18n:ro
       # - ../Elicit_Campsites/um-brand/:/opt/brand:ro
       # - ../Kindred/kindred-brand/:/opt/brand:ro
       # - ./test-partial-brand/:/brand:ro                
@@ -224,21 +281,149 @@ services:
         condition: service_healthy
       survey:
         condition: service_healthy
-      fhhs:
-        condition: service_started  # Changed from service_healthy to service_started
       pedigree:
         condition: service_started
+# -----------------------------------------------------------------------------
+# Author stack
+# The authoring tool works in a database of its own -- `author`, a second database
+# in the same Postgres container, created by ./db-init/V0.0.4__CREATE_AUTHOR_DATABASE.sql
+# when the cluster is first initialized -- so drafts never touch the site's survey data:
+#   author-survey - a second Survey container pointed at db/author. Survey owns
+#                   the schema migrations, so this is what creates the survey
+#                   schema there; it also serves as the respondent preview of a
+#                   survey being authored (host port 8085, any access code works)
+#   author        - the authoring tool (host port 8084)
+# Keycloak, Jaeger and the brand assets are shared with the rest of the stack.
+# Authoring needs none of the site applications: `docker compose up -d author keycloak jaeger`
+# runs just this side (author pulls in author-survey and db). For Author in dev mode on 8084,
+# start everything it calls instead: `docker compose up -d db keycloak author-survey`.
+# An existing ./postgresql/PGDATA does not get the `author` database automatically:
+# run the init script once (see the comment at the top of that file) or reset PGDATA.
+# -----------------------------------------------------------------------------
+  author-survey:
+    image: elicitsoftware/survey:${ELICIT_TAG:-latest}
+    ports:
+      - 8085:8080
+    environment:
+      # The token the modules authenticate each other with. Every module of one site gets the
+      # same value; a real site supplies its own (openssl rand -hex 32).
+      ELICIT_SERVICE_TOKEN: ${ELICIT_SERVICE_TOKEN:-elicit-dev-service-token-not-for-a-real-site}
+      TZ: America/Detroit
+      # Preview only: an author types any access code to walk through a draft.
+      accessCode.autoRegister: true
+      # Preview only: the reporting ETL stays off. Every survey would get a reporting schema
+      # of its own (Survey UC-008), so nothing collides any more; it is off because nothing
+      # reports on preview answers yet. The reporting work turns it on when it needs the
+      # preview to model what a site builds. The drop below is what UC-047 calls before
+      # deleting a survey, so a schema never outlives its survey once the ETL is on.
+      elicit.etl.enabled: "false"
+      elicit.etl.drop.enabled: "true"
+      brand.file.system.path: /opt/brand
+      # The preview connects as survey_user and migrates as elicit_owner, like Survey; the
+      # roles are cluster-wide, so the author database takes the same passwords.
+      ELICIT_DB_PASSWORD: SURVEYPW
+      ELICIT_OWNER_DB_PASSWORD: SURVEYPW
+      # The image carries English only; the other languages are read from <this path>/<app>/.
+      # Narrow what is offered with i18n.offered.locales (e.g. en,es-419).
+      i18n.file.system.path: /opt/i18n
+      # Both of Survey's datasources move from the `survey` database to `author`.
+      quarkus.datasource.jdbc.url: jdbc:postgresql://db:5432/author?connectTimeout=30&socketTimeout=600&tcpKeepAlive=true&tcpKeepAlivesIdle=60
+      quarkus.datasource.owner.jdbc.url: jdbc:postgresql://db:5432/author?connectTimeout=30&socketTimeout=600&tcpKeepAlive=true&tcpKeepAlivesIdle=60
+      # OpenTelemetry configuration
+      quarkus.application.name: author-survey
+      quarkus.otel.enabled: true
+      quarkus.otel.exporter.otlp.endpoint: http://jaeger:4317
+      quarkus.otel.exporter.otlp.traces.endpoint: http://jaeger:4317
+      quarkus.otel.traces.enabled: true
+      quarkus.otel.metrics.enabled: true
+      quarkus.otel.logs.enabled: true
+      quarkus.datasource.jdbc.telemetry: true
+      quarkus.otel.instrument.jdbc: true
+      OTEL_SERVICE_NAME: author-survey
+      OTEL_RESOURCE_ATTRIBUTES: service.name=author-survey,service.version=${ELICIT_TAG:-latest},deployment.environment=local
+    healthcheck:
+        test: ["CMD", "curl", "--head", "-fsS", "http://localhost:8080/q/health/ready"]
+        interval: 15s
+        timeout: 5s
+        retries: 20
+        start_period: 60s
+    volumes:
+      - ./elicit-brand/:/opt/brand:ro
+      - ./elicit-i18n/:/opt/i18n:ro
+      # - ../Elicit_Campsites/um-brand/:/opt/brand:ro
+    depends_on:
+      db:
+        condition: service_healthy
+  author:
+    image: elicitsoftware/author:${ELICIT_TAG:-latest}
+    ports:
+      - 8084:8080
+    healthcheck:
+        test: ["CMD", "curl", "--head", "-fsS", "http://localhost:8080/q/health/ready"]
+        interval: 15s
+        timeout: 5s
+        retries: 20
+        start_period: 60s
+    environment:
+      # The token the modules authenticate each other with. Every module of one site gets the
+      # same value; a real site supplies its own (openssl rand -hex 32).
+      ELICIT_SERVICE_TOKEN: ${ELICIT_SERVICE_TOKEN:-elicit-dev-service-token-not-for-a-real-site}
+      TZ: America/Detroit
+      brand.file.system.path: /opt/brand
+      # The image carries English only; the other languages are read from <this path>/<app>/.
+      # Narrow what is offered with i18n.offered.locales (e.g. en,es-419).
+      i18n.file.system.path: /opt/i18n
+      # The preview Survey, which drops a survey's reporting schema before Author deletes it (UC-047).
+      author.preview.survey.url: http://author-survey:8080
+      # The preview as an author's browser opens it, for Reports > Preview in Survey… (Author UC-048 BR-007).
+      author.preview.survey.public-url: http://localhost:8085
+      # Author connects as survey_user (Survey's grants cover every definition table)
+      # to the `author` database; the schema there is created by author-survey.
+      quarkus.datasource.jdbc.url: jdbc:postgresql://db:5432/author?connectTimeout=30&socketTimeout=600&tcpKeepAlive=true&tcpKeepAlivesIdle=60
+      ELICIT_DB_PASSWORD: SURVEYPW
+      OIDC_CLIENT_SECRET: secret
+      # The OIDC URL is left at the image default, http://host.docker.internal:8180/realms/elicit/,
+      # the same one Admin uses. It has to work from both places the browser and the container reach
+      # Keycloak: the container resolves host.docker.internal to the Docker host, where Keycloak is
+      # published on 8180, and Docker Desktop maps the same name to 127.0.0.1 on the host. Pointing
+      # it at http://keycloak:8080 instead breaks the login redirect - the browser cannot reach the
+      # compose-internal name, and on a host with a "127.0.0.1 keycloak" hosts entry it lands on
+      # Survey, which listens on 8080.
+      # OpenTelemetry configuration
+      quarkus.application.name: author
+      quarkus.otel.enabled: true
+      quarkus.otel.exporter.otlp.endpoint: http://jaeger:4317
+      quarkus.otel.exporter.otlp.traces.endpoint: http://jaeger:4317
+      quarkus.otel.traces.enabled: true
+      quarkus.otel.metrics.enabled: true
+      quarkus.otel.logs.enabled: true
+      quarkus.datasource.jdbc.telemetry: true
+      quarkus.otel.instrument.jdbc: true
+      OTEL_SERVICE_NAME: author
+      OTEL_RESOURCE_ATTRIBUTES: service.name=author,service.version=${ELICIT_TAG:-latest},deployment.environment=local
+    volumes:
+      - ./elicit-brand/:/opt/brand:ro
+      - ./elicit-i18n/:/opt/i18n:ro
+      # - ../Elicit_Campsites/um-brand/:/opt/brand:ro
+    depends_on:
+      db:
+        condition: service_healthy
+      author-survey:
+        condition: service_healthy
 # Test containers
 # These containers are used for running the application in a development environment.
 # They are not needed for production or will be replaced by non containerized applications.
 ## Postgres Database
   db:
-    image: elicitsoftware/elicit_db:latest
+    # Not on ELICIT_TAG: the database image has its own release cadence (see the header).
+    image: elicitsoftware/elicit_db:3.0.0-rc.1
     # Setup the directories to persist data between starts.
     # if you need to reset your database you can delete the PGDATA directory and restart the containers
     # this will cause the database to be recreated.
     volumes:
       - ./postgresql/PGDATA:/var/lib/postgresql/data
+      # Adds the `author` database (Author stack) on first initialization.
+      - ./db-init/V0.0.4__CREATE_AUTHOR_DATABASE.sql:/docker-entrypoint-initdb.d/V0.0.4__CREATE_AUTHOR_DATABASE.sql:ro
     ports:
       - 5452:5432
     environment:
@@ -270,7 +455,7 @@ services:
 # This is a Mailpit server that is used for testing the email integration.    
 # visit http://localhost:8025/ to view the emails sent by the application.
   mailpit:
-    image: axllent/mailpit
+    image: axllent/mailpit:v1.34.0
     container_name: mailpit
     volumes:
       - ./mailpit_data:/data
@@ -286,7 +471,8 @@ services:
 # SFTP Server
 # This is a SFTP server that is used for testing the SFTP integration.      
   sftpServer:
-    image: atmoz/sftp:alpine-3.7
+    # Pinned by digest: the image publishes only floating tags.
+    image: atmoz/sftp:alpine@sha256:c5fb9e4beb8b7054a4c0b65c5e11df47cc20da95ad6002e88aecff62bab06372
     ports:
       - "22:22"
     environment:

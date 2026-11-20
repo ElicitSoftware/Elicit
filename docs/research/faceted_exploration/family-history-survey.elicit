@@ -1,0 +1,620 @@
+# ELICIT_SURVEY_EXPORT_V1
+# survey_id: 1
+# survey_key: 5e91c606-59a1-450a-a8d7-2f1530ff472b
+# survey_name: Family History Survey
+# surveys: 1
+# select_groups: 16
+# select_items: 41
+# steps: 15
+# sections: 15
+# steps_sections: 24
+# questions: 53
+# sections_questions: 128
+# relationships: 128
+# reports: 3
+# post_survey_actions: 1
+# dimensions: 3
+# ontology: 70
+# metadata: 101
+# generated: 2026-09-27T20:41:18.369463158-04:00
+# survey_revision: 2026-09-27T20:41:18.369463158-04:00
+
+surveys: 1|5e91c606-59a1-450a-a8d7-2f1530ff472b|Family History Survey|1|Family History|This survey is designed to help you and your healthcare provider better understand your hereditary risk for cancer. By collecting information about your own health and the cancer history of your blood relatives - parents, siblings, children, grandparents, aunts, and uncles - this tool can support decisions about additional testing, personalize treatment, and ultimately improve care for you and your family.|0001-0001-0000-0001-0000-0000-0000|||
+select_groups: 1|919700d1-56b1-51ff-aebe-37c984376e2b|PatientOrNot|Boolean if patient or not|Text|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_groups: 2|147c5f86-5c43-5399-8d5f-49ccb3fea78c|Adopted|Choice of patient adoption status|Text|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_groups: 3|053678cd-de23-59a2-8589-4d14598fde6f|Ashkenazi|Choice of family Ashkenazi heritage|Text|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_groups: 4|d71a0dc4-202f-54a0-b270-7c82ed2832ee|Pancreatitis|Choice for pancreatitis family history|Text|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_groups: 5|b14ffe4f-3213-50bd-b420-160927c02ead|Neuroendocrine|Choice for neuroendocrine tumor family history|Text|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_groups: 6|5d33249d-b60f-5617-acd8-94e251af9106|Gender|Choice of Male or Female|Text|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_groups: 7|4a675e01-bcd8-56dc-9b78-443c57187627|CancerStatus|Have you been told by doctor you have cancer?|Text|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_groups: 8|e0480fb7-2a32-59b7-996c-d5ed9eecf6db|BreastCancer|Specific choices for female breast cancer|Text|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_groups: 9|305ed875-215e-5878-b488-83bd054bae14|SiblingType|Siblings can be Full, Half, or Adopted|Text|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_groups: 10|cece6082-5ad1-5677-bfab-02c30d8333f6|RelativesParents|Choice of parent relatives|Text|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_groups: 11|64b2c231-b654-5d2b-8567-adf22b58476e|Alive/Deceased|Boolean Alive or Deceased|Text|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_groups: 12|5c96b1c1-3d5d-5774-9786-ee7eb391386e|True/False|Boolean True or False|Text|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_groups: 13|607dc5f4-1849-5438-9313-590a13e98797|YesNo|Boolean Yes or No|Text|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_groups: 14|cebd1576-815c-56ec-921b-0431ebdd40bc|Consent|Boolean Consent or Decline|Text|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_groups: 15|8e62510f-328d-55b4-9d43-8b96b8193b4c|Race|List of Races|Text|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_groups: 16|d3fe0b9a-c560-593a-9d23-4c21ad3ecff8|LatinX|LatinX or Not LatinX|Text|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_items: 2|2e4c1a7d-3e35-53b7-ba8e-79aaf90ea784|1|Yes I'm the patient|1|Patient|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_items: 1|333637a7-5fc3-5afd-af55-59aaef2e99d8|1|No I'm filling this out for the patient|2|Not Patient|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_items: 3|85d1d7df-ac99-5e3f-a701-4d0bdf10709c|2|No|1|No|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_items: 4|cf4f4658-2804-53d3-afa9-783690c70873|2|Yes, no information about biological family history|2|Unknown|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_items: 5|8365ec01-d44e-532a-9304-2f9211cd312d|2|Yes, some information about biological family history|3|Family Known|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_items: 9|def7cccc-2a08-54e1-b6da-0d288da24d09|3|No, neither biological parents|1|No|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_items: 6|bf503b26-a406-589d-aa33-daa099bc6826|3|Yes, both biological mother and father|2|Both Parents|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_items: 7|00ff7848-2c28-53b3-88f8-a5c2ae0b8df9|3|Yes, only biological mother|3|Maternal|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_items: 8|7720e076-8f30-504d-aa1a-60afd2b50c3f|3|Yes, only biological father|4|Paternal|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_items: 10|04f4d5cb-2f77-5fe7-9814-677105fff6ff|3|Don't know|5|Don't Know|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_items: 12|c61a5d6c-1087-53c5-a9db-570e84821733|6|Female|1|Female|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_items: 11|4b97f569-8b36-58ef-97b9-d5bc5d487951|6|Male|2|Male|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_items: 13|828f927a-6f8a-5382-876d-2d653fbee0ba|6|Other|3|Other|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_items: 14|e9a5aba3-8ace-5dc4-a1f3-45c0e31774b7|7|Yes|1|Yes|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_items: 15|432ccf39-f7a0-5527-aa0f-059d33e61475|7|No|2|No|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_items: 16|1114c591-7658-513a-8ea0-d39e39aab5e5|7|Do not know|3|unknown|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_items: 17|903fbb7c-5c0f-5dd3-ba85-f6cdfde92205|8|Breast cancer with one breast involved|1|One Breast|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_items: 18|ceaed096-6532-5e45-bcb8-4e55a7c5310d|8|Breast cancer in both breasts|2|Both Breast|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_items: 19|e2a1a1c5-5144-51b7-abe9-29a013117bbe|8|Do not know|3|Don't Know|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_items: 20|ed6938e7-8482-54ce-b2d6-cf626eb57bf2|9|Full|1|Full|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_items: 21|e623ef10-bcb4-59d8-bcc4-255031d67904|9|Half|2|Half|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_items: 22|5439b8ca-9278-550e-a998-7836cab07f35|10|Mother|1|Mother|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_items: 23|e27b91f9-16b8-5721-9ac0-d871fd8739a6|10|Father|2|Father|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_items: 24|39dcf7d7-55c1-59bc-87b9-318fe023b4d6|11|Alive|1|Alive|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_items: 25|02b1d271-8f48-5b27-969b-0f3d199179bc|11|Deceased|2|Deceased|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_items: 41|ad05452d-ae93-594e-81cc-f1f3bbb55147|11|Don't Know|3|Unknown|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_items: 27|5399cba6-648b-5f3e-821d-e51b83070e33|12|TRUE|1|TRUE|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_items: 26|0e96ff56-d3fd-5759-88f4-2e116092eeab|12|FALSE|2|FALSE|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_items: 29|0e898917-12fc-56b7-93d1-bcf095c156b5|13|Yes|1|TRUE|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_items: 28|75d55738-6829-5448-9993-3783467241f7|13|No|2|FALSE|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_items: 30|0b5cd3d1-0624-54a3-bb7d-68024be206d6|14|My contact information is below|1|TRUE|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_items: 31|73666dc8-3ee2-563f-a0f7-85d71ad7cd2c|14|No thank you, I prefer not to be contacted about this opportunity|2|FALSE|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_items: 32|b6c28db5-f71a-5315-a968-dfb05c2d4de6|15|Asian or Asian American|1|Asian|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_items: 33|498de7ef-7f1f-58c0-811e-e8c0a2ddc1a9|15|Black or African American|2|Black|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_items: 34|f80df8eb-ab10-5341-b054-6358cb8e8b89|15|Native American or American Indian or Alaska Native|3|Native American|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_items: 35|2e77b487-c70a-5d95-96a3-9cc5753df17e|15|Native Hawaiian or Other Pacific Islander|4|Pacific Islander|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_items: 36|2b82492d-158f-5c1f-9743-41baf5d102d5|15|Middle Eastern or North African|5|Middle Eastern|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_items: 37|6e65d7cf-da13-593b-b17c-d82d5e6300bd|15|White or European American|6|White|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_items: 38|ae180ced-678a-568f-9c10-2e8c06d7dd14|15|Other (please specify)|7|Other|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_items: 39|2cd6745a-d22c-5223-bcef-92e00f0d4c44|16|LatinX|1|LatinX|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+select_items: 40|e3a24352-d745-5619-8c12-26fbcc233756|16|Not LatinX|2|Not LatinX|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+steps: 1|3ae96480-5db2-5e55-bcf2-c5983aa9c86b|1|Welcome|FHHS Welcome|explination about the survey|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+steps: 2|8395299c-5567-5900-9f0a-3fc3cee78a34|2|Demographics|FHHS Demographics|about the proband|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+steps: 3|bfd7233d-cb9d-516b-97db-53eaac16b8b7|3|Proband|Proband|general questions about the proband's family used to set up the other steps|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+steps: 4|19fb46ca-845f-54e3-9247-a84220f457bc|4|Proband Cancer|Proband Cancer|about the proband's cancer|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+steps: 5|458e2e02-5647-5781-875a-f6618135b3f7|5|Children|Child|Sons and Daughters|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+steps: 6|52432920-75a6-58ec-80e8-58d8ae6e0c0d|6|Siblings|Sibling|Brothers and Sisters|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+steps: 7|923c7897-69b3-506f-b9f4-7cf86e6deaee|7|Mother|Mother|Mother|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+steps: 8|62449344-dae7-5392-9af4-26210a75d7fa|8|Maternal Grandmother|Maternal Grandmother|{<G1>'s\|Your} Maternal Grandmother|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+steps: 9|ea6527bb-c183-57f0-8c62-9fb983e64af2|9|Maternal Grandfather|Maternal Grandfather|Maternal Granfather|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+steps: 10|feda7bb3-4866-5d2b-8abb-9ab62785110f|10|Mother's Siblings|Mother's Sibling|Maternal Aunts and Uncles|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+steps: 11|31106ae4-835e-5e55-a827-f0b91f54d32c|11|Father|Father|Father|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+steps: 12|8b79253e-462a-595e-b232-618a96752bff|12|Paternal Grandmother|Paternal Grandmother|{<G1>'s\|Your} Paternal Grandmother|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+steps: 13|f6dd525d-30b8-50bc-b49e-17db3e85f711|13|Paternal Grandfather|Paternal Grandfather|{<G1>'s\|Your} Paternal Grandfather|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+steps: 14|66f0362b-483c-56dd-9ec5-347aba367b12|14|Father's Siblings|Father's Sibling|Paternal Aunts and Uncles|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+steps: 15|8729f35f-cb6e-55e8-b12f-af0f5fd77e16|15|Thank you|FHHS Thank You|end|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections: 0|5dce7594-1281-5f0b-a96b-e7f69872507b|0||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections: 1|e12909a3-af90-50e3-97aa-e5589c490036|1|Introduction|FHHS Introduction|Description of the survey|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections: 2|ca1a350b-c22f-5843-a50d-4c341b67658f|2|Demographics|FHHS Demographics|Who is taking the survey|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections: 3|073fbbaf-1829-57c1-b9d7-40440fff8a0c|3|Proband|Proband|Proband specific questions|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections: 4|33e0e75e-f312-5f58-9520-29ee0a3b0483|4|{<G1>'s\|Your} Mother|Mother|Empty upstream section for mother|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections: 5|56928c6a-c96e-597d-bd86-1cda20f4eea1|5|{<G1>'s\|Your} Father|Father|Empty upstream section for father|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections: 6|54d5e772-ba11-55c2-ac7d-ecdb4af66254|6|{<G1>'s\|Your} Child {S#} - {<S1>}|Child|How many children does patient have|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections: 7|a23b91fe-569d-57f0-ab92-b103420fde5e|7|{<R1>'s\|Your} Sibling {S#} - {<S1>}|Sibling|How many siblings does patient have|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections: 8|7e9e143a-2dfa-5727-9cbc-2e154496b702|8|{<G1>'s\|Your} Maternal Grandmother|Maternal Grandmother|Empty upstream section for Maternal mother|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections: 9|daa51587-2c2d-597f-951b-62c668fa9de8|9|{<G1>'s\|Your} Maternal Grandfather|Maternal Grandfather|Empty upstream section for Maternal father|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections: 10|b1701ef2-cba5-548c-8c1c-60748c2e0187|10|{<G1>'s\|Your} Mother's Siblings|Mother's Siblings|How many siblings does patient's mother have|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections: 11|d5fcb6fa-1349-545d-93e5-55757f01fd64|11|{<G1>'s\|Your} Paternal Grandmother|Paternal Grandmother|Empty upstream section for Paternal mother|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections: 12|637411d1-24d5-50fb-810e-8f6440cb59db|12|{<G1>'s\|Your} Paternal Grandfather|Paternal Grandfather|Empty upstream section for Paternal father|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections: 13|de75e14f-2843-5f94-bdc7-764204b311ba|13|{<G1>'s\|Your} Father's Siblings|Father's Siblings|How many siblings does patient's father have|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections: 14|0439a932-f27a-5976-bc3e-29f1af9a93ab|14|{<CS2>'s\|Your} Cancers|FHHS Cancers|What cancers and age of diagnosis|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+steps_sections: 1|d4957498-867e-5076-a63d-c34c3b968705|1|1|1|1|0001-0001-0000-0001-0000-0000-0000|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+steps_sections: 2|7f4d1ccf-f805-57c8-92d0-20e386c29cb5|2|2|2|1|0001-0002-0000-0001-0000-0000-0000|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+steps_sections: 3|35829e1d-531b-5263-9838-08353e1919c8|3|3|3|1|0001-0003-0000-0001-0000-0000-0000|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+steps_sections: 4|04266bdf-449a-5f37-89bf-00819ad0f704|4|4|14|2|0001-0004-0000-0002-0000-0000-0000|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+steps_sections: 11|daf1b35a-713c-57d3-891a-5ea025a58485|5|5|6|1|0001-0005-0000-0001-0000-0000-0000|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+steps_sections: 12|7c4507de-681d-5c19-bbfe-7e83f774b303|5|5|14|2|0001-0005-0000-0002-0000-0000-0000|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+steps_sections: 9|86e96abf-e7b4-559e-902c-6d4df7e496d3|6|6|7|1|0001-0006-0000-0001-0000-0000-0000|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+steps_sections: 10|46dab5bd-f175-5c3c-80f3-94c50d0196ca|6|6|14|2|0001-0006-0000-0002-0000-0000-0000|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+steps_sections: 5|9bb7db9a-3fc0-5518-90a0-fe503df6f76b|7|7|4|1|0001-0007-0000-0001-0000-0000-0000|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+steps_sections: 6|ffca4d89-3114-5656-bc11-44ad0cb3cbeb|7|7|14|2|0001-0007-0000-0002-0000-0000-0000|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+steps_sections: 13|8b40c55c-971b-539b-92d5-f7739722d67b|8|8|8|1|0001-0008-0000-0001-0000-0000-0000|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+steps_sections: 14|57202c5c-814b-541c-8c58-1d80fe611067|8|8|14|2|0001-0008-0000-0002-0000-0000-0000|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+steps_sections: 15|8a69e05a-ba9a-5a65-8693-3688e87adbd1|9|9|9|1|0001-0009-0000-0001-0000-0000-0000|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+steps_sections: 16|4e7d3c1a-df10-5aaa-a8aa-88315468b8c7|9|9|14|2|0001-0009-0000-0002-0000-0000-0000|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+steps_sections: 21|f2ec1f70-c56f-5fb0-b167-40c86af596ab|10|10|10|1|0001-0010-0000-0001-0000-0000-0000|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+steps_sections: 22|20342912-cc90-5916-8dc5-8bb8e41fd6c5|10|10|14|2|0001-0010-0000-0002-0000-0000-0000|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+steps_sections: 7|15429233-40a3-564d-a9e9-89b7c33af44e|11|11|5|1|0001-0011-0000-0001-0000-0000-0000|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+steps_sections: 8|06368b65-774e-5407-a3f1-2451e06a1cb6|11|11|14|2|0001-0011-0000-0002-0000-0000-0000|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+steps_sections: 17|d41e2ace-4e47-57c7-baaf-8977c5dbac58|12|12|11|1|0001-0012-0000-0001-0000-0000-0000|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+steps_sections: 18|a0cb5107-de53-57b8-afc9-d96a10624fa8|12|12|14|2|0001-0012-0000-0002-0000-0000-0000|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+steps_sections: 19|36f248b1-430e-52d2-8b36-17b480b8cbfc|13|13|12|1|0001-0013-0000-0001-0000-0000-0000|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+steps_sections: 20|bb492a64-7fb5-5194-8379-b87cd4da22cc|13|13|14|2|0001-0013-0000-0002-0000-0000-0000|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+steps_sections: 23|363b1704-6672-518b-815c-d87cdf9c6c9b|14|14|13|1|0001-0014-0000-0001-0000-0000-0000|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+steps_sections: 24|5f60915f-5611-5bad-a2d3-f8ddcdb77eeb|14|14|14|2|0001-0014-0000-0002-0000-0000-0000|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 1|09cdaa61-071f-5576-8e97-8f973577df09|4|<h1>Welcome to the Family Cancer History Survey!</h1><br/><p>Knowing your family history can help healthcare providers figure out if you might benefit from additional testing, inform treatment decisions, and ultimately help take better care of you and your family.</p><p>Please fill out what you can, even if you don’t know all the details. This risk assessment tool asks you questions about yourself and your blood-related family members, including:<ul><li>Parents</li><li>Siblings</li><li>Children</li><li>Grandparents</li><li>Aunts and Uncles</li></ul></p><p>The questions are about:<ul><li>your relatives' current ages (if alive), or ages at death</li><li>cancer diagnoses and ages at diagnoses, for those family members with cancer.</li></ul></p><p>The amount of time needed to fill out this tool varies based on the size of your family, but the tool takes most people about 15 minutes. If you cannot finish in one sitting, you can stop at any time and your responses will save automatically.</p><p>Thank you for completing this survey which can help your clinician improve your cancer care.</p>|Welcome ||false|||||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 2|b6443137-ab8b-54bd-bd72-03c5b67355a3|7|Are you, the person filling out this questionnaire, the patient?|Is Patient||true|||Please select a value.|1||||vertical|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 3|a8a03eca-595b-58ff-bfeb-20e2af35e3a5|8|What is the name of the patient?|Patient's Name|This name will be used to build additional questions.|true|2|50|Patient name must be greater than 2 characters||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 4|885b8f8d-e6aa-5473-a642-ca9f5817e857|5|What is {<S1>'s\|your} current age?|Age||true|0|115|Age must be between 0 and 115||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 5|4d4206ab-0012-5a76-a453-1ace147267aa|7|Is {<S1>'s\|your} mother or father of Ashkenazi (Central and Eastern European) Jewish background? Families of this background may have increased risk of some cancers.|Ashkenazi||true|||Please select one of the above values.|3||||vertical|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 6|1296f5cc-c629-59a5-a16c-40576e74526a|7|What sex {was <S1>\|were you} assigned at birth?|Gender||true|||Please select a gender.|6||||vertical|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 7|06950be9-334f-536e-939a-2d6252f288cf|7|{Does <S1>\|Do you} currently have, or {has <S1>\|have you} ever had cancer?|Cancer Diagnosis|Please include all cancers past or present.|true|||Please select a value.|7||||vertical|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 8|74b01464-3224-5c36-9d48-115a756d4635|4|{<CS2>'s\|Your} PRIMARY cancers:<br/>Please select all primary cancer(s) - both current and past. <br/>A <b>primary cancer</b> is where the cancer originates.<br/>Please do NOT include metastases or secondary tumors (that is, cancers that spread from the original cancer).</br><b>If you have been diagnosed with this cancer type more than once</b>, please specify the <b>YOUNGEST</b> age of diagnosis.|PRIMARY cancers||false|||||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 9|df436fc1-bcb3-5dc5-a380-f28346befb28|1|Bladder cancer|Bladder cancer||false|||||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 10|a99fa9d1-fe86-5695-8d73-c2bf92632bbd|1|Breast cancer|Breast cancer||false|||||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 11|29f600e9-08e8-5479-a90c-5773f2002f85|1|Colon or Rectal cancer|Colon or Rectal cancer||false|||||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 12|722b0bfd-4b4d-5172-9591-e409cf006276|1|Endometrial or Uterine cancer|Endometrial or Uterine cancer||false|||||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 13|3298757b-e362-50bf-8a8f-3853e62dd905|1|Kidney (renal cell) cancer|Kidney (renal cell) cancer||false|||||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 14|3b2c01bc-40a4-5d0d-b2aa-148cdef139b2|1|Leukemia|Leukemia||false|||||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 15|1414bedb-b6a8-53e9-b2ad-71365b46e353|1|Lung Cancer|Lung Cancer||false|||||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 16|12098fc1-7bec-5d51-be63-de24a53795da|1|Lymphoma|Lymphoma||false|||||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 17|c47dc642-7c6e-5c94-bf5d-70be20c7699e|1|Melanoma Skin cancer|Melanoma Skin cancer||false|||||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 18|89106916-ed5d-5b05-a6d7-5762f72bac47|1|Non-Melanoma Skin cancer (basal cell or squamous cell carcinoma)|Non-Melanoma Skin cancer (basal cell or squamous cell carcinoma)||false|||||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 19|599cb053-5cd2-5bff-a71d-f1c1359943ff|1|Oral Cavity or Throat cancer|Oral Cavity or Throat cancer||false|||||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 20|c4e0f77d-b2de-5c6d-9c65-a40e6cd68d32|1|Ovarian cancer|Ovarian cancer||false|||||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 21|9c1c5905-f153-5142-82d2-3326977566ba|1|Pancreatic cancer|Pancreatic cancer||false|||||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 22|f2565710-7223-5865-804a-47233d39e8b1|1|Prostate cancer|Prostate cancer||false|||||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 23|982e5198-a04d-5522-a9bc-f38b6d458ec4|1|Stomach cancer|Stomach cancer||false|||||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 24|e260315a-3c68-5b02-9b6d-863f7a47afc8|1|Testicular cancer|Testicular cancer||false|||||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 25|a3710960-425d-5f75-aadf-2ec46577fea3|1|Thyroid cancer|Thyroid cancer||false|||||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 26|8e0e9063-4469-5dfc-96e7-fd2c1cfc3075|1|Other cancer|Other cancer||false|||||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 27|8befba8a-ff71-5fc8-8562-6f8ce7ca21fe|1|Unknown cancer|Unknown cancer||false|||||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 28|c2402e26-b352-5594-8bba-5b5395747cf3|8|What was the 'Other' primary cancer? A primary cancer is where the cancer originates|Other Cancer||true|||Please enter a value for other cancer.||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 29|2dd58fbe-5809-5fb6-b5e6-0ea6a5ae4b48|7|{Has <CS2> been\|Were you} diagnosed with {<C1>} more than once? Do not include recurrence, only separate cancers.|Multiple Diagnosis||true|||Please select a value.|13||||vertical|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 30|fcf13243-828c-521d-9c67-b3c8b58ac962|5|At what age was the {<C1>} diagnosed?|Diagnosis Age|If you have been diagnosed with this cancer type more than once, please specify the YOUNGEST age of diagnosis. If you are not sure please estimate to the nearest 5-10 years. If you do not know leave blank.|false|0|115|Age must be between 0 and 115||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 31|c846b2c7-fc8a-570f-b9c9-dbb271ee24b7|4|Which blood-related relatives do you have at least some information about? Check all that apply.|Relatives||false|||||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 32|2bf790c7-b3dc-5d4b-912b-ea0dc80ca8f3|1|{<S1>'s\|Your} mother's side of the family|||false|||||||TRUE||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 33|f32fd970-9f02-5467-a5e6-982e29d1b92f|1|{<S1>'s\|Your} father's side of the family|||false|||||||TRUE||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 34|522014bd-78c9-5dbf-8fb1-479156d98966|5|Please indicate how many blood-related children {<S1> has\|you have}. Please include them even if they have died.|# of Children|Please note that in the questions we are referring only to BLOOD-RELATED (biological) family members.|true|0|30|Must be between 0 and 30||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 35|db733dc7-ffd0-5272-a553-ebad9d72a0bc|5|Please indicate how many blood-related siblings {<S1> has\|you have}. Please include them even if they have died.|# of Siblings|Please note that in the questions we are referring only to BLOOD-RELATED (biological) family members.|true|0|30|Must be between 0 and 30||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 36|140171f1-105b-54db-a771-778c64d3d585|7|What type of sibling is {<S1>}?|Type|Note: Full siblings have the same blood-related mother and father. Half siblings share only one blood-related parent.|true|||Please select a value.|9|||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 37|e914a9e6-ba6b-521f-9e3b-685960024139|7|Which parent is shared with {<S1>}?|Shared Parent||true|||Please select a parent.|10|||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 38|fd3fed23-ce61-54fe-889f-6fdbfe7b38e2|7|Please indicate if {<S1>} is still living.|Living||true|||Please select a value.|11|||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 39|772ccee6-95b9-5a6f-98e4-5179247592de|5|What is {<S1>} current age?|Age|If you are not sure please estimate to the nearest 5-10 years. If you do not know leave blank. |false|0|115|Age must be between 0 and 115.||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 40|993d1101-5403-5267-9c21-a6f001026608|5|What was {<S1>}'s age at death?|Age at Death|If you are not sure please estimate to the nearest 5-10 years. If you do not know leave blank. |false|0|115|Age must be between 0 and 115.||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 41|76cf70a3-2cc0-5a3a-95c7-14fa0c23c878|4|Please tell us about {<S1>'s\|your} mother.|||false|||||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 42|56a404bc-62d3-5226-9186-5c9cfc55069a|4|Please tell us about {<S1>'s\|your} father.|||false|||||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 43|1a04bf72-7452-586e-9ea2-57970a2a6e03|4|Please tell us about {<S1>'s\|your} mother's mother.|||false|||||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 44|f9d47926-801f-5deb-86e5-184d9e4eba49|4|Please tell us about {<S1>'s\|your} mother's father.|||false|||||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 45|dbde43bb-0626-5f47-a9e0-19608c362d39|4|Please tell us about {<S1>'s\|your} father's mother.|||false|||||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 46|44de0996-0d54-5263-b9bb-c71a1554cec2|4|Please tell us about {<S1>'s\|your} father's father.|||false|||||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 47|f6f105ee-d2f3-50d9-a205-2537b28a5684|8|What is child {Q#}'s name or initials?|Name||true|2|50|Name must be greater than 2 characters||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 48|c49c6f3a-a978-5a9e-adda-f7fafb1f5c5a|8|What is sibling {Q#}'s name or initials?|Name||true|2|50|Name must be greater than 2 characters||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 49|76b177de-345b-592b-a467-0f6ddf87f018|5|Please indicate how many blood-related, full siblings {<S1> has\|your parent has}. Do not include your parent's half-siblings; only those siblings with whom {<S1> shares\|your parent shares} the same mother AND father|# of Siblings|Please note that in the questions we are referring only to BLOOD-RELATED (biological) family members.|true|0|30|Must be between 0 and 30||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 50|eb9a8289-80ad-5699-9b1e-5011fc452d8c|7|There are a few different types of breast cancer. One of the types is called triple negative. Was the breast cancer noted above called triple negative breast cancer?|Triple Negative||true|||Please select a value.|7|||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 51|ae0904f2-3f7f-5edd-b098-4c56134d4439|10|What is {<S1>'s\|your} race? (Choose all that apply)|Race||true|||Please select one or more values.|15||Race|||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 52|a5c9c727-2532-5bc6-b20a-abf6825faecc|8|Please specify other race?|Other Race||true|||Please enter the other race.||||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+questions: 53|81fefdf0-2958-5c7c-af9b-e2dbd36caf3b|7|Do you consider {<S1> to be\|yourself} LatinX? |LatinX||true|||Please select a value.|16|||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 1|4255fa62-ceea-5572-ab3e-2460a001af5d|1|1|1|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 2|872ba87d-824e-5e3c-8077-0ed46e75e48b|2|2|1|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 3|f38635bd-d01e-5f11-9db8-fd5fbd81f8ab|3|2|2|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 4|d74d8ef8-184a-599c-b681-4a20ad88fa6c|4|3|1|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 5|5cf9bbeb-8944-5eee-a8ca-6d721d9a124c|31|3|2|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 6|38cfe721-33d8-50d9-9399-b3ea269c43e0|32|3|4|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 7|8f6f74d1-0ad3-5508-a566-22dfdb0f3507|33|3|6|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 8|09f52f66-8a5a-5f35-8b59-d73e594a9994|6|3|7|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 9|6db22870-9c28-5ea0-bfa8-14b7ab613904|5|3|8|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 10|bc442b3d-370c-5d54-9b9d-bc62a81b7182|34|3|9|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 11|87b5ffb9-9ebe-534a-bf0d-eba4c08a4731|47|3|10|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 12|efccd2e6-6b3b-52f3-bf6d-f46b157f8bbe|35|3|11|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 13|68448341-06a0-53a3-aa98-4bc23f1067ae|48|3|12|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 14|0436aabf-0f41-5e95-b4ff-288219f5ca4e|7|3|13|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 15|769351b7-361c-5650-a7be-dbdf8838f3db|8|14|1|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 16|eecb971c-9030-5907-ba14-f09ef1375047|9|14|2|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 17|c6ae7e26-f322-5cb1-81f9-45a1e03bcf35|29|14|3|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 18|fe3529b3-8c80-550c-b07c-37d2ddf21620|30|14|4|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 19|4b51fa4c-b401-5ccc-aa52-e1a407199313|10|14|5|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 20|810af249-a734-5480-bd76-536ee0fea46e|29|14|6|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 21|526e35dc-9f10-5607-88d8-99657df85c83|30|14|7|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 22|768dc38d-245d-5006-9277-626814f764ec|11|14|9|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 23|d73b808a-0bfc-5a4d-8110-cc2de0f220c8|29|14|10|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 24|41d9f4d9-eaa1-5920-8766-65b4bd349dd9|30|14|11|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 25|f53c0cc5-9693-5a25-be54-86880443a2e6|12|14|12|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 26|bf14bf37-39f7-55f5-9021-431c74c45575|29|14|13|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 27|74155221-b2d3-5e4f-ad20-dac6d50c59d4|30|14|14|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 28|7549fcc5-512c-5e58-8f7b-82ecc51e1e90|13|14|15|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 29|b55cf511-9da2-5ec1-967f-7f5606b0b80e|29|14|16|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 30|64426049-0d36-5c6d-a1b9-22122251a66c|30|14|17|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 31|ed252f73-ffd0-5da4-b76e-5b9d5e74f8e4|14|14|18|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 32|d7f5356f-680e-5043-8674-646480561c79|29|14|19|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 33|4d9ee300-cca6-53e9-86d3-f87fb3f0d08a|30|14|20|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 34|354a6a83-ae77-53c7-b7e6-1d3b284bdeeb|15|14|21|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 35|54674a08-eb91-5bf1-a65e-2c193cec0a2f|29|14|22|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 36|d235c01e-2ee3-5ed9-9e7c-82e74e5bf1eb|30|14|23|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 37|a6a5aa91-446a-5c8e-9137-4e5c4359535d|16|14|24|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 38|757c60f9-1e6a-5543-83c6-69744a723f39|29|14|25|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 39|7c70756c-e539-5198-9f57-88eca3cc5dec|30|14|26|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 40|6789ca07-4de4-5091-b913-3c02c18e29b2|17|14|27|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 41|158ae436-e4d5-506d-92db-f839601fff76|29|14|28|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 42|0f95b939-f17c-530c-82ab-f63352435e77|30|14|29|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 43|bb309c91-780e-5830-b11d-1cfdac10bc0f|18|14|30|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 44|528b2018-e00b-56ad-a5df-f220a6827ec4|29|14|31|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 45|37ca5caf-a9a9-52cf-9288-c38638d5ce8b|30|14|32|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 46|eac07f9d-233e-5460-b5a0-05f9995c57f3|19|14|33|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 47|272ec0d1-2ad8-5db2-be4e-c11264bb2d6c|29|14|34|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 48|834bb97b-37ba-5411-b76e-b0684b48d866|30|14|35|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 49|72a1fa2b-6c83-588c-8591-197887025f72|20|14|36|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 50|be1a1ebc-5d9a-5f43-b811-ad5258a3c42f|29|14|37|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 51|dd52aa36-f3c2-56c5-8189-c2e818574267|30|14|38|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 52|0e2a565e-134f-5b15-ac00-7bbecb4f680b|21|14|39|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 53|b99b4086-04ec-5aad-bd96-204113965946|29|14|40|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 54|342f7408-137b-5081-a02a-dbfdb0e3d15a|30|14|41|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 55|c4de8238-7e15-5123-9050-9fd098d5ff67|22|14|42|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 56|8038b76a-41a6-5526-9eae-7158a0df720d|29|14|43|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 57|ff1a065c-78b8-5cce-b4fe-a15fc947fb89|30|14|44|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 58|847a9dd4-1fb5-59a6-9823-d4bd1f1f0320|23|14|45|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 59|5f8456d6-0863-5ac5-9cd2-bc25eb10b47e|29|14|46|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 60|754f8862-3685-51d6-9420-d4363e9c447b|30|14|47|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 61|954f9755-aec0-51aa-bc01-76091c1e24f4|24|14|48|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 62|5feef13d-3023-5eaf-995f-bc1cc21c4246|29|14|49|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 63|18926d5a-f9b5-5b56-8dc8-75480d080855|30|14|50|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 64|e277a348-d036-5866-9202-7194290ba2a0|25|14|51|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 65|1665067a-1bc7-5990-8e30-3133d2612a58|29|14|52|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 66|1091a4da-536d-5102-9206-d801b4404dff|30|14|53|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 67|e8da4a2e-cd55-58e9-8185-e8454c1c0cf5|26|14|54|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 68|da22a9b8-851c-59d0-9784-20a7a2714a6b|28|14|55|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 69|86a15dcc-5592-5050-854c-06e6ebc7d364|29|14|56|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 70|053871a7-2240-5ebd-8175-518fe95c6b6b|30|14|57|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 71|98763f78-6e2d-57a3-bda3-7359701dff0b|27|14|58|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 72|8be1bc70-815c-510b-bb10-e366f0aff71b|30|14|59|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 73|5a0a76ea-04c6-5d47-9a1a-d8b9fa02bdbc|41|4|1|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 74|ba5108b9-9c67-58f4-9e9c-62207026c290|38|4|2|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 75|5fe20345-17d1-5471-b83f-dd9f10ec45fb|39|4|3|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 76|14742989-8e77-5bc5-b9f1-6bff3aa048ca|40|4|4|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 77|c62a05b8-f148-589f-9fff-0d3e3dd9cd58|49|4|5|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 78|97d8baed-2a99-5762-9370-9e3a29cdddf5|48|4|6|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 79|b36a16b3-1ba1-5de4-925e-a550d181ae39|7|4|7|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 80|6c140cb9-22a7-5434-9805-0216e41c73fe|42|5|1|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 81|cb49fb4b-48c9-58a8-8df0-c651280e9ef9|38|5|2|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 82|977c56b0-ce94-5ff0-8b5c-c55b6bff5c87|39|5|3|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 83|e36467b8-1750-56a0-8203-067c86ee63c8|40|5|4|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 84|6abd3c07-63b1-581a-b75e-22e0cadd37ab|49|5|5|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 85|76fab3e6-ff98-5c98-827f-7f0185e5fbac|48|5|6|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 86|237df6a2-77bf-596b-9d0e-89c881486039|7|5|7|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 87|055da80a-6a68-582f-90fd-db61f153219c|38|7|1|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 88|de71550a-f185-59ee-b062-43b18d4a0e6f|39|7|2|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 89|f2ec028a-73d9-5324-bd84-b15e2fe92ebc|40|7|3|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 90|6c912c89-60a6-54ad-be3c-6727cc1ca0c6|6|7|4|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 91|a9b4b1ae-5e73-5589-9f7f-116819e374a0|36|7|5|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 92|2d9a876d-8915-53ff-8ebf-fdd98e561dee|37|7|6|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 93|d48b16ea-58b8-511d-84be-517cbf502675|7|7|7|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 94|ebd19a8f-147b-5a25-9bd0-a4ca4982d054|38|6|1|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 95|0eb71763-9c69-521b-8544-a6ec45373d9d|39|6|2|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 96|a64079e0-8458-552c-9551-12699e37d2e0|40|6|3|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 97|5afbe450-f48e-57c8-a10d-994ca904c48e|6|6|4|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 98|ddf86534-2689-580e-b179-7589ec301503|7|6|5|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 99|16273c73-615e-56f2-9095-b557ab0f6f96|38|8|1|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 100|307df663-c15b-5157-8b76-29b90009f342|39|8|2|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 101|147443c4-a3c5-5748-8b5d-1c325c131df0|40|8|3|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 102|270fd6cf-1c8c-5521-acdf-c641fa72dbeb|7|8|4|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 103|47c656bf-93d1-57ca-8715-d685276946ca|38|9|1|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 104|be23e99b-4ef8-556b-bb11-7f8d1f2dc113|39|9|2|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 105|0ca1d9aa-f419-5fc9-b11a-35156d8a01c9|40|9|3|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 106|4819ec9c-9aab-56e4-8d06-37ab624a0a6f|7|9|4|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 107|b6b42a3c-325b-552b-8526-f62fbaa9b9b7|38|11|1|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 108|007c38cd-83da-5676-ab6a-58a0568d5593|39|11|2|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 109|cc5a3299-9fce-50ae-a4ed-ac50051e40df|40|11|3|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 110|341fae50-2c16-5317-925f-2777b9a6ecf1|7|11|4|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 111|12dec575-c82b-5f91-bc4d-3230049c9af4|38|12|1|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 112|a7c191dc-0459-5fd9-8d13-dbfb824b64de|39|12|2|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 113|1f97caba-e5a2-5d0e-ba8a-b03eb148fddb|40|12|3|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 114|faf902b1-1bb3-5e78-a802-6936c8eafa67|7|12|4|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 115|7e6b8d9f-1e04-5246-9c76-16ca13a9745b|38|10|1|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 116|2df128e5-8b99-5cf4-b9b1-ce1974dd542b|39|10|2|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 117|fecce8fb-8b19-5bd5-b9e4-820daacee4f0|40|10|3|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 118|c2c99049-2787-5ed8-a0bf-8185e7565e59|6|10|4|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 119|71fac6d8-79f2-594d-a9ad-a14b0d202e1c|7|10|5|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 120|1158f6bd-ae6a-5d24-839f-4472340791f4|38|13|1|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 121|6db3c3f9-05c6-5a42-900d-b9b5ac73a6f4|39|13|2|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 122|9c4e23fa-9ac6-5559-aec9-d8a4b3dfc6e3|40|13|3|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 123|0b20577b-348d-5910-87f5-c969b8a247a9|6|13|4|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 124|77d7787e-6834-58d0-a7dd-da12f1261f4f|7|13|5|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 125|4909b4f6-a7ca-55ad-88da-3e1317f7e52d|50|14|8|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 126|386c7266-098b-5ba3-b625-dc31b6664eee|51|3|14|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 127|1616cc7f-109b-5b84-b7f7-90895d18461a|52|3|15|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+sections_questions: 128|b38f9030-d122-5b67-a8ca-3318c0a66c91|53|3|16|0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 1|1258c324-4aeb-59f2-bc1d-dff96fedc4b4|1|1|2|||5|1|Show Demographics|||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 2|a53882ed-d334-5118-8235-74c1f078e870|2|2|2|2|3|3|1|Show Patient Name||Not Patient|||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 3|5896a9c7-a353-5988-adba-d621f5bb71a7|2|2|3|3||5|1|Show Family|||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 4|9f77926e-2087-53a0-9d93-1feff40414c1|2|3|3|3||5|3|Replace the default text of the Family section|S1||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 5|29adcf91-2f24-514d-87fd-ae811ef90752|2|3|3|3||5|3|Replace the default text of the Family section|CS2||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 6|a01db0e8-4359-5d2f-8e6c-3f08171a56f6|3|6|7|5||1|1|Show Mother details|||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 7|e33117de-587a-59d9-8bd0-0f4d0bf0f3ee|3|7|11|7||1|1|Show Father details|||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 8|751fd16f-7c55-583a-8ba4-0a0ea80706b8|3|6|8|||1|1|Show Maternal Grandparents|S1||{<G1>'s\|your} maternal grandmother||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 9|2148208e-f3fb-50b2-a314-ba0fa3835561|3|6|9|||1|1|Show Maternal Grandparents|S1||{<G1>'s\|your} maternal grandfather||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 10|1a788b76-5a3b-5194-adbd-f7f9b7bd013b|3|7|12|||1|1|Show Maternal Grandparents|S1||{<G1>'s\|your} paternal grandmother||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 11|8c6a4395-f9a5-5bc4-b8c0-923d0bbf5668|3|7|13|||1|1|Show Maternal Grandparents|S1||{<G1>'s\|your} paternal grandfather||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 12|dd7bb53b-e8c1-51d5-90be-1a5c4560d06c|2|3|4|||5|3|Show Patient Name in cancer Title|CS2||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 13|502ba8fc-7f2e-5679-bda7-f188b4d8df42|3|14|4|4||3|1|Show cancers||Yes|||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 14|92ec76f6-3d12-505e-b198-6e0adc1a9d3b|3|10|3|3|11|2|2|Ask for children names||0|||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 15|8bf3b4d6-3159-5955-96b5-817a5f861b49|3|12|3|3|13|2|2|Ask for sibling names||0|||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 16|bf1ebcfc-d362-5553-baed-d3dae40c523e||16|||17|1|1|Show Bladder Number|C1||bladder cancer||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 17|dc4aa435-89fb-55b1-badd-2d80a71345f2||16|||18|1|1|Show Bladder Age|C1||bladder cancer||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 18|6e5688b1-ddd5-5f54-a94a-9b2310b010c0||19|||20|1|1|Show Breast Number|C1||breast cancer||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 19|a02c81b9-90ad-5d6c-b482-f39231b0bd7d||19|||21|1|1|Show Breast Age|C1||breast cancer||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 20|0a3751f7-99af-5ea2-9ef7-65ba4024848a||22|||23|1|1|Show Colon Number|C1||colon or rectal cancer||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 21|25a0f0a6-1fd8-59d0-8747-1c6329082b5e||22|||24|1|1|Show Colon Age|C1||colon or rectal cancer||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 22|c23eb7d2-da62-5681-a903-7ea344110b87||25|||26|1|1|Show Edometrial Number|C1||endometrial or uterine cancer||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 23|d332c641-2091-50e9-95fa-5913a5970c5e||25|||27|1|1|Show Edometrial age|C1||endometrial or uterine cancer||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 24|85436c11-703f-5a50-ad93-c6a44c652831||28|||29|1|1|Show Kidney Number|C1||kidney (renal cell) cancer||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 25|9c4c4f73-e711-508e-9945-a5f74159363f||28|||30|1|1|Show Kidney age|C1||kidney (renal cell) cancer||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 26|16d65077-7357-57dc-9351-c02f465aa719||31|||32|1|1|Show Leukemia Number|C1||leukemia||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 27|aa50b906-fcf5-5eae-8e4b-11521b30ff2f||31|||33|1|1|Show Leukemia Age|C1||leukemia||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 28|c0b59460-3438-554f-a82d-a591c802f3bd||34|||35|1|1|Show Lung Number|C1||lung||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 29|33de2500-aae7-5c2c-8cdc-25d310bab48e||34|||36|1|1|Show Lung Age|C1||lung||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 30|e35bbee4-178b-5deb-b67f-b8d3a3dedfac||37|||38|1|1|Show Lymphoma Number|C1||lymphoma||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 31|5f3c1505-9b1e-5745-b02d-4152e5929aac||37|||39|1|1|Show Lymphoma Age|C1||lymphoma||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 32|83cdd03a-e08e-5fa1-92c8-4d1995c06887||40|||41|1|1|Show Melanoma number|C1||melenoma skin cancer||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 33|a79133ea-2298-57a9-8518-78cf34a0229e||40|||42|1|1|Show Melanoma Age|C1||melenoma skin cancer||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 34|50c68617-5a98-5651-be43-2436c1c57a29||43|||44|1|1|Show non-melanoma Number|C1||non-melenoma skin cancer (basal cell or squamous cell carcinoma)||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 35|052c1fe7-bfc2-5086-a28b-de4f4b4162f9||43|||45|1|1|Show non-melanoma Age|C1||non-melenoma skin cancer (basal cell or squamous cell carcinoma)||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 36|ec772e2e-eb38-5a90-bf03-addb85d171a9||46|||47|1|1|Show Oral Number|C1||oral cavity or throat cancer||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 37|47d9de20-86d5-5bc2-915b-f55923457e77||46|||48|1|1|Show Oral Age|C1||oral cavity or throat cancer||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 38|9ed02bad-1600-5a65-9195-eadcdf6185ce||49|||50|1|1|Show Ovarian Number|C1||ovarian cancer||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 39|2d4c7446-8fbe-56de-9e06-456b1a950509||49|||51|1|1|Show Ovarian Age|C1||ovarian cancer||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 40|000941d8-dd94-5efc-aeb7-04eae9bb2000||52|||53|1|1|Show Pancreatic Number|C1||pancreatic cancer||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 41|d3f7fe2f-3065-5317-a1b4-eec0c0101e10||52|||54|1|1|Show Pancreatic Age|C1||pancreatic cancer||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 42|9842f4b1-7219-5377-a62a-44deb370bdd4||55|||56|1|1|Show Prostate Number|C1||prostate cancer||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 43|044946f8-5cad-56f5-86c5-ecfcd8e69b4d||55|||57|1|1|Show Prostate Age|C1||prostate cancer||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 44|179509b8-b5de-5833-b96d-058a7dad936d||58|||59|1|1|Show Stomach Number|C1||stomach cancer||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 45|ad83d20a-db77-5ecd-b263-4a26a0fa0412||58|||60|1|1|Show Stomach Age|C1||stomach cancer||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 46|c286cfe2-9808-51c6-8970-19e741b27ecf||61|||62|1|1|Show Testicular Number|C1||testicular cancer||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 47|c816ac85-a665-5c18-8d7b-02ce590ecfff||61|||63|1|1|Show Testicular Age|C1||testicular cancer||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 48|22f16d04-8dbc-5c0a-8ba8-743b8bf5a354||64|||65|1|1|Show Thryroid Number|C1||thyroid cancer||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 49|335ce322-a66b-5088-9ab1-55351bd59a07||64|||66|1|1|Show Thryroid age|C1||thyroid cancer||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 50|4383651c-926b-5abb-8040-9aff92c95020||67|||68|1|1|Show Other|C1||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 51|44d93c0d-652a-538e-864e-317e14369249||68|||69|5|1|Show Other Number|C1||other cancer||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 52|4347b409-b20b-5bde-a961-52ff7f1c78b4||68|||70|5|1|Show Other Age|C1||other cancer||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 53|70aac29e-8fae-5ab2-b584-ed69c4a295a4||71|||72|1|1|Show Unknown Age|C1||unknown cancer||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 54|2896a223-4bf1-535a-9a5c-a3dd5c5b0d51|2|3|7|||5|3|Replace the default text of the Family section|G1||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 55|c64f4430-f775-5863-a212-eb1e47baa7bf|2|3|7|||5|3|Replace the default text of the Family section|S1||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 56|8183e8ad-effe-5c74-b612-3c95f8e853df|7|73|7|5|79|5|1|Replace the default text of the Mother living|||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 57|626ee3b8-59ee-5d5b-b5c5-7f352adde16b|7|73|7|5|74|5|1|Replace the default text of the Mother living|||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 58|407f2594-7c57-5b06-ba49-50772af96b35|7|74|7|5|75|3|3|Replace the mother age text |S1|Alive|{<G1>'s\|your} mother||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 59|eee478e2-b4d3-5be3-8a17-fbbb2bed28d2|7|74|7|5|75|3|1|Show mother current age||Alive|||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 60|c3d5c932-8a02-59b2-88c9-e2447a5a2f0b|7|74|7|5|76|3|1|Show mother age at death||Deceased|||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 61|07a4c2f0-1274-5b85-8a5f-83d22ef18b12|7|74|7|5|75|5|3|Replace the default text of the Mother age|S1|Alive|{<G1>'s\|your} mother||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 62|2b79bf99-c376-5252-89d7-df49df85b3eb|7|74|7|5|76|5|3|Replace the age at death default text|S1|Deceased|{<G1>'s\|your} mother||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 63|6ebe0657-2dad-5651-ae9c-a425efba3aef|7|73|7|5|77|5|1|Replace the default text of mother siblings. |||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 64|d4114950-9b94-5410-b864-546fda7042b6|3|6|7|5|77|5|3|Replace the default text of mother siblings. |S1||{<G1>'s\|your} mother||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 65|722e3f76-0111-535c-8d4f-6010807da6bf|7|77|7|5|78|2|2|Ask for mother's sibling names||0|||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 66|c88de108-875d-5f3c-beed-8b94c456cdf9|7|79|7|6||3|1|Show Mother Cancers|CS2|Yes|{<G1>'s\|Your} Mother||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 67|88d3158f-fd6a-5782-8d1d-86997b155863|2|3|11|||5|3|Replace the default text of the Family section|G1||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 68|774febc9-2688-5a2c-b800-27266c8e171d|2|3|11|||5|3|Replace the default text of the Family section|S1||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 69|c640074b-cb3b-51f5-968c-dbbddef980bd|11|80|11|7|86|5|1|Replace the default text of the Father living|||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 70|ef3770cb-c522-5958-ad62-6a09c92d9c80|11|80|11|7|81|5|1|Replace the default text of the Father living|||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 71|d4ebe192-03e7-5729-8e26-ede18872f02b|11|81|11|7|82|3|3|Replace the father age text |S1|Alive|{<G1>'s\|your} father||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 72|f5f19bfe-d088-5cdd-9953-8f63c02e4028|11|81|11|7|82|3|1|Show father current age||Alive|||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 73|294a93d6-9fde-5378-876b-63e07ab8c866|11|81|11|7|83|3|1|Show father age at death||Deceased|||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 74|a5cafc61-a859-50c9-8e3a-6dbcbe94bd9b|11|81|11|7|82|5|3|Replace the default text of the father age|S1|Alive|{<G1>'s\|your} father||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 75|48ee47da-8bf2-5dcc-bc02-9157864b072e|11|81|11|7|83|5|1|Replace the father age at death default text|S1|Deceased|{<G1>'s\|your} father||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 76|dcc4b0c6-151c-5daa-aafd-c2cbd98f2a7c|11|80|11|7|84|5|1|Replace the default text of fatherher siblings. |||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 77|8f36a31f-867e-5307-8e36-e81e8c90c2e8|3|7|11|7|84|5|3|Replace the default text of father siblings. |S1||{<G1>'s\|your} father||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 78|72bb33e4-aa00-5e18-b101-a02d19923e99|11|84|11|7|85|2|2|Ask for father's sibling names||0|||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 79|29bed997-0661-5883-9b1f-32d9be9e5834|11|86|11|8||3|1|Show father cancers|CS2|Yes|{<G1>'s\|Your} Father||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 80|fbad0636-7a45-530e-831b-e2caa93ad351|2|3|6|||5|3|Replace default name of who's sibling |R1||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 81|e5db5fbc-09bc-509b-ba77-158828bf68b7|3|13|6|||5|1|Show Proband's Siblings|CS2||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 82|b43125c9-862a-524f-9593-ef548cf7034b|3|13|6|||5|1|Show Proband's Siblings|S1||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 83|f6fea4ea-1bc0-5682-8a78-787d545cc4f4|6|87|6|9|88|3|1|Show sibling current age||Alive|||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 84|3be5269f-639d-566b-ba23-561eeb942a65|6|87|6|9|89|3|1|Show sibling age at death||Deceased|||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 85|b2377508-c374-545e-96e3-056f7c22cf10|6|91|6|9|92|3|1|Show shared parent ||Half|||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 86|17af86aa-1fa0-5a85-a6a3-4785d37af6e6|6|93|6|10||3|1|Show sibling cancer||Yes|||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 87|226ffec5-297d-579b-a360-a1207694e925|2|3|5|||5|3|Show Patient Name in Child Title|G1||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 88|9bd57510-b0c8-5e20-a5c5-afca0b932ac1|3|11|5|||5|1|Show Proband's Children|CS2||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 89|07585414-63c7-5486-9cc5-4eec833a5fd5|3|11|5|||5|1|Show Proband's Children|S1||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 90|363f1118-266e-5667-8291-49c1e5ec9cc9|5|94|5|11|95|3|1|Show Child current age||Alive|||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 91|fa10ebec-e3ee-573b-8be9-8e81b5c93cc8|5|94|5|11|96|3|1|Show Child age at death||Deceased|||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 92|bb694ff9-bd28-5de9-8dac-f667bb1c4aa1|5|98|5|12||3|1|Show Child cancer||Yes|||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 93|b37ca20b-86f4-577d-b734-5f2575ff19c7|2|3|8|||5|3|Show Patient Name in Child Title|G1||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 94|d7d3eced-e6d4-5210-9d46-525775ad5987|8|99|8|13|100|3|1|Show Maternal Grandmother's current age|S1|Alive|her||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 95|c527de83-4978-596c-90b6-ede6257001ad|8|99|8|13|101|3|1|Show Maternal Grandmother's death age|S1|Deceased|her||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 96|8941bbd8-8bf8-5271-a040-7aa2e37c8932|8|102|8|14||3|1|Show Maternal Grandmother cancer|CS2|Yes|{<G1>'s\|Your} Maternal Grandmother||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 97|93be8b19-b7a8-58bb-b70c-a1bdfe5c1a9d|2|3|9|||5|3|Show Patient Name in Child Title|G1||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 98|a92ca920-ca7f-59bd-8089-0b8b07eb6881|9|103|9|15|104|3|1|Show Maternal Grandfather's current age|S1|Alive|his||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 99|d07ef51a-9852-5c9a-ade4-ec067be2ca6d|9|103|9|15|105|3|1|Show Maternal Grandfather's death age|S1|Deceased|his||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 100|524be8c4-b422-5574-81ce-bc729063a777|9|106|9|16||3|1|Show Maternal Grandfather cancer|CS2|Yes|{<G1>'s\|Your} Maternal Grandfather||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 101|98c8a11f-74a4-5682-9538-fdba56884679|2|3|12|||5|3|Show Patient Name in Child Title|G1||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 102|dc13e87e-368e-5ff2-bd97-185fccfb045e|12|107|12|17|108|3|1|Show Paternal Grandmother's current age|S1|Alive|her||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 103|a0b3db4d-172e-5c27-8098-b4ca80b74430|12|107|12|17|109|3|1|Show  Paternal Grandmother's death age|S1|Deceased|her||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 104|55ee363f-4fad-51a5-baee-641d940ed485|12|110|12|18||3|1|Show  Paternal Grandmother cancer|CS2|Yes|{<G1>'s\|Your} Paternal Grandmother||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 105|a8404da4-3409-5f90-a361-d1bf48c25c38|2|3|13|||5|3|Show Patient Name in Child Title|G1||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 106|71bf2c48-a937-5185-9a78-bdf28e60b8df|13|111|13|19|112|3|1|Show  Paternal Grandfather's current age|S1|Alive|his||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 107|f5cf42b3-a36a-5b48-92e9-be842b80ee54|13|111|13|19|113|3|1|Show  Paternal Grandfather's death age|S1|Deceased|his||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 108|c977037b-c51d-5777-a21f-513692245b5b|13|114|13|20||3|1|Show  Paternal Grandfather cancer|CS2|Yes|{<G1>'s\|Your} Paternal Grandfather||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 109|cf11ac39-a506-5604-9540-e6ed317a7e6d|7|78|10|||5|1|Show Mother's Siblings|CS2||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 110|c9416204-b3fd-5160-9101-926bb74f6419|7|78|10|||5|1|Show Mother's Siblings|S1||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 111|8267ffb1-810c-5cfb-9926-965263a39abb|7|77|10|||2|3|Replace text with mother|R1|0|{<G1>'s\|Your} Mother||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 112|779a8999-efb4-50cc-9f7f-cc5fdecaec0e|2|3|10|||5|3|Show Patient Name in Child Title|G1||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 113|1c5b513d-e598-5f99-b903-c27b18bda2a4|10|115|10|21|116|3|1|Show mother sibling current age||Alive|||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 114|cb07e819-dc79-5b1a-8f06-0efb8d5d4985|10|115|10|21|117|3|1|Show mother sibling age at death||Deceased|||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 115|6b34d274-68e5-5950-b6d0-ec910ef5313a|10|119|10|22||3|1|Show mother sibling cancer||Yes|||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 116|d71e1376-7002-5a8c-8f06-f46d49436b8d|11|85|14|||5|1|Show father's Siblings|CS2||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 117|be1bfe42-212c-5ee2-8ec2-10c9308c52a4|11|85|14|||5|1|Show father's Siblings|S1||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 118|d3859f2e-0551-5d4a-8bd9-9364898f2974|11|84|14|||2|3|Father|R1|0|{<G1>'s\|Your} Father||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 119|a14866c2-05e8-5464-a383-0e3a3d6daac9|2|3|14|||5|3|Show Patient Name in Child Title|G1||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 120|894f8cd5-474f-5ec7-9f55-fa5a31bd689b|14|120|14|23|121|3|1|Show mother sibling current age||Alive|||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 121|e3ee8c28-eda1-534c-8168-ff410f0fe387|14|120|14|23|122|3|1|Show father sibling age at death||Deceased|||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 122|9573bf08-403b-59d6-8ed6-d80a539af1f5|14|124|14|24||3|1|Show father sibling cancer||Yes|||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 123|35777e84-5f24-5329-8d40-5ae0fe9077f3||19|||125|1|1|Show Triple Negative|||||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 124|09364623-c35a-501f-adf6-f6350db687e3|3|126|3|3|127|6|1|Show other race||Other|||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 125|876ec180-4429-401f-9f8c-ff5d8eb701a7|3|6|7|5|74|5|3|Mother living: name the mother|S1||{<G1>'s\|your} mother||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 126|f36777af-a2b2-491a-ac19-622e9f6bcb15|3|6|7|5|79|5|3|Mother cancer: name the mother|S1||{<G1>'s\|your} mother||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 127|edc4c466-2687-4a2a-85e0-14036af9db27|3|7|11|7|81|5|3|Father living: name the father|S1||{<G1>'s\|your} father||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+relationships: 128|131430a7-b443-44a7-ae4f-ca845c6a86df|3|7|11|7|86|5|3|Father cancer: name the father|S1||{<G1>'s\|your} father||0|1970-01-01T00:00:00Z|9999-12-31T23:59:59Z||
+reports: 1|3b53e682-e521-509a-8d18-3a22e50401c4|Respondent|Respondent|http://host.docker.internal:8082/proband/report|0
+reports: 2|fde15f3a-57ea-5066-ac75-b55181a2a92e|Cancer Summary|Cancer Summary|http://host.docker.internal:8082/casummary/report|1
+reports: 3|854f50d7-da7d-51e4-ad52-926851b2be9e|Family Pedigree|Family Pedigree|http://host.docker.internal:8082/pedigree/report|2
+post_survey_actions: 1|9f57b644-fecd-557d-a466-07ec19bb95c4|Generate Family History Report|Automatically generates a family history PDF report and uploads it to SFTP server after survey completion|http://host.docker.internal:8082/familyhistory/generate|1
+dimensions: 1|78a10283-8197-5e18-9026-21562a9a088e|age
+dimensions: 2|c048896e-44a4-5ac5-af74-2f38507b666c|cancer
+dimensions: 3|2ffdab1a-aad9-5236-86f3-7f54a4f42ddd|multiple_cancers
+ontology: 1|68b5e24c-71f7-5cc6-be3c-f357948a8559|fhhs|Ashkenazi|
+ontology: 2|991692d5-2482-5416-9c41-d56409aa3df8|fhhs|Generation|
+ontology: 3|687d771e-e894-5b6c-bbe4-893e57d25949|fhhs|Relationship|
+ontology: 4|15663d4e-a88b-5729-b36e-abf716bd8e7e|fhhs|Gender|
+ontology: 5|8559eea8-6b9e-585f-bffa-35dba4025376|fhhs|Vital Status|
+ontology: 6|0ec90ab0-84e0-5534-b29f-2a1b0827bfee|fhhs|Age|1
+ontology: 7|856d5068-21fd-57c8-be71-8c4d91620e56|fhhs|Bladder Cancer|2
+ontology: 8|d4cc1d5e-4c52-5f10-b420-ee9934246948|fhhs|Breast Cancer|2
+ontology: 9|2d6de03c-970d-5656-ba3e-befc1b433c9e|fhhs|Stomach Cancer|2
+ontology: 10|b0db4e3e-3a3e-59b6-8ae6-7e18e1a9e8c2|fhhs|Colon or Rectal Cancer|2
+ontology: 11|ea0472ae-d283-5b3a-961f-5da4da552a14|fhhs|Endometrial or Uterine Cancer|2
+ontology: 12|bb9d30b1-a726-58f1-9c17-19fb8e88fa8a|fhhs|Kidney Renal Cell Cancer|2
+ontology: 13|a305b0f9-abdd-5329-89d5-e3bb47168334|fhhs|Leukemia|2
+ontology: 14|2622e405-5b1e-5dc8-a6ed-11aaba1abc6a|fhhs|Lung Cancer|2
+ontology: 15|25d5c4a0-2688-5106-b728-1b75cb070620|fhhs|Lymphoma|2
+ontology: 16|62757541-48c3-598f-9817-9db3e91dae2e|fhhs|Melanoma Skin Cancer|2
+ontology: 17|02c8e950-f6b1-55bc-8e51-4e8444b95678|fhhs|Nonmelanoma Skin Cancer|2
+ontology: 18|e8357db4-316b-51ec-beaa-594fd38059eb|fhhs|Oral Cavity or Throat Cancer|2
+ontology: 19|8852b016-47fd-5fd6-9850-9cc817faac00|fhhs|Ovarian Cancer|2
+ontology: 20|27a26894-87ff-5777-903a-d96ef9369201|fhhs|Pancreatic Cancer|2
+ontology: 21|a5b96e8d-d272-58d3-b713-7cf38e23203c|fhhs|Prostate Cancer|2
+ontology: 22|e1dbffbd-ec48-5131-843b-f15b58efce4f|fhhs|Testicular Cancer|2
+ontology: 23|7f0d2499-f626-511e-b23e-7f04e539ee00|fhhs|Thyroid Cancer|2
+ontology: 24|f627fed3-6da1-526f-ad08-181e5fa62258|fhhs|Other Cancer|2
+ontology: 25|71730e83-a1c1-5bd6-be0c-9dd01144c956|fhhs|Other Cancer Name|
+ontology: 26|74dbfbac-922a-51c3-a063-f73b38d875b4|fhhs|Unknown Cancer|2
+ontology: 27|e6335ef4-208a-5e93-9f03-3497388ec75d|fhhs|Bladder Cancer Age|1
+ontology: 28|d80288bc-89ca-5294-aebb-93eda59f12dc|fhhs|Breast Cancer Age|1
+ontology: 29|7dd9cddc-7239-57b3-a925-8ac1f347e11c|fhhs|Stomach Cancer Age|1
+ontology: 30|a828fc6f-573f-5e17-bd9c-ff96af27fc50|fhhs|Colon or Rectal Cancer Age|1
+ontology: 31|020e902d-4ece-5331-b37c-2c8666d8d94d|fhhs|Endometrial or Uterine Cancer Age|1
+ontology: 32|4d37d69d-35e6-539f-8b6f-f799584d5270|fhhs|Kidney Renal Cell Cancer Age|1
+ontology: 33|b19b1e5c-799c-54e7-90a2-d35dbbac8a11|fhhs|Leukemia Age|1
+ontology: 34|8c032660-1e77-51ec-ad0e-ea2da9a79c29|fhhs|Lung Cancer Age|1
+ontology: 35|3f118223-6fa9-5e97-a0e7-1d79f497fe7d|fhhs|Lymphoma Age|1
+ontology: 36|0730a391-3f0b-56aa-ad22-52418cdefe4c|fhhs|Melanoma Skin Cancer Age|1
+ontology: 37|0438d072-1cc3-5c56-8bd3-877e10befff0|fhhs|Nonmelanoma Skin Cancer Age|1
+ontology: 38|aa2f30fd-8e49-547e-b63c-4e54343dd70e|fhhs|Oral Cavity or Throat Cancer Age|1
+ontology: 39|5d90e98b-f9b8-5ec4-beff-b8e689b7b593|fhhs|Ovarian Cancer Age|1
+ontology: 40|80491359-0bfa-5dae-8880-48856e1a85a5|fhhs|Pancreatic Cancer Age|1
+ontology: 41|1cb8aa6f-6e27-554b-bed3-5a55b7dd3399|fhhs|Prostate Cancer Age|1
+ontology: 42|d0b6adce-ac3c-5556-abab-ffaafb1472d5|fhhs|Testicular Cancer Age|1
+ontology: 43|88edf4ed-8413-5b51-a059-e9a687943218|fhhs|Thyroid Cancer Age|1
+ontology: 44|0b3755aa-bbc4-54c8-8c41-7708aa967cfd|fhhs|Other Cancer Age|1
+ontology: 45|ea1ef9bf-aca4-5d34-864e-090eedbf4070|fhhs|Unknown Cancer Age|1
+ontology: 46|54d245d8-97ad-55d0-bb22-c5bc30c93508|fhhs|Shared Parent|
+ontology: 47|70778490-b9f8-5342-9b18-c8ba1a50c191|fhhs|Multiple Bladder Cancers|3
+ontology: 48|b7de82ed-9979-5675-8d0b-91c76e7dffec|fhhs|Multiple Breast Cancers|3
+ontology: 49|a5a354fa-65ba-53b4-a6ae-edf9f10a2bdb|fhhs|Multiple Stomach Cancers|3
+ontology: 50|f04b6656-ad3c-5b42-933a-17784e828e43|fhhs|Multiple Colon or Rectal Cancers|3
+ontology: 51|ea7ec70b-4fcd-5977-8923-47bb0fa32f98|fhhs|Multiple Endometrial or Uterine Cancers|3
+ontology: 52|7dfe9702-feaf-5cf7-8a72-e44e6514d95b|fhhs|Multiple Kidney Renal Cell Cancers|3
+ontology: 53|3f78c9d5-d402-5279-82c7-eeb3db36de76|fhhs|Multiple Leukemias|3
+ontology: 54|52f9ca24-9357-5de8-b8a1-9298d5b3505d|fhhs|Multiple Lung Cancers|3
+ontology: 55|8d7aeb02-01a3-5b09-a58b-4da81bfbc03f|fhhs|Multiple Lymphomas|3
+ontology: 56|bcd266cd-3782-5e3f-bf2e-b060f6230ed2|fhhs|Multiple Melanoma Skin Cancers|3
+ontology: 57|c7932029-fea9-5630-9173-ee47e3a2e4f7|fhhs|Multiple Nonmelanoma Skin Cancers|3
+ontology: 58|5b5d9e5a-3abf-57ec-be4d-35ac036ce747|fhhs|Multiple Oral Cavity or Throat Cancers|3
+ontology: 59|54b67ed4-0dd1-5d90-a1a1-7c54c671163a|fhhs|Multiple Ovarian Cancers|3
+ontology: 60|b3195473-fd71-53d9-80b0-f4f7ad5ac4a2|fhhs|Multiple Pancreatic Cancers|3
+ontology: 61|419828a6-1d3b-5a68-a2c8-dc0cf1256a06|fhhs|Multiple Prostate Cancers|3
+ontology: 62|fb35a61c-dd11-579f-ba3b-90d1f5551174|fhhs|Multiple Testicular Cancers|3
+ontology: 63|57a01c9d-030a-58c4-a604-a9fb5814d5e7|fhhs|Multiple Thyroid Cancers|3
+ontology: 64|6c277369-cadf-5b11-a135-2c13a58a2be5|fhhs|Multiple Other Cancers|3
+ontology: 65|8599369c-6001-53b3-864a-f3d8530cfac7|fhhs|Sibling Type|
+ontology: 66|60966281-a3e3-5059-85bb-300c88c6cc91|fhhs|Triple Negative Breast Cancer|
+ontology: 67|938f531b-f05d-50c8-8b65-49b7774a40bb|fhhs|Race|
+ontology: 68|06d7f467-9d95-5df1-9da4-995e0944d1bb|fhhs|LatinX|
+ontology: 69|7d744a0f-bd21-410f-afb3-d7d3aab1804c|fhhs|Cancer Status|
+ontology: 70|ff7f63e0-e24d-4107-8869-670f21c98f5a|fhhs|Filled By|
+metadata: 1|e788aa01-1fdd-5c80-b526-5f101dd68e3b|5|||2|Parent
+metadata: 2|36f86126-8691-5a5b-a4cc-433322036017|5|||3|First degree
+metadata: 3|7a9a9b61-ce8d-5930-8365-7d9d2b466b7b|5|||4|Female
+metadata: 4|0dd150f2-8e7a-5d58-ac03-7bc708f7ffea|7|||2|Parent
+metadata: 5|b27bc2dc-07ab-5d72-a75c-dadf9863b9d1|7|||3|First degree
+metadata: 6|662dbf39-f0c0-5130-8dbd-bd698289c2ca|7|||4|Male
+metadata: 8|90a3849d-f6fa-587b-a351-6aa2293c3340|11|||3|First degree
+metadata: 9|cf9b6ac3-010c-5cf0-b44b-b5a5ebfd7d00|9|||2|Proband generation
+metadata: 10|1d9b587c-4b44-5114-ab5c-2a6a4fb41204|9|||3|First degree
+metadata: 11|ca647f3b-3b62-5a08-add5-c3e7ad86c232|3|||2|Proband generation
+metadata: 12|5eee857e-66ce-54f0-a83f-dadf4e454cc1|3|||3|Proband
+metadata: 13|6d78182a-7427-5875-8f51-0365dfd4cee5|3|||5|Alive
+metadata: 14|c0b9c9d3-89cd-56ed-85c5-05fd00ae4251|13|||2|Grandparent
+metadata: 15|61301259-e418-5f1d-86ef-b2d54158a9a9|13|||3|Second degree
+metadata: 16|b8f70fcf-ae1f-5aba-958b-af519e64f897|13|||4|Female
+metadata: 17|8620e0a9-e73d-5af0-9773-59a0d5c0a700|15|||2|Grandparent
+metadata: 18|f0270abe-c4f4-5232-b185-2d4c23ade962|15|||3|Second degree
+metadata: 19|240e8f3f-923b-5a18-8848-11af15bf98fb|15|||4|Male
+metadata: 20|3dc0a49f-f9ab-586b-8c35-f2a0f55aa1a8|17|||2|Grandparent
+metadata: 21|0dab755e-9774-57d8-a369-f7df913109ec|17|||3|Second degree
+metadata: 22|8044c810-c092-56be-bd93-e51251407013|17|||4|Female
+metadata: 23|20c58041-9c56-53af-88e0-10abf882b5e8|19|||2|Grandparent
+metadata: 24|c3b28fa5-a8c5-57ef-908b-00908a0a0d71|19|||3|Second degree
+metadata: 25|f945e03f-6c06-56c5-b758-6f55d011e6a9|19|||4|Male
+metadata: 26|37374696-6a61-599b-aa25-5085bd4396ee|21|||2|Parent
+metadata: 27|7d661025-f6ac-5b53-8458-a00dffd23f23|21|||3|Second degree
+metadata: 28|a4e9cc09-d8eb-563a-83ab-62172422dcdb|23|||2|Parent
+metadata: 29|8fc0ce0f-ce6d-5c7c-9a00-616ead313b85|23|||3|Second degree
+metadata: 30|b3f6c799-7fdb-551d-b20f-f2be1a39eaf3||5||1|
+metadata: 31|29a7f454-c4f2-5475-aa4a-fce05e01ab33||6||4|
+metadata: 32|fb8c468b-82cd-5172-9590-7d806af5b2d7||38||5|
+metadata: 33|48fff6ce-c38d-5612-ad5f-2cef22fd5f7e||4||6|
+metadata: 34|c77644ab-897b-5b36-8f9b-319167e39efd||4||5|Alive
+metadata: 35|405cb945-4e43-5af8-9036-cfa8000008ec||39||6|
+metadata: 36|5dab384f-7ad0-5513-8ade-722ad07a0f2a||40||6|
+metadata: 37|da4fce44-f0c6-5e1a-9443-617be19a7fbf||40||5|Deceased
+metadata: 38|10f55e7e-3cca-5d40-9bb6-841b48a705d7||9||7|
+metadata: 39|b1be8f02-9199-511e-a228-07efb62563d1|||17|47|
+metadata: 40|13606da9-c40a-594a-9c73-9b7983e8eb3e|||18|27|
+metadata: 41|ce8158ac-b740-5aa5-a85b-f3d09eb57097||10||8|
+metadata: 42|8d465280-e154-5822-a64c-882f05efef40|||20|48|
+metadata: 43|fb664f09-6c13-5ba7-9d95-5dcfabcbeca4|||21|28|
+metadata: 44|2d29c9a1-c41a-5721-9698-0d88b8a453bb||11||10|
+metadata: 45|def3d2ba-c2d3-5ae9-834c-a0bf7cadd281|||23|50|
+metadata: 46|dd67f70f-e09c-53ab-a06b-32b69fe82d99|||24|30|
+metadata: 47|c41513f9-5924-5c9b-8d3c-564ecf98231d||12||11|
+metadata: 48|ccc97daa-3d9f-561e-954e-2bd44f5a99ea|||26|51|
+metadata: 49|02b56a7b-1b04-52f1-a747-c4b007d5b071|||27|31|
+metadata: 50|65b85911-0708-5fd9-8d46-4c3767689f67||13||12|
+metadata: 51|860f61bb-90a0-5655-9b05-227096a56956|||29|52|
+metadata: 52|d8bd4f67-bacb-54ec-8035-ee17a2e0c0ae|||30|32|
+metadata: 53|db540bc0-3836-5f8a-9248-68b1f99ff22a||14||13|
+metadata: 54|d3f1f39b-a728-5434-878d-db42941842eb|||32|53|
+metadata: 55|3d2926b0-ae32-5dbe-8557-3da838066d9b|||33|33|
+metadata: 56|49477a34-1523-5bc5-9c69-99231b45acc3||15||14|
+metadata: 57|cd6f6971-c537-539b-b769-2679542cab68|||35|54|
+metadata: 58|0c690fe7-bbe9-5a0c-abad-d5adc2040150|||36|34|
+metadata: 59|634a6e5d-bf4d-500c-a0c7-36e69dfb8755||16||15|
+metadata: 60|973c9f64-6f87-511e-ad89-9afe15f41143|||38|55|
+metadata: 61|fa377a9f-43a3-54fa-af25-774c1ca35783|||39|35|
+metadata: 62|4891976d-f4c8-5964-81e7-d6ed425c3de3||17||16|
+metadata: 63|6ebe4c48-8f3a-5b30-81e7-646448b4befb|||41|56|
+metadata: 64|7fef0a12-07b6-58b3-9571-27b6077a32b1|||42|36|
+metadata: 65|4d6067ef-6a93-5f35-84c0-0113604bf993||18||17|
+metadata: 66|35199aa2-6cc5-5fc5-8fe1-1e65b9f2bab2|||44|57|
+metadata: 67|5fd49dad-4602-55ab-858d-d989338fc9a6|||45|37|
+metadata: 68|ce002db7-b14c-563e-b017-980bb4effbc9||19||18|
+metadata: 69|548da1ac-2369-549e-b4ef-59be453b9e71|||47|58|
+metadata: 70|2dcdf64b-1b3f-554f-9e4e-fb3f34508738|||48|38|
+metadata: 71|8ed2a4a9-024f-56fe-9f4c-32ef35e59407||20||19|
+metadata: 72|f1c3916a-d6ff-5592-8c19-58fa74e952b0|||50|59|
+metadata: 73|938f1a02-dfcd-5faa-b206-b4d966d62c34|||51|39|
+metadata: 74|b1af47d7-e112-56b0-a31b-a939c710e41b||21||20|
+metadata: 75|446abfbc-575f-58ee-89b9-0f67815b783d|||53|60|
+metadata: 76|3795be02-be76-55f9-b3cb-6753ec609586|||54|40|
+metadata: 77|cd9e73e6-6add-5881-bc9b-0ce9cf00569d||22||21|
+metadata: 78|43a11b15-eeaa-536b-8dbb-cfeaefc341b3|||56|61|
+metadata: 79|ad574ecc-7268-5ca6-b6a6-e03ff2808eb6|||57|41|
+metadata: 80|aa9371a2-2df7-5ac1-96ad-b9614ce197af||23||9|
+metadata: 81|3963c3a0-8f0c-5637-b9d8-bf008dd2cb30|||59|49|
+metadata: 82|c367b8cc-97fc-5331-8212-109b36eaaedf|||60|29|
+metadata: 83|bb779f19-b9d9-5ce6-a3c5-f27ed3a8a9b9||24||22|
+metadata: 84|483ca25c-7b3d-5b10-8b96-268adbcceffe|||62|62|
+metadata: 85|5c8f019e-c4b7-5e30-ad9e-1f6f7e2aacbf|||63|42|
+metadata: 86|e6dfb291-caa7-5ede-b1d8-bcac10c96059||25||23|
+metadata: 87|6d4620b8-1539-545e-a80f-653846c2415d|||65|63|
+metadata: 88|be43bafb-b1ef-52b4-be6a-4f671bb60aea|||66|43|
+metadata: 89|eee35b15-615e-5d81-9c7a-e7bbf5d1640d||26||24|
+metadata: 90|ef5682c3-8467-53ab-bb23-6a3341960299|||68|25|
+metadata: 91|315d5070-87ef-58f2-8dd5-60164f58d2a6|||69|64|
+metadata: 92|254d0761-56bf-5992-9f92-621163290e62|||70|44|
+metadata: 93|03d76bd2-7c8f-54f5-9442-05ce0d53eb80||27||26|
+metadata: 94|d116cd93-c662-57e4-ad19-cdec02f7052d|||72|45|
+metadata: 95|cd2cc29c-e11d-5be4-a5be-d3d9493aa84e|||92|46|
+metadata: 96|bb683a17-2dc4-5e8a-8936-21a4367086bc|||91|65|
+metadata: 97|7a7c2d8b-e437-57ba-8a68-587d88f72e3f|||125|66|
+metadata: 98|1db8b1f6-52db-54a9-9c31-df87f0a5468e||51||67|
+metadata: 99|4e6e267c-4087-5c50-8516-b4ad97eb5ef0||53||68|
+metadata: 100|fd21ec92-ab11-40f2-9689-c91afc2807cf|11|||2|Child
+metadata: 101|6a983449-6c85-4ae8-8bb7-150663eeff6f||7||69|
+metadata: 102|cca228ba-24f1-4d32-abb8-436ef3109841||2||70|

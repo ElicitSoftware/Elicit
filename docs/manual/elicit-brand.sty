@@ -1,0 +1,648 @@
+%% elicit-brand.sty — the Elicit default brand, as LaTeX.
+%%
+%% Umbrella copy. It is the design every Elicit manual is typeset in (umbrella C-003: they
+%% read as one set), so a change here restyles the installation manual, Admin's manual and
+%% Author's two. Build all four after editing it (./buildManuals.sh), and look at
+%% specimen.tex, which exercises every element below on a few pages.
+%%
+%% What it provides:
+%%
+%%   * \elicitTitlePage — the cover: the white mark on an Ink band, the title, and the
+%%     version and build stamp (UC-002 BR-002). \elicitAccent tells the four covers apart.
+%%   * \elicitContents — the contents page; \elicitpart — a part divider listing its chapters,
+%%     and an edge tab that marks the part on every page of it.
+%%   * chapters (\section) that open a page, with a hanging number and a running head.
+%%   * call-outs with an icon each (elicitnote, elicitcaution, elicitsecurity), so the three
+%%     are told apart in a grey-scale print too.
+%%   * the elicitcmd / elicitsql / elicitfile blocks, which introduce no ligatures and no
+%%     smart quotes, so a command copied out of the PDF runs as printed (umbrella NFR-007).
+%%   * the settings and plain tables, for the configuration reference (FR-016, FR-017, FR-019).
+%%   * \screenshot — a captured screen with rounded corners and a shadow, and the numbered
+%%     step markers the capture scripts place on it.
+%%   * the TikZ diagram styles (elicitdiagram, NFR-013) and \elicitProduct for the footer.
+%%
+%% UC-002 BR-004: the manual is typeset in the Elicit default brand regardless of which brand
+%% a deployment mounts, so one document serves every site. Every \definecolor below is a color
+%% of elicit-brand/colors/brand-colors.css with the same value, which checkBrand.sh holds it
+%% to; every other shade in this file is a mix of them (elicitInk!8), never a new color. The
+%% typefaces are the IBM Plex families brand-typography.css asks for.
+
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{elicit-brand}[2026/11/16 Elicit default brand]
+
+%% url must see these options before anything else loads it: without them a literal set with
+%% \val, \opt or \file loses its spaces, and `openssl rand -hex 32' prints as one word.
+\RequirePackage[obeyspaces, spaces]{url}
+\RequirePackage[table]{xcolor}
+\RequirePackage{fontspec}
+\RequirePackage{graphicx}
+\RequirePackage{fancyhdr}
+\RequirePackage{titlesec}
+\RequirePackage{titletoc}
+\RequirePackage{tcolorbox}
+\tcbuselibrary{skins, breakable}
+\RequirePackage{enumitem}
+\RequirePackage{caption}
+\RequirePackage{float}
+\RequirePackage{longtable}
+\RequirePackage{booktabs}
+\RequirePackage{array}
+\RequirePackage{fancyvrb}
+\RequirePackage{etoolbox}
+\RequirePackage{accsupp}
+\RequirePackage{luacolor}
+\RequirePackage{lua-ul}
+\RequirePackage{tikz}
+\usetikzlibrary{positioning, arrows.meta, calc, fit, backgrounds, shapes.geometric,
+  shadows.blur, svg.path}
+
+%% ---------------------------------------------------------------- product
+%% The document sets these before \begin{document}; the footer and the cover read them.
+\providecommand{\elicitProduct}{Elicit}
+
+%% ---------------------------------------------------------------- colours
+\definecolor{elicitInk}{HTML}{0A3D62}
+\definecolor{elicitInkDark}{HTML}{072E4A}
+\definecolor{elicitInkDarkest}{HTML}{041A2B}
+\definecolor{elicitVerdigris}{HTML}{22775D}
+\definecolor{elicitVerdigrisLight}{HTML}{5CBBA4}
+\definecolor{elicitVerdigrisPale}{HTML}{E3F3EE}
+\definecolor{elicitPaper}{HTML}{FDFCFA}
+\definecolor{elicitLedger}{HTML}{E8E4DC}
+\definecolor{elicitLedgerLight}{HTML}{F0EDE6}
+\definecolor{elicitSlate}{HTML}{4A5A6A}
+\definecolor{elicitCharcoal}{HTML}{1A2229}
+\definecolor{elicitAmber}{HTML}{D9A02C}
+\definecolor{elicitAmberText}{HTML}{8C6A1D}
+\definecolor{elicitBrick}{HTML}{BB251B}
+
+%% Each manual's own accent: the stripe under its cover band and its part tabs, so the four
+%% covers differ on a shelf. A manual sets it with \renewcommand before \begin{document}.
+\colorlet{elicitAccentColor}{elicitVerdigris}
+\newcommand{\elicitAccent}[1]{\colorlet{elicitAccentColor}{#1}}
+
+\pagecolor{elicitPaper}
+\color{elicitCharcoal}
+
+%% ---------------------------------------------------------------- typefaces
+%% IBM Plex ships with TeX Live as plex-otf. The manual is typeset in it (NFR-003); a TeX
+%% installation without it stops the build here rather than quietly producing a manual in
+%% another typeface.
+\IfFontExistsTF{IBMPlexSans}{%
+  \setmainfont{IBMPlexSans}[
+    UprightFont = *-Regular,
+    ItalicFont = *-Italic,
+    BoldFont = *-SemiBold,
+    BoldItalicFont = *-SemiBoldItalic,
+  ]%
+  \setsansfont{IBMPlexSans}[UprightFont = *-Regular, BoldFont = *-SemiBold]%
+  \newfontfamily\elicitLight{IBMPlexSans}[UprightFont = *-Light, ItalicFont = *-LightItalic,
+    BoldFont = *-SemiBold, BoldItalicFont = *-SemiBoldItalic]%
+}{%
+  \PackageError{elicit-brand}{IBM Plex Sans is not installed}{The manuals are typeset in IBM
+    Plex (NFR-003). Build them with their build-manual.sh, whose TeX Live image carries it.}%
+}
+\IfFontExistsTF{IBMPlexMono}{%
+  %% Ligatures=NoCommon, so that a setting name or a command keeps every character it was
+  %% written with (NFR-007).
+  \setmonofont{IBMPlexMono}[
+    UprightFont = *-Regular,
+    BoldFont = *-SemiBold,
+    Scale = 0.92,
+    Ligatures = NoCommon,
+  ]%
+}{%
+  \PackageError{elicit-brand}{IBM Plex Mono is not installed}{See IBM Plex Sans above.}%
+}
+
+%% ---------------------------------------------------------------- build stamp
+%% UC-002 BR-002/BR-003: the version and build date appear on the title page and in every
+%% footer. A build that supplies neither leaves both as "unknown" rather than omitting them.
+\IfFileExists{build-info.tex}{\input{build-info.tex}}{}
+\providecommand{\elicitVersion}{unknown}
+\providecommand{\elicitBuildDate}{unknown}
+
+%% ---------------------------------------------------------------- invisible to a copy
+%% \elicitdecor{...} — a label, an icon or a step marker drawn on the page that must not come
+%% along when a reader copies the text around it (NFR-007): it is marked as having no text.
+\newcommand{\elicitdecor}[1]{\BeginAccSupp{method = plain, ActualText = {}}#1\EndAccSupp{}}
+
+%% ---------------------------------------------------------------- the mark
+%% \elicitMark{height}{rows}{selected row} — the Choice E mark, drawn from
+%% elicit-brand/images/source/mark.svg so it is vector at any size and needs no image file.
+\newcommand{\elicitMark}[3]{%
+  \begin{tikzpicture}[x = 1pt, y = -1pt, line cap = round]
+    \pgfmathsetmacro{\elicit@k}{(#1)/256pt}%
+    \begin{scope}[scale = \elicit@k]
+      \elicit@markrows{#2}{#3}%
+    \end{scope}
+  \end{tikzpicture}%
+}
+%% The three rows of the mark in the SVG's own units; the caller scales them.
+\newcommand{\elicit@markrows}[2]{%
+  \pgfmathsetlengthmacro{\elicit@u}{\elicit@k*1pt}%
+  \path (0, 0) (256, 256);
+  \draw[#1, line width = 12*\elicit@u] (58, 62) circle [radius = 20];
+  \draw[#1, line width = 28*\elicit@u] (104, 62) -- (214, 62);
+  \fill[#2] (58, 128) circle [radius = 26];
+  \draw[#2, line width = 28*\elicit@u] (104, 128) -- (180, 128);
+  \draw[#1, line width = 12*\elicit@u] (58, 194) circle [radius = 20];
+  \draw[#1, line width = 28*\elicit@u] (104, 194) -- (214, 194);
+}
+
+%% \elicitLogo{width}{mark and word}{selected row and "software"} — the horizontal logo, from
+%% elicit-brand/images/source/horizontal.svg (viewBox 494 x 146).
+\newcommand{\elicitLogo}[3]{%
+  \begin{tikzpicture}[x = 1pt, y = -1pt, line cap = round]
+    \pgfmathsetmacro{\elicit@scale}{(#1)/494pt}%
+    \begin{scope}[scale = \elicit@scale]
+      \path (0, 0) (494, 146);
+      \begin{scope}[shift = {(-3.78, -6.25)}, scale = 0.6182]
+        \pgfmathsetmacro{\elicit@k}{\elicit@scale*0.6182}%
+        \elicit@markrows{#2}{#3}%
+      \end{scope}
+      %% svg paths ignore the x and y vectors, so they are flipped here instead.
+      \begin{scope}[yscale = -1]
+        \fill[#2] svg {M174.55 83.01V16H220.15V28.96H189.14V42.69H215.73V55.55H189.14V70.05H220.15V83.01ZM232.82 83.01V16H247.41V70.05H272.95V83.01ZM281.11 83.01V71.39H289.75V27.62H281.11V16H312.98V27.62H304.34V71.39H312.98V83.01ZM352.25 84.16Q345.43 84.16 339.96 82Q334.49 79.840 330.65 75.57Q326.81 71.3 324.69 64.91Q322.58 58.53 322.58 49.98Q322.58 41.54 324.69 34.96Q326.81 28.38 330.65 23.92Q334.49 19.46 339.96 17.15Q345.43 14.85 352.25 14.85Q361.56 14.85 367.61 18.64Q373.65 22.43 377.3 30.59L364.73 37.12Q363.38 32.9 360.55 30.35Q357.72 27.81 352.25 27.81Q345.81 27.81 341.93 31.98Q338.04 36.16 338.04 44.13V54.88Q338.04 62.85 341.93 67.02Q345.81 71.2 352.25 71.2Q357.62 71.2 360.84 68.27Q364.05 65.34 365.59 61.22L377.49 68.13Q373.75 75.81 367.65 79.98Q361.56 84.16 352.25 84.16ZM385.08 83.01V71.39H393.72V27.62H385.08V16H416.95V27.62H408.31V71.39H416.95V83.01ZM457.08 28.96V83.01H442.49V28.96H424.34V16H475.22V28.96Z};
+        \fill[#3] svg {M182.12 130.15Q179.06 130.15 176.94 129.06Q174.81 127.97 173.28 126.2L176.31 123.28Q177.53 124.71 179.05 125.46Q180.56 126.2 182.4 126.2Q184.47 126.2 185.52 125.3Q186.58 124.4 186.58 122.87Q186.58 121.68 185.9 120.93Q185.22 120.19 183.35 119.85L181.1 119.51Q174 118.38 174 112.6Q174 111.01 174.59 109.71Q175.19 108.42 176.31 107.5Q177.43 106.59 179.01 106.09Q180.59 105.6 182.6 105.6Q185.29 105.6 187.29 106.48Q189.3 107.37 190.73 109.1L187.67 111.99Q186.78 110.9 185.52 110.22Q184.27 109.54 182.36 109.54Q180.42 109.54 179.45 110.28Q178.49 111.01 178.49 112.33Q178.49 113.69 179.27 114.34Q180.05 114.98 181.78 115.29L183.99 115.7Q187.6 116.34 189.31 117.99Q191.03 119.64 191.03 122.6Q191.03 124.3 190.44 125.68Q189.84 127.05 188.7 128.06Q187.56 129.06 185.91 129.6Q184.27 130.15 182.12 130.15ZM233.9 106.01V120.59Q233.9 123.38 234.97 124.78Q236.05 126.17 238.6 126.17Q241.15 126.17 242.22 124.78Q243.29 123.38 243.29 120.59V106.01H247.71V120.02Q247.71 122.63 247.21 124.54Q246.72 126.44 245.63 127.7Q244.55 128.96 242.79 129.55Q241.04 130.15 238.56 130.15Q236.05 130.15 234.33 129.55Q232.61 128.96 231.52 127.7Q230.44 126.44 229.96 124.54Q229.48 122.63 229.48 120.02V106.01ZM291.73 129.74H287.25V106.01H297.96Q299.59 106.01 300.88 106.52Q302.17 107.03 303.07 108Q303.97 108.97 304.47 110.33Q304.96 111.69 304.96 113.35Q304.96 115.8 303.86 117.57Q302.75 119.34 300.54 120.08L305.4 129.74H300.4L295.98 120.59H291.73ZM297.51 116.82Q298.81 116.82 299.55 116.12Q300.3 115.43 300.3 114.13V112.57Q300.3 111.28 299.55 110.6Q298.81 109.92 297.51 109.92H291.73V116.82ZM349.46 129.74L341.71 106.01H346.3L349.94 117.57L352.05 125.46H352.15L354.22 117.57L357.86 106.01H362.32L354.56 129.74ZM399.78 129.74V106.01H415.42V109.99H404.27V115.73H414.13V119.71H404.27V125.76H415.42V129.74ZM459.99 129.74V120.42L451.87 106.01H456.9L462.37 116.04H462.44L467.78 106.01H472.67L464.51 120.39V129.74Z};
+      \end{scope}
+    \end{scope}
+  \end{tikzpicture}%
+}
+
+%% ---------------------------------------------------------------- the cover
+%% \elicitTitlePage{title}{subtitle}{what it covers}{who it is for / where it comes from}
+%% The upper part of the page is an Ink band carrying the white mark, the title and the
+%% subtitle; a stripe in the manual's accent closes it. Below: what the manual covers, the
+%% version and build stamp, and the provenance note at the foot.
+\newcommand{\elicitTitlePage}[4]{%
+  %% The cover is numbered apart (a), so its page anchor is never the same as page 1's.
+  \pagenumbering{alph}%
+  \begin{titlepage}
+  \thispagestyle{empty}%
+  \begin{tikzpicture}[remember picture, overlay]
+    \coordinate (band) at ([yshift = -0.46\paperheight]current page.north west);
+    \fill[elicitInk] (current page.north west) rectangle ([xshift = \paperwidth]band);
+    \fill[elicitAccentColor] (band) rectangle ([xshift = \paperwidth, yshift = -5mm]band);
+    \node[anchor = north west, inner sep = 0pt] at ([xshift = 25mm, yshift = -26mm]current page.north west)
+      {\elicitdecor{\elicitLogo{62mm}{white}{elicitVerdigrisLight}}};
+    \node[anchor = south west, inner sep = 0pt, text width = \paperwidth - 50mm, align = left]
+      at ([xshift = 25mm, yshift = 20mm]band)
+      {{\color{white}\fontsize{34}{40}\selectfont\bfseries\spaceskip = 0.34em plus 0.1em minus 0.05em #1\par}%
+       \vspace{9pt}%
+       {\color{elicitLedger}\Large #2\par}};
+    \node[anchor = north west, inner sep = 0pt, text width = \paperwidth - 50mm, align = left]
+      at ([xshift = 25mm, yshift = -22mm]band)
+      {{\footnotesize\color{elicitSlate}\addfontfeature{LetterSpace = 12}COVERS\par}%
+       \vspace{4pt}%
+       {\color{elicitInk}\Large #3\par}};
+    \node[anchor = north west, inner sep = 0pt] (stamp) at ([xshift = 25mm, yshift = -52mm]band)
+      {\begin{tabular}{@{}l@{\hspace{14mm}}l@{}}
+         {\footnotesize\color{elicitSlate}\addfontfeature{LetterSpace = 12}VERSION} &
+         {\footnotesize\color{elicitSlate}\addfontfeature{LetterSpace = 12}BUILT} \\[2pt]
+         {\large\bfseries\color{elicitCharcoal}\elicitVersion} &
+         {\large\bfseries\color{elicitCharcoal}\elicitBuildDate}
+       \end{tabular}};
+    \draw[elicitAccentColor, line width = 2pt] ([xshift = -6pt]stamp.north west) -- ([xshift = -6pt]stamp.south west);
+    \draw[elicitLedger, line width = 0.6pt]
+      ([xshift = 25mm, yshift = 34mm]current page.south west) -- ([xshift = -25mm, yshift = 34mm]current page.south east);
+    \node[anchor = north west, inner sep = 0pt, text width = \paperwidth - 50mm, align = left]
+      at ([xshift = 25mm, yshift = 30mm]current page.south west)
+      {\small\color{elicitSlate}#4\par};
+  \end{tikzpicture}%
+  \end{titlepage}%
+}
+
+%% ---------------------------------------------------------------- page furniture
+\setlength{\headheight}{16pt}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+\renewcommand{\headrule}{{\color{elicitLedger}\hrule height \headrulewidth width \headwidth \vskip -\headrulewidth}}
+
+%% The edge tab: a block of the accent at the outer edge of every page in a part, one step
+%% further down for each part, so the parts show on the edge of a closed printed copy.
+\newcommand{\elicit@edgetab}{%
+  \ifnum\value{part}>0
+    \begin{tikzpicture}[remember picture, overlay]
+      \fill[elicitAccentColor] ([yshift = -38mm - (\value{part} - 1) * 30mm]current page.north east)
+        rectangle ++(-7mm, -26mm);
+      \node[text = white, font = \footnotesize\bfseries\sffamily, rotate = -90]
+        at ([xshift = -3.5mm, yshift = -51mm - (\value{part} - 1) * 30mm]current page.north east)
+        {\elicitdecor{\Roman{part}}};
+    \end{tikzpicture}%
+  \fi
+}
+
+\newcommand{\elicit@foot}{\footnotesize\color{elicitSlate}\elicitProduct\ \elicitVersion\ \textperiodcentered\ built \elicitBuildDate}
+
+\fancypagestyle{elicit}{%
+  \fancyhf{}%
+  \fancyhead[L]{\footnotesize\color{elicitSlate}\leftmark}%
+  \fancyhead[R]{\footnotesize\color{elicitSlate}\elicitProduct\elicit@edgetab}%
+  \fancyfoot[L]{\elicit@foot}%
+  \fancyfoot[R]{\footnotesize\bfseries\color{elicitInk}\thepage}%
+}
+\pagestyle{elicit}
+
+\fancypagestyle{plain}{%
+  \fancyhf{}%
+  \fancyhead[R]{\elicit@edgetab}%
+  \fancyfoot[L]{\elicit@foot}%
+  \fancyfoot[R]{\footnotesize\bfseries\color{elicitInk}\thepage}%
+  \renewcommand{\headrulewidth}{0pt}%
+}
+
+%% ---------------------------------------------------------------- headings
+%% A chapter opens a page: its number large in the accent, the title beneath, and a short
+%% rule. The number is drawn in a light weight so it reads as a landmark, not as a word.
+\titleformat{\section}[display]
+  {\normalfont\color{elicitInk}}
+  {\elicitLight\fontsize{44}{44}\selectfont\color{elicitVerdigris}\thesection}
+  {4pt}
+  {\LARGE\bfseries}
+  [\vspace{6pt}{\color{elicitVerdigris}\rule{28mm}{2pt}}]
+\titleformat{\subsection}
+  {\normalfont\large\bfseries\color{elicitInkDark}}{\textcolor{elicitVerdigris}{\thesubsection}}{0.7em}{}
+\titleformat{\subsubsection}
+  {\normalfont\normalsize\bfseries\color{elicitSlate}}{}{0em}{}
+\titlespacing*{\section}{0pt}{0pt}{1.4\baselineskip}
+\titlespacing*{\subsection}{0pt}{1.3\baselineskip}{0.5\baselineskip}
+\titlespacing*{\subsubsection}{0pt}{1.0\baselineskip}{0.3\baselineskip}
+\pretocmd{\section}{\clearpage}{}{}
+
+%% The running head is the current chapter, number and title, set by every \section, so a
+%% manual need not \markboth each chapter by hand.
+\renewcommand{\sectionmark}[1]{\markboth{\ifnum\value{section}>0 \thesection\enspace\textperiodcentered\enspace\fi#1}{}}
+
+%% \elicitpart{Title}{What the part covers} — a part divider on a page of its own: a large
+%% faded part number, the title, a short paragraph saying what the part is for, and the list
+%% of its chapters. Chapter numbering runs on across parts, so a cross-reference never needs
+%% the part to be found.
+\newcommand{\elicitpart}[2]{%
+  \clearpage
+  \refstepcounter{part}%
+  \ifdefined\phantomsection\phantomsection\fi
+  \addcontentsline{toc}{part}{\protect\numberline{\Roman{part}}#1}%
+  \markboth{#1}{}%
+  \thispagestyle{plain}%
+  \begin{tikzpicture}[remember picture, overlay]
+    \node[anchor = north east, inner sep = 0pt, text = elicitInk!7]
+      at ([xshift = -18mm, yshift = -30mm]current page.north east)
+      {\elicitdecor{\elicitLight\fontsize{200}{200}\selectfont\Roman{part}}};
+  \end{tikzpicture}%
+  \vspace*{0.24\textheight}%
+  {\normalsize\color{elicitVerdigris}\bfseries\addfontfeature{LetterSpace = 14}PART \Roman{part}\par}%
+  \vspace{6pt}%
+  {\color{elicitInk}\fontsize{32}{38}\selectfont\bfseries #1\par}%
+  \vspace{10pt}%
+  {\color{elicitVerdigris}\rule{28mm}{2pt}\par}%
+  \vspace{14pt}%
+  {\large\color{elicitSlate}#2\par}%
+  \vspace{22pt}%
+  \startcontents[parts]%
+  \printcontents[parts]{p}{1}[1]{}%
+  \clearpage
+}
+
+%% The chapter list on a part divider.
+\titlecontents{psection}[0pt]
+  {\addvspace{3pt}\normalsize}
+  {\makebox[2.2em][l]{\color{elicitVerdigris}\bfseries\thecontentslabel}}{}
+  {\color{elicitLedger}\titlerule*[0.6em]{.}\color{elicitSlate}\contentspage}
+
+%% ---------------------------------------------------------------- contents
+%% Parts as headed rows, chapters with their number in the accent, sections indented with
+%% leaders. \elicitContents typesets the heading and the list.
+\titlecontents{part}[0pt]
+  {\addvspace{14pt}\color{elicitInk}\bfseries\large}
+  {\makebox[2.2em][l]{\color{elicitVerdigris}\thecontentslabel}}{}
+  {\hfill\contentspage}
+  [\vspace{2pt}{\color{elicitLedger}\titlerule[0.6pt]}\vspace{2pt}]
+\titlecontents{section}[2.2em]
+  {\addvspace{4pt}\bfseries\color{elicitCharcoal}}
+  {\contentslabel[\color{elicitVerdigris}\thecontentslabel]{2.2em}}{}
+  {\hfill\color{elicitInk}\contentspage}
+\titlecontents{subsection}[4.9em]
+  {\small\color{elicitSlate}}
+  {\contentslabel{2.7em}}{}
+  {\color{elicitLedger}\titlerule*[0.6em]{.}\color{elicitSlate}\contentspage}
+
+\newcommand{\elicitContents}{%
+  {\color{elicitInk}\fontsize{26}{30}\selectfont\bfseries Contents\par}%
+  \vspace{6pt}%
+  {\color{elicitVerdigris}\rule{28mm}{2pt}\par}%
+  \vspace{10pt}%
+  \begingroup
+  \ifdefined\hypersetup\hypersetup{linkcolor = elicitCharcoal}\fi
+  \@starttoc{toc}%
+  \endgroup
+}
+
+%% ---------------------------------------------------------------- figures
+\captionsetup{
+  font = {small, color = elicitSlate},
+  labelfont = {bf, color = elicitInkDark},
+  labelsep = period,
+  skip = 10pt,
+}
+
+%% \screenshot[marks]{file}{caption} — a captured screen: rounded corners, a hairline and a
+%% soft shadow lift it off the page without pretending to be any particular browser. It is
+%% never taller than about two thirds of the page.
+%%
+%% Numbered markers: the capture script writes images/<file>.markers.tex for a figure a
+%% procedure points into, one \elicitmark{n}{x}{y} per marker, x and y the fraction of the
+%% image's width and height (from the top) where the control is. \screenshot reads it when it
+%% exists, so a recapture moves the markers with the screen. The optional argument takes the
+%% same \elicitmark lines, for a figure no script captures. The text names a marker with
+%% \elicitstep{n}, which draws the same disc.
+\newsavebox{\elicit@shot}
+\newlength{\elicit@shotw}
+\newlength{\elicit@shoth}
+\newcommand{\elicit@markdisc}[2]{%
+  \node[circle, fill = elicitVerdigris, draw = white, line width = 1.2pt, text = white,
+    inner sep = 0pt, minimum size = 1.55em, font = \footnotesize\bfseries\sffamily,
+    blur shadow = {shadow blur steps = 4, shadow xshift = 0.3pt, shadow yshift = -0.5pt,
+      shadow opacity = 35}] at (#2) {\elicitdecor{#1}};%
+}
+\newcommand{\screenshot}[3][]{%
+  \begin{figure}[H]
+    \centering
+    \sbox{\elicit@shot}{\includegraphics[width = \dimexpr\linewidth - 4pt\relax, height = 0.64\textheight,
+      keepaspectratio]{images/#2}}%
+    \setlength{\elicit@shotw}{\wd\elicit@shot}%
+    \setlength{\elicit@shoth}{\ht\elicit@shot}%
+    \begin{tikzpicture}
+      \fill[white, rounded corners = 3pt, blur shadow = {shadow blur steps = 8,
+          shadow xshift = 0.6pt, shadow yshift = -1.6pt, shadow blur radius = 4pt,
+          shadow opacity = 30}]
+        (0, 0) rectangle (\elicit@shotw, \elicit@shoth);
+      \begin{scope}
+        \clip[rounded corners = 3pt] (0, 0) rectangle (\elicit@shotw, \elicit@shoth);
+        \node[anchor = south west, inner sep = 0pt] at (0, 0) {\usebox{\elicit@shot}};
+      \end{scope}
+      \draw[elicitLedger, line width = 0.6pt, rounded corners = 3pt]
+        (0, 0) rectangle (\elicit@shotw, \elicit@shoth);
+      \def\elicitmark##1##2##3{%
+        \elicit@markdisc{##1}{##2\elicit@shotw, \elicit@shoth - ##3\elicit@shoth}}%
+      \IfFileExists{images/#2.markers.tex}{\input{images/#2.markers.tex}}{}%
+      #1%
+    \end{tikzpicture}
+    %% The empty optional argument is what makes a caption safe: without it LaTeX moves the
+    %% caption text into the list of figures, and \opt/\val/\file cannot survive that.
+    \caption[]{#3}
+  \end{figure}%
+}
+
+%% ---------------------------------------------------------------- call-outs
+%% A call-out is a tinted title strip carrying an icon and the title, over a body in Ledger;
+%% the rule down its left edge is the call-out's color. The icon, not the color alone, says
+%% which kind it is, so the three survive a grey-scale print.
+\newcommand{\elicit@iconnote}{%
+  \tikz[baseline = -0.32em]{\fill[elicitInk] (0, 0) circle (0.62em);
+    \node[text = white, font = \footnotesize\bfseries\sffamily, inner sep = 0pt] at (0, 0.02em) {i};}}
+\newcommand{\elicit@iconcaution}{%
+  \tikz[baseline = -0.32em]{\fill[elicitAmberText, rounded corners = 0.12em]
+      (-0.7em, -0.55em) -- (0.7em, -0.55em) -- (0, 0.68em) -- cycle;
+    \node[text = white, font = \scriptsize\bfseries\sffamily, inner sep = 0pt] at (0, -0.12em) {!};}}
+\newcommand{\elicit@iconsecurity}{%
+  \tikz[baseline = -0.32em]{\fill[elicitBrick] (-0.56em, 0.6em) -- (0.56em, 0.6em) -- (0.56em, 0.05em)
+      .. controls (0.56em, -0.38em) and (0.2em, -0.6em) .. (0, -0.72em)
+      .. controls (-0.2em, -0.6em) and (-0.56em, -0.38em) .. (-0.56em, 0.05em) -- cycle;
+    \draw[white, line width = 0.13em, line cap = round, line join = round]
+      (-0.24em, -0.02em) -- (-0.05em, -0.22em) -- (0.27em, 0.22em);}}
+
+\tcbset{
+  elicit callout/.style 2 args = {
+    enhanced, breakable,
+    colback = elicitLedgerLight, colframe = #1,
+    colbacktitle = #1!10!elicitLedgerLight, coltitle = #1,
+    boxrule = 0pt, leftrule = 3pt, titlerule = 0pt,
+    arc = 0pt, outer arc = 0pt,
+    left = 10pt, right = 10pt, top = 6pt, bottom = 8pt,
+    toptitle = 4pt, bottomtitle = 4pt, lefttitle = 8pt,
+    fonttitle = \bfseries\small,
+    before skip = 10pt, after skip = 10pt,
+    title = {\elicitdecor{#2}\hspace{0.55em}\elicit@callouttitle},
+  },
+}
+\newtcolorbox{elicitnote}[1][Note]{%
+  elicit callout = {elicitInk}{\elicit@iconnote}, code = {\def\elicit@callouttitle{#1}}}
+\newtcolorbox{elicitcaution}[1][Careful]{%
+  elicit callout = {elicitAmberText}{\elicit@iconcaution}, code = {\def\elicit@callouttitle{#1}}}
+%% A security call-out: a documented development credential, an accepted risk, anything a
+%% site must decide about deliberately rather than inherit (FR-021).
+\newtcolorbox{elicitsecurity}[1][Before this reaches a real site]{%
+  elicit callout = {elicitBrick}{\elicit@iconsecurity}, code = {\def\elicit@callouttitle{#1}}}
+
+%% ---------------------------------------------------------------- vocabulary
+%% \term{word} — a piece of the platform vocabulary, the first time it is used.
+\newcommand{\term}[1]{\textcolor{elicitVerdigris}{\textbf{#1}}}
+
+%% \ui{Label} — something the reader clicks or reads on screen: the label in the sans face on
+%% a faint Ink tint, the way it sits on the screen. lua-ul draws the tint, so a long label
+%% still breaks across lines.
+\DeclareRobustCommand{\ui}[1]{%
+  \highLight[elicitInk!7]{\textcolor{elicitInkDark}{\textsf{#1}}}}
+\AtBeginDocument{\ifdefined\pdfstringdefDisableCommands
+  \pdfstringdefDisableCommands{\def\ui#1{#1}}\fi}
+
+%% ---------------------------------------------------------------- code and settings
+%% Setting names, file paths and values break after a dot, a hyphen, a slash or an
+%% underscore, so a long key wraps inside a narrow table column instead of overflowing it.
+\def\UrlBreaks{\do\.\do\-\do\_\do\/\do\:\do\=\do\?\do\&}
+\def\UrlBigBreaks{\do\/\do\:}
+
+\DeclareUrlCommand\rawopt{\urlstyle{tt}\small\color{elicitInkDark}}
+\DeclareUrlCommand\rawval{\urlstyle{tt}\small\color{elicitCharcoal}}
+\DeclareUrlCommand\rawfile{\urlstyle{tt}\small\color{elicitVerdigris}}
+
+%% \opt{quarkus.datasource.jdbc.url} — a configuration setting name.
+\newcommand{\opt}[1]{\rawopt{#1}}
+%% \val{true} — a configuration value, a role name, a schema name.
+\newcommand{\val}[1]{\rawval{#1}}
+%% \file{docker-compose.yml} — a path, a file, a directory.
+\newcommand{\file}[1]{\rawfile{#1}}
+
+%% \optlit{...} — a setting name written with ordinary LaTeX escapes. \opt takes a verbatim
+%% argument, which is what lets a long dotted key break across a column, but it also means a
+%% backslash in the argument is printed rather than read as an escape. Use \optlit for the
+%% few names carrying a character that has to be escaped, such as a profile prefix.
+\newcommand{\optlit}[1]{\textcolor{elicitInkDark}{\small\texttt{#1}}}
+
+%% The "Change" column of a settings table. Three values, and nothing else, each a small pill:
+%%   \chgset   — the site must set this; the shipped value is a development value or a
+%%               placeholder and is wrong everywhere else.
+%%   \chgmay   — the site may set this; the shipped value is a working default.
+%%   \chgkeep  — leave it alone; it is an internal default that happens to live in the
+%%               same file, and changing it is a change to how the application works.
+\newcommand{\elicit@pill}[3]{%
+  \tcbox[on line, boxsep = 0pt, left = 4pt, right = 4pt, top = 1.5pt, bottom = 1.5pt,
+    arc = 5pt, boxrule = 0.5pt, colback = #1, colframe = #2]{\footnotesize\bfseries\sffamily#3}}
+\newcommand{\chgset}{\elicit@pill{elicitBrick}{elicitBrick}{\textcolor{white}{set}}}
+\newcommand{\chgmay}{\elicit@pill{elicitInk}{elicitInk}{\textcolor{white}{may}}}
+\newcommand{\chgkeep}{\elicit@pill{white}{elicitSlate!60}{\textcolor{elicitSlate}{keep}}}
+
+%% The look both tables share: an Ink heading row, rows banded in Ledger, no inner rules.
+\newcommand{\thead}[1]{\textbf{\color{white}#1}}
+\newcommand{\elicit@tablesetup}{%
+  \small
+  \setlength{\LTpre}{0.8\baselineskip}%
+  \setlength{\LTpost}{0.8\baselineskip}%
+  \setlength{\aboverulesep}{0pt}%
+  \setlength{\belowrulesep}{0pt}%
+  \setlength{\extrarowheight}{3pt}%
+  \arrayrulecolor{elicitInk}%
+  \rowcolors{2}{elicitLedgerLight}{elicitPaper}%
+}
+%% Under the heading row, a strut gives the banded rows the same breathing room below the text
+%% as \extrarowheight gives them above.
+\newcommand{\elicit@rowend}{\rule[-4pt]{0pt}{0pt}}
+\newcommand{\elicit@continued}{%
+  \multicolumn{\LT@cols}{@{}l}{\cellcolor{elicitPaper}\footnotesize\color{elicitSlate}\tablename~\thetable\ (continued)}\\}
+\newcommand{\elicit@overleaf}{%
+  \multicolumn{\LT@cols}{@{}r}{\cellcolor{elicitPaper}\footnotesize\color{elicitSlate}continued overleaf}\\}
+
+%% \begin{settings}{label}{caption} … \end{settings}
+%% A four-column reference table that breaks across pages and repeats its heading.
+\newcommand{\elicit@settingshead}{%
+  \rowcolor{elicitInk}\thead{Setting} & \thead{Default} & \thead{Change} & \thead{What it does}\elicit@rowend\\}
+\newenvironment{settings}[2]{%
+  \elicit@tablesetup
+  \begin{longtable}{@{\hspace{4pt}}>{\raggedright\arraybackslash}p{0.27\linewidth}%
+                      >{\raggedright\arraybackslash}p{0.19\linewidth}%
+                      >{\centering\arraybackslash}p{0.085\linewidth}%
+                      >{\raggedright\arraybackslash}p{0.325\linewidth}<{\elicit@rowend}@{\hspace{4pt}}}
+    \caption{#2}\label{#1}\\
+    \elicit@settingshead
+    \endfirsthead
+    \elicit@continued
+    \elicit@settingshead
+    \endhead
+    \elicit@overleaf
+    \endfoot
+    \bottomrule
+    \endlastfoot
+}{%
+  \end{longtable}%
+}
+
+%% \begin{plaintable}{label}{caption}{colspec}{header} … \end{plaintable}
+%% The general page-breaking table used for ports, roles, modules and the failure list.
+\newenvironment{plaintable}[4]{%
+  \elicit@tablesetup
+  \begin{longtable}{#3}
+    \caption{#2}\label{#1}\\
+    \rowcolor{elicitInk}#4\elicit@rowend\\ \endfirsthead
+    \elicit@continued
+    \rowcolor{elicitInk}#4\elicit@rowend\\ \endhead
+    \elicit@overleaf \endfoot
+    \bottomrule \endlastfoot
+}{%
+  \end{longtable}%
+}
+
+%% Commands the reader types, SQL the reader runs, and a file's contents. The text is set by
+%% fancyvrb, never by a listings package, because it must reach the PDF with its own
+%% characters and no ligature substitution, so that text copied out of the document runs as
+%% printed (NFR-007). The box around it is decoration: a tint, a rule in the block's color, and
+%% a corner label marked as having no text, so a copy picks up the command and nothing else.
+%% Each takes fancyvrb's options, e.g. \begin{elicitcmd}[fontsize = \footnotesize]: the
+%% environment takes no argument of its own, so that fancyvrb, which reads the rest of the
+%% \begin line itself, is the one that finds them.
+\tcbset{
+  elicit code/.style 2 args = {
+    enhanced, breakable,
+    colback = elicitLedgerLight, colframe = #1,
+    boxrule = 0pt, leftrule = 2.5pt, arc = 0pt, outer arc = 0pt,
+    left = 9pt, right = 9pt, top = 7pt, bottom = 7pt,
+    before skip = 8pt, after skip = 10pt,
+    overlay unbroken and first = {\node[anchor = north east, inner sep = 3pt,
+      font = \sffamily\bfseries\fontsize{6.5}{7}\selectfont, text = #1!80!elicitLedgerLight]
+      at ([xshift = -3pt, yshift = -2pt]frame.north east)
+      {\elicitdecor{\addfontfeature{LetterSpace = 14}#2}};},
+  },
+}
+\DefineVerbatimEnvironment{ElicitVerb}{Verbatim}{fontsize = \small,
+  formatcom = \color{elicitCharcoal}, samepage = false}
+\DefineVerbatimEnvironment{ElicitVerbFile}{Verbatim}{fontsize = \small,
+  formatcom = \color{elicitSlate}, samepage = false}
+\newenvironment{elicitcmd}{%
+  \VerbatimEnvironment
+  \begin{tcolorbox}[elicit code = {elicitVerdigris}{SHELL}]%
+  \begin{ElicitVerb}}{%
+  \end{ElicitVerb}\end{tcolorbox}}
+\newenvironment{elicitsql}{%
+  \VerbatimEnvironment
+  \begin{tcolorbox}[elicit code = {elicitInk}{SQL}]%
+  \begin{ElicitVerb}}{%
+  \end{ElicitVerb}\end{tcolorbox}}
+\newenvironment{elicitfile}{%
+  \VerbatimEnvironment
+  \begin{tcolorbox}[elicit code = {elicitSlate}{FILE}]%
+  \begin{ElicitVerbFile}}{%
+  \end{ElicitVerbFile}\end{tcolorbox}}
+
+%% This document is full of inline monospaced identifiers — setting names, role names,
+%% paths — which \opt, \val and \file typeset as unbreakable atoms. One of them landing at
+%% the end of a line has nowhere to go, and TeX would rather overrun the margin than break
+%% it. Giving the paragraph builder some emergency stretch lets it loosen the line instead.
+\setlength{\emergencystretch}{3em}
+
+%% ---------------------------------------------------------------- diagrams
+%% Diagrams are drawn in TikZ in the manual's own source, never pasted in as images, so they
+%% change in the same commit as the text they illustrate. These styles keep every diagram in
+%% the brand's palette:
+%%   elicit app      — an Elicit application (Survey, Admin, FHHS …)
+%%   elicit service  — something the site provides (the identity provider, the mail relay …)
+%%   elicit database — the database, drawn as a cylinder
+%%   elicit person   — a person at a browser
+%%   elicit flow     — a call or a data flow; label it with a node on the edge
+%%   elicit group    — a dashed boundary around the nodes passed to fit
+\tikzset{
+  elicit node/.style = {draw, rounded corners = 3pt, line width = 0.8pt, align = center,
+    inner xsep = 7pt, inner ysep = 5pt, font = \footnotesize\sffamily, minimum height = 2.3em,
+    blur shadow = {shadow blur steps = 5, shadow xshift = 0.5pt, shadow yshift = -0.9pt,
+      shadow opacity = 18}},
+  elicit app/.style = {elicit node, draw = elicitInk, fill = elicitInk!6!white,
+    text = elicitInk},
+  elicit service/.style = {elicit node, draw = elicitSlate!80, fill = elicitLedgerLight,
+    text = elicitCharcoal},
+  elicit database/.style = {elicit node, cylinder, shape border rotate = 90, aspect = 0.07, inner ysep = 3pt,
+    rounded corners = 0pt, draw = elicitSlate!80, fill = elicitLedgerLight, text = elicitCharcoal},
+  elicit person/.style = {elicit node, draw = elicitVerdigris, fill = elicitVerdigrisPale,
+    text = elicitCharcoal, rounded corners = 9pt},
+  elicit flow/.style = {-{Stealth[length = 5.5pt, width = 4.5pt]}, line width = 0.8pt,
+    draw = elicitSlate, rounded corners = 4pt},
+  elicit label/.style = {font = \scriptsize\sffamily, text = elicitSlate, fill = elicitPaper,
+    draw = elicitLedger, line width = 0.4pt, rounded corners = 4pt, inner xsep = 3pt,
+    inner ysep = 1.5pt, align = center},
+  elicit group/.style = {draw = elicitSlate!45, dashed, dash pattern = on 3pt off 2pt,
+    line width = 0.7pt, rounded corners = 5pt, inner sep = 8pt, fill = elicitLedgerLight!40},
+  elicit group label/.style = {font = \scriptsize\sffamily\bfseries, text = elicitSlate,
+    anchor = north west},
+}
+%% \begin{elicitdiagram}{caption} <tikz commands> \end{elicitdiagram}
+%% A diagram as a numbered, captioned figure, centred, on the same page as its text.
+\newenvironment{elicitdiagram}[1]{%
+  \def\elicitdiagramcaption{#1}%
+  \begin{figure}[H]\centering\begin{tikzpicture}
+}{%
+  \end{tikzpicture}\caption[]{\elicitdiagramcaption}\end{figure}%
+}
+
+%% ---------------------------------------------------------------- lists
+\setlist[itemize]{leftmargin = 1.2em, itemsep = 2pt, topsep = 4pt,
+  label = {\textcolor{elicitVerdigris}{\rule[0.2em]{0.34em}{0.34em}}}}
+%% A procedure's steps are numbered in filled discs, so a step reads as an action to take
+%% rather than an item in a list; nested lists keep plain letters. A marker on a screenshot
+%% is the same disc, and \elicitstep{n} names it in the text.
+\DeclareRobustCommand{\elicitstep}[1]{%
+  \tikz[baseline = (n.base)]\node[circle, fill = elicitVerdigris, text = white,
+    inner sep = 0pt, minimum size = 1.35em, font = \footnotesize\bfseries\sffamily] (n) {#1};}
+\setlist[enumerate, 1]{label = \elicitstep{\arabic*}, leftmargin = 2.1em, labelsep = 0.55em,
+  itemsep = 5pt, topsep = 5pt}
+\setlist[enumerate, 2]{label = \alph*., leftmargin = 1.6em, itemsep = 2pt, topsep = 2pt}
+\setlist[description]{leftmargin = 1.2em, itemsep = 3pt, topsep = 4pt, font = \normalfont\bfseries\color{elicitInkDark}}
+
+\endinput

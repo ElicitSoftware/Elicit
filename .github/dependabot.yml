@@ -1,0 +1,26 @@
+# Proposes updates, as pull requests against the default branch, for the two things in this
+# repository that carry version numbers of their own: the actions the CI workflow uses and the
+# dependencies of the three end-to-end suites. Each pull request runs the CI check like any other.
+# The module repositories keep their own configuration.
+
+version: 2
+
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 2
+    commit-message:
+      prefix: chore
+
+  - package-ecosystem: maven
+    directories:
+      - /e2e-tests
+      - /e2e_multisite
+      - /e2e_multisite_multilingual
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 2
+    commit-message:
+      prefix: chore
