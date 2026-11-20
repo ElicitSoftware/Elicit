@@ -151,7 +151,7 @@ and two are ready to apply:
 - [`samples/census-household-survey.elicit`](samples/census-household-survey.elicit), in this
   repository: a small demonstration survey that uses every question type and rule the engine
   supports.
-- [`family-history-survey.elicit`](https://github.com/ElicitSoftware/FHHS/blob/V3/family-history-survey.elicit),
+- [`family-history-survey.elicit`](https://github.com/ElicitSoftware/FHHS/blob/main/family-history-survey.elicit),
   in the FHHS repository: the Family Health History Survey, with its custom reports and pedigree
   drawing. Use the **Download raw file** button on that page to save it.
 
