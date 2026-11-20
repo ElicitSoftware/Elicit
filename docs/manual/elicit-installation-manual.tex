@@ -2312,8 +2312,7 @@ a client sent rather than pass it on.
 Admin also checks where the headers come from: it honors them only from the addresses in
 \opt{ELICIT_TRUSTED_PROXIES}, which by default are loopback and the private ranges. Set it to
 your reverse proxy's address or network, so that another machine on the private network cannot
-choose the address Admin builds its sign-in redirects with. Survey makes no such check, so
-the two rules above are what protect it.
+choose the address Admin builds its sign-in redirects with.
 
 \subsubsection*{Limit the rate of requests}
 
