@@ -1,6 +1,6 @@
-# Gates the umbrella on every pull request into main or V3, every push to one and every release
-# tag (v*, V*). The umbrella holds no application source, so what it can check are the cross-module
-# invariants and the installation manual (UC-001, UC-002):
+# Gates the umbrella on every pull request into main (or the frozen V3), every push to one and
+# every release tag (v*, V*). The umbrella holds no application source, so what it can check are
+# the cross-module invariants and the installation manual (UC-001, UC-002):
 #
 #   checkLanguages.sh               the images carry English only, elicit-i18n/ gives Survey,
 #                                   Admin and Author the same languages, and Author publishes
@@ -15,14 +15,15 @@
 # Three of those read the Survey, Admin, FHHS and Author sources, which are independent clones and
 # not part of this repository (see CLAUDE.md), so the job clones each at the branch this run
 # targets: the release tag, which every module carries, the pull request's base branch, or the
-# branch that was pushed to. Author has no V3 or release line of its own; its integration branch
-# is main, so outside a tag it is cloned from main instead. A module branch with the same name
-# as the pull request's own branch is preferred, so a cross-repo change (one branch name in
+# branch that was pushed to. Author has no V3 of its own, so outside a tag it is cloned from main
+# (which only matters for a run against the frozen V3). A module branch with the same name as the
+# pull request's own branch is preferred, so a cross-repo change (one branch name in
 # every repo, as the modules' CI also assumes) is checked against itself before any of it
 # merges.
 #
 # The job name is the status check the branch ruleset on main and V3 requires; rename both
-# together.
+# together. V3 is frozen since main took over as the integration branch (#188); drop it here and
+# from the ruleset when the branch is deleted after 3.0.0 ships.
 
 name: CI
 

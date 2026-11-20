@@ -33,8 +33,8 @@ the umbrella's CI clones it anonymously like the other four.
 Everything Author shares with the platform lives here once: the stack
 (`docker-compose.yml`), the Keycloak realm (with the `elicit-author` client), the
 `author` database script (`db-init/`), the curated translations
-(`elicit-i18n/author/`) and the three end-to-end suites. Author's integration branch is
-`main`, like Pedigree's; it has no `V3`.
+(`elicit-i18n/author/`) and the three end-to-end suites. Author has no `V3`; its `main` pairs
+with the umbrella's `main`.
 
 ### Working Across Modules
 
@@ -407,16 +407,17 @@ use-case IDs are unrelated to these.
 
 ## Git Workflow
 
-- `main` and `V3` (and `main` in Pedigree and Author) change only through a pull request
-  whose CI check passed. A ruleset on each repository enforces it on the server (umbrella
-  C-016), and `.claude/hooks/branch-guard.py`, wired as a `PreToolUse` hook in each repo's
+- `main` is the integration branch of every repository (umbrella #188). `V3` was until the
+  3.0.0 release; it is now frozen, kept only so old links and clones work, and is deleted after
+  3.0.0 ships. `main` and the frozen `V3` change only through a pull request whose CI check
+  passed. A ruleset on each repository enforces it on the server (umbrella C-016), and
+  `.claude/hooks/branch-guard.py`, wired as a `PreToolUse` hook in each repo's
   `.claude/settings.json`, refuses `git commit`, `git cherry-pick`, `git revert` and any
   `git push` that would land on `main`, `master`, `V2` or `V3`. It resolves `git -C <dir>`
   and `cd <dir> &&` chains, so module repos are guarded from the umbrella too.
 - Every change starts from an issue in the repo that owns the code; a cross-cutting change
-  gets a tracking issue here with one PR per module repo that references it. Branch from the
-  integration branch (`V3`, or `main` for Pedigree and Author) as `<type>/<issue>-<slug>`,
-  with `<type>` one of `feature`, `fix`, `docs`, `chore`.
+  gets a tracking issue here with one PR per module repo that references it. Branch from `main`
+  as `<type>/<issue>-<slug>`, with `<type>` one of `feature`, `fix`, `docs`, `chore`.
 - Issues come from the forms under `.github/ISSUE_TEMPLATE/` (blank issues are off) and ask for
   the affected FR/UC/BR IDs up front; pull requests follow `.github/pull_request_template.md`,
   whose AIUP block and per-repo checklist are ticked or struck through with a reason, never
@@ -429,7 +430,8 @@ use-case IDs are unrelated to these.
   umbrella runs `checkLanguages.sh`, `checkBrand.sh`, `check-properties.sh`, `docker compose config` and the
   manual build against fresh clones of Survey, Admin, FHHS and Author at the branch or tag the
   run targets (or, on a manual FHHS run, the dispatched branch).
-- CI runs on every pull request into `main`/`V3`, every push to one and every release tag (`v*`).
+- CI runs on every pull request into `main` (or the frozen `V3`), every push to one and every
+  release tag (`v*`).
 
 ## Git Commits
 

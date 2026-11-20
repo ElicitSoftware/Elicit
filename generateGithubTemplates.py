@@ -24,7 +24,7 @@ NAMES = {"Elicit": "Elicit (umbrella)", "Survey": "Survey", "Admin": "Admin", "F
 
 REPOS = {
     "Elicit": dict(
-        base="V3", aiup=True, entity_model=False,
+        base="main", aiup=True, entity_model=False,
         aiup_extra=["`docs/manual/` updated when installation, configuration, branding or verification "
                     "changed, and `docs/manual/check-properties.sh` still passes"],
         checks=["`docker compose config` and `status.sh` still work when `docker-compose.yml` or a script changed",
@@ -35,7 +35,7 @@ REPOS = {
                 "The end-to-end suites still compile, and pass when the change is in a journey they drive"],
     ),
     "Survey": dict(
-        base="V3", aiup=True, aiup_extra=[],
+        base="main", aiup=True, aiup_extra=[],
         checks=["Flyway migration added to **both** `db/migration` and `db/migration-v3`, and the brownfield "
                 "track verified with `resetDatabase.sh V2` from the umbrella",
                 "A reporting (star schema) change keeps `report_<slug>` building from the apply, and FHHS still reads it",
@@ -45,14 +45,14 @@ REPOS = {
                 "Respondent credential is called the **access code**, never a token"],
     ),
     "Admin": dict(
-        base="V3", aiup=True,
+        base="main", aiup=True,
         aiup_extra=["The administrator's manual under `docs/manual/` updated when a screen changed"],
         checks=["Flyway migration added under `db/migration` (Admin's tables only; the `survey` schema is Survey's)",
                 I18N_MOUNT,
                 "Respondent credential is called the **access code**, never a token"],
     ),
     "FHHS": dict(
-        base="V3", aiup=True, aiup_extra=[],
+        base="main", aiup=True, aiup_extra=[],
         checks=["Flyway migration added to **both** `db/migration` and `db/migration-v3`",
                 "Brownfield verified with `resetDatabase.sh V2` from the umbrella (every FHHS change, not only "
                 "migrations)",
