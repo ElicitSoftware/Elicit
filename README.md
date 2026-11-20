@@ -22,7 +22,7 @@
     <img src="https://github.com/ElicitSoftware/Elicit/blob/main/images/stacked.png" alt="Logo" width="15%" >
   </a>
 <h3 align="center">Elicit Software</h3>
-  <p>Copyright © 2025 The Regents of the University of Michigan</p>
+  <p>Copyright © 2025–2026 The Regents of the University of Michigan</p>
 </div>
 <!-- TABLE OF CONTENTS -->
 <details>
@@ -109,7 +109,10 @@ Nothing has to be compiled, git is not needed, and the module repositories do no
 cloned.
 
 You need Docker Desktop (or Docker Engine with Compose v2) and these ports free: 8080–8085,
-8180, 8025, 5452 and 16686.
+8180, 5452, 8025 and 1025 (Mailpit), 16686, 4317, 4318, 14268 and 14250 (Jaeger), and 22 (the SFTP
+server FHHS files its reports to). A host that runs an SSH server already has port 22: change the
+`sftpServer` port mapping in `docker-compose.yml`, or remove that service if you are not
+evaluating the filing, or FHHS, which depends on it, does not start.
 
 1. Download this repository as a ZIP (**Code > Download ZIP** at the top of this page) and unzip
    it. Keep its folders beside `docker-compose.yml`: the stack reads the identity provider's realm
@@ -220,7 +223,7 @@ Don't forget to give the project a star! Thanks again!
 <!-- LICENSE -->
 ## License
 
-Distributed under the PolyForm Noncommercial License 1.0.0. See `LICENSE.md` for more information.
+Distributed under the PolyForm Noncommercial License 1.0.0. See `LICENSE.MD` for more information.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 

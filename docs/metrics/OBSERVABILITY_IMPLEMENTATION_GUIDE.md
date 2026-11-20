@@ -2,7 +2,7 @@
 
 > **Implementation Status**: 📋 **PLANNED** - Complete observability stack for monitoring performance across all Elicit applications.
 
-This document provides comprehensive instructions for implementing observability across the Elicit ecosystem, including metrics and logging for Admin, Survey, FHHS, Pedigree, and PREMM5 applications.
+This document provides comprehensive instructions for implementing observability across the Elicit ecosystem, including metrics and logging for Admin, Survey, FHHS, Author and Pedigree.
 
 ## Overview
 
@@ -36,7 +36,7 @@ The observability implementation uses the following components:
 │ │  Pedigree   │◄┼────┤                 │    └─────────────────┘
 │ └─────────────┘ │    │                 │
 │ ┌─────────────┐ │    │                 │
-│ │   PREMM5    │◄┼────┤                 │
+│ │   Author    │◄┼────┤                 │
 │ └─────────────┘ │    │                 │
 └─────────────────┘    └─────────────────┘
 ```
@@ -49,7 +49,6 @@ The observability implementation uses the following components:
 - **Pre-configured Rules**: Recording rules and alerting rules for common monitoring scenarios
 - **Ready-to-Use Queries**: Comprehensive PromQL query library for immediate monitoring insights
 - **Production-Ready**: Suitable for both development and production deployments
-- **Cloud-Native**: Kubernetes-ready with Helm charts and service discovery
 - **Lightweight**: Focused observability stack without unnecessary complexity
 
 ### Quick Start Monitoring
@@ -286,24 +285,11 @@ one. The sample above suits a developer's machine. On a real site, keep Promethe
 operators reach or behind a proxy that authenticates them, and have it scrape the applications on
 the private network, not through the reverse proxy that serves respondents.
 
-### Kubernetes Production Deployment
+### Kubernetes
 
-For GCP Kubernetes deployments, the observability stack will be provided as Helm charts with:
-
-- **Service Discovery**: Automatic application discovery via Kubernetes annotations
-- **Persistence**: PersistentVolumes for metric and log storage
-- **High Availability**: Multi-replica deployments for critical components
-- **Resource Management**: Proper resource requests and limits
-- **Security**: RBAC configurations and secret management
-
-### Minikube Local Development
-
-For local development and testing, see the [Minikube Deployment Guide](minikube/README.md) which provides:
-
-- Local Kubernetes cluster setup with observability
-- Port forwarding for dashboard access
-- Development-optimized resource allocations
-- Easy teardown and rebuild workflows
+This repository ships no Kubernetes manifests, Helm charts or Minikube setup; the compose file is
+its only deployment. A Kubernetes site provides its own observability stack, scraping each
+application's `/q/metrics` on the private network and sending traces to its own OTLP collector.
 
 ## Monitoring Dashboards
 
@@ -397,7 +383,7 @@ Given your healthcare focus, we'll implement specialized metrics:
 - [ ] Create application performance correlation analysis (❌ **Not implemented**)
 
 ### Week 7-8: Production Readiness
-- [x] Create Kubernetes Helm charts (✅ **Complete - Minikube deployments available**)
+- [ ] Create Kubernetes Helm charts (❌ **Not in this repository**)
 - [ ] Implement performance optimizations (❌ **Not implemented**)
 
 ### Future Enhancements (Deferred)
@@ -413,7 +399,6 @@ Given your healthcare focus, we'll implement specialized metrics:
 - [x] **Complete observability dependencies for remaining applications**:
   - [x] Admin application (✅ **Complete - Dependencies and configuration added**)
   - [x] FHHS application (✅ **Complete - Dependencies and configuration added**)  
-  - [x] PREMM5 application (✅ **Complete - Dependencies and configuration added**)
   - [x] Pedigree application (✅ **R-based monitoring strategy documented below**)
 
 ### 📊 **Pedigree Application Monitoring Strategy**
@@ -489,7 +474,7 @@ metrics_endpoint <- function() {
 - [ ] **Resource optimization** and metric cardinality management
 
 **✅ Implementation Status Update:**
-All Java applications (Admin, Survey, FHHS, PREMM5) now have **complete observability integration** with:
+All Java applications (Admin, Survey, FHHS, Author) now have **complete observability integration** with:
 - Prometheus metrics collection
 - SmallRye Health endpoints
 - JSON structured logging
