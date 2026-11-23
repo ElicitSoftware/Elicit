@@ -45,6 +45,17 @@ x-otel: &otel
   quarkus.datasource.jdbc.telemetry: true
   quarkus.otel.instrument.jdbc: true
 
+# The Family History definition names its reports and post-survey action at
+# http://host.docker.internal:8082/.... Docker Desktop resolves that name inside a container;
+# Docker Engine on Linux does not, so the services that call those addresses map it themselves.
+x-host-gateway: &host-gateway
+  - host.docker.internal:host-gateway
+
+# Where the containers reach Keycloak. The browser never sees this address: Keycloak answers
+# with the public one, http://localhost:8180 (KC_HOSTNAME on the keycloak service).
+x-oidc: &oidc
+  quarkus.oidc.auth-server-url: http://keycloak:8080/realms/elicit/
+
 x-ready: &ready
   test: ["CMD", "curl", "--head", "-fsS", "http://localhost:8080/q/health/ready"]
   interval: 15s
@@ -71,6 +82,7 @@ services:
       quarkus.application.name: survey
       OTEL_SERVICE_NAME: survey
       OTEL_RESOURCE_ATTRIBUTES: service.name=survey,service.version=${ELICIT_TAG:-3.0.0-rc.2},deployment.environment=local
+    extra_hosts: *host-gateway
     healthcheck: *ready
     depends_on:
       db:
@@ -81,7 +93,7 @@ services:
     ports:
       - 8081:8080
     environment:
-      <<: *otel
+      <<: [*otel, *oidc]
       ELICIT_SERVICE_TOKEN: ${ELICIT_SERVICE_TOKEN:-elicit-dev-service-token-not-for-a-real-site}
       ELICIT_SERVICE_TRUSTED_ORIGINS: http://host.docker.internal:8082
       TZ: America/Detroit
@@ -95,6 +107,7 @@ services:
       quarkus.application.name: admin
       OTEL_SERVICE_NAME: admin
       OTEL_RESOURCE_ATTRIBUTES: service.name=admin,service.version=${ELICIT_TAG:-3.0.0-rc.2},deployment.environment=local
+    extra_hosts: *host-gateway
     healthcheck: *ready
     depends_on:
       db:
@@ -124,6 +137,7 @@ services:
       quarkus.application.name: fhhs
       OTEL_SERVICE_NAME: fhhs
       OTEL_RESOURCE_ATTRIBUTES: service.name=fhhs,service.version=${ELICIT_TAG:-3.0.0-rc.2},deployment.environment=local
+    extra_hosts: *host-gateway
     healthcheck:
       <<: *ready
       start_period: 90s
@@ -171,7 +185,7 @@ services:
     ports:
       - 8084:8080
     environment:
-      <<: *otel
+      <<: [*otel, *oidc]
       ELICIT_SERVICE_TOKEN: ${ELICIT_SERVICE_TOKEN:-elicit-dev-service-token-not-for-a-real-site}
       TZ: America/Detroit
       author.preview.survey.url: http://author-survey:8080
@@ -179,8 +193,6 @@ services:
       quarkus.datasource.jdbc.url: jdbc:postgresql://db:5432/author?connectTimeout=30&socketTimeout=600&tcpKeepAlive=true&tcpKeepAlivesIdle=60
       ELICIT_DB_PASSWORD: SURVEYPW
       OIDC_CLIENT_SECRET: secret
-      # The OIDC URL stays at the image default, http://host.docker.internal:8180/realms/elicit/,
-      # which both the container and the browser (through Docker Desktop) can reach.
       quarkus.application.name: author
       OTEL_SERVICE_NAME: author
       OTEL_RESOURCE_ATTRIBUTES: service.name=author,service.version=${ELICIT_TAG:-3.0.0-rc.2},deployment.environment=local
@@ -222,6 +234,11 @@ services:
       TZ: America/Detroit
       KC_BOOTSTRAP_ADMIN_USERNAME: admin
       KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      # The address a browser uses, which Keycloak puts in every sign-in redirect and names as
+      # the issuer of its tokens. Admin and Author call it at http://keycloak:8080 (x-oidc);
+      # the second setting lets it answer those calls at the address they came in on.
+      KC_HOSTNAME: http://localhost:8180
+      KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "true"
 
   mailpit:
     image: axllent/mailpit:v1.34.0

@@ -91,6 +91,10 @@ services:
       ELICIT_DB_PASSWORD: SAOWNERPW
       ELICIT_OWNER_DB_PASSWORD: SURVEYPW
       OIDC_CLIENT_SECRET: secret
+      # Where the container reaches Keycloak. The browser never sees this address: Keycloak
+      # answers with the public one, http://localhost:8180 (KC_HOSTNAME on the keycloak
+      # service), so no host needs a hosts entry to sign in.
+      quarkus.oidc.auth-server-url: http://keycloak:8080/realms/elicit/
       quarkus.application.name: admin
       quarkus.otel.enabled: true
       quarkus.otel.exporter.otlp.endpoint: http://jaeger:4317
@@ -185,8 +189,10 @@ services:
       quarkus.datasource.jdbc.url: jdbc:postgresql://db:5432/author?connectTimeout=30&socketTimeout=600&tcpKeepAlive=true&tcpKeepAlivesIdle=60
       ELICIT_DB_PASSWORD: SURVEYPW
       OIDC_CLIENT_SECRET: secret
-      # OIDC stays at the image default http://host.docker.internal:8180/realms/elicit/ (see the
-      # note in ../../docker-compose.yml on why host.docker.internal is the right name).
+      # Where the container reaches Keycloak. The browser never sees this address: Keycloak
+      # answers with the public one, http://localhost:8180 (KC_HOSTNAME on the keycloak
+      # service), so no host needs a hosts entry to sign in.
+      quarkus.oidc.auth-server-url: http://keycloak:8080/realms/elicit/
       quarkus.application.name: author
       quarkus.otel.enabled: true
       quarkus.otel.exporter.otlp.endpoint: http://jaeger:4317
@@ -235,6 +241,12 @@ services:
       TZ: "America/Detroit"
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
+      # The address a browser uses, which Keycloak puts in every sign-in redirect and names as
+      # the issuer of its tokens. Every site's Admin (and Author here) calls it at
+      # http://keycloak:8080; the second setting lets it answer those calls at the address they
+      # came in on.
+      KC_HOSTNAME: http://localhost:8180
+      KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "true"
     volumes:
       - ../../keycloak:/opt/keycloak/data/import
       - ../data/site1/keycloak-h2:/h2

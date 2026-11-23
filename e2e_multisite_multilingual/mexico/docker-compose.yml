@@ -3,8 +3,9 @@
 # The site stack only (survey, admin, db) on host ports 50 below USA's, with its own project name
 # and data directories under ../data/mexico. It has no Author, no Keycloak and no Mailpit of its
 # own:
-#   - Admin authenticates against USA's Keycloak through the image default
-#     http://host.docker.internal:8180/realms/elicit/ (same admin/admin user)
+#   - Admin authenticates against USA's Keycloak at http://keycloak:8080, a service name
+#     of USA's network, which Admin joins (same admin/admin user); the browser is sent to
+#     http://localhost:8180
 #   - Admin sends mail to USA's Mailpit: the admin service also joins USA's compose network, so the
 #     service name `mailpit` resolves there and SMTP stays unpublished.
 #     Being on both networks makes the shared service names `survey` and `db` ambiguous for Admin
@@ -35,6 +36,10 @@ networks:
 services:
   survey:
     image: elicitsoftware/survey:latest
+    # Docker Desktop resolves host.docker.internal inside a container; Docker Engine on Linux
+    # does not, so the services that call the Family History addresses map it themselves.
+    extra_hosts:
+      - host.docker.internal:host-gateway
     networks:
       default:
         aliases:
@@ -86,6 +91,10 @@ services:
         condition: service_healthy
   admin:
     image: elicitsoftware/admin:latest
+    # Docker Desktop resolves host.docker.internal inside a container; Docker Engine on Linux
+    # does not, so the services that call the Family History addresses map it themselves.
+    extra_hosts:
+      - host.docker.internal:host-gateway
     ports:
       - 8031:8080
     networks:
@@ -123,6 +132,10 @@ services:
       ELICIT_DB_PASSWORD: SAOWNERPW
       ELICIT_OWNER_DB_PASSWORD: SURVEYPW
       OIDC_CLIENT_SECRET: secret
+      # Where the container reaches Keycloak. The browser never sees this address: Keycloak
+      # answers with the public one, http://localhost:8180 (KC_HOSTNAME on USA's keycloak
+      # service), so no host needs a hosts entry to sign in.
+      quarkus.oidc.auth-server-url: http://keycloak:8080/realms/elicit/
       quarkus.application.name: admin
       # quarkus.otel.enabled is a build-time property: the runtime switch is this one.
       quarkus.otel.sdk.disabled: "true"
@@ -138,6 +151,10 @@ services:
   # the plain service names: it joins only this site's network, so they are unambiguous here.
   fhhs:
     image: elicitsoftware/fhhs:latest
+    # Docker Desktop resolves host.docker.internal inside a container; Docker Engine on Linux
+    # does not, so the services that call the Family History addresses map it themselves.
+    extra_hosts:
+      - host.docker.internal:host-gateway
     ports:
       - 8082:8080
     healthcheck:
