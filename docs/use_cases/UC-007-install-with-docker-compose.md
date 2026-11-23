@@ -12,14 +12,14 @@
 ## Preconditions
 
 - A container runtime and compose are installed (UC-004).
-- The operator has the umbrella repository checked out, which carries the compose file, the default brand and the default translations.
+- The operator has the compose file, which needs nothing beside it. The default brand and the curated translations, for an operator who wants to mount them, are in the umbrella repository.
 
 ## Main Success Scenario
 
 1. The operator reads the compose chapter, which opens by stating that the stack is for development and evaluation and not for a site that holds real respondents' answers (BR-004), and names every service the file defines, the host port each publishes, the volumes each mounts and what each depends on.
 2. The system distinguishes the application services from the supporting services the file bundles for evaluation — the database, the identity provider, the mail catcher, the file-transfer server and the trace collector.
 3. The operator changes only what the evaluation needs: the brand directory (UC-014), the languages offered (UC-015), the services not being evaluated (A4) and any setting from the configuration reference they want to try (UC-011). The documented passwords and the permissive defaults stay, because they are what makes the stack start in one command (BR-006).
-4. The operator chooses the release to run: the compose file pulls every application image at one tag, taken from one variable, so that the site runs a matched set (BR-005). Left unset, the tag is the one the local build produces; a published release is run by naming its version.
+4. The operator chooses the release to run: the compose file pulls every application image at one tag, taken from one variable, so that the site runs a matched set (BR-005). Left unset, the tag is the release the file came with; another release, or a local build (`latest`), is run by naming it.
 5. The operator brings the stack up in one command.
 6. The system starts the database, waits for it to become healthy, then starts the survey application, which creates and migrates the shared schema.
 7. The system starts the remaining services as their dependencies become healthy: the console, and the two optional services if the site runs them.
@@ -101,7 +101,7 @@ The compose file and the services bundled with it are a working example of a sit
 
 ### BR-005: One tag for every application image
 
-The compose file names every Elicit application image at the same tag, read from the `ELICIT_TAG` variable and defaulting to `latest`. A site therefore runs the survey application, the console, the report service and the pedigree service from one release and cannot mix two. A pre-release version is published under its exact version only — `latest` moves only for a final version — so a beta or release candidate is run by naming it (`ELICIT_TAG=3.0.0-rc.1`, on the command line or in a `.env` file beside the compose file). The database image is versioned on its own and is not on the tag.
+The compose file names every Elicit application image at the same tag, read from the `ELICIT_TAG` variable and defaulting to the release the file came with, never to `latest`. The database image (`elicitsoftware/elicit_db`) and the bundled identity provider (`elicitsoftware/elicit_keycloak`, the example realm built in) are on the same tag. A site therefore runs the survey application, the console, the report service and the pedigree service from one release and cannot mix two. A pre-release version is published under its exact version only — `latest` moves only for a final version — so a beta or release candidate is run by naming it (`ELICIT_TAG=3.0.0-rc.1`, on the command line or in a `.env` file beside the compose file). A developer running local builds (`ELICIT_TAG=latest`) builds those two images as well, because neither has a usable `latest` on Docker Hub.
 
 ### BR-006: Ease of use is preferred to strictness
 

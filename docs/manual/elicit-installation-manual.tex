@@ -185,20 +185,18 @@ below are what the shipped compose file publishes.
 \val{8081} & Admin & Administrators, in a browser. \\
 \val{8082} & FHHS & Survey and Admin, for reports. The shipped Family History definition
 names FHHS at this port (Chapter~\ref{sec:fhhs}). \\
-\val{8083} & Pedigree & FHHS. Published for local testing only. \\
+\val{8083} & Pedigree & You, for local testing. FHHS reaches it inside the compose network. \\
 \val{8084} & Author & Survey authors, in a browser. See the Author installation manual. \\
 \val{8085} & Author's preview Survey & Survey authors, in a browser. \\
-\val{5452} & PostgreSQL (\val{5432} inside) & The applications, and you. \\
-\val{8180} & Keycloak (bundled) & Browsers \emph{and} the application containers. \\
+\val{5452} & PostgreSQL (\val{5432} inside) & You, with a database tool. The applications reach
+it inside the compose network. \\
+\val{8180} & Keycloak (bundled) & Browsers. Admin and Author reach it inside the compose
+network. \\
 \val{8025} & Mailpit web interface (bundled) & You. \\
 \val{1025} & Mailpit SMTP (bundled) & Admin. \\
 \val{16686} & Jaeger user interface (bundled) & You. \\
 \val{4317} & Jaeger OTLP/gRPC collector (bundled) & Every application. \\
-\val{4318}, \val{14268}, \val{14250} & Jaeger's other collectors: OTLP over HTTP, and the
-legacy Jaeger protocols (bundled) & Nothing in the stack; published by the image's defaults. \\
-\val{22} & SFTP server (bundled) & FHHS, which files its reports there
-(Chapter~\ref{sec:fhhs}). A host already running an SSH server has this port taken: change the
-published port, or remove \val{sftpServer} if you are not evaluating the filing. \\
+\val{4318} & Jaeger OTLP over HTTP (bundled) & Nothing in the stack. \\
 \end{plaintable}
 
 \begin{elicitcaution}[Health checks address the container, not the host]
@@ -864,11 +862,12 @@ the paths that are not for the people it serves (Section~\ref{sec:security-expos
 \section{Evaluating with Docker Compose}
 \label{sec:compose}
 
-The umbrella repository carries \file{docker-compose.yml}, the default brand and the curated
-translations directory, \file{elicit-i18n/}. Together they are a complete Elicit site that
-starts in one command: every application, and a database, an identity provider, a mail catcher,
-an SFTP server and a trace collector for them to use. It is how Elicit is developed, how its
-end-to-end tests run, and the quickest way to see what the platform does.
+\file{docker-compose.yml}, in the umbrella repository and attached to each release, is a
+complete Elicit site in one file that starts in one command: every application, and a database,
+an identity provider, a mail catcher, an SFTP server and a trace collector for them to use. It
+needs nothing beside it: no checkout of the repository, no brand or translations directory and
+no data directory. It is how Elicit is developed, how its end-to-end tests run, and the quickest
+way to see what the platform does.
 
 \begin{elicitsecurity}[For development and evaluation, not for a real site]
 The stack is built to be easy to start, not to be locked down
@@ -892,34 +891,31 @@ Six application services and five supporting services:
         \val{jaeger}.
 \end{itemize}
 
-Every application image is \file{elicitsoftware/<name>} at one tag,
-\val{${ELICIT_TAG:-latest}}, so the applications always run as a matched set from one
-release. The tag defaults to \val{latest}; you run a published release by naming its version
-(Section~\ref{sec:compose-up}). The database image, \file{elicitsoftware/elicit_db}, is
-versioned on its own and is not on the tag.
+Every Elicit image is \file{elicitsoftware/<name>} at one tag,
+\val{${ELICIT_TAG:-<release>}}, so the applications, the database (\file{elicitsoftware/elicit_db}) and the bundled identity
+provider (\file{elicitsoftware/elicit_keycloak}, Keycloak with the example realm built in)
+always run as a matched set from one release. The tag defaults to the release the file came with, never to
+\val{latest}; you run another release by naming its version (Section~\ref{sec:compose-up}).
 
-The file mounts these directories of the repository into the containers:
+The file mounts nothing from the host. What has to outlive a container is kept in named
+volumes, which \val{docker compose down} keeps and \val{docker compose down -v} deletes:
 
-\begin{plaintable}{tab:volumes}{What the shipped compose file mounts}{@{\hspace{4pt}}>{\raggedright\arraybackslash}p{0.33\linewidth} >{\raggedright\arraybackslash}p{0.25\linewidth} >{\raggedright\arraybackslash}p{0.32\linewidth}@{\hspace{4pt}}}{\thead{Directory} & \thead{Mounted into} & \thead{What it holds}}
-\file{elicit-brand/} (read-only) & \val{survey}, \val{admin}, \val{author}, \val{author-survey}
-at \val{/opt/brand} & The default brand (Chapter~\ref{sec:brand}). \\
-\file{elicit-i18n/} (read-only) & the same four, at \val{/opt/i18n} & The curated translations
-(Chapter~\ref{sec:i18n}). \\
-\file{postgresql/PGDATA/} & \val{db} & The database's data directory: everything the site
-stores. \\
-\file{db-init/V0.0.4__CREATE_AUTHOR_DATABASE.sql} (read-only) & \val{db} & Creates Author's
-\val{author} database, on the first start of an empty data directory only. \\
-\file{keycloak/} & \val{keycloak} & The example realm it imports, and its own data. \\
-\file{mailpit_data/} & \val{mailpit} & The caught mail. \\
-\file{sftp_data/}, \file{sftp_ssh/} & \val{sftpServer} & The reports FHHS files, and the key it
-signs in with. \\
+\begin{plaintable}{tab:volumes}{Where the shipped compose file keeps its data}{@{\hspace{4pt}}>{\raggedright\arraybackslash}p{0.22\linewidth} >{\raggedright\arraybackslash}p{0.2\linewidth} >{\raggedright\arraybackslash}p{0.48\linewidth}@{\hspace{4pt}}}{\thead{Volume} & \thead{Service} & \thead{What it holds}}
+\val{pgdata} & \val{db} & The database's data directory: everything the site stores. \\
+\val{mailpit-data} & \val{mailpit} & The caught mail. \\
+\val{sftp-data} & \val{sftpServer} & The reports FHHS files, when its filing is switched on. \\
 \end{plaintable}
 
-\begin{elicitcaution}[A data directory from before Author needs the \val{author} database]
-The database runs \file{db-init/} only when it initializes an \emph{empty} data directory. A
-\file{postgresql/PGDATA} created before Author joined the stack has no \val{author} database,
-so \val{author-survey} never becomes healthy and Author does not start. Run the script once,
-by hand, as its header describes; the file is already mounted into the container:
+Keycloak keeps nothing: it imports the example realm into each new container, so accounts
+added through its console last until the container is recreated. The script that creates
+Author's \val{author} database is carried inside the file and runs on the first start of an
+empty \val{pgdata} volume only.
+
+\begin{elicitcaution}[A database from before Author needs the \val{author} database]
+The database runs that script only when it initializes an \emph{empty} volume. A database
+created before Author joined the stack has no \val{author} database, so \val{author-survey}
+never becomes healthy and Author does not start. Run the script once, by hand; the file is
+already in the container:
 
 \begin{elicitcmd}
 docker compose exec db psql -U survey -d survey \
@@ -940,9 +936,9 @@ without any setup, and it is why the stack is not a site.
   \item \textbf{The service token is documented too.} The file gives every module the
         development value of Table~\ref{tab:secrets}, and each module warns about it at
         startup (Chapter~\ref{sec:service-token}).
-  \item \textbf{Every service publishes a port on the host} (Table~\ref{tab:ports}): the
-        database, the identity provider, the report services, the mail catcher and the trace
-        collector as well as the applications.
+  \item \textbf{Almost every service publishes a port on the host} (Table~\ref{tab:ports}):
+        the database, the identity provider, the report services, the mail catcher and the
+        trace collector as well as the applications. Only the SFTP server does not.
   \item \textbf{The identity provider is an example.} The bundled Keycloak runs in its
         development mode with the example realm of Chapter~\ref{sec:oidc}.
   \item \textbf{Any access code reaches a survey.} The file sets
@@ -954,15 +950,21 @@ without any setup, and it is why the stack is not a site.
 \end{itemize}
 
 \subsection{Before bringing it up}
+\label{sec:compose-before}
 
 Nothing has to change. These are the changes an evaluation most often wants:
 
 \begin{itemize}
-  \item Point the brand volume at a brand directory of your own, to see the site as yours
-        (Chapter~\ref{sec:brand}).
-  \item Point the translations volume at a directory of your own, or remove it for an
-        English-only site, and set \opt{i18n.offered.locales} on any application that should
-        offer fewer languages than are mounted (Chapter~\ref{sec:i18n}).
+  \item Mount a brand, to see the site as yours (Chapter~\ref{sec:brand}). As shipped, every
+        application shows the default brand its image embeds. Each of \val{survey},
+        \val{admin}, \val{author} and \val{author-survey} carries the mount and its setting,
+        \opt{brand.file.system.path}, commented out: uncomment both and point the volume at
+        your brand directory, or at \file{elicit-brand/} in a checkout of the repository.
+  \item Mount translations (Chapter~\ref{sec:i18n}). As shipped the site is in English only,
+        because the images carry no other language. The same four services carry the mount
+        and \opt{i18n.file.system.path}, commented out; \file{elicit-i18n/} in the repository
+        is the curated set. Set \opt{i18n.offered.locales} on any application that should
+        offer fewer languages than are mounted.
   \item Remove \val{fhhs} and \val{pedigree}, and Admin's dependency on \val{pedigree}, if you
         are not evaluating the Family Health History Survey. Remove \val{author} and
         \val{author-survey} if you are not evaluating authoring.
@@ -974,20 +976,21 @@ Nothing has to change. These are the changes an evaluation most often wants:
 \label{sec:compose-up}
 
 \begin{elicitcmd}
-ELICIT_TAG=3.0.0-rc.1 docker compose up -d
-./status.sh
+docker compose up -d
+docker compose ps
 \end{elicitcmd}
 
-Name the release you are evaluating in \val{ELICIT_TAG}, either on the command line as above
-or once, in a \file{.env} file beside the compose file:
+The file runs the release it came with. To run another, name it in \val{ELICIT_TAG}, either
+on the command line (\val{ELICIT_TAG=3.0.0-rc.1 docker compose up -d}) or once, in a
+\file{.env} file beside the compose file:
 
 \begin{elicitcmd}
 ELICIT_TAG=3.0.0-rc.1
 \end{elicitcmd}
 
 A pre-release (\val{3.0.0-beta.1}, \val{3.0.0-rc.1}) is published under its exact version
-only; \val{latest} and the \val{3.0} tag move only when a final version ships. Left unset, the
-tag is \val{latest}, which is what a local build produces. The same file is where an
+only; \val{latest} and the \val{3.0} tag move only when a final version ships. A developer
+sets \val{ELICIT_TAG=latest} there, which is what a local build produces. The same file is where an
 evaluation sets \opt{ELICIT_SERVICE_TOKEN}, to run the stack with a service token of its own
 rather than the documented one (Chapter~\ref{sec:service-token}).
 
@@ -1013,8 +1016,9 @@ To start again from an empty database, run
 ./resetDatabase.sh V3
 \end{elicitcmd}
 
-which stops the stack and deletes the database's data directory. Everything in the database is
-lost.
+which stops the stack and deletes the database's volume. Everything in the database is
+lost. Without the repository, \val{docker compose down -v} does the same and deletes the caught
+mail and the filed reports with it.
 
 \subsection{From an evaluation to a real site}
 \label{sec:compose-onward}
@@ -1444,9 +1448,9 @@ text is therefore a valid way to change one wording. A text missing everywhere s
 
 \begin{enumerate}
   \item Mount the translations directory read-only on Survey and Admin, and set
-        \opt{i18n.file.system.path} to the mount point. The compose file already mounts
-        \file{elicit-i18n/} at \val{/opt/i18n}. Leave it unmounted for an English-only
-        site.
+        \opt{i18n.file.system.path} to the mount point. The compose file carries both, commented
+        out, for \file{elicit-i18n/} at \val{/opt/i18n} (Section~\ref{sec:compose-before}).
+        Leave it unmounted for an English-only site.
   \item If an application should offer fewer languages than are mounted, set
         \opt{i18n.offered.locales} on it to a comma-separated list, for example
         \val{en,es-419}. Leave it unset to offer everything mounted.
@@ -2833,11 +2837,6 @@ works from both (Chapter~\ref{sec:oidc}). \\
 A service is reported unhealthy although it responds in a browser. & The health check was
 pointed at the published host port. & Point it at \val{8080} inside the container. \\
 \addlinespace
-The database's first start after a reset fails on wrong ownership of its data directory. & A
-known file-sharing fault of Docker Desktop for Mac (\val{docker/for-mac\#7415}), not a broken
-copy. & Run \file{resetDatabase.sh} again and restart. If it recurs, switch Docker Desktop's
-file sharing to gRPC FUSE. \\
-\addlinespace
 The console shows a banner about default accounts on every screen. & The seeded accounts
 \val{admin} and \val{user} have not been renamed. & Rename both
 (Chapter~\ref{sec:firstsignin}). \\
@@ -3008,12 +3007,12 @@ The \textbf{Change} column says what the setting is to you:
 
 \begin{settings}{tab:common}{Settings Survey and Admin both read}
 \opt{brand.file.system.path} & \val{/brand} & \chgmay & The mounted brand directory. The
-compose file sets \val{/opt/brand}. See Chapter~\ref{sec:brand}. \\
+compose file's commented brand mount uses \val{/opt/brand}. See Chapter~\ref{sec:brand}. \\
 \opt{brand.local.path} & \val{brand} & \chgkeep & A brand directory beside the running
 application, searched between the mount and the embedded default. \\
 \opt{i18n.file.system.path} & \val{/i18n} & \chgmay & The mounted translations directory. Each
-application reads its own sub-directory of it (\opt{i18n.app.name}). The compose file mounts
-\file{elicit-i18n/} at \val{/opt/i18n} and sets this to match. A directory that does not exist is
+application reads its own sub-directory of it (\opt{i18n.app.name}). The compose file's commented
+translations mount puts \file{elicit-i18n/} at \val{/opt/i18n}. A directory that does not exist is
 logged and the application offers English only. See Chapter~\ref{sec:i18n}. \\
 \opt{i18n.app.name} & per app & \chgkeep & This application's sub-directory of the translations
 directory: \val{survey} or \val{admin}. Must be a plain directory name. \\
