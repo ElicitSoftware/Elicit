@@ -37,6 +37,10 @@
 services:
   survey:
     image: elicitsoftware/survey:${ELICIT_TAG:-latest}
+    # Docker Desktop resolves host.docker.internal inside a container; Docker Engine on Linux
+    # does not, so the services that call the Family History addresses map it themselves.
+    extra_hosts:
+      - host.docker.internal:host-gateway
     ports:
       - 8080:8080
     environment:
@@ -88,6 +92,10 @@ services:
         condition: service_healthy
   fhhs:
     image: elicitsoftware/fhhs:${ELICIT_TAG:-latest}
+    # Docker Desktop resolves host.docker.internal inside a container; Docker Engine on Linux
+    # does not, so the services that call the Family History addresses map it themselves.
+    extra_hosts:
+      - host.docker.internal:host-gateway
     # This port is needed, not only for local testing: the shipped Family History definition
     # names its reports and its post-survey action at http://host.docker.internal:8082/..., so
     # Survey and Admin reach FHHS through the published port. Every path outside /q requires the
@@ -223,6 +231,10 @@ services:
       - 8083:8080
   admin:
     image: elicitsoftware/admin:${ELICIT_TAG:-latest}
+    # Docker Desktop resolves host.docker.internal inside a container; Docker Engine on Linux
+    # does not, so the services that call the Family History addresses map it themselves.
+    extra_hosts:
+      - host.docker.internal:host-gateway
     ports:
       - 8081:8080
     healthcheck:
@@ -250,6 +262,9 @@ services:
       ELICIT_DB_PASSWORD: SAOWNERPW
       ELICIT_OWNER_DB_PASSWORD: SURVEYPW
       OIDC_CLIENT_SECRET: secret
+      # Where the container reaches Keycloak; the browser is sent to http://localhost:8180
+      # (KC_HOSTNAME on the keycloak service).
+      quarkus.oidc.auth-server-url: http://keycloak:8080/realms/elicit/
       
       # DATABASE sources roles from survey.user_roles (managed via the Edit User
       # screen) instead of relying solely on OIDC/Keycloak. Default is OIDC.
@@ -382,13 +397,10 @@ services:
       quarkus.datasource.jdbc.url: jdbc:postgresql://db:5432/author?connectTimeout=30&socketTimeout=600&tcpKeepAlive=true&tcpKeepAlivesIdle=60
       ELICIT_DB_PASSWORD: SURVEYPW
       OIDC_CLIENT_SECRET: secret
-      # The OIDC URL is left at the image default, http://host.docker.internal:8180/realms/elicit/,
-      # the same one Admin uses. It has to work from both places the browser and the container reach
-      # Keycloak: the container resolves host.docker.internal to the Docker host, where Keycloak is
-      # published on 8180, and Docker Desktop maps the same name to 127.0.0.1 on the host. Pointing
-      # it at http://keycloak:8080 instead breaks the login redirect - the browser cannot reach the
-      # compose-internal name, and on a host with a "127.0.0.1 keycloak" hosts entry it lands on
-      # Survey, which listens on 8080.
+      # Where the container reaches Keycloak. The browser never sees this address: Keycloak
+      # answers with the public one, http://localhost:8180 (KC_HOSTNAME on the keycloak service),
+      # so no host needs a hosts entry to sign in.
+      quarkus.oidc.auth-server-url: http://keycloak:8080/realms/elicit/
       # OpenTelemetry configuration
       quarkus.application.name: author
       quarkus.otel.enabled: true
@@ -448,6 +460,12 @@ services:
       TZ: "America/Detroit"
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
+      # The address a browser uses, which Keycloak puts in every sign-in redirect and names as
+      # the issuer of its tokens. Admin and Author call it at http://keycloak:8080; the second
+      # setting lets it answer those calls at the address they came in on. A module in dev mode
+      # on the host uses http://localhost:8180 for both.
+      KC_HOSTNAME: http://localhost:8180
+      KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "true"
     volumes:
       - ./keycloak:/opt/keycloak/data/import
       - ./keycloak/db:/h2  

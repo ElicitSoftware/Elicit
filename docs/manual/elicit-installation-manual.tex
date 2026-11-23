@@ -251,9 +251,10 @@ The issuer address you configure must resolve to the same provider \emph{from th
 and \emph{from inside the container}. When it does not, sign-in fails in a way that looks
 like an application fault: the browser is redirected somewhere it cannot reach, or, on a host
 that maps the provider's name to itself, lands on whichever service listens on that port. The
-bundled example uses \val{host.docker.internal}, which Docker Desktop resolves to the host
-from inside a container and to the loopback address on the host, so one address works from
-both.
+bundled compose file does not rely on one name for both: Keycloak is given its browser address
+(\opt{KC_HOSTNAME}\val{=http://localhost:8180}), which it puts in every sign-in redirect and
+names as issuer, and the applications call it at its service name,
+\val{http://keycloak:8080}. No hosts entry is needed on the evaluation host.
 \end{elicitcaution}
 
 The repository bundles a database, an identity provider, a mail catcher, an SFTP server and a
