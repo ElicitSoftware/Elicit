@@ -30,8 +30,9 @@ REPOS = {
         checks=["`docker compose config` and `status.sh` still work when `docker-compose.yml` or a script changed",
                 "`checkLanguages.sh` still passes when anything about languages changed",
                 "`checkBrand.sh` still passes when anything about the brand changed",
-                "A change to `samples/census-household-survey.elicit` was made in the generator, appended at "
-                "the end, and the twin in `e2e_multisite_multilingual/` refreshed",
+                "A change to the census sample was made in its generator, appended at the end, with "
+                "`samples/census-household-survey.template.elicit` regenerated and the twin in "
+                "`e2e_multisite_multilingual/` refreshed",
                 "The end-to-end suites still compile, and pass when the change is in a journey they drive"],
     ),
     "Survey": dict(
@@ -72,8 +73,8 @@ REPOS = {
         base="main", aiup=True,
         aiup_extra=["The author's manual under `docs/manual/` updated when a screen changed"],
         checks=["A change to the `.elicit` format is mirrored in Survey's importer and in the umbrella's "
-                "golden sample (`samples/census-household-survey.elicit`, via its generator), and the sample "
-                "test still passes",
+                "census sample (its generator and the template it is kept as, "
+                "`samples/census-household-survey.template.elicit`), and the sample test still passes",
                 "`scripts/sync-survey-schema.sh` run when Survey's migrations changed, so the schema mirror "
                 "is fresh",
                 "A new rule, control or token form was added to the golden census survey",

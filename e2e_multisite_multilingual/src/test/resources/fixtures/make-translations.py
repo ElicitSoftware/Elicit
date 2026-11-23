@@ -369,7 +369,7 @@ if problems:
     sys.exit(1)
 
 out = {
-    "_comment": ("Content translations of samples/census-household-survey.elicit, keyed "
+    "_comment": ("Content translations of the census sample (samples/README.md), keyed "
                  "element_type|field|source_text. Filled into the hand-off document Author "
                  "exports (UC-045) and imported back through the Translations page (UC-046); "
                  "see README.md. The last entry of each language is the reworded race question "

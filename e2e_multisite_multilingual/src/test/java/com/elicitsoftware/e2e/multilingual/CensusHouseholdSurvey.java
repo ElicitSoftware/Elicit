@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * {@code samples/census-household-survey.elicit} as this journey drives it: where every question
+ * The census sample ({@code census-household-survey.elicit} in this directory) as this journey drives it: where every question
  * sits, how a respondent answers it, and what a respondent should read in each language.
  *
  * <p>Structure (six steps, eleven sections, twenty-six questions, thirteen rules -- see

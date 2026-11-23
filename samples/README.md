@@ -1,18 +1,15 @@
 # Sample Survey Definitions
 
-## `census-household-survey.elicit`
+## `census-household-survey.template.elicit`
 
 A demonstration survey about census household data, built to exercise **every
 question type and every rule the Elicit engine supports**. It is small enough to
 walk end to end in a few minutes, which makes it useful as a smoke test after a
 schema or runtime change, and as a worked reference when authoring a new survey.
 
-Install it with **Admin > Apply Survey Definition**, or:
-
-```sh
-curl -u <admin> -F "file=@samples/census-household-survey.elicit" \
-  http://localhost:8081/secured/survey/apply
-```
+It is a keyless template (see below), so Admin does not apply it. Open it with Author's
+**Import definition**, which mints its keys, export it there, and apply the export with
+**Admin > Apply Survey Definition**.
 
 It carries `display_order` 2, so it installs alongside the Family History Survey
 rather than colliding with it.
@@ -100,12 +97,44 @@ offers no formatting hook for either.
 - `{Q#}` and `{S#}` are instance counters the runtime fills itself; they are not
   rule tokens and need no rule.
 
+## Keyless templates
+
+`family-history-survey.template.elicit` and `census-household-survey.template.elicit` are the
+Family History Survey (`FHHS/family-history-survey.elicit`) and the census sample with every
+`survey_key` and element key cleared. Use one as the **starting point for a survey of your own**:
+open it with Author's **Import definition**, which mints new keys, and build on it. The census
+sample is kept here only as a template; its keyed form is what the generator writes.
+
+A site recognizes a survey by its keys, and updates by them. A survey built from the keyed file
+would carry that file's keys, read as a revision of it, and be applied over the original at any
+site that has it. Built from the template it is related to nothing, and the template can be
+imported into the same Author more than once. Rename the survey first: a survey's name is unique
+in a database, so a second import is refused while a survey of the template's name is there, the
+keyed original included.
+
+To **install** the Family History Survey as it is, use the keyed file in the FHHS repository,
+not the template. The templates are marked `ELICIT_SURVEY_DRAFT_V1`, so Admin does not apply
+them, and FHHS serves only the survey with the shipped key. A survey built from the Family
+History template still names FHHS's reports and post-survey action; replace them, because FHHS
+will refuse a survey that is not its own.
+
+Regenerate a template whenever its source changes; never edit one by hand. For the census
+sample, whose keyed form is not kept:
+
+```sh
+samples/generate-census-household-survey.py /tmp/census.elicit
+samples/make-template.py /tmp/census.elicit samples/census-household-survey.template.elicit
+```
+
 ## Tooling
 
-- `generate-census-household-survey.py <out>` — regenerates the definition.
-  Element keys are `uuid5`, so output is byte-identical across runs. Edit this
+- `generate-census-household-survey.py <out>` — writes the keyed definition the template
+  is made from. Element keys are `uuid5`, so output is byte-identical across runs. Edit this
   rather than the pipe-delimited file.
+- `make-template.py <definition> <template>` — writes the keyless template of a definition.
+  It refuses a definition that carries translations, which name their elements by key.
 - `validate-elicit.py <file>` — replays the import and export validations
   (header, table order, field counts, FK resolution, choice types needing a
   select group, `initial_display_key`, rule direction, unfilled tokens) without
-  needing a database. Works on any `.elicit` file.
+  needing a database. Works on any `.elicit` file but a template, which has neither
+  the export marker nor a survey key.

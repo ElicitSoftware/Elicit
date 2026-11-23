@@ -1,6 +1,7 @@
 # ELICIT_SURVEY_EXPORT_V1
 # ---------------------------------------------------------------------------------------------
-# A copy of samples/census-household-survey.elicit with ONE deliberate fault, for this suite's
+# A copy of the census sample (samples/generate-census-household-survey.py writes it; samples/
+# keeps only its keyless template) with ONE deliberate fault, for this suite's
 # first phase (Author UC-005, UC-007, UC-019, UC-033): relationship 3, the SHOW rule that should
 # reveal the 'Rent details' section when the tenure question is answered 'RENT', points at the
 # 'About you' section of step 2 instead -- a section the respondent has already passed. Author
@@ -9,7 +10,7 @@
 # journey's author fixes it in the rule dialog before anything is translated or exported.
 #
 # Everything else is the sample byte for byte, so the translation fixture keys still match. To
-# refresh it after the sample changes: copy the sample here and re-apply the fault to the
+# refresh it after the sample changes: generate the sample here and re-apply the fault to the
 # relationships record with id 3 -- downstream_step_id 3 -> 2, downstream_ss_id 6 -> 2 (fields 5
 # and 6). ../samples/validate-elicit.py replays Author's own checks and must report exactly one
 # error, the backwards rule.
