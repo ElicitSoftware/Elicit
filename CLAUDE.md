@@ -22,10 +22,13 @@ GitHub repo, dropped into this directory and excluded from this repo via
 | `Admin/`      | `ElicitSoftware/Admin`       | Administrator app (Quarkus + Vaadin)            |
 | `FHHS/`       | `ElicitSoftware/FHHS`        | Family Health History Survey; headless REST     |
 | `Pedigree/`   | `ElicitSoftware/Pedigree`    | R/Pedixplorer pedigree-drawing service (plumber) |
+| `elicit_db/`  | `ElicitSoftware/PostgreSQL`  | Source of the `elicitsoftware/elicit_db` image  |
 | `Prometheus/` | *tracked here*               | Prometheus config; not a repo, not in compose   |
 | `postgresql/` | *not tracked, not a repo*    | Local `PGDATA` volume only                      |
 
-`cloneAllProjects.sh` bootstraps all five module clones.
+`cloneAllProjects.sh` bootstraps all six clones. `ElicitSoftware/PostgreSQL` is cloned as
+`elicit_db/`, because `PostgreSQL/` and `postgresql/` (the `PGDATA` volume) are the same
+directory on macOS's case-insensitive filesystem.
 
 Author's GitHub repository, `ElicitSoftware/Author`, is public (owner, 2026-11-18), so
 the umbrella's CI clones it anonymously like the other four.
@@ -90,7 +93,7 @@ at one tag, `${ELICIT_TAG:-latest}`, so `ELICIT_TAG=3.0.0-rc.1 docker compose up
 the tag (its `latest` predates 1.0.0): every compose file names its version, `3.0.0-rc.2`.
 3.0.0-rc.1 was the first whose schema owner (`elicit_owner`) and owner group (`dbowner`) are not
 superusers (umbrella C-020). The image's source is the `ElicitSoftware/PostgreSQL` repository,
-which is not cloned here and is tagged at every platform release, so its `v*` tag publishes
+cloned here as `elicit_db/` and tagged at every platform release, so its `v*` tag publishes
 `elicit_db` under the platform's version. A `PGDATA`
 initialized by version 1.0.0 keeps its superuser roles until the three statements in
 `DeploymentScript.md` are run; `resetDatabase.sh V2` runs them on the V2 copy, and `fullTest.sh`
@@ -234,7 +237,7 @@ to start cleanly on 2026-09-20.
 
 ## Scripts
 
-- `cloneAllProjects.sh` — clone the five module repos.
+- `cloneAllProjects.sh` — clone the five module repos and `elicit_db/`.
 - `checkLanguages.sh` — the Survey, Admin and Author images carry English only,
   `elicit-i18n/` gives all three the same languages, and Author's
   `author.content.languages` is exactly that set. Run by `buildDockerImages.sh` before it
