@@ -1,5 +1,5 @@
 # Release workflow: builds elicitsoftware/elicit_keycloak (keycloak/Dockerfile, the development
-# Keycloak with the Elicit realm built in, which docker-compose.standalone.yml runs) for
+# Keycloak with the Elicit realm built in, which docker-compose.yml runs) for
 # linux/amd64 and linux/arm64 and pushes it to Docker Hub when a version tag (v3.0.0,
 # v3.0.0-rc.2) is pushed. The image is released under the platform's version, the same number
 # as every other Elicit image (umbrella C-018).
@@ -64,7 +64,7 @@ jobs:
           if [ "$GITHUB_EVENT_NAME" != push ]; then
             git fetch --quiet --depth=1 origin "refs/tags/v$version:refs/tags/v$version" ||
               { echo "::error::tag v$version does not exist"; exit 1; }
-            if ! git diff --quiet "v$version" HEAD -- keycloak ':!keycloak/Dockerfile' ':!keycloak/.dockerignore' ':!keycloak/smoke.sh'; then
+            if ! git diff --quiet "v$version" HEAD -- keycloak ':!keycloak/Dockerfile' ':!keycloak/.dockerignore' ':!keycloak/smoke.sh' ':!keycloak/buildDockerImage.sh'; then
               echo "::error::keycloak/ differs from v$version; the image would not be that release's realm"
               exit 1
             fi

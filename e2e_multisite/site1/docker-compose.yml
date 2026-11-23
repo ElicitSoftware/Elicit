@@ -3,19 +3,21 @@
 # A self-contained copy of ../../docker-compose.yml (the umbrella's stack) on the stock host
 # ports, with its own
 # compose project name and its own data directories under ../data/site1 so the test never
-# touches the developer's postgresql/PGDATA. It cannot run at the same time as the
+# touches the developer's database volume. It cannot run at the same time as the
 # umbrella's stack (same ports). Differences from the umbrella's file:
-#   - no published ports for SMTP (1025) or the Jaeger collector (4317/4318/14250/14268):
+#   - no published ports for SMTP (1025) or the Jaeger collector (4317/4318):
 #     the apps reach mailpit and jaeger by service name
 #   - no fhhs and no sftpServer: FHHS serves only the Family History Survey and this journey runs
 #     the Household Survey, so it would never become ready (FHHS UC-005); nothing else used SFTP
-#   - no fixed container_name on mailpit and jaeger (two stacks must be able to coexist)
 # Keycloak and Mailpit here are shared with site 2 (see ../site2/docker-compose.yml).
+# Every Elicit image runs at one tag, ELICIT_TAG, as in ../../docker-compose.yml. Here it defaults
+# to `latest`, the local builds (../../buildDockerImages.sh, elicit_db included): the suite tests
+# what was just built. ELICIT_TAG=<release> runs it against a published release instead.
 name: elicit-site1
 
 services:
   survey:
-    image: elicitsoftware/survey:latest
+    image: elicitsoftware/survey:${ELICIT_TAG:-latest}
     ports:
       - 8080:8080
     environment:
@@ -58,7 +60,7 @@ services:
       db:
         condition: service_healthy
   pedigree:
-    image: elicitsoftware/pedigree:latest
+    image: elicitsoftware/pedigree:${ELICIT_TAG:-latest}
     environment:
       # The token the modules authenticate each other with. Every module of one site gets the
       # same value; a real site supplies its own (openssl rand -hex 32).
@@ -66,7 +68,7 @@ services:
     ports:
       - 8083:8080
   admin:
-    image: elicitsoftware/admin:latest
+    image: elicitsoftware/admin:${ELICIT_TAG:-latest}
     ports:
       - 8081:8080
     healthcheck:
@@ -119,7 +121,7 @@ services:
   # Author stack: the `author` database is created by ../../db-init/V0.0.4__CREATE_AUTHOR_DATABASE.sql
   # on first initialization; author-survey creates the schema there and serves the preview.
   author-survey:
-    image: elicitsoftware/survey:latest
+    image: elicitsoftware/survey:${ELICIT_TAG:-latest}
     ports:
       - 8085:8080
     environment:
@@ -164,7 +166,7 @@ services:
       db:
         condition: service_healthy
   author:
-    image: elicitsoftware/author:latest
+    image: elicitsoftware/author:${ELICIT_TAG:-latest}
     ports:
       - 8084:8080
     healthcheck:
@@ -213,7 +215,7 @@ services:
       author-survey:
         condition: service_healthy
   db:
-    image: elicitsoftware/elicit_db:3.0.0-rc.2
+    image: elicitsoftware/elicit_db:${ELICIT_TAG:-latest}
     volumes:
       - ../data/site1/PGDATA:/var/lib/postgresql/data
       - ../../db-init/V0.0.4__CREATE_AUTHOR_DATABASE.sql:/docker-entrypoint-initdb.d/V0.0.4__CREATE_AUTHOR_DATABASE.sql:ro

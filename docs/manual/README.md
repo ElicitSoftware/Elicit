@@ -112,7 +112,7 @@ without destroying the local database.**
 
 ```bash
 cd …/Elicit
-./resetDatabase.sh V3          # deletes postgresql/PGDATA — greenfield
+./resetDatabase.sh V3          # deletes the database volume — greenfield
 docker compose up -d           # one pass; no restart sequence
 npm --prefix docs/manual/capture install
 npm --prefix docs/manual/capture run capture

@@ -61,8 +61,9 @@ Access codes are read from the Admin search grid, as in `../e2e-tests`.
 
 ## Prerequisites
 
-- Docker Desktop; the Survey/Admin/Pedigree/Author images built from the umbrella root
-  (`../buildDockerImages.sh`).
+- Docker Desktop; the Survey/Admin/Pedigree/Author and `elicit_db` images built from the
+  umbrella root (`../buildDockerImages.sh`). The stacks run every Elicit image at
+  `ELICIT_TAG`, which defaults to `latest`, the local builds.
   FHHS and Pedigree are not needed by this journey (FHHS is not in these stacks at all).
   Admin needs the portable respondent export/import (`ELICIT_EXPORT_V2`) and Author the rule
   dialog that stores a token on any action and same-section question rules question-only.

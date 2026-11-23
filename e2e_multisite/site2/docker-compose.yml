@@ -17,6 +17,9 @@
 # FHHS is not part of these stacks: it serves only the Family History Survey, and this journey
 # runs the Household Survey, so it would never become ready here (FHHS UC-005). The SFTP server
 # went with it -- nothing else used it.
+# Every Elicit image runs at one tag, ELICIT_TAG, as in ../../docker-compose.yml. Here it defaults
+# to `latest`, the local builds (../../buildDockerImages.sh, elicit_db included): the suite tests
+# what was just built. ELICIT_TAG=<release> runs it against a published release instead.
 name: elicit-site2
 
 networks:
@@ -26,7 +29,7 @@ networks:
 
 services:
   survey:
-    image: elicitsoftware/survey:latest
+    image: elicitsoftware/survey:${ELICIT_TAG:-latest}
     networks:
       default:
         aliases:
@@ -74,7 +77,7 @@ services:
       db:
         condition: service_healthy
   pedigree:
-    image: elicitsoftware/pedigree:latest
+    image: elicitsoftware/pedigree:${ELICIT_TAG:-latest}
     environment:
       # The token the modules authenticate each other with. Every module of one site gets the
       # same value; a real site supplies its own (openssl rand -hex 32).
@@ -82,7 +85,7 @@ services:
     ports:
       - 8033:8080
   admin:
-    image: elicitsoftware/admin:latest
+    image: elicitsoftware/admin:${ELICIT_TAG:-latest}
     ports:
       - 8031:8080
     networks:
@@ -141,7 +144,7 @@ services:
       pedigree:
         condition: service_started
   db:
-    image: elicitsoftware/elicit_db:3.0.0-rc.2
+    image: elicitsoftware/elicit_db:${ELICIT_TAG:-latest}
     networks:
       default:
         aliases:

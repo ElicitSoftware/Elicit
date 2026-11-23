@@ -1,18 +1,23 @@
 #!/bin/bash
 #
-# Reset the local PostgreSQL data directory for a greenfield or a brownfield run.
+# Reset the stack's database volume for a greenfield or a brownfield run. The database lives
+# in the named volume `pgdata` of docker-compose.yml (elicit_pgdata to Docker).
 #
-#   ./resetDatabase.sh V3   Delete postgresql/PGDATA. The next `docker compose up -d`
-#                           initializes a fresh database (greenfield path).
-#   ./resetDatabase.sh V2   Replace postgresql/PGDATA with a copy of PGDATA_v2, the
+#   ./resetDatabase.sh V3   Delete the volume. The next `docker compose up -d` initializes a
+#                           fresh database (greenfield path).
+#   ./resetDatabase.sh V2   Replace the volume's content with a copy of PGDATA_v2, the
 #                           pre-Kimball V2 database, so the next `docker compose up -d`
 #                           exercises the upgrade (brownfield) path.
+#
+# Only the database is reset: the caught mail and the SFTP uploads keep their volumes
+# (`docker compose down -v` deletes all three).
 #
 # PGDATA_v2 is tracked in git, and git cannot store empty directories, so a checkout is
 # missing the directories PostgreSQL requires (it refuses to start with "could not open
 # directory pg_notify"). Placeholder files are not an option because PostgreSQL reads
 # every entry of pg_tblspc and pg_replslot as data, so the V2 mode recreates the
-# directories in the copy instead.
+# directories in the copy instead. The copy is made by a one-off container of the db service,
+# as root, and handed to the image's postgres user with the permissions PostgreSQL insists on.
 #
 # PGDATA_v2 was also initialized on a host whose glibc (2.41) is newer than the one in the
 # elicitsoftware/elicit_db image (2.36), so PostgreSQL warns of a collation version
@@ -34,19 +39,12 @@
 # any longer (umbrella C-020), so the V2 mode narrows them with the three statements
 # DeploymentScript.md gives a site in the same position, and the brownfield run upgrades the
 # V2 database as a schema owner that is not a superuser.
-#
-# If the first start after a reset dies with
-#   FATAL:  data directory "/var/lib/postgresql/data/pgdata" has wrong ownership
-# that is a Docker Desktop for Mac VirtioFS glitch, not a problem with the copy: bind
-# mounts report every file as root-owned inside the container and PostgreSQL's owner
-# check occasionally fails on initial startup (docker/for-mac#7415). Run this script
-# again and restart the stack; if it keeps happening, switch Docker Desktop's file
-# sharing implementation to gRPC FUSE.
 
 set -euo pipefail
 cd "$(dirname "$0")"
 
-PGDATA_DIR=postgresql/PGDATA
+# The compose file names its project `elicit`, so this is the volume behind `pgdata`.
+PGDATA_VOLUME=elicit_pgdata
 V2_SOURCE=PGDATA_v2
 
 # Directories that are empty in a healthy PG17 cluster and therefore dropped by git.
@@ -82,7 +80,7 @@ refresh_collation_versions() {
     done
 }
 
-# Create Author's database from the script compose mounts into the db service, unless the
+# Create Author's database from the script compose places in the db service, unless the
 # cluster already has one. Run against a started db.
 create_author_database() {
     if [ -n "$(db_psql postgres "select 1 from pg_database where datname = 'author'")" ]; then
@@ -114,10 +112,20 @@ db_psql() {
         { grep -vE '^(WARNING:  database ".*" has a collation version mismatch|DETAIL:  The database was created using collation version|HINT:  Rebuild all objects in this database)' || true; }
 }
 
+# Stop the stack and delete the database volume, if there is one.
+drop_volume() {
+    echo "Stopping the stack"
+    docker compose down
+    echo "Deleting the volume $PGDATA_VOLUME"
+    if docker volume inspect "$PGDATA_VOLUME" > /dev/null 2>&1; then
+        docker volume rm "$PGDATA_VOLUME" > /dev/null
+    fi
+}
+
 usage() {
     echo "Usage: $0 V2|V3" >&2
-    echo "  V3  delete $PGDATA_DIR (greenfield: next start initializes a fresh database)" >&2
-    echo "  V2  copy $V2_SOURCE to $PGDATA_DIR and add the empty cluster directories (brownfield)" >&2
+    echo "  V3  delete the volume $PGDATA_VOLUME (greenfield: next start initializes a fresh database)" >&2
+    echo "  V2  fill $PGDATA_VOLUME from $V2_SOURCE and add the empty cluster directories (brownfield)" >&2
     exit 1
 }
 
@@ -126,24 +134,21 @@ MODE=$(echo "$1" | tr '[:lower:]' '[:upper:]')
 
 case "$MODE" in
     V3)
-        echo "Stopping the stack"
-        docker compose down
-        echo "Deleting $PGDATA_DIR"
-        rm -rf "$PGDATA_DIR"
+        drop_volume
         echo "Done. 'docker compose up -d' will initialize a fresh (greenfield) database."
         ;;
     V2)
         [ -d "$V2_SOURCE/pgdata" ] || { echo "$V2_SOURCE/pgdata not found" >&2; exit 1; }
-        echo "Stopping the stack"
-        docker compose down
-        echo "Replacing $PGDATA_DIR with a copy of $V2_SOURCE"
-        rm -rf "$PGDATA_DIR"
-        cp -R "$V2_SOURCE" "$PGDATA_DIR"
-        echo "Adding the empty cluster directories git does not keep"
-        for d in "${EMPTY_CLUSTER_DIRS[@]}"; do
-            mkdir -p "$PGDATA_DIR/pgdata/$d"
-            chmod 700 "$PGDATA_DIR/pgdata/$d"
-        done
+        drop_volume
+        echo "Filling $PGDATA_VOLUME with a copy of $V2_SOURCE and the empty cluster directories git does not keep"
+        docker compose run --rm --no-deps -T --user root --entrypoint sh \
+            -v "$PWD/$V2_SOURCE:/v2:ro" db -ec '
+                data=/var/lib/postgresql/data
+                cp -R /v2/. "$data"/
+                for d in "$@"; do mkdir -p "$data/pgdata/$d"; done
+                chown -R postgres:postgres "$data"
+                chmod -R u=rwX,go= "$data/pgdata"
+            ' sh "${EMPTY_CLUSTER_DIRS[@]}"
         echo "Matching the copy's collation version to the database image"
         docker compose up -d --wait db
         refresh_collation_versions

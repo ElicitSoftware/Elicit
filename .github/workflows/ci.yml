@@ -9,8 +9,8 @@
 #                                   the manuals' style package carries its palette (NFR-015)
 #   docs/manual/check-properties.sh the configuration reference matches the modules'
 #                                   @ConfigProperty declarations and defaults (NFR-004/005)
-#   docker compose config           the compose files parse, and the standalone one carries
-#                                   the same author database script as db-init/
+#   docker compose config           the compose file parses and carries the same author
+#                                   database script as db-init/
 #   docs/manual/build-manual.sh     the manual typesets, stamped with the modules' version
 #
 # Three of those read the Survey, Admin, FHHS and Author sources, which are independent clones and
@@ -86,15 +86,13 @@ jobs:
       - name: Compose file parses
         run: docker compose config --quiet
 
-      - name: Standalone compose file parses
-        run: docker compose -f docker-compose.standalone.yml config --quiet
-
-      # The standalone file carries the author database script inline, so it needs no file
-      # beside it (#194); the copy must not drift from db-init/.
-      - name: Standalone compose carries the same author database script
+      # The compose file carries the author database script inline, so it needs no file beside
+      # it (#194, #201); the copy must not drift from db-init/, which resetDatabase.sh and the
+      # multi-site suites use.
+      - name: Compose file carries the same author database script
         run: |
           diff <(grep -v '^--' db-init/V0.0.4__CREATE_AUTHOR_DATABASE.sql) \
-               <(docker compose -f docker-compose.standalone.yml config --format json |
+               <(docker compose config --format json |
                  jq -j '.configs["create-author-database"].content')
 
       - name: Build the installation manual

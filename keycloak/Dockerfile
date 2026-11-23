@@ -1,14 +1,12 @@
-# The development Keycloak with the Elicit realm built in, so the standalone compose file
-# (docker-compose.standalone.yml) runs without this repository. Evaluation only (umbrella
-# C-018): the realm carries the published client secret and the seeded `admin` and `user`
-# accounts. Development keeps mounting keycloak/ in docker-compose.yml.
+# The development and evaluation Keycloak with the Elicit realm built in, so docker-compose.yml
+# runs with nothing beside it. Evaluation only (umbrella C-018): the realm carries the published
+# client secret and the seeded `admin`, `user` and `author` accounts. The multi-site suites
+# still mount keycloak/ into the stock image.
 #
 # Published by .github/workflows/release.yml on each release tag, under the platform's version
-# (the same number as every other Elicit image), after keycloak/smoke.sh passes. To try a
-# change locally:
-#
-#   docker build -t elicitsoftware/elicit_keycloak:candidate keycloak/
-#   keycloak/smoke.sh elicitsoftware/elicit_keycloak:candidate
+# (the same number as every other Elicit image), after keycloak/smoke.sh passes. Locally,
+# ../buildDockerImages.sh Keycloak (or ./buildDockerImage.sh here) builds and smoke-tests it as
+# `latest`, which the stack runs with ELICIT_TAG=latest.
 #
 # The realm is imported on first start; a realm that already exists is left alone.
 FROM quay.io/keycloak/keycloak:26.2.3

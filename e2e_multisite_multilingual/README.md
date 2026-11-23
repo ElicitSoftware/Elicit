@@ -242,8 +242,10 @@ navigation captions a respondent's `SectionPage` needs come from.
 
 ## Prerequisites
 
-- Docker Desktop, and the `survey`, `admin`, `fhhs`, `pedigree` and `author` images built from
-  the umbrella root (`../buildDockerImages.sh Survey Admin FHHS Pedigree Author`). FHHS and
+- Docker Desktop, and the `survey`, `admin`, `fhhs`, `pedigree`, `author` and `elicit_db` images
+  built from the umbrella root (`../buildDockerImages.sh Survey Admin FHHS Pedigree Author
+  elicit_db`). The stacks run every Elicit image at `ELICIT_TAG`, which defaults to `latest`,
+  the local builds. FHHS and
   Pedigree run at Mexico only, for phases 17-19.
 - `../FHHS/family-history-survey.elicit`: the second survey phase 17 applies
   (`-Dfhhs.definition=` names another file).

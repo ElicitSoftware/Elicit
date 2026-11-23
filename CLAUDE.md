@@ -24,11 +24,12 @@ GitHub repo, dropped into this directory and excluded from this repo via
 | `Pedigree/`   | `ElicitSoftware/Pedigree`    | R/Pedixplorer pedigree-drawing service (plumber) |
 | `elicit_db/`  | `ElicitSoftware/PostgreSQL`  | Source of the `elicitsoftware/elicit_db` image  |
 | `Prometheus/` | *tracked here*               | Prometheus config; not a repo, not in compose   |
-| `postgresql/` | *not tracked, not a repo*    | Local `PGDATA` volume only                      |
+| `postgresql/` | *not tracked, not a repo*    | Leftover of the old bind-mounted `PGDATA`; unused |
 
 `cloneAllProjects.sh` bootstraps all six clones. `ElicitSoftware/PostgreSQL` is cloned as
-`elicit_db/`, because `PostgreSQL/` and `postgresql/` (the `PGDATA` volume) are the same
-directory on macOS's case-insensitive filesystem.
+`elicit_db/`, because `PostgreSQL/` and `postgresql/` (where the stack kept `PGDATA` until it
+moved to a named volume, still present in older checkouts) are the same directory on macOS's
+case-insensitive filesystem.
 
 Author's GitHub repository, `ElicitSoftware/Author`, is public (owner, 2026-11-18), so
 the umbrella's CI clones it anonymously like the other four.
@@ -83,18 +84,41 @@ The compose stack and everything bundled with it (Keycloak and its realm include
 development, evaluation and the e2e suites, never a production installation (umbrella C-018):
 its defaults favor ease of use and are not hardened.
 
+`docker-compose.yml` is **one file for both evaluation and development** (umbrella #201; there
+is no `docker-compose.standalone.yml` any more). It needs nothing beside it: an evaluator
+downloads it into an empty folder and runs `docker compose up -d`. So it mounts no host
+directory, keeps its data in named volumes (`pgdata`, `mailpit-data`, `sftp-data`), carries the
+`author` database script inline as a config, and sets `name: elicit`, so containers are
+`elicit-<service>-1` and the database volume is `elicit_pgdata` whatever the folder is called.
+Keep it that way: a bind mount or a file it needs beside it breaks the one-file evaluation.
+
 Applications: `survey`, `admin`, `fhhs`, `pedigree`, `author` and `author-survey` (a
 second Survey on the `author` database, Author's respondent preview). Supporting services:
-`db` (PostgreSQL), `keycloak` (OIDC), `mailpit` (SMTP), `sftpServer`, and
-`jaeger` (OpenTelemetry). All app images are built locally as
-`elicitsoftware/<name>:latest`, and the compose file pulls every application image
-at one tag, `${ELICIT_TAG:-latest}`, so `ELICIT_TAG=3.0.0-rc.1 docker compose up -d` (or a
-`.env` line, ignored by git) runs a published release as a matched set. `elicit_db` is not on
-the tag (its `latest` predates 1.0.0): every compose file names its version, `3.0.0-rc.2`.
+`db` (PostgreSQL), `keycloak` (OIDC), `mailpit` (SMTP), `sftpServer` (not published on the
+host), and `jaeger` (OpenTelemetry). The compose file pulls every application image,
+`elicitsoftware/elicit_db` and `elicitsoftware/elicit_keycloak` (Keycloak with
+`keycloak/elicit-realm.json` built in) at one tag, `${ELICIT_TAG:-<release>}`: **the default is the published release the file comes with,
+never `latest`.** The local builds are tagged `latest`, so a developer keeps `ELICIT_TAG=latest`
+in a `.env` beside the file (ignored by git) and `fullTest.sh` sets it itself; without it
+`docker compose up -d` runs the published images, not yours. `./buildDockerImages.sh Keycloak`
+builds `elicit_keycloak:latest`, which is how a realm change reaches the local stack, and
+`./buildDockerImages.sh elicit_db` builds `elicit_db:latest` from the `elicit_db/` clone.
+**Build both before the first start at `latest`:** Docker pulls an image it does not have, the
+`elicit_db:latest` on Docker Hub predates 1.0.0, and `elicit_keycloak` has no `latest` there. Keycloak
+keeps nothing: accounts added in its console last until the container is recreated.
+
+**Brand and translations are not mounted by default.** Each of `survey`, `admin`, `author` and
+`author-survey` carries the two mounts (`./elicit-brand/` at `/opt/brand`, `./elicit-i18n/` at
+`/opt/i18n`) and their settings commented out, so the default stack shows the embedded brand in
+English only. Uncomment them locally to work on a brand or a language; do not commit that. The
+multi-site suites' compose files mount both themselves.
+
+The multi-site suites' compose files put the same images on `ELICIT_TAG` but default to
+`latest`: a suite tests the local builds, and its stacks do not read the umbrella's `.env`.
 3.0.0-rc.1 was the first whose schema owner (`elicit_owner`) and owner group (`dbowner`) are not
 superusers (umbrella C-020). The image's source is the `ElicitSoftware/PostgreSQL` repository,
 cloned here as `elicit_db/` and tagged at every platform release, so its `v*` tag publishes
-`elicit_db` under the platform's version. A `PGDATA`
+`elicit_db` under the platform's version. A database
 initialized by version 1.0.0 keeps its superuser roles until the three statements in
 `DeploymentScript.md` are run; `resetDatabase.sh V2` runs them on the V2 copy, and `fullTest.sh`
 fails a run whose schema owner is a superuser.
@@ -113,11 +137,15 @@ fails a run whose schema owner is a superuser.
 | `5452`  | PostgreSQL (host) → `5432` in container    |
 
 Healthchecks target the **container-internal** port `8080`, not the published
-host port. Every service exports OTLP traces/metrics/logs to `jaeger:4317`.
+host port. Admin and Author reach Keycloak at `http://keycloak:8080`; Keycloak names
+`http://localhost:8180` (`KC_HOSTNAME`) in every sign-in redirect and as issuer, so no host
+needs a `host.docker.internal` entry in its hosts file. Every service exports OTLP traces/metrics/logs to `jaeger:4317`.
 
 Author works in a database of its own, `author`, in the same cluster; `db` creates it
-from `db-init/V0.0.4__CREATE_AUTHOR_DATABASE.sql` on first initialization only, so an
-existing `PGDATA` needs that script run once by hand (see its header). For Author in
+on first initialization only, from the `create-author-database` config at the foot of the
+compose file. That config is a copy of `db-init/V0.0.4__CREATE_AUTHOR_DATABASE.sql`, which the
+multi-site suites mount; CI fails when the two differ. An existing database needs the script
+run once by hand (see its header). For Author in
 dev mode on 8084, start what it calls: `docker compose up -d db keycloak author-survey`.
 Authoring needs none of the site applications.
 
@@ -214,11 +242,12 @@ needed on a stack whose survey was seeded before this change.
 The fact tables stay empty until respondents exist; they fill through the
 `fact_respondent_insert` and `fact_update` triggers on `survey.respondents`.
 
-`resetDatabase.sh V3` stops the stack and deletes `postgresql/PGDATA` for a
-greenfield run. `resetDatabase.sh V2` replaces it with a copy of `PGDATA_v2`, the
+`resetDatabase.sh V3` stops the stack and deletes the database volume (`elicit_pgdata`) for a
+greenfield run. `resetDatabase.sh V2` replaces its content with a copy of `PGDATA_v2`, the
 pre-Kimball V2 database, for a brownfield (upgrade) run. `PGDATA_v2` is tracked in
 git, which drops the empty directories PostgreSQL needs (`pg_notify`, `pg_tblspc`
-and eleven more), so the V2 mode recreates them in the copy; never copy it by hand.
+and eleven more), so the V2 mode recreates them in the copy and hands it to the image's
+`postgres` user; never copy it by hand.
 `PGDATA_v2` also predates Author's `author` database, so the V2 mode runs
 `db-init/V0.0.4__CREATE_AUTHOR_DATABASE.sql` while the database is up for the collation
 repair; without it `author-survey` never becomes healthy and Author does not start.
@@ -227,13 +256,10 @@ repair; without it `author-survey` never becomes healthy and Author does not sta
 synthetic, and it contains no real patient information (confirmed by the owner on
 2026-11-16). Keep it that way; never refresh it from a database that has held real data.
 
-If the db container's first start after a reset fails with `data directory
-"/var/lib/postgresql/data/pgdata" has wrong ownership`, that is a Docker Desktop
-for Mac VirtioFS glitch (docker/for-mac#7415), not a broken copy: bind mounts show
-every file as root-owned inside the container and PostgreSQL's owner check can
-fail on initial startup. Run `resetDatabase.sh` again and restart; if it recurs,
-switch Docker Desktop's file sharing to gRPC FUSE. Both reset paths were verified
-to start cleanly on 2026-09-20.
+The multi-site suites still bind-mount their data directories, so the Docker Desktop for Mac
+VirtioFS glitch (docker/for-mac#7415, `data directory ... has wrong ownership` on a first
+start) can still show there; their `up.sh` wipes and retries once. The umbrella stack's named
+volume does not have it.
 
 ## Scripts
 
@@ -251,7 +277,11 @@ to start cleanly on 2026-09-20.
 - `buildDockerImages.sh [Target ...]` — build the module images in parallel
   (all five by default, or just the named ones), one log per target under
   `build-logs/`, with a summary and a non-zero exit if any build failed. The
-  sixth default target, `Manual`, is not a module and builds no image: it runs
+  default targets `elicit_db` and `Keycloak` are not modules: `elicit_db/buildDockerImage.sh`
+  builds `elicitsoftware/elicit_db:latest` from the role and schema scripts, which the stack
+  runs with `ELICIT_TAG=latest`, and `keycloak/buildDockerImage.sh` builds
+  `elicitsoftware/elicit_keycloak:latest` from the realm and smoke-tests it. The
+  last default target, `Manual`, is not a module and builds no image: it runs
   `docs/manual/check-properties.sh` and then `docs/manual/build-manual.sh`, so
   the installation manual is gated against the code and stamped from the same
   tree as the images (`SKIP_MANUAL=1`, or naming targets without it, skips the
@@ -260,8 +290,7 @@ to start cleanly on 2026-09-20.
   is no build-time dependency between the images; each module's tests use a
   distinct Quarkus test port (Survey 8089, Admin 8090, FHHS 8091, Author 8092).
   PREMM5 is not built (that module is not cloned and is commented out of
-  compose), and there is no `postgresql/` build step — `elicitsoftware/elicit_db`
-  is pulled, not built. Ctrl-C stops the module builds too (Bash would otherwise leave them
+  compose). Ctrl-C stops the module builds too (Bash would otherwise leave them
   running as orphans that hold `target/` and the test ports while the lock is released),
   and the script warns about listeners on ports 8080-8084 and 8089-8092 before it starts:
   a dev-mode Survey on 8080 stalls the Survey test suite, because the test data points
@@ -276,7 +305,7 @@ to start cleanly on 2026-09-20.
   scripts reuse the PDFs it writes, so `./buildManuals.sh && ./buildDockerImages.sh` gives images
   carrying manuals stamped by this run.
 - `deploy.sh` — bring up an initialized stack.
-- `resetDatabase.sh V2|V3` — reset `postgresql/PGDATA` to the V2 copy (brownfield)
+- `resetDatabase.sh V2|V3` — fill the database volume from the V2 copy (brownfield)
   or delete it (greenfield); stops the stack first.
 - `status.sh` — container status plus a probe of each service's health endpoint:
   `/q/health/ready` for Survey, Admin, FHHS, Author and its preview (printing why one is
@@ -286,7 +315,7 @@ to start cleanly on 2026-09-20.
   (`resetDatabase.sh V2`, Survey restarted, then `e2e-tests`), and both multi-site suites.
   One log per stage under `test-logs/` (ignored by git), including the surveys, report
   schemas and `dim_step` count after each run. `SKIP_BUILD=1` reuses the images already
-  built. The greenfield start waits for every service but FHHS, which is not ready until
+  built. It runs the local builds (`ELICIT_TAG=latest` unless the caller names another tag). The greenfield start waits for every service but FHHS, which is not ready until
   the suite imports the survey. About 35 minutes.
 - `generateGithubTemplates.py` — regenerate the pull request template, the issue forms and
   `SECURITY.md` of all six repositories from one table; commit the result in each.
@@ -309,8 +338,9 @@ and Survey together, and the two multi-site suites compile the page objects out 
 ## Branding
 
 `elicit-brand/` is the default brand (colors, typography, `theme.css`,
-`brand-config.json`), mounted read-only at `/opt/brand` in the Survey, Admin, Author and
-preview containers via `brand.file.system.path`. It is the **source**: the Choice E mark
+`brand-config.json`). The compose file can mount it read-only at `/opt/brand` in the Survey,
+Admin, Author and preview containers via `brand.file.system.path` (commented out by default;
+the images' embedded copy is what shows). It is the **source**: the Choice E mark
 (`images/source/` holds the SVG masters; the applications read the fixed names
 `HorizontalLogo.png`, `icon-white.png` and `favicon.ico`), primary `#0A3D62`, and IBM Plex
 Sans, Sans Arabic and Mono as WOFF2 files under `typography/fonts/`. Each module embeds a copy
@@ -327,14 +357,15 @@ See `docs/BRAND_SYSTEM_IMPLEMENTATION_GUIDE.md`.
 **The images carry English only.** The English bundle is authored at
 `src/main/resources/vaadin-i18n/translations.properties`, Vaadin's standard location. Every other
 language is a `translations_<tag>.properties` file the deployment mounts at
-`<i18n.file.system.path>/<i18n.app.name>/` (`/opt/i18n/survey/` and `/opt/i18n/admin/` here). A
+`<i18n.file.system.path>/<i18n.app.name>/` (`/opt/i18n/survey/` and `/opt/i18n/admin/` in the compose files). A
 mounted file overlays English key by key, so it may be partial, and a missing key falls back to
 English. Nothing mounted means English only and no language selector.
 
 `elicit-i18n/` in this repo is the **curated set** ElicitSoftware maintains beside each release:
 `survey/`, `admin/` and `author/`, each with Latin American Spanish (`es_419`) and Arabic (`ar`),
-plus `i18n-config.json`. `docker-compose.yml` mounts it read-only into Survey, Admin, Author and
-the preview Survey. The module tests read it from
+plus `i18n-config.json`. `docker-compose.yml` carries the read-only mount into Survey, Admin,
+Author and the preview Survey commented out, so the default stack is English only; the
+multi-site suites mount it. The module tests read it from
 `../elicit-i18n` (`%dev` and `%test` profiles), and their CI fetches it from the umbrella branch
 with the **same name** as the module branch. A change to translations or to English keys therefore
 needs a branch of the same name here.
@@ -435,8 +466,8 @@ use-case IDs are unrelated to these.
   umbrella runs `checkLanguages.sh`, `checkBrand.sh`, `check-properties.sh`, `docker compose config` and the
   manual build against fresh clones of Survey, Admin, FHHS and Author at the branch or tag the
   run targets (or, on a manual FHHS run, the dispatched branch). The umbrella's `release.yml`
-  publishes `elicitsoftware/elicit_keycloak` (the `keycloak/` Dockerfile, the realm built in, for
-  `docker-compose.standalone.yml`) on a `v*` tag, or by hand for an existing tag.
+  publishes `elicitsoftware/elicit_keycloak` (the `keycloak/` Dockerfile, the realm built in, which
+  `docker-compose.yml` runs) on a `v*` tag, or by hand for an existing tag.
 - CI runs on every pull request into `main` (or the frozen `V3`), every push to one and every
   release tag (`v*`).
 

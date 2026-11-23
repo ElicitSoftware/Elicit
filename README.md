@@ -104,33 +104,38 @@ Here's a blank template to get started. To avoid retyping too much info, do a se
 
 <!-- GETTING STARTED -->
 ## Trying Elicit
-To try Elicit you need one file, [`docker-compose.standalone.yml`](docker-compose.standalone.yml),
-and the published Docker images. Nothing has to be compiled, and you don't need git or any of
-the repositories.
+You can run the whole platform on your own computer to see what it does. You need one program,
+Docker Desktop, and one file. Nothing has to be compiled, and you don't need git or any of the
+repositories.
 
-You need Docker Desktop (or Docker Engine with Compose v2.23 or later) and these ports free:
-8080–8082, 8084, 8085, 8180, 8025 and 1025 (Mailpit), and 16686, 4317 and 4318 (Jaeger).
+1. **Install Docker Desktop** from [docker.com](https://www.docker.com/products/docker-desktop/)
+   and start it. Leave it running; Elicit runs inside it. (On Linux, Docker Engine with Compose
+   v2.23 or later works too.)
 
-1. Download the file into an empty folder:
+2. **Download the file.** Open [`docker-compose.yml`](docker-compose.yml) and press the
+   **Download raw file** button (the downward arrow at the top right of the file). Put it in a
+   new, empty folder, for example `elicit` in your Documents.
+
+3. **Open a terminal in that folder.**
+   - macOS: right-click the folder in Finder and choose **New Terminal at Folder**.
+   - Windows: open the folder in File Explorer, right-click an empty area and choose
+     **Open in Terminal**.
+
+4. **Start Elicit** by typing this and pressing Enter:
 
    ```bash
-   curl -fLO https://raw.githubusercontent.com/ElicitSoftware/Elicit/main/docker-compose.standalone.yml
+   docker compose up -d
    ```
 
-2. In that folder, start the stack:
+   The first start downloads the Elicit images and creates the database, which takes a few
+   minutes. Later starts take about half a minute.
 
-   ```bash
-   docker compose -f docker-compose.standalone.yml up -d
-   docker compose -f docker-compose.standalone.yml ps
-   ```
+5. **Open Admin** at http://localhost:8081 and sign in as `admin` with the password `admin`.
+   Then follow [the guided tour](#a-guided-tour) below.
 
-The file runs every image at the release it comes with: the applications, the database and the
-identity provider, all under one version number. To run another release, set `ELICIT_TAG`, for
-example `ELICIT_TAG=3.0.0-rc.2 docker compose -f docker-compose.standalone.yml up -d`.
-
-The first start pulls the images and creates the database, which takes a few minutes. `ps` shows
-each service as *healthy* once it is ready. FHHS stays *unhealthy* until the Family Health History
-Survey is applied (step 2 of the tour below); that is expected.
+To check on the stack, `docker compose ps` lists each service; an application is ready when it
+shows *healthy*. One service, `fhhs`, stays *unhealthy* until the Family Health History Survey
+is applied (step 2 of the tour). That is expected.
 
 | Application              | Address                  | Sign in as                       |
 | ------------------------ | ------------------------ | -------------------------------- |
@@ -141,23 +146,43 @@ Survey is applied (step 2 of the tour below); that is expected.
 | Keycloak (identity)      | http://localhost:8180    | `admin` / `admin`, master realm  |
 | Jaeger (traces)          | http://localhost:16686   | —                                |
 
-This stack is for evaluation only: it is neither a development setup nor a production
-installation. Its passwords are published, its ports are open, and it should never hold real
-respondent data. It shows the default Elicit brand in English. A real site is installed against
-its own database, identity provider and network, as the installation manual describes (see
-[Going further](#going-further)).
+**Stopping and starting over.** In the same folder, `docker compose down` stops Elicit and
+keeps your data; `docker compose up -d` starts it again. The exception is Keycloak, which
+returns to its built-in accounts. `docker compose down -v` also deletes the data, so the next
+start is a new, empty site.
+
+**If it does not start.** The usual cause is a port another program already uses. Elicit needs
+8080–8085, 8180, 5452 (PostgreSQL), 8025 and 1025 (Mailpit), and 16686, 4317 and 4318 (Jaeger).
+`docker compose up -d` names the port it could not take; stop the other program and run the
+command again.
+
+**What you are running.** The file starts every part of the platform at the release it comes
+with: the applications, the database and the identity provider, all under one version number.
+It shows the default Elicit brand in English; comments in the file say how to mount a brand or
+translations of your own, and how to run another release (`ELICIT_TAG`).
+
+This stack is for evaluation and development only, not a production installation. Its
+passwords are published, its ports are open, and it should never hold real respondent data. A
+real site is installed against its own database, identity provider and network, as the
+installation manual describes (see [Going further](#going-further)).
+
+If you prefer the command line, `curl -fLO
+https://raw.githubusercontent.com/ElicitSoftware/Elicit/main/docker-compose.yml` downloads the
+same file.
 
 <!-- USAGE EXAMPLES -->
 ## A Guided Tour
 A new site starts with no survey. A survey travels as a **survey definition file** (`.elicit`),
 and two are ready to apply:
 
-- [`samples/census-household-survey.elicit`](samples/census-household-survey.elicit), in this
-  repository: a small demonstration survey that uses every question type and rule the engine
-  supports.
+- [`census-household-survey.elicit`](samples/census-household-survey.elicit), in this
+  repository: a small demonstration survey that uses nearly every question type and every rule
+  the engine supports. A good first survey.
 - [`family-history-survey.elicit`](https://github.com/ElicitSoftware/FHHS/blob/main/family-history-survey.elicit),
   in the FHHS repository: the Family Health History Survey, with its custom reports and pedigree
-  drawing. Use the **Download raw file** button on that page to save it.
+  drawing.
+
+Open either link and press **Download raw file**, as you did for the compose file.
 
 1. **Sign in to Admin** at http://localhost:8081 as `admin`. A dialog asks for a department
    first: follow its link to **Departments** and create one.
@@ -172,10 +197,6 @@ and two are ready to apply:
 6. **Design a survey** in Author at http://localhost:8084: build steps, sections, questions and
    rules, preview them as a respondent would, and export a `.elicit` file for step 2.
 
-`docker compose -f docker-compose.standalone.yml down` stops the stack and keeps its data. The
-exception is Keycloak, which returns to its built-in accounts. To start over with an empty
-database, add `-v`, which deletes the data, and bring the stack up again.
-
 <!-- GOING FURTHER -->
 ## Going Further
 - **Installing a real site:** the installation manual is published as a PDF with each release on
@@ -186,9 +207,9 @@ database, add `-v`, which deletes the data, and bring the stack up again.
 - **Upgrading** an existing installation: [`DeploymentScript.md`](DeploymentScript.md).
 - **Building from source** (contributors only): clone this repository with git;
   `cloneAllProjects.sh` then clones the module
-  repositories and `buildDockerImages.sh` builds the images, after which `docker compose up -d`
-  runs your own builds with `docker-compose.yml`, the development stack (translations, brand,
-  SFTP server, database on port 5452). See
+  repositories and `buildDockerImages.sh` builds the images, after which
+  `ELICIT_TAG=latest docker compose up -d` runs your own builds with the same
+  `docker-compose.yml`. See
   [`docs/manual/README.md`](docs/manual/README.md) for building the manual.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
