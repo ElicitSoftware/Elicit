@@ -1182,6 +1182,17 @@ same screen installs a survey and updates one.}
 \screenshot{10-apply-result}{The result. It reports what was installed and, on the last line,
 that the reporting schema was rebuilt, which is why no Survey restart is needed.}
 
+\begin{elicitnote}[The files in \file{samples/} are templates, and Admin does not apply them]
+\file{samples/family-history-survey.template.elicit} and
+\file{samples/census-household-survey.template.elicit}, in the platform's repository, are the
+Family Health History Survey and a demonstration census survey with every key cleared. They are
+the starting point for a survey of your own: open one with \ui{Import definition} in Author,
+which gives it keys of its own, so the survey built on it is related to no other site's. Admin
+does not apply a template; export the survey from Author and apply that export. To install the
+Family Health History Survey as it is, apply \file{FHHS/family-history-survey.elicit}: FHHS
+serves its reports only for the survey with the key that file carries.
+\end{elicitnote}
+
 \begin{elicitnote}[No Survey restart is needed]
 The rebuild happens during the apply: Admin calls Survey, at \opt{elicit.survey.url},
 presenting the service token (Chapter~\ref{sec:service-token}), unless
