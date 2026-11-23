@@ -14,7 +14,8 @@
 # One pass, no restarts: Survey creates the schema, Admin migrates on top of it, and FHHS starts
 # after Admin is healthy. No survey is seeded. Sign in to Admin, create a department, then apply
 # a survey definition under Apply Survey Definition: family-history-survey.elicit from the FHHS
-# repository, or samples/census-household-survey.elicit from the Elicit one. FHHS reports not
+# repository, or a file exported from Author, where Import definition opens
+# samples/census-household-survey.template.elicit from the Elicit repository. FHHS reports not
 # ready until the Family History survey is applied. The installation manual's "Evaluating with
 # Docker Compose" chapter (docs/manual) describes every service, port and volume below.
 #

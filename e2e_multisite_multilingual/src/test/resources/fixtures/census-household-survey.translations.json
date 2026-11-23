@@ -1,5 +1,5 @@
 {
-  "_comment": "Content translations of samples/census-household-survey.elicit, keyed element_type|field|source_text. Filled into the hand-off document Author exports (UC-045) and imported back through the Translations page (UC-046); see README.md. The last entry of each language is the reworded race question of revision 2, translated by hand.",
+  "_comment": "Content translations of the census sample (samples/README.md), keyedelement_type|field|source_text. Filled into the hand-off document Author exports (UC-045) and imported back through the Translations page (UC-046); see README.md. The last entry of each language is the reworded race question of revision 2, translated by hand.",
   "es-419": {
     "surveys|title|Census Household Survey": "Encuesta Censal de Hogares",
     "surveys|description|A demonstration survey about census household data. It uses every question type and every rule the Elicit engine supports, exactly once where practical.": "Una encuesta de demostración sobre datos censales de hogares. Usa todos los tipos de pregunta y todas las reglas que admite el motor de Elicit, una vez cada uno cuando es posible.",

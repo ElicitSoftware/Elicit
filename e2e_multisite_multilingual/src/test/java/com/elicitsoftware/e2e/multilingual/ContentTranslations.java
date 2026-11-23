@@ -21,7 +21,7 @@ import java.util.Map;
  * <p>Author exports one JSON document per survey and language carrying every translatable string
  * with its context, tokens and length budget, and imports the same document back with
  * {@code translation} filled in. The suite plays the translator: this class holds the finished
- * Spanish and Arabic translations of {@code samples/census-household-survey.elicit} as a fixture
+ * Spanish and Arabic translations of the census sample ({@code samples/README.md}) as a fixture
  * and fills them into whatever document Author has just exported.</p>
  *
  * <p>The fixture is keyed {@code element_type|field|source_text}, not by element key: it is a

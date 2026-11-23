@@ -89,7 +89,7 @@ class CensusMultilingualE2ETest extends MultilingualTestBase {
 
     /**
      * The definition the master imports: this directory's copy of
-     * {@code samples/census-household-survey.elicit}, which carries one deliberate fault for phase 1
+     * the census sample ({@code samples/README.md}), which carries one deliberate fault for phase 1
      * to find and fix (see the note at the top of the file).
      */
     /**

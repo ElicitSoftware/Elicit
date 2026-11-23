@@ -80,8 +80,8 @@
     </li>
     </ul>
     Surveys themselves are designed in Author, which exports a survey definition file
-    (<code>.elicit</code>) that the Admin application applies to a site. The Family Health History Survey and the sample under <code>samples/</code> are two such
-    definitions, ready to apply.
+    (<code>.elicit</code>) that the Admin application applies to a site. The Family Health History Survey is one such
+    definition, ready to apply, and the template under <code>samples/</code> is one to open in Author and make your own.
   </p>
 
 <!-- [![Product Name Screen Shot][product-screenshot]](https://example.com)
@@ -173,20 +173,23 @@ same file.
 <!-- USAGE EXAMPLES -->
 ## A Guided Tour
 A new site starts with no survey. A survey travels as a **survey definition file** (`.elicit`),
-and two are ready to apply:
+and two come with Elicit:
 
-- [`census-household-survey.elicit`](samples/census-household-survey.elicit), in this
-  repository: a small demonstration survey that uses nearly every question type and every rule
-  the engine supports. A good first survey.
 - [`family-history-survey.elicit`](https://github.com/ElicitSoftware/FHHS/blob/main/family-history-survey.elicit),
   in the FHHS repository: the Family Health History Survey, with its custom reports and pedigree
-  drawing.
+  drawing. Ready to apply.
+- [`census-household-survey.template.elicit`](samples/census-household-survey.template.elicit),
+  in this repository: a small demonstration survey that uses nearly every question type and every
+  rule the engine supports. It is a template, with no keys of its own, so the survey you make of
+  it is yours and related to nobody else's: open it in Author first (step 6) and apply what
+  Author exports.
 
 Open either link and press **Download raw file**, as you did for the compose file.
 
 1. **Sign in to Admin** at http://localhost:8081 as `admin`. A dialog asks for a department
    first: follow its link to **Departments** and create one.
-2. **Apply a survey** under **Apply Survey Definition**, uploading one of the files above. The
+2. **Apply a survey** under **Apply Survey Definition**, uploading the Family Health History
+   Survey's file or one you exported from Author. The
    survey and its reporting schema are built as part of the apply; nothing needs restarting.
 3. **Take the survey.** The evaluation stack lets Survey accept any access code you make up, so
    open http://localhost:8080, choose the survey and type any code.
@@ -195,7 +198,8 @@ Open either link and press **Download raw file**, as you did for the compose fil
    Mailpit at http://localhost:8025; its link opens Survey with the code filled in.
 5. **Review the results** in Admin: survey progress for each subject and the final reports.
 6. **Design a survey** in Author at http://localhost:8084: build steps, sections, questions and
-   rules, preview them as a respondent would, and export a `.elicit` file for step 2.
+   rules, preview them as a respondent would, and export a `.elicit` file for step 2. **Import
+   definition** opens the census template as a survey to start from.
 
 <!-- GOING FURTHER -->
 ## Going Further
