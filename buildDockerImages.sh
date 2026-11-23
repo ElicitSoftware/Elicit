@@ -2,7 +2,7 @@
 #
 # Build every Elicit module image -- and the installation manual -- in parallel.
 #
-#   ./buildDockerImages.sh            build all modules and the manual
+#   ./buildDockerImages.sh            build all modules, the database and Keycloak images and the manual
 #   ./buildDockerImages.sh Admin FHHS build only the named targets
 #   ./buildDockerImages.sh Manual     check and build only the installation manual
 #
@@ -52,15 +52,23 @@
 # checkBrand.sh runs next: the default brand each of Survey, Admin and Author embeds is the same
 # files as elicit-brand/, and docs/manual/elicit-brand.sty carries the same palette.
 #
+# Keycloak is not a module either: it is elicitsoftware/elicit_keycloak, the development and
+# evaluation identity provider with keycloak/elicit-realm.json built in, which
+# docker-compose.yml runs. keycloak/buildDockerImage.sh builds it as `latest` and smoke-tests
+# it, so a change to the realm reaches the local stack the way a module change does.
+#
+# elicit_db is the database image: elicit_db/ is the clone of ElicitSoftware/PostgreSQL, and its
+# buildDockerImage.sh builds elicitsoftware/elicit_db:latest from the role and schema scripts.
+# docker-compose.yml runs it with ELICIT_TAG=latest, like the module builds. The `latest` on
+# Docker Hub predates 1.0.0, so this build must exist before the stack first starts at that tag.
+#
 # PREMM5 is not cloned by cloneAllProjects.sh and is commented out of
-# docker-compose.yml; add it to MODULES if you restore that module. The
-# postgresql/ directory holds only the local PGDATA volume -- there is no build
-# script there. The elicitsoftware/elicit_db image is pulled, not built.
+# docker-compose.yml; add it to MODULES if you restore that module.
 
 set -u
 cd "$(dirname "$0")"
 
-ALL_MODULES=(Survey FHHS Pedigree Admin Author Manual)
+ALL_MODULES=(Survey FHHS Pedigree Admin Author elicit_db Keycloak Manual)
 if [ $# -gt 0 ]; then MODULES=("$@"); else MODULES=("${ALL_MODULES[@]}"); fi
 LOG_DIR=build-logs
 
@@ -68,7 +76,7 @@ LOG_DIR=build-logs
 # fails fails the target. Manual runs check-properties.sh before build-manual.sh: a manual
 # whose configuration reference has drifted from the code is worse than no manual, and the
 # check is the gate for that (NFR-004, NFR-005). SKIP_PROPERTY_CHECK=1 typesets anyway.
-build_dir() { case "$1" in Manual) echo docs/manual ;; *) echo "$1" ;; esac; }
+build_dir() { case "$1" in Manual) echo docs/manual ;; Keycloak) echo keycloak ;; *) echo "$1" ;; esac; }
 build_scripts() {
     case "$1" in
         Manual)
@@ -92,7 +100,7 @@ done
 # on it or fail to bind. Warn, naming the process, but leave the decision to the user.
 # A run that builds only the manual runs no tests and binds nothing, so it says nothing.
 building_a_module=
-for m in "${MODULES[@]}"; do [ "$m" = Manual ] || building_a_module=1; done
+for m in "${MODULES[@]}"; do case "$m" in Manual|Keycloak|elicit_db) ;; *) building_a_module=1 ;; esac; done
 if [ -n "$building_a_module" ] && command -v lsof >/dev/null 2>&1; then
     for port in 8080 8081 8082 8083 8084 8089 8090 8091 8092; do
         pids=$(lsof -nP -iTCP:"$port" -sTCP:LISTEN -t 2>/dev/null | sort -u | tr '\n' ' ')

@@ -13,6 +13,8 @@
 # count to test-logs/db-*.log, and fails if the schema owner or its group is a superuser. The multi-site suites bring up and take down stacks of
 # their own on the same ports, so this script stops the umbrella stack first.
 set -uo pipefail
+# The compose file defaults to the published release; this run tests the images just built.
+export ELICIT_TAG="${ELICIT_TAG:-latest}"
 ROOT="$(cd "$(dirname "$0")" && pwd)"
 cd "$ROOT"
 LOGS="$ROOT/test-logs"

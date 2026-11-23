@@ -4,7 +4,8 @@
 # the compose file, so the build and test scripts run from the root of the repository. All six are
 # public, so they are cloned over HTTPS; pass --ssh to clone over SSH instead (for pushing with an
 # SSH key). PostgreSQL is cloned as elicit_db/, after the image it builds: a PostgreSQL/ beside
-# postgresql/ (the local PGDATA volume) is the same directory on a case-insensitive filesystem.
+# postgresql/ (where the stack kept its data before it moved to a named volume, and still there
+# in older checkouts) is the same directory on a case-insensitive filesystem.
 #
 #   ./cloneAllProjects.sh          https://github.com/ElicitSoftware/<module>.git
 #   ./cloneAllProjects.sh --ssh    git@github.com:ElicitSoftware/<module>.git

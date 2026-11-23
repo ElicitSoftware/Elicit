@@ -26,6 +26,9 @@
 # site offers en,es-419 of it (i18n.offered.locales).
 # English and Latin American Spanish.
 #
+# Every Elicit image runs at one tag, ELICIT_TAG, as in ../../docker-compose.yml. Here it defaults
+# to `latest`, the local builds (../../buildDockerImages.sh, elicit_db included): the suite tests
+# what was just built. ELICIT_TAG=<release> runs it against a published release instead.
 name: elicit-ml-mexico
 
 networks:
@@ -35,7 +38,7 @@ networks:
 
 services:
   survey:
-    image: elicitsoftware/survey:latest
+    image: elicitsoftware/survey:${ELICIT_TAG:-latest}
     # Docker Desktop resolves host.docker.internal inside a container; Docker Engine on Linux
     # does not, so the services that call the Family History addresses map it themselves.
     extra_hosts:
@@ -90,7 +93,7 @@ services:
       db:
         condition: service_healthy
   admin:
-    image: elicitsoftware/admin:latest
+    image: elicitsoftware/admin:${ELICIT_TAG:-latest}
     # Docker Desktop resolves host.docker.internal inside a container; Docker Engine on Linux
     # does not, so the services that call the Family History addresses map it themselves.
     extra_hosts:
@@ -150,7 +153,7 @@ services:
   # The second survey's report service (FHHS UC-001..005). Reaches this site's db and survey by
   # the plain service names: it joins only this site's network, so they are unambiguous here.
   fhhs:
-    image: elicitsoftware/fhhs:latest
+    image: elicitsoftware/fhhs:${ELICIT_TAG:-latest}
     # Docker Desktop resolves host.docker.internal inside a container; Docker Engine on Linux
     # does not, so the services that call the Family History addresses map it themselves.
     extra_hosts:
@@ -190,7 +193,7 @@ services:
       admin:
         condition: service_healthy
   pedigree:
-    image: elicitsoftware/pedigree:latest
+    image: elicitsoftware/pedigree:${ELICIT_TAG:-latest}
     environment:
       # The token the modules authenticate each other with. Every module of one site gets the
       # same value; a real site supplies its own (openssl rand -hex 32).
@@ -198,7 +201,7 @@ services:
     ports:
       - 8033:8080
   db:
-    image: elicitsoftware/elicit_db:3.0.0-rc.2
+    image: elicitsoftware/elicit_db:${ELICIT_TAG:-latest}
     networks:
       default:
         aliases:
