@@ -104,29 +104,32 @@ Here's a blank template to get started. To avoid retyping too much info, do a se
 
 <!-- GETTING STARTED -->
 ## Trying Elicit
-Everything you need to try Elicit is in this repository and in the published Docker images.
-Nothing has to be compiled, git is not needed, and the module repositories do not need to be
-cloned.
+To try Elicit you need one file, [`docker-compose.standalone.yml`](docker-compose.standalone.yml),
+and the published Docker images. Nothing has to be compiled, and you don't need git or any of
+the repositories.
 
-You need Docker Desktop (or Docker Engine with Compose v2) and these ports free: 8080–8085,
-8180, 5452, 8025 and 1025 (Mailpit), 16686, 4317, 4318, 14268 and 14250 (Jaeger), and 22 (the SFTP
-server FHHS files its reports to). A host that runs an SSH server already has port 22: change the
-`sftpServer` port mapping in `docker-compose.yml`, or remove that service if you are not
-evaluating the filing, or FHHS, which depends on it, does not start.
+You need Docker Desktop (or Docker Engine with Compose v2.23 or later) and these ports free:
+8080–8082, 8084, 8085, 8180, 8025 and 1025 (Mailpit), and 16686, 4317 and 4318 (Jaeger).
 
-1. Download this repository as a ZIP (**Code > Download ZIP** at the top of this page) and unzip
-   it. Keep its folders beside `docker-compose.yml`: the stack reads the identity provider's realm
-   from `keycloak/`, a database script from `db-init/`, the SFTP key from `sftp_ssh/`, the brand
-   from `elicit-brand/` and the translations from `elicit-i18n/`.
+1. Download the file into an empty folder:
+
+   ```bash
+   curl -fLO https://raw.githubusercontent.com/ElicitSoftware/Elicit/main/docker-compose.standalone.yml
+   ```
+
 2. In that folder, start the stack:
 
    ```bash
-   ELICIT_TAG=3.0.0-rc.1 docker compose up -d
-   ./status.sh
+   docker compose -f docker-compose.standalone.yml up -d
+   docker compose -f docker-compose.standalone.yml ps
    ```
 
-The first start pulls the images and creates the database, which takes a few minutes. `status.sh`
-shows each service as it becomes ready. FHHS stays *not ready* until the Family Health History
+The file runs every image at the release it comes with: the applications, the database and the
+identity provider, all under one version number. To run another release, set `ELICIT_TAG`, for
+example `ELICIT_TAG=3.0.0-rc.2 docker compose -f docker-compose.standalone.yml up -d`.
+
+The first start pulls the images and creates the database, which takes a few minutes. `ps` shows
+each service as *healthy* once it is ready. FHHS stays *unhealthy* until the Family Health History
 Survey is applied (step 2 of the tour below); that is expected.
 
 | Application              | Address                  | Sign in as                       |
@@ -138,9 +141,10 @@ Survey is applied (step 2 of the tour below); that is expected.
 | Keycloak (identity)      | http://localhost:8180    | `admin` / `admin`, master realm  |
 | Jaeger (traces)          | http://localhost:16686   | —                                |
 
-This stack is for evaluation and development only. Its passwords are published, every port is
-open, and it should never hold real respondent data. A real site is installed against its own
-database, identity provider and network, as the installation manual describes (see
+This stack is for evaluation only: it is neither a development setup nor a production
+installation. Its passwords are published, its ports are open, and it should never hold real
+respondent data. It shows the default Elicit brand in English. A real site is installed against
+its own database, identity provider and network, as the installation manual describes (see
 [Going further](#going-further)).
 
 <!-- USAGE EXAMPLES -->
@@ -168,8 +172,9 @@ and two are ready to apply:
 6. **Design a survey** in Author at http://localhost:8084: build steps, sections, questions and
    rules, preview them as a respondent would, and export a `.elicit` file for step 2.
 
-`docker compose down` stops the stack and keeps its data. To start over with an empty database,
-run `./resetDatabase.sh V3` and bring the stack up again.
+`docker compose -f docker-compose.standalone.yml down` stops the stack and keeps its data. The
+exception is Keycloak, which returns to its built-in accounts. To start over with an empty
+database, add `-v`, which deletes the data, and bring the stack up again.
 
 <!-- GOING FURTHER -->
 ## Going Further
@@ -182,7 +187,8 @@ run `./resetDatabase.sh V3` and bring the stack up again.
 - **Building from source** (contributors only): clone this repository with git;
   `cloneAllProjects.sh` then clones the module
   repositories and `buildDockerImages.sh` builds the images, after which `docker compose up -d`
-  (without `ELICIT_TAG`) runs your own builds. See
+  runs your own builds with `docker-compose.yml`, the development stack (translations, brand,
+  SFTP server, database on port 5452). See
   [`docs/manual/README.md`](docs/manual/README.md) for building the manual.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>

@@ -1,0 +1,284 @@
+# The Elicit platform as one file, for evaluation only: not for development (that is
+# docker-compose.yml, beside the module clones) and never a production installation (umbrella
+# C-018). Its defaults favor ease of use and are not hardened.
+#
+# Unlike docker-compose.yml it needs nothing beside it: no module clones, no brand or
+# translation directories, no bind-mounted PGDATA. Download this file and run
+#
+#   docker compose -f docker-compose.standalone.yml up -d
+#
+# Survey: http://localhost:8080   Admin: http://localhost:8081   Author: http://localhost:8084
+# Keycloak: http://localhost:8180 (admin/admin)   Mailpit: http://localhost:8025
+# Jaeger: http://localhost:16686
+#
+# What it gives up against docker-compose.yml:
+#   - English only. The images carry English; the curated translations (elicit-i18n/) are
+#     a mount, and there is none here.
+#   - The default Elicit brand, the one each image embeds as its fallback.
+#   - No SFTP server (FHHS's SFTP upload is off in both files).
+#   - Fresh V3 databases only; upgrade runs from the V2 database are development work.
+#   - No PostgreSQL or Pedigree port on the host: nothing an evaluator does needs them.
+#
+# First run: no survey is seeded. Sign in to Admin as admin/admin, create a department, then
+# apply a survey definition under Apply Survey Definition: family-history-survey.elicit from
+# the FHHS repository, or samples/census-household-survey.elicit from this one (the README's
+# guided tour). FHHS reports not ready until the Family History survey is applied.
+#
+# Data lives in the named volumes `pgdata` and `mailpit-data`. To start over:
+#
+#   docker compose -f docker-compose.standalone.yml down -v
+#
+# Every Elicit image runs at one platform version: the applications, the database
+# (elicitsoftware/elicit_db) and the identity provider with the realm built in
+# (elicitsoftware/elicit_keycloak). All of them are released under the same number. It
+# defaults to the release this file comes with, never `latest`. ELICIT_TAG names another
+# release, and ELICIT_SERVICE_TOKEN replaces the published development token; either may go
+# in a `.env` file beside this one.
+
+x-otel: &otel
+  quarkus.otel.enabled: true
+  quarkus.otel.exporter.otlp.endpoint: http://jaeger:4317
+  quarkus.otel.exporter.otlp.traces.endpoint: http://jaeger:4317
+  quarkus.otel.traces.enabled: true
+  quarkus.otel.metrics.enabled: true
+  quarkus.otel.logs.enabled: true
+  quarkus.datasource.jdbc.telemetry: true
+  quarkus.otel.instrument.jdbc: true
+
+x-ready: &ready
+  test: ["CMD", "curl", "--head", "-fsS", "http://localhost:8080/q/health/ready"]
+  interval: 15s
+  timeout: 5s
+  retries: 20
+  start_period: 60s
+
+services:
+  survey:
+    image: elicitsoftware/survey:${ELICIT_TAG:-3.0.0-rc.2}
+    ports:
+      - 8080:8080
+    environment:
+      <<: *otel
+      ELICIT_SERVICE_TOKEN: ${ELICIT_SERVICE_TOKEN:-elicit-dev-service-token-not-for-a-real-site}
+      # The Family History definition names its reports and post-survey action at
+      # http://host.docker.internal:8082/..., so that is the origin the token may be sent to.
+      ELICIT_SERVICE_TRUSTED_ORIGINS: http://host.docker.internal:8082
+      TZ: America/Detroit
+      # Any access code is accepted, for evaluation. The default is false.
+      accessCode.autoRegister: true
+      ELICIT_DB_PASSWORD: SURVEYPW
+      ELICIT_OWNER_DB_PASSWORD: SURVEYPW
+      quarkus.application.name: survey
+      OTEL_SERVICE_NAME: survey
+      OTEL_RESOURCE_ATTRIBUTES: service.name=survey,service.version=${ELICIT_TAG:-3.0.0-rc.2},deployment.environment=local
+    healthcheck: *ready
+    depends_on:
+      db:
+        condition: service_healthy
+
+  admin:
+    image: elicitsoftware/admin:${ELICIT_TAG:-3.0.0-rc.2}
+    ports:
+      - 8081:8080
+    environment:
+      <<: *otel
+      ELICIT_SERVICE_TOKEN: ${ELICIT_SERVICE_TOKEN:-elicit-dev-service-token-not-for-a-real-site}
+      ELICIT_SERVICE_TRUSTED_ORIGINS: http://host.docker.internal:8082
+      TZ: America/Detroit
+      quarkus.mailer.from: elicit@localhost
+      quarkus.mailer.host: mailpit
+      quarkus.mailer.port: 1025
+      quarkus.mailer.tls: false
+      ELICIT_DB_PASSWORD: SAOWNERPW
+      ELICIT_OWNER_DB_PASSWORD: SURVEYPW
+      OIDC_CLIENT_SECRET: secret
+      quarkus.application.name: admin
+      OTEL_SERVICE_NAME: admin
+      OTEL_RESOURCE_ATTRIBUTES: service.name=admin,service.version=${ELICIT_TAG:-3.0.0-rc.2},deployment.environment=local
+    healthcheck: *ready
+    depends_on:
+      db:
+        condition: service_healthy
+      survey:
+        condition: service_healthy
+      keycloak:
+        condition: service_started
+      pedigree:
+        condition: service_started
+
+  fhhs:
+    image: elicitsoftware/fhhs:${ELICIT_TAG:-3.0.0-rc.2}
+    # Needed, not a convenience: the Family History definition reaches FHHS through
+    # http://host.docker.internal:8082.
+    ports:
+      - 8082:8080
+    environment:
+      <<: *otel
+      ELICIT_SERVICE_TOKEN: ${ELICIT_SERVICE_TOKEN:-elicit-dev-service-token-not-for-a-real-site}
+      ELICIT_SERVICE_TRUSTED_ORIGINS: http://host.docker.internal:8082
+      TZ: America/Detroit
+      pedigree.url: http://pedigree:8080/svg
+      ELICIT_DB_PASSWORD: SURVEYPW
+      ELICIT_OWNER_DB_PASSWORD: SURVEYPW
+      family.history.sftp.enabled: false
+      quarkus.application.name: fhhs
+      OTEL_SERVICE_NAME: fhhs
+      OTEL_RESOURCE_ATTRIBUTES: service.name=fhhs,service.version=${ELICIT_TAG:-3.0.0-rc.2},deployment.environment=local
+    healthcheck:
+      <<: *ready
+      start_period: 90s
+    depends_on:
+      db:
+        condition: service_healthy
+      survey:
+        condition: service_healthy
+      # After Admin, not beside it: on a fresh database their first migrations grant on the
+      # same tables and collide with "tuple concurrently updated".
+      admin:
+        condition: service_healthy
+
+  pedigree:
+    image: elicitsoftware/pedigree:${ELICIT_TAG:-3.0.0-rc.2}
+    environment:
+      ELICIT_SERVICE_TOKEN: ${ELICIT_SERVICE_TOKEN:-elicit-dev-service-token-not-for-a-real-site}
+
+  # Author's respondent preview: a second Survey on the `author` database.
+  author-survey:
+    image: elicitsoftware/survey:${ELICIT_TAG:-3.0.0-rc.2}
+    ports:
+      - 8085:8080
+    environment:
+      <<: *otel
+      ELICIT_SERVICE_TOKEN: ${ELICIT_SERVICE_TOKEN:-elicit-dev-service-token-not-for-a-real-site}
+      TZ: America/Detroit
+      accessCode.autoRegister: true
+      elicit.etl.enabled: "false"
+      elicit.etl.drop.enabled: "true"
+      ELICIT_DB_PASSWORD: SURVEYPW
+      ELICIT_OWNER_DB_PASSWORD: SURVEYPW
+      quarkus.datasource.jdbc.url: jdbc:postgresql://db:5432/author?connectTimeout=30&socketTimeout=600&tcpKeepAlive=true&tcpKeepAlivesIdle=60
+      quarkus.datasource.owner.jdbc.url: jdbc:postgresql://db:5432/author?connectTimeout=30&socketTimeout=600&tcpKeepAlive=true&tcpKeepAlivesIdle=60
+      quarkus.application.name: author-survey
+      OTEL_SERVICE_NAME: author-survey
+      OTEL_RESOURCE_ATTRIBUTES: service.name=author-survey,service.version=${ELICIT_TAG:-3.0.0-rc.2},deployment.environment=local
+    healthcheck: *ready
+    depends_on:
+      db:
+        condition: service_healthy
+
+  author:
+    image: elicitsoftware/author:${ELICIT_TAG:-3.0.0-rc.2}
+    ports:
+      - 8084:8080
+    environment:
+      <<: *otel
+      ELICIT_SERVICE_TOKEN: ${ELICIT_SERVICE_TOKEN:-elicit-dev-service-token-not-for-a-real-site}
+      TZ: America/Detroit
+      author.preview.survey.url: http://author-survey:8080
+      author.preview.survey.public-url: http://localhost:8085
+      quarkus.datasource.jdbc.url: jdbc:postgresql://db:5432/author?connectTimeout=30&socketTimeout=600&tcpKeepAlive=true&tcpKeepAlivesIdle=60
+      ELICIT_DB_PASSWORD: SURVEYPW
+      OIDC_CLIENT_SECRET: secret
+      # The OIDC URL stays at the image default, http://host.docker.internal:8180/realms/elicit/,
+      # which both the container and the browser (through Docker Desktop) can reach.
+      quarkus.application.name: author
+      OTEL_SERVICE_NAME: author
+      OTEL_RESOURCE_ATTRIBUTES: service.name=author,service.version=${ELICIT_TAG:-3.0.0-rc.2},deployment.environment=local
+    healthcheck: *ready
+    depends_on:
+      db:
+        condition: service_healthy
+      author-survey:
+        condition: service_healthy
+      keycloak:
+        condition: service_started
+
+  db:
+    image: elicitsoftware/elicit_db:${ELICIT_TAG:-3.0.0-rc.2}
+    environment:
+      TZ: America/Detroit
+      POSTGRES_USER: survey
+      POSTGRES_PASSWORD: admin
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    configs:
+      # Runs only when the cluster is first initialized (an empty `pgdata` volume).
+      - source: create-author-database
+        target: /docker-entrypoint-initdb.d/V0.0.4__CREATE_AUTHOR_DATABASE.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U survey && psql -U survey -d survey -c 'SELECT 1;'"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 60s
+
+  keycloak:
+    # The Elicit realm built in (keycloak/Dockerfile in the umbrella repository).
+    image: elicitsoftware/elicit_keycloak:${ELICIT_TAG:-3.0.0-rc.2}
+    ports:
+      - 8180:8080
+    environment:
+      TZ: America/Detroit
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+
+  mailpit:
+    image: axllent/mailpit:v1.34.0
+    ports:
+      - 8025:8025
+      - 1025:1025
+    environment:
+      TZ: America/Detroit
+      MP_MAX_MESSAGES: 5000
+      MP_DATABASE: /data/mailpit.db
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+    volumes:
+      - mailpit-data:/data
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.53
+    ports:
+      - 16686:16686  # Jaeger UI
+      - 4317:4317    # OTLP gRPC receiver
+      - 4318:4318    # OTLP HTTP receiver
+    environment:
+      TZ: America/Detroit
+      COLLECTOR_OTLP_ENABLED: "true"
+
+volumes:
+  pgdata:
+  mailpit-data:
+
+configs:
+  # A copy of db-init/V0.0.4__CREATE_AUTHOR_DATABASE.sql, inline so this file stands alone.
+  # Keep the two identical. When elicit_db carries the script itself, remove this copy in the
+  # same release: the image would run both, and the second CREATE DATABASE stops the
+  # initialization.
+  create-author-database:
+    content: |
+      CREATE DATABASE author;
+      GRANT CONNECT ON DATABASE author TO dbowner;
+      GRANT CREATE ON DATABASE author TO dbowner;
+      GRANT CONNECT ON DATABASE author TO dbuser;
+      \c author
+
+      GRANT USAGE, CREATE ON SCHEMA public TO dbowner;
+      GRANT USAGE ON SCHEMA public TO dbuser;
+
+      CREATE SCHEMA survey AUTHORIZATION elicit_owner;
+      GRANT USAGE ON SCHEMA survey TO survey_user;
+      GRANT USAGE ON SCHEMA survey TO surveyadmin_user;
+      GRANT USAGE ON SCHEMA survey TO surveyreport_user;
+
+      CREATE SCHEMA surveyreport AUTHORIZATION elicit_owner;
+      GRANT USAGE ON SCHEMA surveyreport TO surveyreport_user;
+      GRANT USAGE ON SCHEMA surveyreport TO surveyadmin_user;
+      GRANT USAGE ON SCHEMA surveyreport TO survey_user;
+
+      GRANT USAGE, CREATE ON SCHEMA surveyreport TO dbowner;
+      GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA surveyreport TO dbowner;
+      ALTER DEFAULT PRIVILEGES IN SCHEMA surveyreport GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO dbowner;
+      GRANT USAGE ON ALL SEQUENCES IN SCHEMA surveyreport TO dbowner;
+      ALTER DEFAULT PRIVILEGES IN SCHEMA surveyreport GRANT USAGE ON SEQUENCES TO dbowner;

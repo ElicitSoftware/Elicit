@@ -181,7 +181,7 @@ services:
     ports:
       - 8033:8080
   db:
-    image: elicitsoftware/elicit_db:3.0.0-rc.1
+    image: elicitsoftware/elicit_db:3.0.0-rc.2
     networks:
       default:
         aliases:

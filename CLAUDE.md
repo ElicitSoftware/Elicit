@@ -87,9 +87,11 @@ second Survey on the `author` database, Author's respondent preview). Supporting
 `elicitsoftware/<name>:latest`, and the compose file pulls every application image
 at one tag, `${ELICIT_TAG:-latest}`, so `ELICIT_TAG=3.0.0-rc.1 docker compose up -d` (or a
 `.env` line, ignored by git) runs a published release as a matched set. `elicit_db` is not on
-the tag: every compose file names its version, `3.0.0-rc.1`, the first whose schema owner
-(`elicit_owner`) and owner group (`dbowner`) are not superusers (umbrella C-020). The image's
-source is the `ElicitSoftware/PostgreSQL` repository, which is not cloned here. A `PGDATA`
+the tag (its `latest` predates 1.0.0): every compose file names its version, `3.0.0-rc.2`.
+3.0.0-rc.1 was the first whose schema owner (`elicit_owner`) and owner group (`dbowner`) are not
+superusers (umbrella C-020). The image's source is the `ElicitSoftware/PostgreSQL` repository,
+which is not cloned here and is tagged at every platform release, so its `v*` tag publishes
+`elicit_db` under the platform's version. A `PGDATA`
 initialized by version 1.0.0 keeps its superuser roles until the three statements in
 `DeploymentScript.md` are run; `resetDatabase.sh V2` runs them on the V2 copy, and `fullTest.sh`
 fails a run whose schema owner is a superuser.
@@ -429,7 +431,9 @@ use-case IDs are unrelated to these.
   from `maven.yml`, Pedigree builds its image and smoke-tests `/healthz` and `/svg`, and the
   umbrella runs `checkLanguages.sh`, `checkBrand.sh`, `check-properties.sh`, `docker compose config` and the
   manual build against fresh clones of Survey, Admin, FHHS and Author at the branch or tag the
-  run targets (or, on a manual FHHS run, the dispatched branch).
+  run targets (or, on a manual FHHS run, the dispatched branch). The umbrella's `release.yml`
+  publishes `elicitsoftware/elicit_keycloak` (the `keycloak/` Dockerfile, the realm built in, for
+  `docker-compose.standalone.yml`) on a `v*` tag, or by hand for an existing tag.
 - CI runs on every pull request into `main` (or the frozen `V3`), every push to one and every
   release tag (`v*`).
 
