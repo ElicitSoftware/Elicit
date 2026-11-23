@@ -1,8 +1,10 @@
 #!/bin/bash
 #
-# Clone the five module repositories into this directory, beside the compose file, so the build
-# and test scripts run from the root of the repository. All five are public, so they are cloned
-# over HTTPS; pass --ssh to clone over SSH instead (for pushing with an SSH key).
+# Clone the five module repositories and the elicit_db image's source into this directory, beside
+# the compose file, so the build and test scripts run from the root of the repository. All six are
+# public, so they are cloned over HTTPS; pass --ssh to clone over SSH instead (for pushing with an
+# SSH key). PostgreSQL is cloned as elicit_db/, after the image it builds: a PostgreSQL/ beside
+# postgresql/ (the local PGDATA volume) is the same directory on a case-insensitive filesystem.
 #
 #   ./cloneAllProjects.sh          https://github.com/ElicitSoftware/<module>.git
 #   ./cloneAllProjects.sh --ssh    git@github.com:ElicitSoftware/<module>.git
@@ -18,3 +20,4 @@ fi
 for module in Admin Author FHHS Pedigree Survey; do
   git clone "$base/$module.git" "$module"
 done
+git clone "$base/PostgreSQL.git" elicit_db

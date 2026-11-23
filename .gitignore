@@ -5,9 +5,10 @@
 /Survey
 /PREMM5
 /Pedigree
+# ElicitSoftware/PostgreSQL, the elicit_db image's source (cloneAllProjects.sh).
+/elicit_db
 # Per-issue git worktrees of a module clone, e.g. Author-22 for Author#22.
 /Author-*
-/Postgr
 /Prometheus/data
 /keycloak/db
 /keycloak/elicit-realm-export.json
