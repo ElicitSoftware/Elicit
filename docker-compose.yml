@@ -33,11 +33,11 @@
 # so a site runs a matched set and never mixes releases. It defaults to the release this file comes with, never
 # `latest`. To run another release, set the tag for one command
 #
-#   ELICIT_TAG=3.0.0-rc.1 docker compose up -d
+#   ELICIT_TAG=3.0.0-rc.2 docker compose up -d
 #
 # or once, in a `.env` file beside this one (ignored by git):
 #
-#   ELICIT_TAG=3.0.0-rc.1
+#   ELICIT_TAG=3.0.0-rc.2
 #
 # Development: the local builds (buildDockerImages.sh) are tagged `latest`, so a developer's
 # `.env` holds ELICIT_TAG=latest; fullTest.sh sets it itself. Build before the first start:
