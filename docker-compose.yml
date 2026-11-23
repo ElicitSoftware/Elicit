@@ -50,7 +50,7 @@
 # published and not for a real site; a value of your own (openssl rand -hex 32, at least 32
 # characters) replaces it for every service at once.
 #
-# A pre-release (3.0.0-beta.1, 3.0.0-rc.1) is published under its exact version only; `latest`
+# A pre-release (3.0.0-rc.2) is published under its exact version only; `latest`
 # and `3.0` move only when a final version ships, so a pre-release is reachable only by naming it.
 # The database and identity provider images are released with every platform version from
 # 3.0.0-rc.2 on; an earlier ELICIT_TAG has neither.

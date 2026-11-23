@@ -192,7 +192,7 @@ start after an upgrade; the first start is already healthy, and nothing needs do
 ### Upgrading to a schema owner that is not a superuser
 
 From 3.0.0 no database role Elicit prescribes is a superuser. The role script in the installation
-manual and `elicitsoftware/elicit_db:3.0.0-rc.1` create the schema owner
+manual and `elicitsoftware/elicit_db:3.0.0-rc.2` create the schema owner
 (`elicit_owner`) and the owner group (`dbowner`) without the attribute, and make `elicit_owner` a
 member of `dbowner`, which holds `CREATE` on the database for the per-survey reporting schemas.
 

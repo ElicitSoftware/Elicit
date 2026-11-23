@@ -115,7 +115,7 @@ multi-site suites' compose files mount both themselves.
 
 The multi-site suites' compose files put the same images on `ELICIT_TAG` but default to
 `latest`: a suite tests the local builds, and its stacks do not read the umbrella's `.env`.
-3.0.0-rc.1 was the first whose schema owner (`elicit_owner`) and owner group (`dbowner`) are not
+3.0.0-rc.2 is the first whose schema owner (`elicit_owner`) and owner group (`dbowner`) are not
 superusers (umbrella C-020). The image's source is the `ElicitSoftware/PostgreSQL` repository,
 cloned here as `elicit_db/` and tagged at every platform release, so its `v*` tag publishes
 `elicit_db` under the platform's version. A database
