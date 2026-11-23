@@ -1,0 +1,5 @@
+# Allowlist: only the realm reaches the build context. certs/, db/ and the exports
+# exportRealm.sh writes (accounts and keys included) must never end up in an image.
+*
+!Dockerfile
+!elicit-realm.json
