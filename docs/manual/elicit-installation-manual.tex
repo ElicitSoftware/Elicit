@@ -375,7 +375,7 @@ them is created by a module's migrations the first time it starts.
 
 \begin{elicitnote}[The bundled database image does all of this for you]
 \file{elicitsoftware/elicit_db} runs the role script and the schema script when its data
-directory is first initialized. The compose file runs the image at the same release as the applications; 3.0.0-rc.1 was the first
+directory is first initialized. The compose file runs the image at the same release as the applications; 3.0.0-rc.2 is the first
 whose roles are the ones above. An initialization script runs \emph{only} against an empty
 data directory, so a cluster that already exists is yours to prepare with the two scripts
 above. The image's scripts carry the documented development passwords listed in
@@ -988,7 +988,7 @@ on the command line (\val{ELICIT_TAG=3.0.0-rc.2 docker compose up -d}) or once, 
 ELICIT_TAG=3.0.0-rc.2
 \end{elicitcmd}
 
-A pre-release (\val{3.0.0-beta.1}, \val{3.0.0-rc.1}) is published under its exact version
+A pre-release (\val{3.0.0-rc.2}) is published under its exact version
 only; \val{latest} and the \val{3.0} tag move only when a final version ships. A developer
 sets \val{ELICIT_TAG=latest} there, which is what a local build produces. The same file is where an
 evaluation sets \opt{ELICIT_SERVICE_TOKEN}, to run the stack with a service token of its own
