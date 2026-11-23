@@ -172,8 +172,9 @@ and two are ready to apply:
 6. **Design a survey** in Author at http://localhost:8084: build steps, sections, questions and
    rules, preview them as a respondent would, and export a `.elicit` file for step 2.
 
-`docker compose -f docker-compose.standalone.yml down` stops the stack and keeps its data. To
-start over with an empty database, add `-v`, which deletes the data, and bring the stack up again.
+`docker compose -f docker-compose.standalone.yml down` stops the stack and keeps its data. The
+exception is Keycloak, which returns to its built-in accounts. To start over with an empty
+database, add `-v`, which deletes the data, and bring the stack up again.
 
 <!-- GOING FURTHER -->
 ## Going Further

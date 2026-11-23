@@ -3,11 +3,12 @@
 # C-018): the realm carries the published client secret and the seeded `admin` and `user`
 # accounts. Development keeps mounting keycloak/ in docker-compose.yml.
 #
-#   docker buildx build --platform linux/amd64,linux/arm64 \
-#     -t elicitsoftware/elicit_keycloak:<version> --push keycloak/
+# Published by .github/workflows/release.yml on each release tag, under the platform's version
+# (the same number as every other Elicit image), after keycloak/smoke.sh passes. To try a
+# change locally:
 #
-# <version> is the platform's: the image is released under the same number as every other
-# Elicit image.
+#   docker build -t elicitsoftware/elicit_keycloak:candidate keycloak/
+#   keycloak/smoke.sh elicitsoftware/elicit_keycloak:candidate
 #
 # The realm is imported on first start; a realm that already exists is left alone.
 FROM quay.io/keycloak/keycloak:26.2.3

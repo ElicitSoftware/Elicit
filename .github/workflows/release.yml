@@ -1,0 +1,125 @@
+# Release workflow: builds elicitsoftware/elicit_keycloak (keycloak/Dockerfile, the development
+# Keycloak with the Elicit realm built in, which docker-compose.standalone.yml runs) for
+# linux/amd64 and linux/arm64 and pushes it to Docker Hub when a version tag (v3.0.0,
+# v3.0.0-rc.2) is pushed. The image is released under the platform's version, the same number
+# as every other Elicit image (umbrella C-018).
+#
+# Before anything is pushed, the image is built for the runner's platform and smoke-tested with
+# keycloak/smoke.sh (the realm is served and has the clients Admin and Author sign in through);
+# the multi-arch build then reuses its layers. The arm64 half is built under QEMU and is not run.
+#
+# A manual run publishes a release that was tagged before this workflow existed, or publishes
+# one again. Run it from main with the version (3.0.0-rc.2); it fails unless the tag
+# v<version> exists and keycloak/ (the Dockerfile aside) is the same there as on main, so
+# the image holds exactly the realm that release shipped.
+#
+# elicit_db is not built here: ElicitSoftware/PostgreSQL publishes it from its own v* tag, so
+# that repository is tagged with each release too.
+#
+# Actions are pinned to a commit, with the version it belongs to beside it; move both together.
+
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Release to publish, without the v (3.0.0-rc.2). The tag v<version> must exist.
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  keycloak:
+    name: Build and push elicit_keycloak
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # The version comes from the tag that was pushed, or from the manual run's input. The input
+      # reaches the shell only through the environment, never spliced into the script.
+      - name: Resolve the version
+        id: version
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = push ]; then
+            version=${GITHUB_REF_NAME#v}
+          else
+            version=$INPUT_VERSION
+          fi
+          if ! [[ $version =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$ ]]; then
+            echo "::error::'$version' is not a release version (3.0.0, 3.0.0-rc.2)"
+            exit 1
+          fi
+          if [ "$GITHUB_EVENT_NAME" != push ]; then
+            git fetch --quiet --depth=1 origin "refs/tags/v$version:refs/tags/v$version" ||
+              { echo "::error::tag v$version does not exist"; exit 1; }
+            if ! git diff --quiet "v$version" HEAD -- keycloak ':!keycloak/Dockerfile' ':!keycloak/.dockerignore' ':!keycloak/smoke.sh'; then
+              echo "::error::keycloak/ differs from v$version; the image would not be that release's realm"
+              exit 1
+            fi
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+
+      # As in the modules: a pre-release (3.0.0-rc.2) is pushed under its exact version only;
+      # :<major.minor> and :latest move only for a final version. The git tag itself
+      # (:v3.0.0-rc.2) is not pushed.
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
+        with:
+          images: elicitsoftware/elicit_keycloak
+          tags: |
+            type=raw,value=latest,enable=${{ !contains(steps.version.outputs.version, '-') }}
+            type=semver,pattern={{version}},value=${{ steps.version.outputs.version }}
+            type=semver,pattern={{major}}.{{minor}},value=${{ steps.version.outputs.version }}
+          flavor: |
+            latest=false
+
+      # Single platform and loaded into the runner's Docker, so it can be run. Its layers go to
+      # the cache the multi-platform build below reads.
+      - name: Build the candidate image
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: keycloak
+          load: true
+          tags: elicitsoftware/elicit_keycloak:candidate
+          cache-from: type=gha,scope=elicit_keycloak
+          cache-to: type=gha,mode=max,scope=elicit_keycloak
+
+      - name: Smoke-test the candidate
+        run: keycloak/smoke.sh elicitsoftware/elicit_keycloak:candidate
+
+      # Logged in only for the push that needs it.
+      - name: Login to DockerHub
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push the multi-platform image
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: keycloak
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=elicit_keycloak
+          cache-to: type=gha,mode=max,scope=elicit_keycloak
