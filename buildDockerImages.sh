@@ -52,6 +52,9 @@
 # checkBrand.sh runs next: the default brand each of Survey, Admin and Author embeds is the same
 # files as elicit-brand/, and docs/manual/elicit-brand.sty carries the same palette.
 #
+# checkLicense.sh runs third: every repository names Elicit Software LLC as copyright holder, in
+# its LICENSE file, its header plugin and every file header.
+#
 # Keycloak is not a module either: it is elicitsoftware/elicit_keycloak, the development and
 # evaluation identity provider with keycloak/elicit-realm.json built in, which
 # docker-compose.yml runs. keycloak/buildDockerImage.sh builds it as `latest` and smoke-tests
@@ -129,6 +132,14 @@ fi
 # languages, before anything is built.
 if ! ./checkBrand.sh; then
     echo "Refusing to build: the brand check failed (see above)." >&2
+    exit 1
+fi
+
+# Every repository names the same copyright holder and license (C-014), and the University is
+# credited in the LICENSE files only. Seven repositories state it in five kinds of place; a
+# pasted header or an edited LICENSE would ship unnoticed.
+if ! ./checkLicense.sh; then
+    echo "Refusing to build: the license check failed (see above)." >&2
     exit 1
 fi
 

@@ -22,7 +22,7 @@
     <img src="https://github.com/ElicitSoftware/Elicit/blob/main/images/stacked.png" alt="Logo" width="15%" >
   </a>
 <h3 align="center">Elicit Software</h3>
-  <p>Copyright © 2025–2026 The Regents of the University of Michigan</p>
+  <p>Copyright © 2025-2026 Elicit Software LLC</p>
 </div>
 <!-- TABLE OF CONTENTS -->
 <details>
@@ -65,7 +65,7 @@
     <li><a href="https://github.com/ElicitSoftware/FHHS/">Family Health History Survey (FHHS)</a><br/>
       <ul>
        <li>A fully functioning Elicit Survey created to support the <a href="https://info.mightstudy.org/">Michigan Genetic Hereditary Testing Study</a>.</li>
-       <li>The FHHS has been shared under an open source license for all cancer oncology practices to use and adapt.</li>
+       <li>The FHHS is shared, source available, under the PolyForm Noncommercial license for all cancer oncology practices to use and adapt.</li>
       </ul>
     </li>
     <li><a href="https://github.com/ElicitSoftware/Pedigree/">Pedigree</a><br/>
@@ -254,7 +254,7 @@ Don't forget to give the project a star! Thanks again!
 <!-- LICENSE -->
 ## License
 
-Distributed under the PolyForm Noncommercial License 1.0.0. See `LICENSE.MD` for more information.
+Distributed under the PolyForm Noncommercial License 1.0.0. See [`LICENSE.MD`](LICENSE.MD) for more information.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -276,7 +276,6 @@ To report a security vulnerability, privately, see [SECURITY.md](SECURITY.md).
 <!-- ACKNOWLEDGMENTS -->
 ## Acknowledgments
 
-<!-- <a href="https://www.michiganmedicine.org"><img src="https://github.com/ElicitSoftware/Elicit/blob/main/images/Rogel-Cancer_Logo-Horizontal-CMYK.png" height="30"></a><br/> -->
 <br/>
 <a href="https://info.mightstudy.org"><img src="https://github.com/ElicitSoftware/Elicit/blob/main/images/MiGHT-shortlogo.png" height="50"></a><br/>
 <br/>
@@ -294,7 +293,7 @@ To report a security vulnerability, privately, see [SECURITY.md](SECURITY.md).
 [issues-shield]: https://img.shields.io/github/issues/ElicitSoftware/Elicit.svg?style=for-the-badge
 [issues-url]: https://github.com/ElicitSoftware/Elicit/issues
 [license-shield]: https://img.shields.io/github/license/ElicitSoftware/Elicit.svg?style=for-the-badge
-[license-url]: https://github.com/ElicitSoftware/Elicit/blob/master/LICENSE.txt
+[license-url]: LICENSE.MD
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url]: https://linkedin.com/in/linkedin_username
 [product-screenshot]: images/screenshot.png
