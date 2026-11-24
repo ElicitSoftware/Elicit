@@ -19,3 +19,6 @@ TEMP.sql
 .idea/
 .DS_Store
 .vscode
+/e2e-tests/
+/e2e_multisite/
+/e2e_multisite_multilingual/
