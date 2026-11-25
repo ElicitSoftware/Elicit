@@ -7,6 +7,8 @@
 #                                   content in exactly those
 #   checkBrand.sh                   Survey, Admin and Author embed elicit-brand/ unchanged, and
 #                                   the manuals' style package carries its palette (NFR-015)
+#   checkLicense.sh                 every repository names Elicit Software LLC as copyright
+#                                   holder, in its LICENSE file and every file header (C-014)
 #   docs/manual/check-properties.sh the configuration reference matches the modules'
 #                                   @ConfigProperty declarations and defaults (NFR-004/005)
 #   docker compose config           the compose file parses and carries the same author
@@ -79,6 +81,9 @@ jobs:
 
       - name: The default brand is one brand
         run: ./checkBrand.sh
+
+      - name: One copyright holder and license in every repository
+        run: ./checkLicense.sh
 
       - name: Configuration reference matches the code
         run: docs/manual/check-properties.sh

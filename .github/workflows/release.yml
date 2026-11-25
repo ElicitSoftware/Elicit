@@ -91,6 +91,10 @@ jobs:
             type=semver,pattern={{major}}.{{minor}},value=${{ steps.version.outputs.version }}
           flavor: |
             latest=false
+          # Stated here, not left to GitHub's detection of the license file.
+          labels: |
+            org.opencontainers.image.licenses=PolyForm-Noncommercial-1.0.0
+            org.opencontainers.image.vendor=Elicit Software LLC
 
       # Single platform and loaded into the runner's Docker, so it can be run. Its layers go to
       # the cache the multi-platform build below reads.

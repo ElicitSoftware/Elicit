@@ -274,6 +274,14 @@ volume does not have it.
   `docs/manual/elicit-brand.sty` defines is a color of `colors/brand-colors.css` with the same
   value. `--sync` copies `elicit-brand/` into the modules first; the `.sty` is edited by hand. Run
   by `buildDockerImages.sh` after `checkLanguages.sh`.
+- `checkLicense.sh` — one copyright holder and license everywhere (umbrella C-014): `LICENSE.MD`
+  in Survey, Admin, FHHS, Author and `elicit_db` is the umbrella's file (PolyForm Noncommercial
+  1.0.0, Elicit Software LLC, and the note that portions were contributed by the University of
+  Michigan); Pedigree's `LICENSE.md` is MIT with the same holder and note; each Java module's
+  header plugin writes `Copyright (C) 2025 - <year> Elicit Software LLC` and every existing header
+  reads so, the Flyway migrations included. The University is named in the LICENSE files and
+  nowhere else. Never paste or edit a header; the build writes it. Run by `buildDockerImages.sh`
+  after `checkBrand.sh`.
 - `buildDockerImages.sh [Target ...]` — build the module images in parallel
   (all five by default, or just the named ones), one log per target under
   `build-logs/`, with a summary and a non-zero exit if any build failed. The

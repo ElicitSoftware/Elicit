@@ -317,6 +317,11 @@ spans Survey, Admin and FHHS, so upgrade all three from the same release.
 - **Admin edits two applied migrations.** `V0.0.1` and `V0.0.7` now select `r.access_code`, so a
   fresh database can create the `survey.status` view. `quarkus.flyway.owner.repair-at-start=true`
   rewrites their recorded checksums on existing databases; no manual `flyway repair` is needed.
+- **Every migration's copyright header changed in 3.0.0** (Elicit Software LLC), and a header is
+  part of a migration's checksum. The first start rewrites the recorded checksums: Admin through
+  `repair-at-start`, Survey and FHHS through `ManualSchemaMigrator`, which repairs against
+  `db/migration-v3` before the upgrade and against `db/migration` after it. No manual
+  `flyway repair` is needed.
 - **Configuration key:** `token.autoRegister` is now `accessCode.autoRegister`. Rename it in any
   environment that sets it; the old key is ignored.
 - **Email templates:** the placeholder `<TOKEN>` is now `<ACCESS_CODE>`. Admin's `V0.0.18`
